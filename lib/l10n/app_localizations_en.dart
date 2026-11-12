@@ -7763,4 +7763,51 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get logoOrgPratinjauGagal => 'The logo image could not be shown.';
+
+  @override
+  String get jlJudul => 'Sheet type';
+
+  @override
+  String jlKodeTerbaca(String kode) {
+    return 'Form code read: $kode';
+  }
+
+  @override
+  String get jlKodeTidakTerbaca =>
+      'The form code was not readable. Choose the sheet type yourself.';
+
+  @override
+  String jlKodeTakDikenal(String kode) {
+    return 'This form code ($kode) is not in the sheet list. Choose the sheet type yourself.';
+  }
+
+  @override
+  String jlBeberapaKode(String kode) {
+    return 'Several form codes were read ($kode). Choose the sheet type yourself.';
+  }
+
+  @override
+  String get jlBeberapaJenis =>
+      'This code is used by several sheet types. Pick the one that matches your instrument.';
+
+  @override
+  String get jlSatuJenis =>
+      'Suggested sheet type. Change it if it is not right.';
+
+  @override
+  String get jlDariJudul =>
+      'Suggested from the printed title only (the code was not read). Check it.';
+
+  @override
+  String get jlPilihManual => 'Choose sheet type manually';
+
+  @override
+  String get jlPakai => 'Use this sheet type';
+
+  @override
+  String get jlCatatan =>
+      'This is only a hint. You decide the sheet type; nothing is filled in until you confirm.';
+
+  @override
+  String get jlDaftarManual => 'All sheet types';
 }

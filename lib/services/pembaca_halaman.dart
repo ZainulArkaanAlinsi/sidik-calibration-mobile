@@ -7,6 +7,7 @@ import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart
 import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 
+import 'foto_untuk_ocr.dart' show pastikanBukanSalinanArsip;
 import 'modul_pembaca_teks.dart';
 
 /// Satu potongan teks hasil OCR berikut kotaknya di citra.
@@ -192,6 +193,9 @@ class MlKitPembacaHalaman implements PembacaHalaman {
 
   @override
   Future<List<TeksTerbaca>> baca(img.Image citra, {FotoAsli? asli}) async {
+    // Kunci: hasil kompresi (salinan arsip) tidak boleh dibaca OCR.
+    pastikanBukanSalinanArsip(citra: citra, jpeg: asli?.jpeg);
+
     // JPEG ASLI dulu (M01): ML Kit men-decode sendiri JPEG kamera dengan
     // resolusi penuh, tanpa encode ulang PNG sehalaman yang makan detik.
     final jpeg = asli != null && _jpegLangsung ? jpegUntukMlKit(asli) : null;

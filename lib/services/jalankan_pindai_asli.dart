@@ -8,6 +8,7 @@ import 'package:image/image.dart' as img;
 import '../models/worksheet_template.dart';
 import 'jalankan_pindai.dart' show AmbangMutu, GagalPindai;
 import 'baca_paralel.dart';
+import 'foto_untuk_ocr.dart';
 import 'modul_pembaca_teks.dart';
 import 'pembaca_halaman.dart';
 import 'pembaca_sel.dart' show BacaanSel, PembacaSel;
@@ -164,15 +165,27 @@ class JalankanPindaiAsli {
   /// angka yang sama dengan `ocr.geometri.jangkar_teks.jumlah_min` server.
   static const jangkarMin = 8;
 
+  /// Pintu bertipe: hanya [FotoAsliKamera] / [FotoHasilWarp] — keluaran
+  /// kompresi ([SalinanArsip]) bukan [FotoUntukOcr], jadi tidak lolos
+  /// kompilasi. Perilakunya sama persis dengan [baca].
+  Future<HasilBacaAsli> bacaFoto(
+    FotoUntukOcr foto, {
+    required WorksheetTemplate template,
+  }) => baca(foto.citra, template: template, jpegAsli: foto.jpegAsli);
+
   /// [jpegAsli] = bita JPEG kamera yang di-decode jadi [foto] (sebelum EXIF
   /// dipanggang). Kalau ada, ML Kit sehalaman membaca JPEG itu langsung —
   /// tanpa encode ulang ke PNG dan tanpa menurunkan resolusi. `null` (test,
   /// sumber non-JPEG) = jalur PNG lama.
+  @visibleForTesting
   Future<HasilBacaAsli> baca(
     img.Image foto, {
     required WorksheetTemplate template,
     Uint8List? jpegAsli,
   }) async {
+    // Kunci: hasil kompresi (salinan arsip) tidak boleh dibaca OCR.
+    pastikanBukanSalinanArsip(citra: foto, jpeg: jpegAsli);
+
     if (!template.bolehDipindaiAsli) {
       throw const PindaiAsliGagal(GagalPindaiAsli.belumSiap);
     }

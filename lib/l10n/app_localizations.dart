@@ -13441,6 +13441,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The logo image could not be shown.'**
   String get logoOrgPratinjauGagal;
+
+  /// No description provided for @jlJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Sheet type'**
+  String get jlJudul;
+
+  /// No description provided for @jlKodeTerbaca.
+  ///
+  /// In en, this message translates to:
+  /// **'Form code read: {kode}'**
+  String jlKodeTerbaca(String kode);
+
+  /// No description provided for @jlKodeTidakTerbaca.
+  ///
+  /// In en, this message translates to:
+  /// **'The form code was not readable. Choose the sheet type yourself.'**
+  String get jlKodeTidakTerbaca;
+
+  /// No description provided for @jlKodeTakDikenal.
+  ///
+  /// In en, this message translates to:
+  /// **'This form code ({kode}) is not in the sheet list. Choose the sheet type yourself.'**
+  String jlKodeTakDikenal(String kode);
+
+  /// No description provided for @jlBeberapaKode.
+  ///
+  /// In en, this message translates to:
+  /// **'Several form codes were read ({kode}). Choose the sheet type yourself.'**
+  String jlBeberapaKode(String kode);
+
+  /// No description provided for @jlBeberapaJenis.
+  ///
+  /// In en, this message translates to:
+  /// **'This code is used by several sheet types. Pick the one that matches your instrument.'**
+  String get jlBeberapaJenis;
+
+  /// No description provided for @jlSatuJenis.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested sheet type. Change it if it is not right.'**
+  String get jlSatuJenis;
+
+  /// No description provided for @jlDariJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested from the printed title only (the code was not read). Check it.'**
+  String get jlDariJudul;
+
+  /// No description provided for @jlPilihManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose sheet type manually'**
+  String get jlPilihManual;
+
+  /// No description provided for @jlPakai.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this sheet type'**
+  String get jlPakai;
+
+  /// No description provided for @jlCatatan.
+  ///
+  /// In en, this message translates to:
+  /// **'This is only a hint. You decide the sheet type; nothing is filled in until you confirm.'**
+  String get jlCatatan;
+
+  /// No description provided for @jlDaftarManual.
+  ///
+  /// In en, this message translates to:
+  /// **'All sheet types'**
+  String get jlDaftarManual;
 }
 
 class _AppLocalizationsDelegate

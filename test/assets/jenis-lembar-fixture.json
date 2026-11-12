@@ -1,0 +1,406 @@
+{
+ "dikenal": [
+  {
+   "template_id": "anak_timbangan",
+   "kode_dokumen": "SIDIK-FM-CAL-0541_Rev.0",
+   "judul": "Calibration Worksheet - Anak Timbangan"
+  },
+  {
+   "template_id": "autoclave",
+   "kode_dokumen": "SIDIK-FM-CAL-0539_Rev.4",
+   "judul": "Calibration Worksheet - Autoclave"
+  },
+  {
+   "template_id": "bath",
+   "kode_dokumen": "SIDIK-FM-CAL-0504_Rev.3",
+   "judul": "Calibration Worksheet - Bath"
+  },
+  {
+   "template_id": "furnace",
+   "kode_dokumen": "SIDIK-FM-CAL-0504_Rev.3",
+   "judul": "Calibration Worksheet - Furnace"
+  },
+  {
+   "template_id": "inkubator",
+   "kode_dokumen": "SIDIK-FM-CAL-0504_Rev.3",
+   "judul": "Calibration Worksheet - Inkubator"
+  },
+  {
+   "template_id": "oven",
+   "kode_dokumen": "SIDIK-FM-CAL-0504_Rev.3",
+   "judul": "Calibration Worksheet - Oven"
+  },
+  {
+   "template_id": "refrigerator",
+   "kode_dokumen": "SIDIK-FM-CAL-0504_Rev.3",
+   "judul": "Calibration Worksheet - Refrigerator"
+  },
+  {
+   "template_id": "buret",
+   "kode_dokumen": "SIDIK-FM-CAL-0514_Rev.4",
+   "judul": "Calibration Worksheet - Buret"
+  },
+  {
+   "template_id": "gelas_ukur",
+   "kode_dokumen": "SIDIK-FM-CAL-0514_Rev.4",
+   "judul": "Calibration Worksheet - Gelas Ukur"
+  },
+  {
+   "template_id": "pipet_ukur",
+   "kode_dokumen": "SIDIK-FM-CAL-0514_Rev.4",
+   "judul": "Calibration Worksheet - Pipet Ukur"
+  },
+  {
+   "template_id": "buret_digital",
+   "kode_dokumen": "SIDIK-FM-CAL-0529_Rev.3",
+   "judul": "Calibration Worksheet - Buret Digital"
+  },
+  {
+   "template_id": "dispensett",
+   "kode_dokumen": "SIDIK-FM-CAL-0529_Rev.3",
+   "judul": "Calibration Worksheet - Dispensett"
+  },
+  {
+   "template_id": "piston_pipette",
+   "kode_dokumen": "SIDIK-FM-CAL-0529_Rev.3",
+   "judul": "Calibration Worksheet - Piston Pipette"
+  },
+  {
+   "template_id": "centrifuge",
+   "kode_dokumen": "SIDIK-FM-CAL-0515_Rev.4",
+   "judul": "Calibration Worksheet - Centrifuge"
+  },
+  {
+   "template_id": "tachometer",
+   "kode_dokumen": "SIDIK-FM-CAL-0515_Rev.4",
+   "judul": "Calibration Worksheet - Tachometer"
+  },
+  {
+   "template_id": "chlorine_meter",
+   "kode_dokumen": "SIDIK-FM-CAL-0531_Rev.2",
+   "judul": "Calibration Worksheet - Chlorine Meter"
+  },
+  {
+   "template_id": "conductivity_meter",
+   "kode_dokumen": "SIDIK-FM-CAL-0510_Rev.5",
+   "judul": "Calibration Worksheet - Conductivity Meter"
+  },
+  {
+   "template_id": "dial_indicator",
+   "kode_dokumen": "SIDIK-FM-CAL-0526_Rev.3",
+   "judul": "Calibration Worksheet - Dial Indicator"
+  },
+  {
+   "template_id": "differential_pressure",
+   "kode_dokumen": "SIDIK-FM-CAL-0507_Rev.5",
+   "judul": "Calibration Worksheet - Differential Pressure"
+  },
+  {
+   "template_id": "pressure_gauge",
+   "kode_dokumen": "SIDIK-FM-CAL-0507_Rev.5",
+   "judul": "Calibration Worksheet - Pressure Gauge"
+  },
+  {
+   "template_id": "vacuum_gauge",
+   "kode_dokumen": "SIDIK-FM-CAL-0507_Rev.5",
+   "judul": "Calibration Worksheet - Vacuum Gauge"
+  },
+  {
+   "template_id": "do_meter",
+   "kode_dokumen": "SIDIK-FM-CAL-0532_Rev.2",
+   "judul": "Calibration Worksheet - DO Meter"
+  },
+  {
+   "template_id": "flowmeter_flowrate",
+   "kode_dokumen": "SIDIK-FM-CAL-0538.A_Rev.3",
+   "judul": "Calibration Worksheet - Flowmeter Flowrate"
+  },
+  {
+   "template_id": "flowmeter_totalizer",
+   "kode_dokumen": "SIDIK-FM-CAL-0538.B_Rev.3",
+   "judul": "Calibration Worksheet - Flowmeter Totalizer"
+  },
+  {
+   "template_id": "jangka_sorong",
+   "kode_dokumen": "SIDIK-FM-CAL-0527_Rev.2",
+   "judul": "Calibration Worksheet - Jangka Sorong"
+  },
+  {
+   "template_id": "labu_ukur",
+   "kode_dokumen": "SIDIK-FM-CAL-0513_Rev.4",
+   "judul": "Calibration Worksheet - Labu Ukur"
+  },
+  {
+   "template_id": "picnometer",
+   "kode_dokumen": "SIDIK-FM-CAL-0513_Rev.4",
+   "judul": "Calibration Worksheet - Picnometer"
+  },
+  {
+   "template_id": "pipet_volume",
+   "kode_dokumen": "SIDIK-FM-CAL-0513_Rev.4",
+   "judul": "Calibration Worksheet - Pipet Volume"
+  },
+  {
+   "template_id": "load_cell",
+   "kode_dokumen": "SIDIK-FM-CAL-0520_Rev.3",
+   "judul": "Calibration Worksheet - Load Cell"
+  },
+  {
+   "template_id": "ph_meter",
+   "kode_dokumen": "SIDIK-FM-CAL-0509_Rev.4",
+   "judul": "Calibration Worksheet - pH Meter"
+  },
+  {
+   "template_id": "proving_ring",
+   "kode_dokumen": "SIDIK-FM-CAL-0521_Rev.3",
+   "judul": "Calibration Worksheet - Profing Ring"
+  },
+  {
+   "template_id": "refractometer",
+   "kode_dokumen": "SIDIK-FM-CAL-0523_Rev.2",
+   "judul": "Calibration Worksheet - Refractometer"
+  },
+  {
+   "template_id": "sieve",
+   "kode_dokumen": "SIDIK-FM-CAL-0536_Rev.2",
+   "judul": "Calibration Worksheet - Sieve Mesh"
+  },
+  {
+   "template_id": "spectrophotometer",
+   "kode_dokumen": "SIDIK-FM-CAL-0511_Rev.5",
+   "judul": "Calibration Worksheet - UV/VIS Spectrophotometer"
+  },
+  {
+   "template_id": "tids",
+   "kode_dokumen": "SIDIK-FM-CAL-0506_Rev.4",
+   "judul": "Calibration Worksheet - Temperature Indikator With Sensors"
+  },
+  {
+   "template_id": "tits",
+   "kode_dokumen": "SIDIK-FM-CAL-0505_Rev.3",
+   "judul": "Calibration Worksheet - Temperature Indicator Without Sensor"
+  },
+  {
+   "template_id": "turbidimeter",
+   "kode_dokumen": "SIDIK-FM-CAL-0530_Rev.2",
+   "judul": "Calibration Worksheet - Turbidimeter"
+  },
+  {
+   "template_id": "utm",
+   "kode_dokumen": "SIDIK-FM-CAL-0519_Rev.3",
+   "judul": "Calibration Worksheet - Compression Macine (UTM)"
+  },
+  {
+   "template_id": "viscometer",
+   "kode_dokumen": "SIDIK-FM-CAL-0524_Rev.3",
+   "judul": "Calibration Worksheet - Viscometer"
+  }
+ ],
+ "lembar": [
+  {
+   "kode": "SIDIK-FM-CAL-0504",
+   "revisi": "3",
+   "teks": "PT. SIDIK Calibration Work Sheet - Oven/Furnace/Chiller/Water Bath LK-285-IDN\nIdentitas Alat dan Data Customer\nNama Alat : Rentang Ukur : oC Tgl. Diterima :\nMerk : Kapasitas Alat : oC Tgl. Kalibrasi :\nType : Resolusi Alat : oC Thermohygro used : TH-2\nNo. Seri : Lokasi Kalibrasi : TH-6\nSuhu Ruangan : awal akhir oC TH-7\nKelembapan : awal akhir %RH\nNama Customer :\nAlamat Customer :\nStandar used :\nTemperature Calibrator/Constant/40T/99875850 Thermocouple Type-K\nPage 1 of 1 Revise : 3 SIDIK-FM-CAL-0504"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0505",
+   "revisi": "3",
+   "teks": "PT. SIDIK Calibration Work Sheet - Temperature Indicator Without Sensor LK-285-IDN\nIdentitas Alat dan Data Customer\nReceived Date : Name :\nCalibration Date : Merk :\nCalibration Location : Type :\nOwner : Serial Number :\nCapacity : ⁰C\nAddress : Graduation/Resolution : ⁰C\nCalibration Location :\nType Cal. : K T R RTD\nJ N S\nEnvironment Condition : T = ⁰C RH = % Thermohygro used: TH-2\nPage 1 of 1 Revise : 3 SIDIK-FM-CAL-0505"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0506",
+   "revisi": "4",
+   "teks": "PT. SIDIK Calibration Work Sheet - Temperature Indikator With Sensors LK-285-IDN\nIdentitas Alat dan Data Customer\nNama Alat : Rentang Ukur : oC Tgl. Diterima :\nMerk : Kapasitas Alat : oC Tgl. Kalibrasi :\nType : Resolusi Alat : oC Thermohygro Used :\nNo. Seri : Lokasi Kalibrasi : Inlab : TH-4\nSuhu Ruangan : awal akhir oC Insitu : TH-2\nKelembapan : awal akhir %RH TH-6\nNama Customer : TH-7\nAlamat Customer : Dryblock Used : A (Isotech)\nB (Techne)\nStandard used:\nPage 1 of 1 Revise : 4 SIDIK-FM-CAL-0506"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0507",
+   "revisi": "5",
+   "teks": "PT. SIDIK Calibration Worksheet - Pressure & Vacuum Gauge LK-285-IDN\nReceive Date :\nCalibration Date :\nCALIBRATION RESULT\nEQUIPMENT First End Thermohygro used:\nEnvironment Cond. :\n1. Name : oC %RH oC %RH Inlab: Insitu:\n2. Range/Resolution : ( ) TH-4 TH-2\n( ) Standard Pressure Hight (m) : Option of Resolution Display: TH-6\n3. Type/Model : UUT Pressure Hight (m) : Digital TH-7\n4. Serial Number/LPI : Deviation Hight (h) (m) : Analog (rasio jarum/NST) *NST= Nilai Skala\n5. Merk/Manufacture : 1/2 1/5 1/10 Terkecil\nPage 1 of 1 Revise : 5 SIDIK-FM-CAL-0507"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0508.A",
+   "revisi": "4",
+   "teks": "PT. SIDIK Calibration Work Sheet - Timbangan (Metode Subtitusi) LK-285-IDN\nEQUIPMENT IDENTITY AND CUSTOMER DATA\nReceived Date : Calibration Date :\nEQUIPMENT STANDARD\n1. Name : Weight Set E2 100 mf- 200g\n2. Capacity : (….) Weight Set F1 100 mg-500g 10 kg\nSTANDARD\n3. Resolution : (….) Weight F2 1kg 2 kg 5 kg\n4. Nilai e dan kelas : e = ….....( …...) Kelas = ….... (…..) Weight M2 20kg\n5. Type/Model : Calibration Metode : SIDIK-IK-CAL-0505\n6. Serial Number : Calibration Location :\n7. Merk/Manufacturing :\nPage 1 of 1 Revise : 4 SIDIK-FM-CAL-0508.A"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0508",
+   "revisi": "6",
+   "teks": "PT. SIDIK Calibration Work Sheet - Timbangan LK-285-IDN\nEQUIPMENT IDENTITY AND CUSTOMER DATA\nReceived Date : Calibration Date :\nEQUIPMENT STANDARD\n1. Name : Weight Set E2 100 mf- 200g\n2. Capacity : (….) Weight Set F1 100 mg-500g 10 kg\nSTANDARD\n3. Resolution : (….) Weight F2 1kg 2 kg 5 kg\n4. Nilai e dan kelas : e = …..... (…...) Kelas = ….... (…..) Weight M2 20kg\n5. Type/Model : Calibration Metode : SIDIK-IK-CAL-0505\n6. Serial Number : Calibration Location :\n7. Merk/Manufacturing :\nPage 1 of 1 Revise : 6 SIDIK-FM-CAL-0508"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0509",
+   "revisi": "4",
+   "teks": "PT. SIDIK Calibration Worksheet - pH Meter LK-285-IDN\nReceived Date :\nCalibration Date :\nEQUIPMENT IDENTITY AND CUSTOMER DATA CALIBRATION RESULT\nFirst (oC) First (%RH)\nEnv. Condition :\n1. Name : End (oC) End (%RH)\n2. Range/Resolution : pH Before adjustment Reading\nSolution Standard\npH 4.00 7.00 10.01\n3. Type/Model : Repeat pH °C pH °C pH °C\n4. Serial Number/LPI :\nPage 1 of 1 Revise : 4 SIDIK-FM-CAL-0509"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0510",
+   "revisi": "5",
+   "teks": "PT. SIDIK Calibration Worksheet - Conductivity Meter LK-285-IDN\nReceived Date :\nCalibration Date :\nEQUIPMENT IDENTITY AND CUSTOMER DATA CALIBRATION RESULT\nFirst (oC) First (%RH)\nEnv. Condition :\n1. Name : End (oC) End (%RH)\n2. Range/Resolution : ( ) Before Adjustment Reading ( )\n*Resolusi di tulis di masing-masing titik 1413 µS 5000 µS 80000 µS\nSolution Standard 84\n1.413 mS 5 mS 80 mS\n3. Type/Model : Resolusi: ( ) Resolusi: ( ) Resolusi: ( ) Resolusi: ( )\nPage 1 of 1 Revise : 5 SIDIK-FM-CAL-0510"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0511",
+   "revisi": "5",
+   "teks": "PT. SIDIK Calibration Worksheet - UV/VIS Spectrophotometer LK-285-IDN\nReceived Date : Environment Condition Thermohygro used:\nCalibration Date : Time Temperature Humidity Insitu: TH-2 Inlab: TH-4\nFirst oC %RH TH-6\nEnd oC %RH TH-7\nEQUIPMENT IDENTITY AND CUSTOMER DATA CALIBRATION RESULT\nEQUIPMENT 1. Wave Length Calibration\n1. Name : a. Holmium Standard\n2 Range : %T nm Wavelength (nm) - Holmium\n3 Sensitivity/Resolusi : %T nm No Measurement Result\nStd. Value (λ1)\n4 Type/Model : X1 X2 X3\nPage 1 of 1 Revise : 5 SIDIK-FM-CAL-0511"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0512",
+   "revisi": "4",
+   "teks": "PT. SIDIK Calibration Worksheet - Stop Watch/Timer LK-285-IDN\nReceived Date :\nCalibration Date :\nCALIBRATION RESULT\nEnvironment Condition Thermohygro used\nEQUIPMENT First End T First End RH Insitu: TH-2 Inlab: TH-4\n1. Name : (oC) (%) TH-6\nTH-7\n2. Range/Resolution : ( ) ( ) Set Point : ….. ( )\n3. Type/Model : Repeatability Standard UUT\n4. Serial Number/LPI : J M S 0.01 S J M S 0.01 S\n5. Merk/Manufacture :\nPage 1 of 1 Revise : 4 SIDIK-FM-CAL-0512"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0513",
+   "revisi": "4",
+   "teks": "Calibration Worksheet - One Mark Volumetric Glassware LK-285-IDN\nReceived Date :\nCalibration Date :\nCALIBRATION RESULT\nEQUIPMENT Environment Condition Thermohygro used\n1. Name : Time Temperature(oC) Humidity (%RH) TH-3\n2. Capacity : mL First oC %RH\n3. Resolution : - mL End oC %RH\n4. Class/Tolerance : Class: / Tolerance: ± mL\n5. Temperature : °C Readings of Weighing Result\n6. Manufacture : Measurement 1 2 3\n7. Model /Type :\nPage 1 of 1 Rev : 4 SIDIK-FM-CAL-0513"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0514",
+   "revisi": "4",
+   "teks": "Calibration Worksheet - Graduated Volumetric Glassware LK-285-IDN\nReceived Date:\nCalibration Date:\nCALIBRATION CERTIFICATE\nEnvironment Condition Thermohygro used\nTime Temperature(oC) Humidity (%RH) TH-3\nFirst oC %RH\nEQUIPMENT End oC %RH\n1. Name : Readings of Weighing Result Temperature of Destillate Water (oC)\n2. Capacity : ( ) Nominal (mL) Awal Akhir\n3. Resolution : ( )\n4. Class/Tolerance :Class: /Tolerance: ± ( ) Empty Container Weight ( )\nPage 1 of 1 Rev : 4 SIDIK-FM-CAL-0514"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0515",
+   "revisi": "4",
+   "teks": "PT. SIDIK Calibration Worksheet - Centrifuge/Tachometer LK-285-IDN\nReceived Date :\nCalibration Date :\nEQUIPMENT IDENTITY AND CUSTOMER DATA CALIBRATION RESULT\nFirst (oC) First (%RH)\nEnv. Condition :\n1. Name : End (oC) End (%RH)\n2. Range : ( )\nSet Point Before adjustment Reading\nResolution : ( )\n3. Type/Model :\nRepeat ( ) ( ) ( )\nPage 1 of 1 Revise : 4 SIDIK-FM-CAL-0515"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0516",
+   "revisi": "2",
+   "teks": "PT. SIDIK Calibration Worksheet - Volt Meter/Ampere Meter (Source) LK-285-IDN\nReceived Date :\nCalibration Date :\nEQUIPMENT IDENTITY AND CUSTOMER DATA CALIBRATION RESULT\nFirst (oC) First (%RH)\nEnv. Condition :\n1. Name : End (oC) End (%RH)\n2. Range/Resolution : (…….) Volt/Ampere\nSet Point\n(…….) ( ) ( ) ( )\n3. Type/Model : Repeat Std UUT Std UUT Std UUT\n4. Serial Number :\nPage 1 of 1 Revise : 2 SIDIK-FM-CAL-0516"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0519",
+   "revisi": "3",
+   "teks": "PT. SIDIK Calibration Worksheet - Compression Macine (UTM) LK-285-IDN\nGeneral Information\nOrder Number :\nCustomer :\nAddresss :\nCalibration Date :\nLocation of Calibration : Equipment Name :\nT awal : oC Manufacturer :\nT akhir : oC Type :\nRH awal : %RH SN :\nRH akhir : %RH Range : ( )\nMethode : SIDIK-IK-CAL-0513 Resolution : ( )\nPage 1 of 1 Rev: 3 SIDIK-FM-CAL-0519"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0520",
+   "revisi": "3",
+   "teks": "PT. SIDIK Calibration Worksheet - Load Cell LK-285-IDN\nGeneral Information\nOrder Number :\nCustomer :\nAddresss :\nCalibration Date :\nLocation of Calibration : Equipment Name :\nT awal : oC Manufacturer :\nT akhir : oC Type :\nRH awal : %RH SN :\nRH akhir : %RH Range : ( )\nMethode : SIDIK-IK-CAL-0514 Resolution : ( )\nPage 1 of 1 Rev: 3 SIDIK-FM-CAL-0520"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0521",
+   "revisi": "3",
+   "teks": "PT. SIDIK Calibration Worksheet - Profing Ring LK-285-IDN\nGeneral Information\nOrder Number :\nCustomer :\nAddresss :\nCalibration Date :\nLocation of Calibration : Equipment Name :\nT awal : oC Manufacturer :\nT akhir : oC Type :\nRH awal : %RH SN :\nRH akhir : %RH Range : ( )\nResolution : ( )\nPage 1 of 1 Rev: 3 SIDIK-FM-CAL-0521"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0522.A",
+   "revisi": "1",
+   "teks": "Calibration Work Sheet - Micrometer\nPT. SIDIK LK-285-IDN\n(0-25 mm)\nIdentitas Alat dan Data Customer\nReceived Date : Nama Alat :\nCalibration Date : Merk :\nOwner : Type :\nSerial Number :\nAddress : Capacity : ( )\nResolusi : ( )\nCalibration Loc. : Inlab (Lab. Dimensi PT SIDIK) Metode : SIDIK-IK-CAL-0515\nSuhu Ruangan : awal akhir oC\nPage 1 of 1 Revise : 1 SIDIK-FM-CAL-0522.A"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0522.B",
+   "revisi": "1",
+   "teks": "Calibration Work Sheet - Micrometer\nPT. SIDIK LK-285-IDN\n(25-50 mm)\nIdentitas Alat dan Data Customer\nReceived Date : Nama Alat :\nCalibration Date : Merk :\nOwner : Type :\nSerial Number :\nAddress : Capacity : ( )\nResolusi : ( )\nCalibration Loc. : Inlab (Lab. Dimensi PT SIDIK) Metode : SIDIK-IK-CAL-0515\nSuhu Ruangan : awal akhir oC\nPage 1 of 1 Revise : 1 SIDIK-FM-CAL-0522.B"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0522.C",
+   "revisi": "1",
+   "teks": "Calibration Work Sheet - Micrometer\nPT. SIDIK LK-285-IDN\n(50-75 mm)\nIdentitas Alat dan Data Customer\nReceived Date : Nama Alat :\nCalibration Date : Merk :\nOwner : Type :\nSerial Number :\nAddress : Capacity : ( )\nResolusi : ( )\nCalibration Loc. : Inlab (Lab. Dimensi PT SIDIK) Metode : SIDIK-IK-CAL-0515\nSuhu Ruangan : awal akhir oC\nPage 1 of 1 Revise : 1 SIDIK-FM-CAL-0522.C"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0522.D",
+   "revisi": "1",
+   "teks": "Calibration Work Sheet - Micrometer\nPT. SIDIK LK-285-IDN\n(75-100 mm)\nIdentitas Alat dan Data Customer\nReceived Date : Nama Alat :\nCalibration Date : Merk :\nOwner : Type :\nSerial Number :\nAddress : Capacity : ( )\nResolusi : ( )\nCalibration Loc. : Inlab (Lab. Dimensi PT SIDIK) Metode : SIDIK-IK-CAL-0515\nSuhu Ruangan : awal akhir oC\nPage 1 of 1 Revise : 1 SIDIK-FM-CAL-0522.D"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0523",
+   "revisi": "2",
+   "teks": "PT. SIDIK Calibration Worksheet - Refractometer LK-285-IDN\nGeneral Information\nCustomer :\nAddresss :\nCalibration Date : Received Date :\nLocation of Calibration : Equipment Name :\nT awal : oC Manufacturer :\nT akhir : oC Type :\nRH awal : %RH SN :\nRH akhir : %RH Range : ( )\nThermohygro Used : Insitu: TH-2 TH-6 TH-7 Resolution : ( )\nInlab : TH-4 Methode : SIDIK-IK-CAL-0516\nPage 1 of 1 Rev: 2 SIDIK-FM-CAL-0523"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0524",
+   "revisi": "3",
+   "teks": "PT. SIDIK Calibration Worksheet - Viscometer LK-285-IDN\nGeneral Information\nCustomer :\nAddresss :\nCalibration Date :\nLocation of Calibration : Equipment Name :\nT awal : oC Manufacturer :\nT akhir : oC Type :\nRH awal : %RH SN :\nRH akhir : %RH Range : ( )\nThermohygro used : Insitu: TH-2 TH-6 TH-7 Resolution : * Resolusi tuliskan pada masing-masing titik kalibrasi\nInlab: TH-4 Methode : SIDIK-IK-CAL-0517\nPage 1 of 1 Rev: 3 SIDIK-FM-CAL-0524"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0525",
+   "revisi": "2",
+   "teks": "PT. SIDIK Calibration Work Sheet - Thermohygrometer LK-285-IDN\nIdentitas Alat dan Data Customer\nNama Alat : Rentang Ukur Temp. : oC Tgl. Diterima :\nMerk : Kapasitas Temp. : oC Tgl. Kalibrasi :\nType : Resolusi Temp. : oC Standar : Temp. Humidity Meter\nRentang Ukur Humi. : %RH Thermohygro used : TH-4\nKapasitas Humi. : %RH\nResolusi Humi. : %RH\nLokasi Kalibrasi :\nNo. Seri :\nSuhu Ruangan : awal akhir Rata2 oC\nKelembapan : awal akhir Rata2 %RH\nPage 1 of 1 Revise : 2 SIDIK-FM-CAL-0525"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0526",
+   "revisi": "3",
+   "teks": "PT. SIDIK Calibration Work Sheet - Dial Indicator LK-285-IDN\nIdentitas Alat dan Data Customer\nMerk :\nReceived Date: Type :\nOwner : Serial Number :\nAddress : Capacity : ( )\nResolusi : ( )\nCalibration Date :\nNama Alat : Calibration Loc. : Lab. Dimensi PT SIDIK\nSuhu Ruangan: awal akhir oC Metode : SIDIK-IK-CAL-0519\nKelembapan : awal akhir %RH Thermohygro used : TH-1\nData Kalibrasi\nPage 1 of 1 Revise : 3 SIDIK-FM-CAL-0526"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0527",
+   "revisi": "2",
+   "teks": "PT. SIDIK Calibration Work Sheet - Jangka Sorong LK-285-IDN\nIdentitas Alat dan Data Customer\nReceived Date : Nama Alat :\nOwner : Merk :\nAddress : Type :\nSerial Number :\nSuhu Ruangan : awal akhir oC Capacity : ( )\nKelembapan : awal akhir %RH Resolusi : ( )\nTH used : TH-1 Calibration Date :\nCalib. Location : Lab. Dimensi PT SIDIK Metode Kalibrasi : SIDIK-IK-CAL-0520\nData Kalibrasi\nPengukuran Luar\nPage 1 of 1 Revise : 2 SIDIK-FM-CAL-0527"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0528",
+   "revisi": "3",
+   "teks": "PT. SIDIK Calibration Worksheet - One Mark Piston Volume LK-285-IDN\nReeived Date :\nCalibration Date :\nEQUIPMENT IDENTITY AND CUSTOMER DATA CALIBRATION RESULT\nFirst (oC) First (%RH)\nEnv. Condition :\n1. Name : End (oC) End (%RH)\nThermoygro Used: TH-3\n2. Capacity : ( ) Reading of Weighing Result\n3. Resolution : - Nominal UUT ( )\n4. Class/Toterance :Class: …......... T o le rance : ± …...... Weight of Content (gram) Actual ( gram )\n5. Temperature : oC M0\nPage 1 of 1 Revise : 3 SIDIK-FM-CAL-0528"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0529",
+   "revisi": "3",
+   "teks": "PT. SIDIK Calibration Worksheet - Graduated Piston Volume LK-285-IDN\nReceived Date :\nCalibration Date :\nEQUIPMENT IDENTITY AND CUSTOMER DATA CALIBRATION RESULT\nFirst (oC) First (%RH)\nEnv. Condition :\n1. Name : End (oC) End (%RH)\nThermohygro Used: TH-3\n2. Capacity : ( ) Reading of Weighing Result\n3. Resolution : ( ) Nominal UUT ( )\n4. Class/Toterance :Class: …......... T ol erance : ± …...... Weight of Content (gram) gram gram gram\n5. Temperature : oC M0\nPage 1 of 1 Revise : 3 SIDIK-FM-CAL-0529"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0530",
+   "revisi": "2",
+   "teks": "PT. SIDIK Calibration Worksheet - Turbidimeter LK-285-IDN\nReceived Date :\nCalibration Date :\nEQUIPMENT IDENTITY AND CUSTOMER DATA CALIBRATION RESULT\nFirst (oC) First (%RH)\nEnv. Condition :\n1. Name : End (oC) End (%RH)\n2. Range/Resolution : NTU Before Adjustment Reading of UUT (NTU) TH used:\nSolution Standard\n*Tuliskan resolusi UUT di masing-masing titik kalibrasi 0.04 15 100 750 2000 Insitu: TH-2\n3. Type/Model : Repeat Resolusi: Resolusi: Resolusi: Resolusi: Resolusi: TH-6\n4. Serial Number/LPI : NTU TH-7\nPage 1 of 1 Revise : 2 SIDIK-FM-CAL-0530"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0531",
+   "revisi": "2",
+   "teks": "PT. SIDIK Calibration Worksheet - Chlorine Meter LK-285-IDN\nReceived Date :\nCalibration Date :\nEQUIPMENT IDENTITY AND CUSTOMER DATA CALIBRATION RESULT\nEnv. Condition : F ir s t (oC) First (%RH)\n1. Name : End (oC) End (%RH)\n2. Range/Resolution : mg/l Before adjustment Reading Thermohygro Used:\nSolution Standard\nmg/l 0.40 4.00 Insitu: TH-2\n3. Type/Model : Repeat mg/l °C mg/l °C TH-6\n4. Serial Number/LPI : TH-7\n1\nPage 1 of 1 Revise : 2 SIDIK-FM-CAL-0531"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0532",
+   "revisi": "2",
+   "teks": "PT. SIDIK Calibration Worksheet - DO Meter LK-285-IDN\nReceived Date :\nCalibration Date :\nEQUIPMENT IDENTITY AND CUSTOMER DATA CALIBRATION RESULT\nFirst (oC) First (%RH)\n1. Name : Env. Condition : E n d (oC) End (%RH)\n2. Range/Resolution : mg/l Before adjustment Reading Thermohygro used:\nSolution Standard\nmg/l 0.00 Insitu: TH-2\n3. Type/Model : Repeat mg/l °C TH-6\n4. Serial Number/LPI : TH-7\n1\nPage 1 of 1 Revise : 2 SIDIK-FM-CAL-0532"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0533",
+   "revisi": "2",
+   "teks": "PT. SIDIK Calibration Worksheet - Hydrometer LK-285-IDN\nEQUIPMENT IDENTITY AND CUSTOMER DATA CALIBRATION RESULT\nEnv. Condition : First (oC) First (%RH)\n1. Name : TH Used : TH-3 End (oC) End (%RH)\n2. Range/Resolution : ( ) 1. Pre Condition\n( ) SI gram [Beban Tambahan]\n3. Temperature : oC Ma gram [Massa Hydrometer di Udara]\n(\n4. Received Date : yx [Tegangan Permukaan Hydrometer]\n)\n5. Calibration Date : tr oC [Suhu Acuan Hydrometer]\n6. Type/Model :\nPage 1 of 1 Revise : 2 SIDIK-FM-CAL-0533"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0535",
+   "revisi": "2",
+   "teks": "PT. SIDIK Calibration Work Sheet - Thermocouple LK-285-IDN\nIdentitas Alat dan Data Customer\nNama Alat : Rentang Ukur : oC Tgl. Diterima :\nMerk : Kapasitas Alat : oC Tgl. Kalibrasi :\nType : Resolusi Alat : oC Metode Kalibrasi : SIDIK-IK-CAL-0529\nNo. Seri : Lokasi Kalibrasi : Tipe Thermocouple :\nSuhu Ruangan : awal akhir Rata2 oC K N S Others ….......\nKelembapan : awal akhir Rata2 %RH J B E\nNama Cust. : T R RTD/PT100\nAlamat Cust. : Thermohygro used:\nInlab: TH-4 Insitu: TH-2 TH-6 TH-7\nPembacaan Standard\nPage 1 of 1 Revise : 2 SIDIK-FM-CAL-0535"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0536",
+   "revisi": "2",
+   "teks": "PT. SIDIK Calibration Worksheet - Sieve Mesh LK-285-IDN\nReceived Date :\nCalibration Date :\nEQUIPMENT IDENTITY AND CUSTOMER DATA CALIBRATION RESULT\nEnv. Condition : Fi rs t (oC) First (%RH)\n1. Name : Sieve No. : Thermohygro Used: TH-1 End (oC) End (%RH)\n2. Range/Nominal Sieve : ( ) 1. Kalibrasi Dimensi Lubang dan Diameter Kawat\n3. Type/Model : Nominal Sieve Measurement Result\nNo\n4. Serial Number : Mesh ( ) Wrap (x') Weft (y') Ø Kawat Wrap (x') Weft (y') Ø Kawat\n5. Merk/Manufacture : 1\n2\nPage 1 of 1 Revise : 2 SIDIK-FM-CAL-0536"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0537",
+   "revisi": null,
+   "teks": "PT. SIDIK Calibration Work Sheet - Thermometer Glass LK-285-IDN\nIdentitas Alat dan Data Customer\nNama Alat : Rentang Ukur : oC Tgl. Diterima :\nMerk : Kapasitas Alat : oC Tgl. Kalibrasi :\nType : Resolusi Alat : oC Tipe Thermo Glass :\nNo. Seri : Lokasi Kalibrasi : Inlab PT SIDIK Total Immersion\nPartial Immersion\nSuhu Ruangan : awal akhir Rata2 oC Complete Immersion\nKelembapan : awal akhir Rata2 %RH Thermohygro used : TH-4\nNama Customer :\nAlamat Customer :\nPembacaan Standard\nPage 1 of 1 SIDIK-FM-CAL-0537"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0538",
+   "revisi": null,
+   "teks": "PT. SIDIK CALIBRATION WORKSHEET FLOW METER (UFM METHODE) LK-285-IDN\nIDENTITAS ALAT KONDISI LINGKUNGAN PENGERJAAN\nNama Alat : Suhu Ruangan: Sebelum oC Sebelum %RH Thermohygro used: Lokasi Kalibrasi :\nRange/Capacity : ( ) Sesudah oC Sesudah %RH T T H H - - 4 5\nResolusi : ( ) Diameter pipa (mm) Path Configuration (Sensor Mounting Methode)\nType/Model : X1 X2 X3 Material Pipa : Z-Methode\nSerial Number : Jenis Fluida : V-Methode\nW-Metode\nMerk/Manufacture :\nLiner (Jika pipa memiliki pelapis/liner di bagian dalam, masukkan\nTanggal Terima : Ketebalan pipa (mm) material dan ketebalannya).\nTanggal Kalibrasi : X1 X2 X3\nPage 1 of 1 SIDIK-FM-CAL-0538"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0538.A",
+   "revisi": "3",
+   "teks": "PT. SIDIK CALIBRATION WORKSHEET FLOW METER : FLOWRATE LK-285-IDN\nIDENTITAS ALAT KONDISI LINGKUNGAN PENGERJAAN\nNama Alat : Suhu Ruangan: Sebelum oC Sebelum %RH Thermohygro used: Lokasi Kalibrasi : Inlab PT SIDIK\nRange/Capacity : ( ) Sesudah oC Sesudah %RH TH-4 TH-5 Metode Kalibrasi : SIDIK-IK-CAL-0528\nResolusi : ( ) Reading of UUT\nUUT READING ( )\nType/Model :\nSerial Number : Set Point 1 Set Point 2 Set Point 3\nRepeat\n(3 gigi valve) (4 gigi valve) (8 gigi valve)\nMerk/Manufacture :\n20\" 40\" 60\" 20\" 40\" 60\" 20\" 40\" 60\"\nPage 1 of 1 Rev : 3 SIDIK-FM-CAL-0538.A"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0538.B",
+   "revisi": "3",
+   "teks": "PT. SIDIK CALIBRATION WORKSHEET FLOW METER : TOTALIZER LK-285-IDN\nIDENTITAS ALAT KONDISI LINGKUNGAN PENGERJAAN\nNama Alat : Suhu Ruangan:Sebelum oC Sebelum %RH Thermohygro used: Lokasi Kalibrasi : Inlab PT SIDIK\nRange/Capacity : ( ) Sesudah oC Sesudah %RH TH-4TH-5 Metode Kalibrasi : SIDIK-IK-CAL-0528\nResolusi : ( ) Reading of Weighing Result\nType/Model : Set Point UUT ( )\nSerial Number :\nMerk/Manufacture : Reading of UUT ( )\nTanggal Terima :\nFloware ( )\nTanggal Kalibrasi :\nIDENTITAS CUSTOMER Reading of Standard ( )\nPage 1 of 1 Rev : 3 SIDIK-FM-CAL-0538.B"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0539",
+   "revisi": "4",
+   "teks": "PT. SIDIK Calibration Worksheet - Autoclave LK-285-IDN\nGeneral Information\nReceive Date :\nCustomer :\nAddresss :\nCalibration Date :\nLocation of Calibration : Equipment Name :\nT awal : oC Manufacturer :\nT akhir : oC Type :\nRH awal : %RH SN :\nRH akhir : %RH Range Temp. : ( )\nResolution Temp. : ( )\nPage 1 of 1 Rev: 4 SIDIK-FM-CAL-0539"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0540",
+   "revisi": "1",
+   "teks": "PT. SIDIK Calibration Worksheet - TDS Meter LK-285-IDN\nReceived Date :\nCalibration Date :\nEQUIPMENT IDENTITY AND CUSTOMER DATA CALIBRATION RESULT\nFirst (oC) First (%RH)\nEnv. Condition :\n1. Name : End (oC) End (%RH)\nThermohygro used: Insitu: TH-2 TH-6 TH-7 Inlab: TH-4\n2. Range/Resolution : ( ) Before Adjustment Reading ( )\n*Resolusi di tulis di masing-masing titik\nSolution Standard 50 300\n3. Type/Model : Resolusi: ( ) Resolusi: ( ) Resolusi: ( ) Resolusi: ( )\nPage 1 of 1 Revise : 1 SIDIK-FM-CAL-0540"
+  },
+  {
+   "kode": "SIDIK-FM-CAL-0541",
+   "revisi": "0",
+   "teks": "PT. SIDIK KALIBRASI ANAK TIMBANGAN LK-285-IDN\nIDENTITAS ALAT IDENTITAS CUSTOMER\nNama Alat : Nama Custromer :\nMerk : Alamat Customer :\nClass : Tanggal Terima :\nNo. Seri : Tanggal Kalibrasi :\nKapasitas Alat :\nTechnician ID : Lokasi Kalibrasi : Inlab PT SIDIK\nKONDISI LINGKUNGAN STANDARD YANG DIGUNAKAN\nTH Used: TH-3 Awal Akhir Standard Merk/Type Serial Number\nSuhu Ruangan : oC Timbangan Analitik Mettler Toledo/X5204 1129063525\nKelembaban : %RH Timbangan Elektronik Excellent/DJ HSEX1403752\nPage 1 of 1 Rev. 0 SIDIK-FM-CAL-0541"
+  }
+ ]
+}

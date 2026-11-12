@@ -3270,5 +3270,17 @@
   "logoOrgGagalMuat": "Logo belum bisa dimuat.",
   "logoOrgRetry": "Coba lagi",
   "logoOrgGagal": "Aksi logo gagal. Coba lagi.",
-  "logoOrgPratinjauGagal": "Gambar logo tidak bisa ditampilkan."
+  "logoOrgPratinjauGagal": "Gambar logo tidak bisa ditampilkan.",
+  "jlJudul": "Jenis lembar",
+  "jlKodeTerbaca": "Kode formulir terbaca: {kode}",
+  "jlKodeTidakTerbaca": "Kode formulir tidak terbaca. Pilih jenis lembar sendiri.",
+  "jlKodeTakDikenal": "Kode formulir ini ({kode}) tidak ada di daftar lembar. Pilih jenis lembar sendiri.",
+  "jlBeberapaKode": "Terbaca beberapa kode formulir ({kode}). Pilih jenis lembar sendiri.",
+  "jlBeberapaJenis": "Kode ini dipakai beberapa jenis lembar. Pilih yang sesuai dengan alat Anda.",
+  "jlSatuJenis": "Usulan jenis lembar. Ganti kalau tidak sesuai.",
+  "jlDariJudul": "Usulan dari judul tercetak saja (kode tidak terbaca). Periksa lagi.",
+  "jlPilihManual": "Pilih jenis lembar manual",
+  "jlPakai": "Pakai jenis lembar ini",
+  "jlCatatan": "Ini hanya petunjuk. Anda yang menentukan jenis lembar; tidak ada yang terisi sebelum Anda konfirmasi.",
+  "jlDaftarManual": "Semua jenis lembar"
 }
