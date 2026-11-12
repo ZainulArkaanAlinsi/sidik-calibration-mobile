@@ -84,6 +84,11 @@ mixin PenjagaUrutanMuat<T> on AsyncNotifier<T> {
   ///
   /// Jadi keadaan semacam itu dipasang di sini, di sisi yang sama dengan
   /// `state`, dan ikut dibuang bersamanya.
+  ///
+  /// **[saatTerbaru] juga dipanggil waktu [muat] GAGAL** — hasil yang
+  /// dipasangnya ke `state` adalah galat, dan variabel hasil milik pemanggil
+  /// masih kosong. Isinya wajib tahan kosong (`hasil?.x ?? bawaan`); `hasil!`
+  /// di situ melempar dari dalam penjaga sebelum `state` dipasang.
   Future<void> muatDenganPenjaga(
     Future<T> Function() muat, {
     void Function()? saatTerbaru,

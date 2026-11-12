@@ -35,20 +35,21 @@ final equipmentProvider =
 /// "Alat" di bottom nav, kalau dipakai bareng, filter dari kartu Dashboard
 /// bakal ikut ngubah apa yang keliatan di tab (bug halus yang sempet
 /// kejadian). Family di-key sama `status` biar tiap filter independen.
-final deviceOverviewProvider = FutureProvider.family<List<Equipment>, String?>(
-  (ref, status) async {
-    // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
-    ref.watch(authProvider);
+final deviceOverviewProvider = FutureProvider.family<List<Equipment>, String?>((
+  ref,
+  status,
+) async {
+  // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
+  ref.watch(authProvider);
 
-    final token = await ref.read(tokenStorageProvider).read();
-    if (token == null) throw const TokenHilangException();
+  final token = await ref.read(tokenStorageProvider).read();
+  if (token == null) throw const TokenHilangException();
 
-    final hasil = await ref
-        .read(equipmentServiceProvider)
-        .daftar(token, status: status, page: 1);
-    return hasil.items;
-  },
-);
+  final hasil = await ref
+      .read(equipmentServiceProvider)
+      .daftar(token, status: status, page: 1);
+  return hasil.items;
+});
 
 class EquipmentController extends AsyncNotifier<List<Equipment>>
     with PenjagaUrutanMuat<List<Equipment>> {
@@ -62,16 +63,22 @@ class EquipmentController extends AsyncNotifier<List<Equipment>>
 
   @override
   Future<List<Equipment>> build() async {
+    // Daftarkan build ini sebagai permintaan terbaru SEBELUM apa pun: kalau
+    // nggak, "muat lebih banyak" milik akun sebelumnya yang masih di jalan
+    // lolos [masihTerbaru] dan halaman 2 lab lain menempel ke daftar akun
+    // baru (ganti akun di HP yang dipakai gantian).
+    final nomor = mulaiPermintaan();
+
     // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
     ref.watch(authProvider);
 
     _page = 1;
     final hasil = await _ambil(1);
 
-    // `build()` yang dipanggil Riverpod sendiri selalu yang terbaru — nggak ada
-    // permintaan lain yang bisa mendahuluinya, jadi metadatanya dipasang
-    // langsung. Yang lewat penjaga cuma [_muatUlangTerjaga] di bawah.
-    _lastPage = hasil.lastPage;
+    // Build yang disusul build lain (ganti akun lagi) nggak boleh menimpa
+    // metadata milik yang sekarang. Yang lewat penjaga untuk pintu lain
+    // cuma [_muatUlangTerjaga] di bawah.
+    if (masihTerbaru(nomor)) _lastPage = hasil.lastPage;
 
     return hasil.items;
   }
@@ -108,9 +115,12 @@ class EquipmentController extends AsyncNotifier<List<Equipment>>
         hasil = await _ambil(1);
         return hasil!.items;
       },
+      // `saatTerbaru` juga dipanggil waktu permintaannya GAGAL (hasil masih
+      // null). `hasil!` di sini dulu melempar null-check dari dalam penjaga,
+      // sebelum `state` sempat dipasang — layarnya tertahan di loading.
       saatTerbaru: () {
         _page = 1;
-        _lastPage = hasil!.lastPage;
+        _lastPage = hasil?.lastPage ?? 1;
       },
     );
   }
@@ -185,7 +195,9 @@ class EquipmentController extends AsyncNotifier<List<Equipment>>
     final token = await ref.read(tokenStorageProvider).read();
     if (token == null) return null;
 
-    final tersimpan = await ref.read(equipmentServiceProvider).simpan(token, data);
+    final tersimpan = await ref
+        .read(equipmentServiceProvider)
+        .simpan(token, data);
     await muatUlang();
 
     return tersimpan;
@@ -196,7 +208,9 @@ class EquipmentController extends AsyncNotifier<List<Equipment>>
     final token = await ref.read(tokenStorageProvider).read();
     if (token == null) return null;
 
-    final tersimpan = await ref.read(equipmentServiceProvider).ubah(token, data);
+    final tersimpan = await ref
+        .read(equipmentServiceProvider)
+        .ubah(token, data);
     await muatUlang();
 
     return tersimpan;

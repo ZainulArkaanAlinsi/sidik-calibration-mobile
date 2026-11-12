@@ -27,7 +27,10 @@ import '../../widgets/pemeriksa_pembaruan.dart';
 import '../equipment/equipment_list_screen.dart';
 import '../history/history_screen.dart';
 import '../profile/profile_screen.dart';
+import '../audit/audit_log_screen.dart';
+import '../settings/buat_teknisi_screen.dart';
 import '../settings/customer_list_screen.dart';
+import '../settings/logo_organisasi_screen.dart';
 import '../settings/organization_screen.dart';
 import '../settings/standard_list_screen.dart';
 import '../settings/tanda_tangan_screen.dart';
@@ -212,6 +215,13 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
       NamaIzin.tandaTanganKelola,
       cadangan: peran.hakAdmin,
     );
+    final bolehLogo = ref.bolehkah(
+      NamaIzin.organisasiLogo,
+      cadangan: peran.hakAdmin,
+    );
+    // Server belum punya izin `audit.*`; `/audit-logs` satu grup `role:admin`
+    // dengan `/users`, jadi nebeng `pengguna.kelola` (lihat `AuditLogScreen`).
+    final bolehAudit = bolehAkun;
     // Alur versi data acuan: izin TULIS dari server saja (cadangan false).
     // Menu jelajah Data Acuan tetap tidak ada di sini (Sidik Studio).
     final bolehAlurAcuan = bolehBukaAlurAcuan(ref);
@@ -369,9 +379,21 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
                 label: l10n.teknisiTitle,
                 bangun: TechnicianListScreen.new,
               ),
+            if (bolehTeknisi)
+              _Menu(
+                id: 'teknisi-baru',
+                ikon: Icons.person_add_alt_1_outlined,
+                label: l10n.buatTekJudul,
+                bangun: BuatTeknisiScreen.new,
+              ),
           ],
         ),
-      if (bolehImpor || bolehOrganisasi || bolehTtd || bolehAlurAcuan)
+      if (bolehImpor ||
+          bolehOrganisasi ||
+          bolehTtd ||
+          bolehLogo ||
+          bolehAudit ||
+          bolehAlurAcuan)
         _Seksi(
           judul: l10n.panelSeksiSistem,
           menu: [
@@ -395,6 +417,20 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
                 ikon: Icons.draw_outlined,
                 label: l10n.profTandaTangan,
                 bangun: TandaTanganScreen.new,
+              ),
+            if (bolehLogo)
+              _Menu(
+                id: 'logo',
+                ikon: Icons.image_outlined,
+                label: l10n.logoOrgJudul,
+                bangun: LogoOrganisasiScreen.new,
+              ),
+            if (bolehAudit)
+              _Menu(
+                id: 'audit',
+                ikon: Icons.manage_search_outlined,
+                label: l10n.auditJudul,
+                bangun: AuditLogScreen.new,
               ),
             if (bolehAlurAcuan)
               _Menu(

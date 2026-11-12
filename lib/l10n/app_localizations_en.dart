@@ -7528,6 +7528,243 @@ class AppLocalizationsEn extends AppLocalizations {
       'That field could not be found on screen. Scroll to it by hand.';
 
   @override
+  String get kelolaGrupPengawasan => 'Oversight';
+
+  @override
+  String get buatTekJudul => 'Create technician account';
+
+  @override
+  String get buatTekSub => 'A new login for a technician, active right away';
+
+  @override
+  String get buatTekHanyaAdmin => 'Only admins can create technician accounts.';
+
+  @override
+  String get buatTekIntro =>
+      'The account is active right away with the Technician role. They log in with their employee ID or email. Hand the initial password to them in person.';
+
+  @override
+  String get buatTekNama => 'Full name';
+
+  @override
+  String get buatTekEmployeeId => 'Employee ID';
+
+  @override
+  String get buatTekEmail => 'Email';
+
+  @override
+  String get buatTekDepartment => 'Department (optional)';
+
+  @override
+  String get buatTekPassword => 'Initial password';
+
+  @override
+  String get buatTekPasswordHelper =>
+      'At least 8 characters. It is not shown again once the account is created.';
+
+  @override
+  String get buatTekPasswordUlang => 'Repeat initial password';
+
+  @override
+  String get buatTekSimpan => 'Create account';
+
+  @override
+  String get buatTekNamaKosong => 'Name is required.';
+
+  @override
+  String get buatTekEmployeeIdKosong => 'Employee ID is required.';
+
+  @override
+  String get buatTekEmployeeIdAt =>
+      'The employee ID cannot contain @. At login, an @ is read as an email.';
+
+  @override
+  String get buatTekEmailKosong => 'Email is required.';
+
+  @override
+  String get buatTekEmailSalah => 'That email format does not look right.';
+
+  @override
+  String get buatTekPasswordPendek => 'Password must be at least 8 characters.';
+
+  @override
+  String get buatTekPasswordBeda => 'The two passwords do not match.';
+
+  @override
+  String get buatTekGagal => 'The account was not created. Try again.';
+
+  @override
+  String buatTekBerhasil(String nama, String employeeId) {
+    return 'Technician account $nama created (employee ID $employeeId). Hand the initial password to them in person; it is not shown again.';
+  }
+
+  @override
+  String get auditJudul => 'Change history';
+
+  @override
+  String get auditSub => 'Who changed what, when, and from what to what';
+
+  @override
+  String get auditHanyaAdmin => 'Only admins can view the change history.';
+
+  @override
+  String get auditBacaSaja => 'Read only. History cannot be edited from here.';
+
+  @override
+  String get auditFilter => 'Filter';
+
+  @override
+  String get auditFilterJudul => 'Filter history';
+
+  @override
+  String get auditFilterAksi => 'Action';
+
+  @override
+  String get auditSemua => 'All';
+
+  @override
+  String get auditAksiDibikin => 'Created';
+
+  @override
+  String get auditAksiDiubah => 'Changed';
+
+  @override
+  String get auditAksiDihapus => 'Deleted';
+
+  @override
+  String get auditAksiDipulihkan => 'Restored';
+
+  @override
+  String get auditFilterTipe => 'Data type (table name)';
+
+  @override
+  String get auditFilterTipeHint => 'e.g. standards';
+
+  @override
+  String get auditFilterId => 'Data ID';
+
+  @override
+  String get auditFilterDari => 'From date';
+
+  @override
+  String get auditFilterSampai => 'To date';
+
+  @override
+  String get auditPilihTanggal => 'Pick a date';
+
+  @override
+  String get auditTerapkan => 'Apply';
+
+  @override
+  String get auditReset => 'Reset';
+
+  @override
+  String get auditKosong => 'No history for these filters.';
+
+  @override
+  String get auditGagalMuat => 'Could not load the history.';
+
+  @override
+  String get auditCobaLagi => 'Try again';
+
+  @override
+  String get auditMuatLagi => 'Load more';
+
+  @override
+  String get auditMuatGagal => 'The next page failed to load. Try again.';
+
+  @override
+  String auditOleh(String nama) {
+    return 'by $nama';
+  }
+
+  @override
+  String get auditOlehSistem => 'by the system (automatic)';
+
+  @override
+  String auditEntitas(String tipe, String id) {
+    return '$tipe #$id';
+  }
+
+  @override
+  String get auditTanpaRincian => 'No column details for this action.';
+
+  @override
+  String get auditNilaiKosong => '(empty)';
+
+  @override
+  String get auditNilaiDisembunyikan => '(hidden)';
+
+  @override
+  String get auditSebelum => 'Before';
+
+  @override
+  String get auditSesudah => 'After';
+
+  @override
+  String get auditCatatan => 'Note';
+
+  @override
+  String get auditTutup => 'Close';
+
+  @override
+  String get logoOrgJudul => 'Certificate letterhead logo';
+
+  @override
+  String get logoOrgSub =>
+      'The lab logo printed on the certificate letterhead (PNG or JPG)';
+
+  @override
+  String get logoOrgHanyaAdmin => 'Only admins can manage the logo.';
+
+  @override
+  String get logoOrgInfo =>
+      'This logo is printed on the certificate letterhead. PNG or JPG, 2 MB at most. WEBP and GIF cannot be printed in the PDF.';
+
+  @override
+  String get logoOrgBelum =>
+      'No custom logo yet. The certificate letterhead uses the default logo.';
+
+  @override
+  String get logoOrgUnggah => 'Upload logo';
+
+  @override
+  String get logoOrgGanti => 'Replace logo';
+
+  @override
+  String get logoOrgHapus => 'Delete logo';
+
+  @override
+  String get logoOrgTerunggah => 'Logo uploaded.';
+
+  @override
+  String get logoOrgTerhapus =>
+      'Logo deleted. The letterhead uses the default logo.';
+
+  @override
+  String get logoOrgHapusJudul => 'Delete the logo?';
+
+  @override
+  String get logoOrgHapusIsi =>
+      'The next certificate letterheads will use the default logo. You can upload a logo again at any time.';
+
+  @override
+  String get logoOrgTerlaluBesar =>
+      'That file is over 2 MB. Pick a smaller logo.';
+
+  @override
+  String get logoOrgGagalMuat => 'Could not load the logo.';
+
+  @override
+  String get logoOrgRetry => 'Try again';
+
+  @override
+  String get logoOrgGagal => 'The logo action failed. Try again.';
+
+  @override
+  String get logoOrgPratinjauGagal => 'The logo image could not be shown.';
+
+  @override
   String get jlJudul => 'Sheet type';
 
   @override

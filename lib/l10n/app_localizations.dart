@@ -12998,6 +12998,450 @@ abstract class AppLocalizations {
   /// **'That field could not be found on screen. Scroll to it by hand.'**
   String get rskTidakBisaLompat;
 
+  /// No description provided for @kelolaGrupPengawasan.
+  ///
+  /// In en, this message translates to:
+  /// **'Oversight'**
+  String get kelolaGrupPengawasan;
+
+  /// No description provided for @buatTekJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Create technician account'**
+  String get buatTekJudul;
+
+  /// No description provided for @buatTekSub.
+  ///
+  /// In en, this message translates to:
+  /// **'A new login for a technician, active right away'**
+  String get buatTekSub;
+
+  /// No description provided for @buatTekHanyaAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Only admins can create technician accounts.'**
+  String get buatTekHanyaAdmin;
+
+  /// No description provided for @buatTekIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'The account is active right away with the Technician role. They log in with their employee ID or email. Hand the initial password to them in person.'**
+  String get buatTekIntro;
+
+  /// No description provided for @buatTekNama.
+  ///
+  /// In en, this message translates to:
+  /// **'Full name'**
+  String get buatTekNama;
+
+  /// No description provided for @buatTekEmployeeId.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee ID'**
+  String get buatTekEmployeeId;
+
+  /// No description provided for @buatTekEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get buatTekEmail;
+
+  /// No description provided for @buatTekDepartment.
+  ///
+  /// In en, this message translates to:
+  /// **'Department (optional)'**
+  String get buatTekDepartment;
+
+  /// No description provided for @buatTekPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Initial password'**
+  String get buatTekPassword;
+
+  /// No description provided for @buatTekPasswordHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 8 characters. It is not shown again once the account is created.'**
+  String get buatTekPasswordHelper;
+
+  /// No description provided for @buatTekPasswordUlang.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat initial password'**
+  String get buatTekPasswordUlang;
+
+  /// No description provided for @buatTekSimpan.
+  ///
+  /// In en, this message translates to:
+  /// **'Create account'**
+  String get buatTekSimpan;
+
+  /// No description provided for @buatTekNamaKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Name is required.'**
+  String get buatTekNamaKosong;
+
+  /// No description provided for @buatTekEmployeeIdKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee ID is required.'**
+  String get buatTekEmployeeIdKosong;
+
+  /// No description provided for @buatTekEmployeeIdAt.
+  ///
+  /// In en, this message translates to:
+  /// **'The employee ID cannot contain @. At login, an @ is read as an email.'**
+  String get buatTekEmployeeIdAt;
+
+  /// No description provided for @buatTekEmailKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Email is required.'**
+  String get buatTekEmailKosong;
+
+  /// No description provided for @buatTekEmailSalah.
+  ///
+  /// In en, this message translates to:
+  /// **'That email format does not look right.'**
+  String get buatTekEmailSalah;
+
+  /// No description provided for @buatTekPasswordPendek.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 8 characters.'**
+  String get buatTekPasswordPendek;
+
+  /// No description provided for @buatTekPasswordBeda.
+  ///
+  /// In en, this message translates to:
+  /// **'The two passwords do not match.'**
+  String get buatTekPasswordBeda;
+
+  /// No description provided for @buatTekGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'The account was not created. Try again.'**
+  String get buatTekGagal;
+
+  /// No description provided for @buatTekBerhasil.
+  ///
+  /// In en, this message translates to:
+  /// **'Technician account {nama} created (employee ID {employeeId}). Hand the initial password to them in person; it is not shown again.'**
+  String buatTekBerhasil(String nama, String employeeId);
+
+  /// No description provided for @auditJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Change history'**
+  String get auditJudul;
+
+  /// No description provided for @auditSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Who changed what, when, and from what to what'**
+  String get auditSub;
+
+  /// No description provided for @auditHanyaAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Only admins can view the change history.'**
+  String get auditHanyaAdmin;
+
+  /// No description provided for @auditBacaSaja.
+  ///
+  /// In en, this message translates to:
+  /// **'Read only. History cannot be edited from here.'**
+  String get auditBacaSaja;
+
+  /// No description provided for @auditFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter'**
+  String get auditFilter;
+
+  /// No description provided for @auditFilterJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter history'**
+  String get auditFilterJudul;
+
+  /// No description provided for @auditFilterAksi.
+  ///
+  /// In en, this message translates to:
+  /// **'Action'**
+  String get auditFilterAksi;
+
+  /// No description provided for @auditSemua.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get auditSemua;
+
+  /// No description provided for @auditAksiDibikin.
+  ///
+  /// In en, this message translates to:
+  /// **'Created'**
+  String get auditAksiDibikin;
+
+  /// No description provided for @auditAksiDiubah.
+  ///
+  /// In en, this message translates to:
+  /// **'Changed'**
+  String get auditAksiDiubah;
+
+  /// No description provided for @auditAksiDihapus.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted'**
+  String get auditAksiDihapus;
+
+  /// No description provided for @auditAksiDipulihkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Restored'**
+  String get auditAksiDipulihkan;
+
+  /// No description provided for @auditFilterTipe.
+  ///
+  /// In en, this message translates to:
+  /// **'Data type (table name)'**
+  String get auditFilterTipe;
+
+  /// No description provided for @auditFilterTipeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. standards'**
+  String get auditFilterTipeHint;
+
+  /// No description provided for @auditFilterId.
+  ///
+  /// In en, this message translates to:
+  /// **'Data ID'**
+  String get auditFilterId;
+
+  /// No description provided for @auditFilterDari.
+  ///
+  /// In en, this message translates to:
+  /// **'From date'**
+  String get auditFilterDari;
+
+  /// No description provided for @auditFilterSampai.
+  ///
+  /// In en, this message translates to:
+  /// **'To date'**
+  String get auditFilterSampai;
+
+  /// No description provided for @auditPilihTanggal.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a date'**
+  String get auditPilihTanggal;
+
+  /// No description provided for @auditTerapkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get auditTerapkan;
+
+  /// No description provided for @auditReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get auditReset;
+
+  /// No description provided for @auditKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No history for these filters.'**
+  String get auditKosong;
+
+  /// No description provided for @auditGagalMuat.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the history.'**
+  String get auditGagalMuat;
+
+  /// No description provided for @auditCobaLagi.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get auditCobaLagi;
+
+  /// No description provided for @auditMuatLagi.
+  ///
+  /// In en, this message translates to:
+  /// **'Load more'**
+  String get auditMuatLagi;
+
+  /// No description provided for @auditMuatGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'The next page failed to load. Try again.'**
+  String get auditMuatGagal;
+
+  /// No description provided for @auditOleh.
+  ///
+  /// In en, this message translates to:
+  /// **'by {nama}'**
+  String auditOleh(String nama);
+
+  /// No description provided for @auditOlehSistem.
+  ///
+  /// In en, this message translates to:
+  /// **'by the system (automatic)'**
+  String get auditOlehSistem;
+
+  /// No description provided for @auditEntitas.
+  ///
+  /// In en, this message translates to:
+  /// **'{tipe} #{id}'**
+  String auditEntitas(String tipe, String id);
+
+  /// No description provided for @auditTanpaRincian.
+  ///
+  /// In en, this message translates to:
+  /// **'No column details for this action.'**
+  String get auditTanpaRincian;
+
+  /// No description provided for @auditNilaiKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'(empty)'**
+  String get auditNilaiKosong;
+
+  /// No description provided for @auditNilaiDisembunyikan.
+  ///
+  /// In en, this message translates to:
+  /// **'(hidden)'**
+  String get auditNilaiDisembunyikan;
+
+  /// No description provided for @auditSebelum.
+  ///
+  /// In en, this message translates to:
+  /// **'Before'**
+  String get auditSebelum;
+
+  /// No description provided for @auditSesudah.
+  ///
+  /// In en, this message translates to:
+  /// **'After'**
+  String get auditSesudah;
+
+  /// No description provided for @auditCatatan.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get auditCatatan;
+
+  /// No description provided for @auditTutup.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get auditTutup;
+
+  /// No description provided for @logoOrgJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate letterhead logo'**
+  String get logoOrgJudul;
+
+  /// No description provided for @logoOrgSub.
+  ///
+  /// In en, this message translates to:
+  /// **'The lab logo printed on the certificate letterhead (PNG or JPG)'**
+  String get logoOrgSub;
+
+  /// No description provided for @logoOrgHanyaAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Only admins can manage the logo.'**
+  String get logoOrgHanyaAdmin;
+
+  /// No description provided for @logoOrgInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'This logo is printed on the certificate letterhead. PNG or JPG, 2 MB at most. WEBP and GIF cannot be printed in the PDF.'**
+  String get logoOrgInfo;
+
+  /// No description provided for @logoOrgBelum.
+  ///
+  /// In en, this message translates to:
+  /// **'No custom logo yet. The certificate letterhead uses the default logo.'**
+  String get logoOrgBelum;
+
+  /// No description provided for @logoOrgUnggah.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload logo'**
+  String get logoOrgUnggah;
+
+  /// No description provided for @logoOrgGanti.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace logo'**
+  String get logoOrgGanti;
+
+  /// No description provided for @logoOrgHapus.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete logo'**
+  String get logoOrgHapus;
+
+  /// No description provided for @logoOrgTerunggah.
+  ///
+  /// In en, this message translates to:
+  /// **'Logo uploaded.'**
+  String get logoOrgTerunggah;
+
+  /// No description provided for @logoOrgTerhapus.
+  ///
+  /// In en, this message translates to:
+  /// **'Logo deleted. The letterhead uses the default logo.'**
+  String get logoOrgTerhapus;
+
+  /// No description provided for @logoOrgHapusJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete the logo?'**
+  String get logoOrgHapusJudul;
+
+  /// No description provided for @logoOrgHapusIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'The next certificate letterheads will use the default logo. You can upload a logo again at any time.'**
+  String get logoOrgHapusIsi;
+
+  /// No description provided for @logoOrgTerlaluBesar.
+  ///
+  /// In en, this message translates to:
+  /// **'That file is over 2 MB. Pick a smaller logo.'**
+  String get logoOrgTerlaluBesar;
+
+  /// No description provided for @logoOrgGagalMuat.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the logo.'**
+  String get logoOrgGagalMuat;
+
+  /// No description provided for @logoOrgRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get logoOrgRetry;
+
+  /// No description provided for @logoOrgGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'The logo action failed. Try again.'**
+  String get logoOrgGagal;
+
+  /// No description provided for @logoOrgPratinjauGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'The logo image could not be shown.'**
+  String get logoOrgPratinjauGagal;
+
   /// No description provided for @jlJudul.
   ///
   /// In en, this message translates to:

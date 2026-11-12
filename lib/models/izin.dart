@@ -176,6 +176,10 @@ abstract final class NamaIzin {
   static const imporExcel = 'impor.excel';
   static const organisasiUbah = 'organisasi.ubah';
 
+  // Logo kop sertifikat (`POST /organization/logo`, role:admin). Ada di
+  // `MatriksIzin::PETA` server dan di `test/fixtures/nama_izin.json`.
+  static const organisasiLogo = 'organisasi.logo';
+
   // Pelacakan & penugasan (keputusan 26 Sep). Izin tolak/sahkan/kembalikan/
   // tarik-pengajuan/pengesahan.antrean DICABUT 15 Okt 2026 (K-50-01/07);
   // gantinya `bandingkan` (layar Bandingkan) dan `sertifikat.tarik`.
