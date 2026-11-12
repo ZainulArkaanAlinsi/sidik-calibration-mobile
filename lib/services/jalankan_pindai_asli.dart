@@ -11,7 +11,8 @@ import 'baca_paralel.dart';
 import 'foto_untuk_ocr.dart';
 import 'modul_pembaca_teks.dart';
 import 'pembaca_halaman.dart';
-import 'pembaca_sel.dart' show BacaanSel, PembacaSel;
+import 'ocr_angka/aturan_format_sel.dart' show AturanFormatSel;
+import 'pembaca_sel.dart' show BacaanSel, PembacaSel, PembacaSelBerformat;
 import 'pindai_lembar.dart';
 import 'registrasi_jangkar_teks.dart';
 
@@ -321,14 +322,21 @@ class JalankanPindaiAsli {
     // Potong dulu semuanya (murah, `copyCrop` kotak kecil), baru dibaca
     // [bacaSelSerentak] sekaligus. Hasil dipasangkan menurut INDEKS — urutan
     // selesai ML Kit tidak pernah menentukan sel mana mendapat bacaan mana.
-    final antrean = <({String kunci, img.Image potong})>[];
+    final antrean =
+        <({String kunci, img.Image potong, AturanFormatSel? format})>[];
 
     for (final s in template.selAsli) {
       final p = piksel(s.kotak!);
       final potong = mesin.potongSel(warp, x: p.x, y: p.y, w: p.w, h: p.h);
 
       gambar[s.kunci] = potong;
-      antrean.add((kunci: s.kunci, potong: potong));
+      // Format sel (desimal, boleh negatif) dari templat, hanya dipakai pembaca
+      // berformat (mesin angka); `null` bila templat tidak menyebutnya.
+      antrean.add((
+        kunci: s.kunci,
+        potong: potong,
+        format: AturanFormatSel.dari(s.aturan),
+      ));
     }
 
     for (final i in template.isian) {
@@ -337,32 +345,34 @@ class JalankanPindaiAsli {
       final kunci = kunciPotonganIsian(i.kode);
 
       gambar[kunci] = potong;
-      antrean.add((kunci: kunci, potong: potong));
+      antrean.add((kunci: kunci, potong: potong, format: null));
     }
 
     final pembacaLokal = pembaca;
     final bacaan =
-        await petaTerbatas<({String kunci, img.Image potong}), BacaanSel>(
-          antrean,
-          (a) async {
-            try {
-              return await pembacaLokal.baca(a.potong);
-            } on ModulPembacaTeksBelumSiap {
-              // Bukan sel yang gagal: modul ML Kit belum ada. Seluruh pindai
-              // berhenti dengan pesannya sendiri.
-              rethrow;
-            } on LayananGooglePlayTidakSiap {
-              // Sama: tanpa Play Services tidak ada sel yang bisa dibaca.
-              rethrow;
-            } catch (_) {
-              // Satu sel gagal TIDAK menggugurkan sel lain. Sel ini jadi kosong
-              // (tanpa teks karangan, tanpa nol) dan dicatat di [gagalDibaca]
-              // supaya review menandainya MERAH.
-              gagalDibaca.add(a.kunci);
-              return (teks: null, keyakinan: null, didalamKotak: true);
-            }
-          },
-        );
+        await petaTerbatas<
+          ({String kunci, img.Image potong, AturanFormatSel? format}),
+          BacaanSel
+        >(antrean, (a) async {
+          try {
+            return pembacaLokal is PembacaSelBerformat
+                ? await pembacaLokal.bacaBerformat(a.potong, a.format)
+                : await pembacaLokal.baca(a.potong);
+          } on ModulPembacaTeksBelumSiap {
+            // Bukan sel yang gagal: modul ML Kit belum ada. Seluruh pindai
+            // berhenti dengan pesannya sendiri.
+            rethrow;
+          } on LayananGooglePlayTidakSiap {
+            // Sama: tanpa Play Services tidak ada sel yang bisa dibaca.
+            rethrow;
+          } catch (_) {
+            // Satu sel gagal TIDAK menggugurkan sel lain. Sel ini jadi kosong
+            // (tanpa teks karangan, tanpa nol) dan dicatat di [gagalDibaca]
+            // supaya review menandainya MERAH.
+            gagalDibaca.add(a.kunci);
+            return (teks: null, keyakinan: null, didalamKotak: true);
+          }
+        });
 
     // Semua gagal = pengenalnya mati, bukan kertasnya. Satu layar penuh merah
     // menyesatkan (seolah fotonya jelek) → pesan galat umum (keputusan

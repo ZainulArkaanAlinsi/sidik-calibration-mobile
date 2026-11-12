@@ -199,11 +199,15 @@ void main() {
     final masukkan = find.byType(FilledButton);
     expect(tester.widget<FilledButton>(masukkan).onPressed, isNull);
 
-    // Merah mulai kosong.
+    // Urutan KERTAS (12 Nov 2026): baris 1 (kuning, 4,01) lebih dulu, lalu
+    // baris 2 (merah). Dulu merah selalu di atas.
     final kotak = find.byType(TextField);
-    expect(tester.widget<TextField>(kotak.first).controller!.text, isEmpty);
+    expect(tester.widget<TextField>(kotak.at(0)).controller!.text, '4,01');
 
-    await tester.enterText(kotak.first, '7,03');
+    // Merah mulai kosong.
+    expect(tester.widget<TextField>(kotak.at(1)).controller!.text, isEmpty);
+
+    await tester.enterText(kotak.at(1), '7,03');
     await tester.pump();
     expect(
       tester.widget<FilledButton>(masukkan).onPressed,

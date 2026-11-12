@@ -27,16 +27,31 @@ String kunciSelFoto(double titikUkur, int repeatNo, String fieldId) =>
 
 /// Susun bahan layar review dari hasil pemetaan foto.
 ///
-/// ## Kenapa urutannya bukan urutan sel
+/// ## Urutannya: URUTAN KERTAS
 ///
-/// Yang paling butuh mata teknisi ditaruh DULUAN: merah (bacaannya nggak bisa
-/// dipercaya, kotaknya dikosongkan), lalu yang keyakinannya tidak diketahui,
-/// lalu kuning. Layar yang mengurut menurut nomor baris bikin sel merah
-/// tenggelam di tengah tiga puluh sel yang bacaannya wajar — dan yang paling
-/// mungkin salah justru yang paling gampang kelewat.
+/// Sampai 12 Nov 2026 yang paling butuh mata teknisi ditaruh duluan (merah,
+/// lalu tidak-diketahui, lalu kuning). Itu diganti: teknisi memeriksa sel dalam
+/// urutan yang sama dengan matanya menelusuri lembar (baris demi baris, kolom
+/// demi kolom), karena isi cepat dengan auto-lanjut hanya masuk akal bila sel
+/// berikutnya selalu tetangga sel yang baru diperiksa.
 ///
-/// Di dalam satu golongan urutannya tetap urutan kertas (titik ukur, lalu
-/// Repeat), supaya teknisi bisa menelusurinya sambil melihat lembarnya.
+/// Ini KEPUTUSAN PEMILIK (isi cepat), bukan kelalaian: harganya sel merah tidak
+/// lagi di atas dan bisa tenggelam di daftar panjang. Yang melindunginya
+/// sekarang BUKAN urutannya, melainkan tiga pengaman yang diuji:
+///
+///  1. tombol Masukkan mati selama ada sel merah yang kotaknya kosong atau sel
+///     kuning yang belum dicek;
+///  2. layar selalu menghitung sisanya (di bawah daftar saat panel tertutup,
+///     "Sisa N sel" di kepala panel isi cepat saat terbuka);
+///  3. "Konfirmasi dan lanjut" memutar ke sel mana pun yang masih butuh, dan
+///     mati untuk merah yang masih kosong.
+///
+/// Tes pengunci: `PENGAMAN urutan kertas…` (`test/foto_review_isi_cepat_test.dart`),
+/// `tombol Masukkan MATI…` dan `sel KUNING wajib dicek…`
+/// (`test/foto_review_screen_test.dart`). Rincian: `docs/ocr-angka-onnx.md` §10.
+///
+/// Urutannya `titikUkur` lalu `repeatNo`, lalu urutan masuk (jalur formulir asli
+/// mengisi `titikUkur` dengan peringkat letak di kertas, lihat `urutanKertas`).
 List<BarisReviewFoto> susunReviewFoto({
   required List<SelTabelFoto> sel,
   required String Function(SelTabelFoto) judul,
@@ -44,38 +59,35 @@ List<BarisReviewFoto> susunReviewFoto({
   AmbangKeyakinan ambang = AmbangKeyakinan.bawaan,
 }) {
   final baris = [
-    for (final s in sel)
+    for (final (i, s) in sel.indexed)
       (
-        titikUkur: s.titikUkur,
-        repeatNo: s.repeatNo,
-        fieldId: s.fieldId,
-        judul: judul(s),
-        teks: s.teks,
-        keyakinan: s.keyakinan,
-        vonis: NilaiVonisFoto.dari(s.keyakinan, ambang: ambang),
-        potongan: potongan[kunciSelFoto(s.titikUkur, s.repeatNo, s.fieldId)],
+        urut: i,
+        baris: (
+          titikUkur: s.titikUkur,
+          repeatNo: s.repeatNo,
+          fieldId: s.fieldId,
+          judul: judul(s),
+          teks: s.teks,
+          keyakinan: s.keyakinan,
+          vonis: NilaiVonisFoto.dari(s.keyakinan, ambang: ambang),
+          potongan: potongan[kunciSelFoto(s.titikUkur, s.repeatNo, s.fieldId)],
+        ),
       ),
   ];
 
+  // `List.sort` tidak stabil: urutan masuk dipakai sebagai pemutus seri.
   baris.sort((a, b) {
-    final p = _prioritas(a.vonis).compareTo(_prioritas(b.vonis));
-    if (p != 0) return p;
-
-    final t = a.titikUkur.compareTo(b.titikUkur);
+    final t = a.baris.titikUkur.compareTo(b.baris.titikUkur);
     if (t != 0) return t;
 
-    return a.repeatNo.compareTo(b.repeatNo);
+    final r = a.baris.repeatNo.compareTo(b.baris.repeatNo);
+    if (r != 0) return r;
+
+    return a.urut.compareTo(b.urut);
   });
 
-  return baris;
+  return [for (final b in baris) b.baris];
 }
-
-int _prioritas(VonisFoto v) => switch (v) {
-  VonisFoto.merah => 0,
-  VonisFoto.tidakDiketahui => 1,
-  VonisFoto.kuning => 2,
-  VonisFoto.hijau => 3,
-};
 
 /// Sel yang WAJIB disentuh teknisi sebelum boleh dimasukkan.
 ///

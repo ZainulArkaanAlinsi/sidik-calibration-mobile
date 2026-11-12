@@ -6576,6 +6576,36 @@ class AppLocalizationsId extends AppLocalizations {
   String get fotoReviewSudahDicek => 'Sudah dicek';
 
   @override
+  String get fotoReviewIsiCepat => 'Isi cepat, satu per satu';
+
+  @override
+  String get fotoReviewKonfirmasiLanjut => 'Konfirmasi dan lanjut';
+
+  @override
+  String get fotoReviewTutupKeypad => 'Tutup keypad';
+
+  @override
+  String get fotoReviewKeypadHapus => 'Hapus satu karakter';
+
+  @override
+  String get fotoReviewKeypadMinus => 'Tanda minus';
+
+  @override
+  String get fotoReviewUsulanMesin => 'Usulan mesin: skor mentah, bukan persen';
+
+  @override
+  String fotoReviewSisaSel(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: 'Sisa $jumlah sel',
+      one: 'Sisa 1 sel',
+      zero: 'Semua sel sudah beres',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get lkAsliMemproses =>
       'Membaca foto di HP… foto tidak dikirim ke mana pun.';
 

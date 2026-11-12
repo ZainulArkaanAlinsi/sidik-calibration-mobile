@@ -327,6 +327,7 @@ class AturanSelAsli {
     this.rasioMaks,
     this.resolusi,
     this.desimal,
+    this.izinkanMinus,
   });
 
   final double? min;
@@ -334,6 +335,11 @@ class AturanSelAsli {
   final double? nominal;
   final double? rasioMin;
   final double? rasioMaks;
+
+  /// `izinkan_minus` dari server: sel ini boleh bertanda minus. `null` = server
+  /// tidak menyebut. Dipakai gerbang format mesin angka
+  /// (`AturanFormatSel.dari`), tidak oleh [lolos].
+  final bool? izinkanMinus;
 
   /// Resolusi & jumlah desimal yang diharapkan server
   /// (`TemplateLembarKerja::aturanPembacaan`). Dipakai aturan nalar
@@ -354,6 +360,11 @@ class AturanSelAsli {
       rasioMaks: d('rasio_maks'),
       resolusi: d('resolusi'),
       desimal: (json['desimal'] as num?)?.toInt(),
+      // Hanya bool sungguhan: 0/1 atau "true" dari server yang aneh = tidak
+      // diketahui, bukan galat yang menjatuhkan seluruh templat.
+      izinkanMinus: json['izinkan_minus'] is bool
+          ? json['izinkan_minus'] as bool
+          : null,
     );
   }
 

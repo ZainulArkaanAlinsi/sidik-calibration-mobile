@@ -24,6 +24,7 @@ import '../../services/jalankan_pindai_asli.dart';
 import '../../services/pembaca_halaman.dart'
     show PembacaHalaman, sapuBerkasPindaiLama;
 import '../../services/pembaca_sel.dart' show PembacaSel;
+import '../../services/urutan_kertas.dart';
 import '../../services/pesan_galat_pindai.dart';
 import '../../services/peta_tabel_foto.dart' show SelTabelFoto;
 import '../../services/potong_sel_foto.dart' show decodeFotoDiIsolate;
@@ -192,15 +193,23 @@ Future<int> pindaiFormulirAsli({
   // Alamat sel = (tabel_id, baris_ke, repeat_no, field_id) dari server, dibawa
   // di `fieldId` baris review sebagai `tabel@@baris@@field`. Titik ukur TIDAK
   // dipakai sebagai alamat: di lembar bertitik ketik-sendiri semua barisnya
-  // bertitik 0. `titikUkur` baris review diisi nomor urut kertas (tabel × 1000
-  // + baris) — cuma untuk mengurut dan sebagai kunci unik potongan.
+  // bertitik 0. `titikUkur` baris review diisi peringkat letak di kertas
+  // (`urutanKertas`) — cuma untuk mengurut dan sebagai kunci unik potongan.
   final sel = <SelTabelFoto>[];
   final potongan = <String, Uint8List>{};
+  // Baris yang keyakinannya skor mentah mesin angka (bukan persen). ML Kit tidak
+  // pernah memberi keyakinan, jadi keyakinan non-null di sini pasti dari mesin
+  // angka; hanya baris ini yang diberi label "usulan mesin" di layar review.
+  final skorMentah = <String>{};
+  final mesinAngkaNyala = ref.read(sakelarOcrProvider).pakaiMesinAngkaOnnx;
   final catatan = <String, List<String>>{};
   // Teks OCR ASLI per baris review (sebelum aturan/vonis) — ikut contoh latih
   // sebagai `bacaan_ocr`, supaya beda OCR lawan nilai akhir terlihat.
   final bacaanOcr = <String, String>{};
   final urutTabel = [for (final t in template.tabel) t.tabelId];
+  // Peringkat letak di kertas (tabel, baris demi baris, kiri ke kanan): urutan
+  // sel di layar review. Bukan nomor baris/Repeat templat: geometrinya yang jujur.
+  final peringkatKertas = urutanKertas(template.selAsli, urutTabel);
 
   // Aturan nalar formulir asli (Anak Timbangan 0541): hanya MENURUNKAN warna.
   // Cuma sel yang punya tempat mendarat di lembar yang ikut dinilai.
@@ -266,7 +275,7 @@ Future<int> pindaiFormulirAsli({
         b.bacaan.didalamKotak &&
         nilaiTabel != null &&
         (s.aturan?.lolos(nilaiTabel) ?? true);
-    final urut = (urutTabel.indexOf(s.tabelId) + 1) * 1000.0 + s.barisKe;
+    final urut = 1000.0 + (peringkatKertas[s.kunci] ?? 0);
     final fieldId = '${s.tabelId}$_pisah${s.barisKe}$_pisah${s.fieldId}';
 
     final usulan = AturanFormulirAsli.terapkan(
@@ -295,10 +304,13 @@ Future<int> pindaiFormulirAsli({
     if (teks.isNotEmpty) {
       bacaanOcr[kunciSelFoto(urut, s.repeatNo, fieldId)] = teks;
     }
+    if (mesinAngkaNyala && b.bacaan.keyakinan != null) {
+      skorMentah.add(kunciSelFoto(urut, s.repeatNo, fieldId));
+    }
   }
 
-  // Isian Env./header: baris review juga, ditaruh paling atas dalam golongan
-  // vonisnya (urut negatif). Di luar rentang wajar = MERAH.
+  // Isian Env./header: baris review juga, ditaruh paling atas daftar (urut
+  // negatif, sebelum semua sel tabel). Di luar rentang wajar = MERAH.
   var noIsian = 0;
   for (final b in hasil.isian) {
     final kode = b.isian.kode;
@@ -383,7 +395,11 @@ Future<int> pindaiFormulirAsli({
 
   final disetujui = await Navigator.of(context).push<List<SelTabelFoto>>(
     MaterialPageRoute(
-      builder: (_) => FotoReviewScreen(baris: baris, catatan: catatan),
+      builder: (_) => FotoReviewScreen(
+        baris: baris,
+        catatan: catatan,
+        kunciSkorMentah: skorMentah,
+      ),
     ),
   );
   if (disetujui == null) return 0;

@@ -336,23 +336,13 @@ void main() {
     expect(tombol().onPressed, isNull);
   });
 
-  testWidgets('yang paling butuh diperiksa ditaruh DULUAN', (tester) async {
+  test('urutan review = URUTAN KERTAS, bukan menurut vonis', () {
+    // Dulu (sampai 12 Nov 2026) merah, lalu tidak-diketahui, lalu kuning.
+    // Diganti supaya isi cepat dengan auto-lanjut menelusuri lembar seperti
+    // mata teknisi. Yang menjaga sel merah tidak terlewat sekarang: tombol
+    // Masukkan mati selama ada merah kosong / kuning belum dicek (diuji di atas).
     final urut = susunReviewFoto(
       sel: [
-        (
-          titikUkur: 10,
-          repeatNo: 1,
-          fieldId: 'pembacaan',
-          teks: 'a',
-          keyakinan: 0.95,
-        ),
-        (
-          titikUkur: 20,
-          repeatNo: 1,
-          fieldId: 'pembacaan',
-          teks: 'b',
-          keyakinan: null,
-        ),
         (
           titikUkur: 30,
           repeatNo: 1,
@@ -360,18 +350,50 @@ void main() {
           teks: 'c',
           keyakinan: 0.10,
         ),
+        (
+          titikUkur: 10,
+          repeatNo: 2,
+          fieldId: 'pembacaan',
+          teks: 'b2',
+          keyakinan: null,
+        ),
+        (
+          titikUkur: 10,
+          repeatNo: 1,
+          fieldId: 'pembacaan',
+          teks: 'a1',
+          keyakinan: 0.95,
+        ),
+        (
+          titikUkur: 20,
+          repeatNo: 1,
+          fieldId: 'pembacaan',
+          teks: 'd',
+          keyakinan: 0.10,
+        ),
       ],
       judul: (s) => '${s.titikUkur}',
     );
 
-    expect(
-      urut.map((b) => b.vonis).toList(),
-      [VonisFoto.merah, VonisFoto.tidakDiketahui, VonisFoto.kuning],
-      reason:
-          'Layar yang ngurut menurut nomor baris bikin sel merah '
-          'tenggelam di tengah tiga puluh sel yang bacaannya wajar — dan yang '
-          'paling mungkin salah justru yang paling gampang kelewat.',
+    expect(urut.map((b) => b.teks).toList(), ['a1', 'b2', 'd', 'c']);
+    expect(urut.map((b) => b.vonis).toList(), [
+      VonisFoto.kuning,
+      VonisFoto.tidakDiketahui,
+      VonisFoto.merah,
+      VonisFoto.merah,
+    ]);
+  });
+
+  test('titik ukur dan Repeat sama: urutan masuk dipertahankan', () {
+    final urut = susunReviewFoto(
+      sel: [
+        for (final f in ['suhu', 'pembacaan', 'arus'])
+          (titikUkur: 5, repeatNo: 1, fieldId: f, teks: f, keyakinan: 0.9),
+      ],
+      judul: (s) => s.fieldId,
     );
+
+    expect(urut.map((b) => b.fieldId).toList(), ['suhu', 'pembacaan', 'arus']);
   });
 
   testWidgets(
