@@ -1,30 +1,37 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Permission CAMERA — alasannya SUDAH BUKAN yang dulu ditulis di sini.
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <!-- Permission CAMERA — dipakai DUA jalur:
 
-         Komentar lamanya nyebut scan langsung lewat paket `camera` di
-         `live_scan_screen.dart`. Dua-duanya nggak ada lagi di proyek ini:
-         `camera` nggak kedaftar di `pubspec.yaml` maupun `pubspec.lock`, dan
-         berkas layar itu nggak ada di `lib/`. Satu-satunya jalan ke kamera
-         sekarang lewat `image_picker` — `KameraSumberFoto` di
-         `lib/services/photo_source.dart` (jepretan lembar kerja buat OCR
-         lokal) dan foto profil di `lib/screens/profile/profile_screen.dart`.
-
-         `image_picker` nembak intent ke app kamera bawaan, dan intent sendiri
-         nggak butuh permission — jadi sekarang baris ini secara teknis nggak
-         wajib lagi. Tapi dia BUKAN deklarasi kosong: begitu CAMERA kesebut di
-         manifest, `image_picker_android` mewajibkan izinnya diminta dulu
-         sebelum intent-nya jalan (`ImagePickerDelegate` manggil
-         `ImagePickerUtils.needRequestCameraPermission()`, yang isinya cuma
-         ngintip manifest ini). Artinya baris ini yang nentuin teknisi kena
-         dialog izin sebelum motret atau nggak. Jadi jangan dicabut sambil
-         lalu: yang berubah bukan cuma daftar izin di Play/Settings, tapi alur
-         foto lembar kerja & foto profil di perangkat asli — uji dua-duanya
-         dulu kalau memang mau dicabut.
+         1. Kamera sendiri untuk "Foto lembar kerja" (paket `camera`,
+            `lib/screens/calibration/kamera_pindai_screen.dart`): pratinjau,
+            senter, dan jepret langsung di dalam app. Izinnya diminta plugin
+            sendiri saat layar kamera dibuka.
+         2. Cadangan `image_picker` (`KameraSumberFoto` di
+            `lib/services/photo_source.dart`, dan foto profil di
+            `lib/screens/profile/profile_screen.dart`). Begitu CAMERA kesebut di
+            manifest, `image_picker_android` mewajibkan izinnya diminta dulu
+            sebelum intent-nya jalan (`ImagePickerUtils.needRequestCameraPermission()`
+            cuma mengintip manifest ini). Jadi jangan dicabut sambil lalu.
 
          Kameranya tetap OPSIONAL biar app masih keinstall di perangkat tanpa
-         kamera (mis. emulator lama). -->
+         kamera (mis. emulator lama). Manifest `camera_android_camerax`
+         menyisipkan `android.hardware.camera.any` sebagai WAJIB, dan
+         `required="false"` SAJA tidak menimpanya: penggabung manifest AGP
+         memakai kebijakan OR untuk `uses-feature`/`required`, jadi hasil
+         akhirnya tetap `true`. Yang menimpa adalah `tools:node="replace"`
+         (dibuktikan di harness ManifestMerger2 AGP 8.11.1). -->
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-feature android:name="android.hardware.camera" android:required="false"/>
+    <uses-feature android:name="android.hardware.camera.any" android:required="false" tools:node="replace"/>
+
+    <!-- Izin yang DISISIPKAN `camera_android_camerax` tapi tidak dipakai di sini
+         — dicabut supaya app tidak pernah menawarkannya:
+         - RECORD_AUDIO: app tidak merekam video/suara; `CameraController`
+           selalu dibuat `enableAudio: false`.
+         - WRITE_EXTERNAL_STORAGE (maks API 28): foto sengaja jatuh ke cache
+           app, bukan galeri/penyimpanan bersama. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" tools:node="remove"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:node="remove"/>
 
     <!-- WAJIB, dan ini sempat kelewat.
          Flutter nyisipin izin ini otomatis ke manifest DEBUG, jadi selama app

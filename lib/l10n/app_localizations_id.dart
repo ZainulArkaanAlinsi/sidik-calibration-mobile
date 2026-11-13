@@ -6723,6 +6723,100 @@ class AppLocalizationsId extends AppLocalizations {
   String get lkFotoTertinggalBaru => 'Foto baru';
 
   @override
+  String get lkKameraMemuat => 'Membuka kamera…';
+
+  @override
+  String get lkKameraTutup => 'Tutup kamera';
+
+  @override
+  String get lkKameraJepret => 'Ambil foto';
+
+  @override
+  String get lkKameraJepretGagal =>
+      'Foto gagal diambil. Ketuk tombol foto sekali lagi.';
+
+  @override
+  String get lkKameraSenterNyalakan => 'Nyalakan senter';
+
+  @override
+  String get lkKameraSenterMatikan => 'Matikan senter';
+
+  @override
+  String get lkKameraSenterTidakAda =>
+      'HP ini tidak punya senter yang bisa dinyalakan dari aplikasi.';
+
+  @override
+  String get lkKameraIzinJudul => 'Izin kamera diperlukan';
+
+  @override
+  String get lkKameraIzinLangkah =>
+      'Kamera dipakai untuk memotret lembar kerja; fotonya dibaca di HP ini dan tidak diunggah. Ketuk Coba lagi lalu pilih Izinkan. Kalau dialog izin tidak muncul lagi, aktifkan Kamera di Pengaturan HP → Aplikasi → PT Sidik Calibration → Izin.';
+
+  @override
+  String get lkKameraCobaLagi => 'Coba lagi';
+
+  @override
+  String get lkKameraBantuanAlas =>
+      'Letakkan lembar di atas alas gelap atau kontras, lalu pastikan seluruh halaman terlihat di dalam bingkai. Ketuk lembar untuk memfokuskan.';
+
+  @override
+  String get lkKameraTipGelapNyalakanSenter =>
+      'Terlalu gelap. Nyalakan senter (ikon senter di dekat tombol foto).';
+
+  @override
+  String get lkKameraTipGelapTambahCahaya =>
+      'Masih terlalu gelap. Cari tempat yang lebih terang.';
+
+  @override
+  String get lkKameraTipBuram =>
+      'Gambar buram. Tahan HP agar diam, lalu ketuk lembar untuk fokus.';
+
+  @override
+  String get lkKameraTipBuramGerak =>
+      'Gambar tersapu karena HP bergerak. Tahan HP diam sebelum menekan tombol foto.';
+
+  @override
+  String get lkKameraTipBayangan =>
+      'Ada bayangan di lembar. Geser HP atau tangan supaya cahaya merata.';
+
+  @override
+  String get lkKameraTipAgakGelap =>
+      'Agak gelap. Senter atau cahaya tambahan membantu bacaan.';
+
+  @override
+  String get lkKameraBantuanAlasTabel =>
+      'Letakkan lembar di atas alas gelap atau kontras, lalu pastikan seluruh tabel yang difoto terlihat di dalam bingkai. Ketuk lembar untuk memfokuskan.';
+
+  @override
+  String get lkKameraTipTerpotongTabel =>
+      'Seluruh tabel harus terlihat. Mundurkan HP sampai keempat sisi tabel masuk bingkai.';
+
+  @override
+  String get lkKameraPetunjukMati =>
+      'Petunjuk otomatis tidak tersedia di HP ini. Pastikan lembar terang, tajam, dan utuh di dalam bingkai sebelum memotret.';
+
+  @override
+  String get lkKameraTipSilau =>
+      'Terlalu silau. Geser posisi HP atau matikan senter sampai pantulan hilang.';
+
+  @override
+  String get lkKameraTipTerpotong =>
+      'Seluruh halaman harus terlihat. Mundurkan HP sampai keempat sisi kertas masuk bingkai.';
+
+  @override
+  String get lkFotoUlang => 'Foto ulang';
+
+  @override
+  String get lkFotoUlangJudul => 'Foto belum bisa dipakai';
+
+  @override
+  String get lkFotoUlangTutup => 'Tutup';
+
+  @override
+  String get lkAsliHalamanTerpotong =>
+      'Halaman terpotong atau tidak masuk semuanya. Potret SELURUH halaman: keempat sudut kertas dan kode formulir di pojok kanan bawah harus terlihat di dalam bingkai, dengan lembar di atas alas gelap supaya tepinya jelas.';
+
+  @override
   String get aturanAsliBukanAngka => 'Bukan angka desimal biasa; ketik sendiri';
 
   @override

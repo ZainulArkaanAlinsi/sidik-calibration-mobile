@@ -8,6 +8,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image/image.dart' as img;
 
+import 'package:sidik_calibration/services/kamera_pindai.dart'
+    show awalanBerkasKamera;
 import 'package:sidik_calibration/services/modul_pembaca_teks.dart';
 import 'package:sidik_calibration/services/pembaca_halaman.dart';
 
@@ -272,6 +274,27 @@ void main() {
     expect(tmp.listSync().map((f) => f.uri.pathSegments.last).toSet(), {
       'sel-3-2.png',
       'lain.jpg',
+    });
+  });
+
+  test('sapuBerkasPindaiLama: jepretan kamera sendiri yang tertinggal ikut '
+      'disapu, yang masih muda dibiarkan', () async {
+    final sekarang = DateTime(2026, 11, 13, 12);
+    final tua = sekarang.subtract(const Duration(minutes: 30));
+    File berkas(String nama, DateTime waktu) => File('${tmp.path}/$nama')
+      ..writeAsBytesSync([1])
+      ..setLastModifiedSync(waktu);
+
+    berkas('$awalanBerkasKamera${tua.microsecondsSinceEpoch}.jpg', tua);
+    berkas('${awalanBerkasKamera}baru.jpg', sekarang); // mungkin sedang dibaca
+    berkas('CAP123.jpg', tua); // berkas plugin lain: bukan milik pindai kita
+
+    final n = await sapuBerkasPindaiLama(tmp, sekarang: sekarang);
+
+    expect(n, 1);
+    expect(tmp.listSync().map((f) => f.uri.pathSegments.last).toSet(), {
+      '${awalanBerkasKamera}baru.jpg',
+      'CAP123.jpg',
     });
   });
 

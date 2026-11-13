@@ -11,7 +11,10 @@ import '../screens/notification/notification_screen.dart';
 /// membuka aplikasi dari keadaan mati. Dua-duanya masuk lewat callback biasa,
 /// bukan lewat widget.
 ///
-/// Dipakai SEMPIT — cuma buat itu. Navigasi di dalam layar tetap lewat
+/// Dipakai SEMPIT — cuma dua hal: tautan notifikasi di atas, dan membuka
+/// layar kamera "Foto lembar kerja" dari `KameraAplikasiSumberFoto`
+/// (`SumberFoto.ambil` tidak membawa `BuildContext`; hanya aktif bila saklar
+/// `KAMERA_SENDIRI` menyala). Navigasi di dalam layar tetap lewat
 /// `Navigator.of(context)`, karena yang lewat kunci global nggak kelihatan di
 /// pohon widget dan lebih susah dilacak waktu ada yang salah.
 final navigatorKey = GlobalKey<NavigatorState>();

@@ -69,6 +69,6 @@
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Butuh akses galeri buat milih foto profil kamu.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Butuh akses kamera buat ambil foto profil kamu.</string>
+	<string>Butuh akses kamera untuk memotret foto profil kamu dan lembar kerja kalibrasi. Foto lembar kerja dibaca di perangkat ini saja dan tidak diunggah ke mana pun.</string>
 </dict>
 </plist>

@@ -8,6 +8,7 @@ import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 
 import 'foto_untuk_ocr.dart' show pastikanBukanSalinanArsip;
+import 'kamera_pindai.dart' show awalanBerkasKamera;
 import 'modul_pembaca_teks.dart';
 
 /// Satu potongan teks hasil OCR berikut kotaknya di citra.
@@ -121,7 +122,8 @@ bool dalamBingkai(List<TeksTerbaca> terbaca, int lebar, int tinggi) {
 /// jangkar yang TERCETAK di tabelnya sendiri (nilai standar di kolom kiri,
 /// nomor X1..Xn di kepala kolom). Aturannya ada di `PetaTabelFoto`.
 /// Hapus sisa berkas sementara pindai (`tabel-*` dari [MlKitPembacaHalaman],
-/// `sel-*` dari `MlKitPembacaSel`) di [dir] yang lebih tua dari [umur].
+/// `sel-*` dari `MlKitPembacaSel`, `pindai-kamera-*` jepretan kamera sendiri)
+/// di [dir] yang lebih tua dari [umur].
 ///
 /// Berkas itu potongan/foto lembar kerja pelanggan (JPEG bisa membawa EXIF
 /// GPS). Normalnya dihapus di `finally`, tapi kalau proses dimatikan di
@@ -140,7 +142,11 @@ Future<int> sapuBerkasPindaiLama(
 
   for (final f in dir.listSync().whereType<File>()) {
     final nama = f.uri.pathSegments.last;
-    if (!(nama.startsWith('tabel-') || nama.startsWith('sel-'))) continue;
+    if (!(nama.startsWith('tabel-') ||
+        nama.startsWith('sel-') ||
+        nama.startsWith(awalanBerkasKamera))) {
+      continue;
+    }
     if (!(nama.endsWith('.jpg') || nama.endsWith('.png'))) continue;
 
     try {
