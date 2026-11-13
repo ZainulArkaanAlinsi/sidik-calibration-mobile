@@ -11803,6 +11803,162 @@ abstract class AppLocalizations {
   /// **'New photo'**
   String get lkFotoTertinggalBaru;
 
+  /// No description provided for @lkKameraMemuat.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening the camera…'**
+  String get lkKameraMemuat;
+
+  /// No description provided for @lkKameraTutup.
+  ///
+  /// In en, this message translates to:
+  /// **'Close camera'**
+  String get lkKameraTutup;
+
+  /// No description provided for @lkKameraJepret.
+  ///
+  /// In en, this message translates to:
+  /// **'Take photo'**
+  String get lkKameraJepret;
+
+  /// No description provided for @lkKameraJepretGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'The photo could not be taken. Tap the shutter button again.'**
+  String get lkKameraJepretGagal;
+
+  /// No description provided for @lkKameraSenterNyalakan.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on torch'**
+  String get lkKameraSenterNyalakan;
+
+  /// No description provided for @lkKameraSenterMatikan.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off torch'**
+  String get lkKameraSenterMatikan;
+
+  /// No description provided for @lkKameraSenterTidakAda.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone has no torch the app can turn on.'**
+  String get lkKameraSenterTidakAda;
+
+  /// No description provided for @lkKameraIzinJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera permission needed'**
+  String get lkKameraIzinJudul;
+
+  /// No description provided for @lkKameraIzinLangkah.
+  ///
+  /// In en, this message translates to:
+  /// **'The camera is used to photograph the worksheet; the photo is read on this phone and never uploaded. Tap Try again, then choose Allow. If the permission dialog no longer appears, enable Camera in the phone Settings → Apps → PT Sidik Calibration → Permissions.'**
+  String get lkKameraIzinLangkah;
+
+  /// No description provided for @lkKameraCobaLagi.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get lkKameraCobaLagi;
+
+  /// No description provided for @lkKameraBantuanAlas.
+  ///
+  /// In en, this message translates to:
+  /// **'Put the sheet on a dark or contrasting surface and keep the whole page inside the frame. Tap the sheet to focus.'**
+  String get lkKameraBantuanAlas;
+
+  /// No description provided for @lkKameraTipGelapNyalakanSenter.
+  ///
+  /// In en, this message translates to:
+  /// **'Too dark. Turn on the torch (torch icon next to the shutter button).'**
+  String get lkKameraTipGelapNyalakanSenter;
+
+  /// No description provided for @lkKameraTipGelapTambahCahaya.
+  ///
+  /// In en, this message translates to:
+  /// **'Still too dark. Find a brighter place.'**
+  String get lkKameraTipGelapTambahCahaya;
+
+  /// No description provided for @lkKameraTipBuram.
+  ///
+  /// In en, this message translates to:
+  /// **'The image is blurry. Hold the phone still, then tap the sheet to focus.'**
+  String get lkKameraTipBuram;
+
+  /// No description provided for @lkKameraTipBuramGerak.
+  ///
+  /// In en, this message translates to:
+  /// **'The image is smeared because the phone is moving. Hold it still before pressing the shutter.'**
+  String get lkKameraTipBuramGerak;
+
+  /// No description provided for @lkKameraTipBayangan.
+  ///
+  /// In en, this message translates to:
+  /// **'There is a shadow on the sheet. Move the phone or your hand so the light is even.'**
+  String get lkKameraTipBayangan;
+
+  /// No description provided for @lkKameraTipAgakGelap.
+  ///
+  /// In en, this message translates to:
+  /// **'A bit dark. A torch or extra light helps the reading.'**
+  String get lkKameraTipAgakGelap;
+
+  /// No description provided for @lkKameraBantuanAlasTabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Put the sheet on a dark or contrasting surface and keep the whole table you are photographing inside the frame. Tap the sheet to focus.'**
+  String get lkKameraBantuanAlasTabel;
+
+  /// No description provided for @lkKameraTipTerpotongTabel.
+  ///
+  /// In en, this message translates to:
+  /// **'The whole table must be visible. Move the phone back until all four edges of the table are inside the frame.'**
+  String get lkKameraTipTerpotongTabel;
+
+  /// No description provided for @lkKameraPetunjukMati.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic hints are not available on this phone. Make sure the sheet is bright, sharp, and fully inside the frame before shooting.'**
+  String get lkKameraPetunjukMati;
+
+  /// No description provided for @lkKameraTipSilau.
+  ///
+  /// In en, this message translates to:
+  /// **'Too much glare. Move the phone or turn off the torch until the reflection is gone.'**
+  String get lkKameraTipSilau;
+
+  /// No description provided for @lkKameraTipTerpotong.
+  ///
+  /// In en, this message translates to:
+  /// **'The whole page must be visible. Move the phone back until all four edges of the paper are inside the frame.'**
+  String get lkKameraTipTerpotong;
+
+  /// No description provided for @lkFotoUlang.
+  ///
+  /// In en, this message translates to:
+  /// **'Retake photo'**
+  String get lkFotoUlang;
+
+  /// No description provided for @lkFotoUlangJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'This photo cannot be used'**
+  String get lkFotoUlangJudul;
+
+  /// No description provided for @lkFotoUlangTutup.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get lkFotoUlangTutup;
+
+  /// No description provided for @lkAsliHalamanTerpotong.
+  ///
+  /// In en, this message translates to:
+  /// **'The page is cut off or not fully in the photo. Photograph the WHOLE page: all four paper corners and the form code at the bottom right must be inside the frame, with the sheet on a dark surface so its edges stand out.'**
+  String get lkAsliHalamanTerpotong;
+
   /// No description provided for @aturanAsliBukanAngka.
   ///
   /// In en, this message translates to:

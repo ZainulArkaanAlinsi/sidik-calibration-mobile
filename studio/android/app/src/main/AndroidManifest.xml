@@ -18,6 +18,17 @@
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" tools:node="remove"/>
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" tools:node="remove"/>
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" tools:node="remove"/>
+    <!-- Plugin `camera` (kamera "Foto lembar kerja" app lapangan, 13 Nov 2026)
+         ikut terbawa lewat paket `sidik_calibration`; manifest-nya menyisipkan
+         tiga izin dan fitur kamera WAJIB. Studio tidak memotret: izin dicabut,
+         dan fitur kamera dijadikan opsional supaya tablet tanpa kamera tetap
+         bisa memasang Studio. `required="false"` SAJA tidak cukup (penggabung
+         manifest AGP memakai kebijakan OR untuk `uses-feature`/`required`,
+         hasil akhirnya tetap `true`); yang menimpa `tools:node="replace"`. -->
+    <uses-permission android:name="android.permission.CAMERA" tools:node="remove"/>
+    <uses-permission android:name="android.permission.RECORD_AUDIO" tools:node="remove"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:node="remove"/>
+    <uses-feature android:name="android.hardware.camera.any" android:required="false" tools:node="replace"/>
     <!-- Memasang APK pemutakhiran Studio dari dalam aplikasi (banner
          `PembaruApkStudio`). Studio tidak lewat Play Store. `open_filex`
          (dipakai pemasang bersama) sengaja mencabut izin ini dari manifest-nya,

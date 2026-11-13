@@ -97,6 +97,28 @@ dependencies:
   # ngirim citra ke server orang, atau yang butuh API key ke layanan luar.
   google_mlkit_text_recognition: ^0.15.0
 
+  # Kamera sendiri untuk "Foto lembar kerja" (13 Nov 2026) — senter/torch untuk
+  # ruang gelap, ketuk-untuk-fokus, dan JPEG langsung dari sensor tanpa
+  # dikompres ulang (`image_picker` menekan ulang JPEG dan tidak bisa menyalakan
+  # senter). Paket resmi flutter.dev (BSD-3-Clause, lisensi turunannya sama).
+  # Aman privasi: tidak ada jaringan dan tidak ada SDK cloud — pratinjau dan
+  # contoh frame (`startImageStream`) hanya dibaca di memori HP untuk petunjuk
+  # "terlalu gelap/buram"; foto jatuh ke cache app (bukan galeri) dan dihapus
+  # begitu terbaca. Android: CameraX, minSdk 23 (app: `flutter.minSdkVersion`
+  # = 24). Manifest paket ini menyisipkan RECORD_AUDIO &
+  # WRITE_EXTERNAL_STORAGE; keduanya DICABUT di AndroidManifest.xml app.
+  #
+  # LAYAR KAMERA INI DIKUNCI SAKLAR `KAMERA_SENDIRI` (bawaan MATI): rilis biasa
+  # tetap memakai `image_picker`, dan layar kamera tidak terjangkau. APK uji:
+  #   flutter build apk --dart-define=KAMERA_SENDIRI=true
+  # Bawaan baru boleh dibalik ke `true` (`kKameraSendiri` di
+  # `lib/providers/sumber_foto_provider.dart`, bersama tes penjaganya) SETELAH
+  # ada bukti di HP nyata, lintas merek: fokus ketuk, senter, JPEG yang
+  # dihasilkan (ukuran, orientasi, ketajaman), dan ambang saran
+  # (`AmbangFotoLembar`, masih usulan rig) — plus performa aliran frame di HP
+  # murah.
+  camera: ^0.12.2
+
   # QR versi lembar (`{template_id}|v{versi}`). Server NOLAK seluruh pindai
   # kalau `qr.terbaca` bukan `true`, dan itu penjagaan yang bener: QR-nya
   # satu-satunya cara sistem tau lembar mana & revisi ke berapa yang lagi

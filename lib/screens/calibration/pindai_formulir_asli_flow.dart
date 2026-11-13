@@ -28,6 +28,7 @@ import '../../services/urutan_kertas.dart';
 import '../../services/pesan_galat_pindai.dart';
 import '../../services/peta_tabel_foto.dart' show SelTabelFoto;
 import '../../services/potong_sel_foto.dart' show decodeFotoDiIsolate;
+import '../../widgets/dialog_foto_ulang.dart';
 import '../../widgets/konfirmasi_foto_tertinggal.dart';
 import 'foto_review_screen.dart';
 import 'lembar_kerja_state.dart';
@@ -50,11 +51,85 @@ const _kodeIsian = '@isian';
 ///
 /// Mengembalikan jumlah sel yang masuk lembar (0 = dibatalkan/gagal; pesan
 /// sudah ditampilkan).
+///
+/// ## Foto ulang
+///
+/// Kalau fotonya sendiri yang salah (buram, gelap, terpotong, dst. —
+/// [fotoUlangMembantu]), alasannya ditampilkan di dialog dengan tombol
+/// "Foto ulang" yang membuka kamera lagi dan mengulang SELURUH alur, di
+/// dalam pemanggilan yang sama (nilai kembalian dan penjaga `_sedangMemindai`
+/// pemanggil tetap berlaku). Tiap percobaan adalah panggilan [_pindaiSekali]
+/// tersendiri yang SUDAH selesai sebelum dialog tampil: citra foto gagal yang
+/// puluhan MB tidak ikut tertahan selama percobaan berikutnya.
 Future<int> pindaiFormulirAsli({
   required BuildContext context,
   required WidgetRef ref,
   required LembarKerjaState isian,
   required WorksheetTemplate template,
+  JalankanPindaiAsli? mesin,
+}) async {
+  while (true) {
+    _UsulFotoUlang? usul;
+    final terisi = await _pindaiSekali(
+      context: context,
+      ref: ref,
+      isian: isian,
+      template: template,
+      mesin: mesin,
+      mintaFotoUlang: (u) => usul = u,
+    );
+
+    final u = usul;
+    if (u == null) return terisi;
+    if (!context.mounted) return 0;
+
+    final ulang = await tawarkanFotoUlang(
+      context,
+      pesan: u.pesan,
+      halamanTerpotong: u.halamanTerpotong,
+    );
+    if (!ulang || !context.mounted) return 0;
+  }
+}
+
+/// Alasan gagal yang layak ditawari "Foto ulang" + teks yang ditampilkan.
+typedef _UsulFotoUlang = ({String pesan, bool halamanTerpotong});
+
+/// Foto ulang membantu bila yang salah FOTONYA. Tidak membantu bila lembarnya
+/// yang salah (formulir lain, revisi beda) atau formulirnya belum siap —
+/// memotret lagi hanya mengulang penolakan yang sama.
+///
+/// `switch` penuh tanpa `default`: sebab baru di [GagalPindaiAsli] tidak
+/// bisa dikompilasi sebelum diputuskan di sini.
+bool fotoUlangMembantu(GagalPindaiAsli sebab) => switch (sebab) {
+  GagalPindaiAsli.mutu ||
+  GagalPindaiAsli.jangkarKurang ||
+  GagalPindaiAsli.jangkarTidakMenyebar ||
+  GagalPindaiAsli.fotoTerbalik ||
+  GagalPindaiAsli.kodeTidakTerbaca ||
+  GagalPindaiAsli.revisiTidakTerbaca ||
+  GagalPindaiAsli.pembacaMati => true,
+  GagalPindaiAsli.belumSiap ||
+  GagalPindaiAsli.geometriBelumLengkap ||
+  GagalPindaiAsli.formulirLain ||
+  GagalPindaiAsli.revisiBeda => false,
+};
+
+/// Halaman terpotong: jangkar (tulisan cetak formulir) terlalu sedikit atau
+/// menumpuk di satu sisi — tanda utama bagian kertas tidak masuk foto.
+bool sebabHalamanTerpotong(GagalPindaiAsli sebab) =>
+    sebab == GagalPindaiAsli.jangkarKurang ||
+    sebab == GagalPindaiAsli.jangkarTidakMenyebar;
+
+/// Satu percobaan penuh: ambil foto → baca → layar review → isi lembar.
+/// [mintaFotoUlang] dipanggil (lalu fungsi ini mengembalikan 0) bila alasan
+/// gagalnya layak ditawari foto ulang; kalau tidak, pesan lewat snackbar.
+Future<int> _pindaiSekali({
+  required BuildContext context,
+  required WidgetRef ref,
+  required LembarKerjaState isian,
+  required WorksheetTemplate template,
+  required void Function(_UsulFotoUlang usul) mintaFotoUlang,
   JalankanPindaiAsli? mesin,
 }) async {
   final l10n = AppLocalizations.of(context);
@@ -88,6 +163,8 @@ Future<int> pindaiFormulirAsli({
       maxWidth: batasSisiFotoAsli,
       maxHeight: batasSisiFotoAsli,
       imageQuality: 100,
+      // Bingkai panduan kamera sendiri mengikuti bentuk halaman templat.
+      rasioKertas: _rasioKertas(template),
     );
   } catch (e, st) {
     // Izin kamera ditolak, kamera tidak ada, dsb. Dulu lolos tanpa pesan.
@@ -117,7 +194,7 @@ Future<int> pindaiFormulirAsli({
     return 0;
   }
   if (citra == null) {
-    kabar(l10n.lkPindaiGagalFoto);
+    mintaFotoUlang((pesan: l10n.lkPindaiGagalFoto, halamanTerpotong: false));
     return 0;
   }
 
@@ -147,6 +224,7 @@ Future<int> pindaiFormulirAsli({
   PembacaSel? pembaca;
   HasilBacaAsli? hasil;
   String? galat;
+  _UsulFotoUlang? usulUlang;
 
   try {
     JalankanPindaiAsli pakai;
@@ -166,6 +244,12 @@ Future<int> pindaiFormulirAsli({
     );
   } on PindaiAsliGagal catch (e) {
     galat = pesanGagalAsli(l10n, e);
+    if (fotoUlangMembantu(e.sebab)) {
+      usulUlang = (
+        pesan: galat,
+        halamanTerpotong: sebabHalamanTerpotong(e.sebab),
+      );
+    }
   } on ModulPembacaTeksBelumSiap {
     // ML Kit unbundled: modul `ocr` belum terunduh. Lembar tidak berubah,
     // isian manual tetap jalan.
@@ -182,7 +266,11 @@ Future<int> pindaiFormulirAsli({
   }
 
   if (galat != null || hasil == null) {
-    kabar(galat ?? l10n.lkAsliGagalUmum);
+    if (usulUlang != null) {
+      mintaFotoUlang(usulUlang);
+    } else {
+      kabar(galat ?? l10n.lkAsliGagalUmum);
+    }
     return 0;
   }
 
@@ -481,6 +569,15 @@ Future<int> pindaiFormulirAsli({
   );
 
   return terisi;
+}
+
+/// Lebar ÷ tinggi halaman formulir (point), atau `null` bila templat tidak
+/// memuatnya — kamera lalu memakai bingkai netral.
+double? _rasioKertas(WorksheetTemplate template) {
+  final h = template.halamanPt;
+  if (h == null || h.w <= 0 || h.h <= 0) return null;
+
+  return h.w / h.h;
 }
 
 /// Pita wajar isian kondisi lingkungan — angka di luarnya MERAH, bukan usulan.

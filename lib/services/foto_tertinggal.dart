@@ -21,6 +21,7 @@ Future<File?> ambilFotoAtauPulihkan(
   int? maxWidth,
   int? maxHeight,
   int? imageQuality,
+  double? rasioKertas,
 }) async {
   File? sisa;
   try {
@@ -43,5 +44,6 @@ Future<File?> ambilFotoAtauPulihkan(
     maxWidth: maxWidth,
     maxHeight: maxHeight,
     imageQuality: imageQuality,
+    rasioKertas: rasioKertas,
   );
 }

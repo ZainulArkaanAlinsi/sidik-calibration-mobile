@@ -6800,6 +6800,100 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lkFotoTertinggalBaru => 'New photo';
 
   @override
+  String get lkKameraMemuat => 'Opening the camera…';
+
+  @override
+  String get lkKameraTutup => 'Close camera';
+
+  @override
+  String get lkKameraJepret => 'Take photo';
+
+  @override
+  String get lkKameraJepretGagal =>
+      'The photo could not be taken. Tap the shutter button again.';
+
+  @override
+  String get lkKameraSenterNyalakan => 'Turn on torch';
+
+  @override
+  String get lkKameraSenterMatikan => 'Turn off torch';
+
+  @override
+  String get lkKameraSenterTidakAda =>
+      'This phone has no torch the app can turn on.';
+
+  @override
+  String get lkKameraIzinJudul => 'Camera permission needed';
+
+  @override
+  String get lkKameraIzinLangkah =>
+      'The camera is used to photograph the worksheet; the photo is read on this phone and never uploaded. Tap Try again, then choose Allow. If the permission dialog no longer appears, enable Camera in the phone Settings → Apps → PT Sidik Calibration → Permissions.';
+
+  @override
+  String get lkKameraCobaLagi => 'Try again';
+
+  @override
+  String get lkKameraBantuanAlas =>
+      'Put the sheet on a dark or contrasting surface and keep the whole page inside the frame. Tap the sheet to focus.';
+
+  @override
+  String get lkKameraTipGelapNyalakanSenter =>
+      'Too dark. Turn on the torch (torch icon next to the shutter button).';
+
+  @override
+  String get lkKameraTipGelapTambahCahaya =>
+      'Still too dark. Find a brighter place.';
+
+  @override
+  String get lkKameraTipBuram =>
+      'The image is blurry. Hold the phone still, then tap the sheet to focus.';
+
+  @override
+  String get lkKameraTipBuramGerak =>
+      'The image is smeared because the phone is moving. Hold it still before pressing the shutter.';
+
+  @override
+  String get lkKameraTipBayangan =>
+      'There is a shadow on the sheet. Move the phone or your hand so the light is even.';
+
+  @override
+  String get lkKameraTipAgakGelap =>
+      'A bit dark. A torch or extra light helps the reading.';
+
+  @override
+  String get lkKameraBantuanAlasTabel =>
+      'Put the sheet on a dark or contrasting surface and keep the whole table you are photographing inside the frame. Tap the sheet to focus.';
+
+  @override
+  String get lkKameraTipTerpotongTabel =>
+      'The whole table must be visible. Move the phone back until all four edges of the table are inside the frame.';
+
+  @override
+  String get lkKameraPetunjukMati =>
+      'Automatic hints are not available on this phone. Make sure the sheet is bright, sharp, and fully inside the frame before shooting.';
+
+  @override
+  String get lkKameraTipSilau =>
+      'Too much glare. Move the phone or turn off the torch until the reflection is gone.';
+
+  @override
+  String get lkKameraTipTerpotong =>
+      'The whole page must be visible. Move the phone back until all four edges of the paper are inside the frame.';
+
+  @override
+  String get lkFotoUlang => 'Retake photo';
+
+  @override
+  String get lkFotoUlangJudul => 'This photo cannot be used';
+
+  @override
+  String get lkFotoUlangTutup => 'Close';
+
+  @override
+  String get lkAsliHalamanTerpotong =>
+      'The page is cut off or not fully in the photo. Photograph the WHOLE page: all four paper corners and the form code at the bottom right must be inside the frame, with the sheet on a dark surface so its edges stand out.';
+
+  @override
   String get aturanAsliBukanAngka =>
       'Not a plain decimal number; type it yourself';
 

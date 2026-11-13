@@ -23,14 +23,19 @@ void main() {
     if (Platform.isAndroid || Platform.isIOS) {
       expect(
         sumber,
-        isA<KameraSumberFoto>(),
+        // Bawaan: image_picker lama; kamera sendiri hanya di APK uji
+        // (`--dart-define=KAMERA_SENDIRI=true`).
+        kKameraSendiri
+            ? isA<KameraAplikasiSumberFoto>()
+            : isA<KameraSumberFoto>(),
         reason: 'HP punya kamera beneran — jangan diganti pemilih berkas',
       );
     } else {
       expect(
         sumber,
         isA<BerkasSumberFoto>(),
-        reason: 'macOS/Windows nggak punya kamera yang bisa dipanggil '
+        reason:
+            'macOS/Windows nggak punya kamera yang bisa dipanggil '
             'image_picker; manggil KameraSumberFoto di sini pasti meledak',
       );
     }

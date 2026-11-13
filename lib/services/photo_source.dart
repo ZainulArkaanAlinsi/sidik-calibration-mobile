@@ -4,6 +4,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:image_picker/image_picker.dart';
 
+import 'kamera_pindai.dart';
+
 /// Dari mana foto buat OCR diambil.
 ///
 /// Dipisah dari layar **supaya alur kameranya bisa di-widget-test**. Waktu
@@ -18,7 +20,16 @@ abstract class SumberFoto {
   /// Izin kamera ditolak / kamera tidak ada dilempar sebagai
   /// `PlatformException` (`camera_access_denied`, `no_available_camera`) —
   /// diterjemahkan ke kalimat manusia oleh `pesanGalatPindai`.
-  Future<File?> ambil({int? maxWidth, int? maxHeight, int? imageQuality});
+  ///
+  /// [rasioKertas] (lebar ÷ tinggi halaman lembar kerja, bila templatnya
+  /// tahu) hanya dipakai kamera sendiri untuk menggambar bingkai panduan;
+  /// sumber lain mengabaikannya.
+  Future<File?> ambil({
+    int? maxWidth,
+    int? maxHeight,
+    int? imageQuality,
+    double? rasioKertas,
+  });
 
   /// Foto yang SUDAH dijepret tapi hasilnya hilang karena Android mematikan
   /// aplikasi selama kamera terbuka (HP RAM kecil). `null` = tidak ada.
@@ -41,6 +52,7 @@ class KameraSumberFoto implements SumberFoto {
     int? maxWidth,
     int? maxHeight,
     int? imageQuality,
+    double? rasioKertas,
   }) async {
     final hasil = await ImagePicker().pickImage(
       source: ImageSource.camera,
@@ -77,6 +89,72 @@ class KameraSumberFoto implements SumberFoto {
   }
 }
 
+/// Kamera SENDIRI milik aplikasi (layar kamera dengan senter, ketuk-untuk-
+/// fokus, dan petunjuk langsung) — **cuma Android & iOS**.
+///
+/// ## Kenapa bukan `image_picker`
+///
+/// `image_picker` hanya melempar intent ke app kamera sistem: tidak bisa
+/// menyalakan senter untuk ruang gelap, tidak bisa diberi bingkai panduan, dan
+/// di Android men-decode lalu menekan ulang JPEG-nya (`ImageResizer`) sehingga
+/// fotonya bukan "apa adanya". Di sini JPEG langsung dari kamera, di cache app
+/// (bukan galeri), tidak dikodekan ulang. Batas sisi 4200 px alur pindai
+/// dijaga oleh resolusi kamera (3840 px), bukan oleh pengecilan.
+///
+/// ## Cadangan
+///
+/// Kamera tidak ada atau gagal diinisialisasi → jatuh ke [cadangan] dengan
+/// argumen yang sama, jadi perilakunya persis alur lama. Izin ditolak TIDAK
+/// jatuh ke cadangan: layar kamera menjelaskan langkah manualnya sendiri
+/// (`image_picker` butuh izin CAMERA yang sama, jadi bukan jalan keluar).
+/// Teknisi yang menutup kamera sendiri → `null` (batal), BUKAN jatuh ke
+/// cadangan.
+///
+/// Layar kamera dibuka lewat [bukaLayar] (diisi `sumberFotoProvider`), supaya
+/// berkas ini tetap bebas dari UI dan navigasi.
+class KameraAplikasiSumberFoto implements SumberFoto {
+  const KameraAplikasiSumberFoto({
+    required this.bukaLayar,
+    this.cadangan = const KameraSumberFoto(),
+  });
+
+  final BukaLayarKamera bukaLayar;
+  final SumberFoto cadangan;
+
+  @override
+  Future<File?> ambil({
+    int? maxWidth,
+    int? maxHeight,
+    int? imageQuality,
+    double? rasioKertas,
+  }) async {
+    HasilKamera hasil;
+    try {
+      hasil = await bukaLayar(rasioKertas: rasioKertas);
+    } catch (e) {
+      // Layar kamera tidak boleh membuat alur foto mati: cadangan masih ada.
+      debugPrint('KameraAplikasiSumberFoto: layar kamera gagal: $e');
+      hasil = KameraTakBisa(SebabKameraGagal.gagalMulai, e);
+    }
+
+    return switch (hasil) {
+      KameraFoto(:final berkas) => berkas,
+      KameraDibatalkan() => null,
+      KameraTakBisa() => await cadangan.ambil(
+        maxWidth: maxWidth,
+        maxHeight: maxHeight,
+        imageQuality: imageQuality,
+      ),
+    };
+  }
+
+  /// Foto tertinggal hanya mungkin dari kamera sistem (cadangan): kamera
+  /// sendiri berjalan di dalam proses aplikasi, jadi kalau proses mati tidak
+  /// ada jepretan yang tertinggal.
+  @override
+  Future<File?> ambilFotoTertinggal() => cadangan.ambilFotoTertinggal();
+}
+
 /// Desktop: pilih BERKAS gambar, bukan buka kamera.
 ///
 /// Di macOS & Windows nggak ada kamera yang bisa dipanggil `image_picker`, tapi
@@ -94,6 +172,7 @@ class BerkasSumberFoto implements SumberFoto {
     int? maxWidth,
     int? maxHeight,
     int? imageQuality,
+    double? rasioKertas,
   }) async {
     final hasil = await FilePicker.platform.pickFiles(
       type: FileType.custom,
@@ -142,16 +221,21 @@ class MockSumberFoto implements SumberFoto {
   int? maxHeightTerakhir;
   int? kualitasTerakhir;
 
+  /// Rasio halaman yang dikirim alur ke kamera (bingkai panduan).
+  double? rasioKertasTerakhir;
+
   @override
   Future<File?> ambil({
     int? maxWidth,
     int? maxHeight,
     int? imageQuality,
+    double? rasioKertas,
   }) async {
     jumlahAmbil++;
     maxWidthTerakhir = maxWidth;
     maxHeightTerakhir = maxHeight;
     kualitasTerakhir = imageQuality;
+    rasioKertasTerakhir = rasioKertas;
     if (galat case final g?) throw g;
 
     return dibatalkan ? null : (file ?? File('tes-foto.png'));
