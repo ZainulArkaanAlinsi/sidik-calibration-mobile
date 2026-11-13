@@ -106,6 +106,7 @@ void main() {
     _SesiPalsu? sesi,
     Duration batasSambung = PengunduhApkAsli.batasSambungBawaan,
     Duration batasDiam = PengunduhApkAsli.batasDiamBawaan,
+    Future<File> Function(File parsial, String tujuan)? pindahkan,
   }) {
     return PengunduhApkAsli(
       client: client,
@@ -113,8 +114,18 @@ void main() {
       direktori: () async => dir,
       batasSambung: batasSambung,
       batasDiam: batasDiam,
+      pindahkan: pindahkan,
     );
   }
+
+  /// Rename yang ditolak persis seperti Windows menolak rename yang kalah
+  /// balapan ke nama akhir yang sama (`Access is denied`, errno 5).
+  Future<File> ditolak(File parsial, String tujuan) async =>
+      throw PathAccessException(
+        tujuan,
+        const OSError('Access is denied.', 5),
+        'Cannot rename file to \'$tujuan\'',
+      );
 
   Future<void> tungguSampai(bool Function() syarat) async {
     for (var i = 0; i < 200 && !syarat(); i++) {
@@ -282,6 +293,61 @@ void main() {
       ]);
       expect(isiDir(), [namaAkhir]);
     });
+
+    // Tes-tes di bawah memicu kegagalan rename SECARA TEPAT. Tes berbarengan
+    // di atas hanya kadang-kadang memicunya: di POSIX rename atas nama yang
+    // sudah ada selalu menang, di Windows dua rename bersamaan ke nama yang
+    // sama membuat salah satunya ditolak (`Access is denied`) — terukur
+    // 5–13% pasang di mesin pengembang, dan di CI Windows 3 dari 3 run.
+    test('rename kalah balapan tapi nama akhir sudah utuh dari unduhan '
+        'kembarannya: berhasil, .part dibuang', () async {
+      final berkas = await pengunduh(
+        server(Stream.value([1, 2, 3, 4, 5, 6]), total: 6),
+        pindahkan: (parsial, tujuan) {
+          // Kembarannya menang lebih dulu, lalu rename kita ditolak.
+          File(tujuan).writeAsBytesSync([1, 2, 3, 4, 5, 6]);
+
+          return ditolak(parsial, tujuan);
+        },
+      ).unduh(_url, namaBerkas: namaAkhir);
+
+      expect(berkas?.path, endsWith(namaAkhir));
+      expect(berkas!.readAsBytesSync(), [1, 2, 3, 4, 5, 6]);
+      expect(isiDir(), [namaAkhir]);
+    });
+
+    test('rename gagal dan nama akhir tidak ada: gagal, tidak ada sisa '
+        '(.part dibuang)', () async {
+      final berkas = await pengunduh(
+        server(Stream.value([1, 2, 3]), total: 3),
+        pindahkan: ditolak,
+      ).unduh(_url, namaBerkas: namaAkhir);
+
+      expect(berkas, isNull);
+      expect(isiDir(), isEmpty);
+    });
+
+    for (final panjangLain in [1, 9]) {
+      test('rename gagal dan nama akhir ada tapi panjangnya lain '
+          '($panjangLain dari 3 byte): bukan milik kita, gagal', () async {
+        File(
+          '${dir.path}/$namaAkhir',
+        ).writeAsBytesSync(List<int>.filled(panjangLain, 9));
+
+        final berkas = await pengunduh(
+          server(Stream.value([1, 2, 3]), total: 3),
+          pindahkan: ditolak,
+        ).unduh(_url, namaBerkas: namaAkhir);
+
+        expect(berkas, isNull);
+        // Berkas orang lain tidak disentuh, `.part`-nya sendiri dibuang.
+        expect(isiDir(), [namaAkhir]);
+        expect(
+          File('${dir.path}/$namaAkhir').readAsBytesSync(),
+          List<int>.filled(panjangLain, 9),
+        );
+      });
+    }
 
     test(
       '.part basi dibuang di unduhan berikutnya; .part segar dibiarkan',

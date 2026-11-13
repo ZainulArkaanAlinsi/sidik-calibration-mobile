@@ -88,11 +88,13 @@ class PengunduhApkAsli implements PengunduhApk {
     Future<Directory> Function()? direktori,
     Duration batasSambung = batasSambungBawaan,
     Duration batasDiam = batasDiamBawaan,
+    Future<File> Function(File parsial, String tujuan)? pindahkan,
   }) : _client = client ?? http.Client(),
        _sesi = sesi ?? PemasangSesiAndroid(),
        _direktori = direktori ?? getTemporaryDirectory,
        _batasSambung = batasSambung,
-       _batasDiam = batasDiam;
+       _batasDiam = batasDiam,
+       _pindahkan = pindahkan ?? _pindahkanAsli;
 
   /// Paling lama menunggu server MENJAWAB (kepala respons), sebelum satu
   /// byte pun berkasnya datang.
@@ -119,6 +121,13 @@ class PengunduhApkAsli implements PengunduhApk {
   final Future<Directory> Function() _direktori;
   final Duration _batasSambung;
   final Duration _batasDiam;
+
+  /// Rename `.part` → nama akhir. Disuntikkan di test supaya kegagalan rename
+  /// bisa dipicu tepat, tanpa menunggu balapan Windows yang kebetulan terjadi.
+  final Future<File> Function(File parsial, String tujuan) _pindahkan;
+
+  static Future<File> _pindahkanAsli(File parsial, String tujuan) =>
+      parsial.rename(tujuan);
 
   @override
   Future<File?> unduh(
@@ -287,10 +296,31 @@ class PengunduhApkAsli implements PengunduhApk {
     }
 
     try {
-      return await parsial.rename(berkas.path);
+      return await _pindahkan(parsial, berkas.path);
     } catch (e) {
+      // Rename yang KALAH balapan bukan unduhan yang gagal. Di POSIX (Android)
+      // rename atas nama yang sudah ada selalu menang, jadi cabang ini di sana
+      // hampir tak pernah dicapai. Di Windows dua rename ke nama akhir yang
+      // sama berbarengan membuat salah satunya ditolak (`Access is denied`,
+      // errno 5; terukur 5–13% pasang di Windows) — padahal berkas di
+      // nama itu sudah utuh, dibuat unduhan kembarannya. Nama akhir cuma
+      // pernah lahir dari rename sesudah unduhannya utuh, dan namanya memuat
+      // versi, jadi berkas utuh sepanjang yang baru saja kita unduh = hasil
+      // yang kita cari, bukan kegagalan. Panjangnya tetap diadu ke
+      // [terunduh]: berkas lain panjangnya tidak dianggap milik kita.
+      final sudahUtuh = _utuhSepanjang(berkas, terunduh);
       await _hapusDiam(parsial);
+      if (sudahUtuh) return berkas;
+
       throw UnduhGagal('Berkas unduhan gagal dipindahkan: $e');
+    }
+  }
+
+  static bool _utuhSepanjang(File berkas, int panjang) {
+    try {
+      return berkas.existsSync() && berkas.lengthSync() == panjang;
+    } catch (_) {
+      return false;
     }
   }
 
