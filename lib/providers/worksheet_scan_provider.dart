@@ -55,6 +55,7 @@ typedef PabrikPembacaPindai = ({
 final pabrikPembacaPindaiProvider = Provider<PabrikPembacaPindai>((ref) {
   final sakelar = ref.watch(sakelarOcrProvider);
   final buatSesi = ref.watch(buatSesiOcrAngkaProvider);
+  final pabrikSesi = ref.watch(pabrikSesiOcrAngkaProvider);
 
   return (
     // ML Kit tetap pembaca bawaan. Mesin angka hanya bila sakelar developer
@@ -65,6 +66,7 @@ final pabrikPembacaPindaiProvider = Provider<PabrikPembacaPindai>((ref) {
             muatMesin: () => muatMesinAngkaBawaan(
               buatSesi,
               izinkanSintetis: sakelar.pakaiMesinAngkaOnnx,
+              menyerah: pabrikSesi == null ? null : () => pabrikSesi.menyerah,
             ),
           )
         : MlKitPembacaSel.new,

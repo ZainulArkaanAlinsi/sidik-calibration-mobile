@@ -40,14 +40,24 @@ typedef HasilMuatMesin = ({MesinAngka? mesin, PenolakanMesin? ditolak});
 ///     developer);
 ///  6. bila [sha256Dipercaya] diberikan: sha256 model harus ada di dalamnya;
 ///  7. runtime sanggup membuat sesi.
+///
+/// [menyerah] (opsional) menjawab "runtime ini sudah gagal dimuat berulang kali
+/// pada proses ini?". Bila `true`, hasilnya langsung `runtimeGagalDimuat` TANPA
+/// membuka [sumber] (tidak membaca aset 7,8 MB, tidak menghitung sha256) dan
+/// tanpa memanggil [buatSesi]: memuat ulang runtime yang rusak membocorkan
+/// memori native tiap kali.
 Future<HasilMuatMesin> muatMesinAngka({
   required SumberModelOcr sumber,
   required BuatSesiCtc? buatSesi,
   required bool izinkanSintetis,
   Set<String>? sha256Dipercaya,
+  bool Function()? menyerah,
 }) async {
   if (buatSesi == null) {
     return (mesin: null, ditolak: PenolakanMesin.runtimeTidakAda);
+  }
+  if (menyerah?.call() ?? false) {
+    return (mesin: null, ditolak: PenolakanMesin.runtimeGagalDimuat);
   }
 
   final metaJson = await sumber.metaJson();

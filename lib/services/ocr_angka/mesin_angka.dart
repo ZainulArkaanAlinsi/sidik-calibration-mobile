@@ -35,6 +35,15 @@ class MesinAngka {
       return const HasilSelAngka.kosong(AlasanSelAngka.tintaKosong);
     }
 
+    // Model berlebar tetap (TFLite 320): sel yang lebih lebar harus ditekan
+    // aspeknya, dan bacaan hasil tekanan tidak pernah diukur. Ditahan, tidak
+    // dijalankan. Setelah pagar tinta: sel lebar yang kosong tetap `tintaKosong`.
+    if (_sesi case SesiLebarTetap(lebarTetap: final batas)
+        when PraprosesSel.lebarHasilResize(potongan.width, potongan.height) >
+            batas) {
+      return const HasilSelAngka.kosong(AlasanSelAngka.ukuranTakWajar);
+    }
+
     final tensor = PraprosesSel.proses(potongan);
     final keluar = await _sesi.jalankan(tensor.data, tensor.lebar);
     final mentah = DekoderCtc.ambilKolom(
@@ -42,6 +51,7 @@ class MesinAngka {
       keluar.frame,
       keluar.kelas,
       meta.kolom,
+      sudahPeluang: keluar.sudahPeluang,
     );
 
     return putuskanSelAngka(

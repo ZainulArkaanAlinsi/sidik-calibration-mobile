@@ -173,9 +173,14 @@ Hasil latih v0 di laptop (TF 2.21, CPU, 4 epoch, ±1,5 menit): berkas
 sintetis uji 900 = 100% (mudah karena dibuat program yang sama — tidak
 berarti apa-apa untuk koma tulisan tangan). Kelas `coretan` belum punya data.
 
-**`asal_data` v0 = `publik` → aplikasi MENOLAK memakainya untuk mengisi sel**
-(`PembacaDigitTflite`, ditolak `asalDataBukanAsli`). Model ini tidak dibundel
-ke APK; keluaran `keluaran/` di-gitignore.
+**`asal_data` v0 = `publik` → model ini TIDAK boleh mengisi sel.** Pembaca
+karakternya di app (`PembacaDigitTflite`, yang menolak `asalDataBukanAsli`)
+sudah dihapus pada 13 Nov 2026 karena tidak terpasang ke alur mana pun; gerbang
+`asal_data` itu harus ditulis ulang bila model karakter sendiri dipasang kelak
+(riwayat git menyimpannya). Model ini tidak dibundel ke APK; keluaran
+`keluaran/` di-gitignore. Yang kini ada di app adalah mesin angka SEL utuh
+(PP-OCR dalam TFLite, sakelar developer `PAKAI_MESIN_ANGKA`, bawaan mati):
+`docs/ocr-angka-onnx.md`.
 
 ### Lisensi data
 

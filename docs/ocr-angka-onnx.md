@@ -1,27 +1,38 @@
-# OCR angka tulisan tangan: mesin PP-OCR di balik sakelar
+# OCR angka tulisan tangan: mesin PP-OCR (TFLite) di balik sakelar
 
-Diperbarui 12 Nov 2026. Dasar: laporan rig `_agents_workspace/ocr-kamera-20261112/10-uji-mesin-angka.md`
-(repo API, tidak di-commit) dan rig `C:\Users\USER\sidik-ocr-eval\`.
+Diperbarui 13 Nov 2026. Dasar: laporan rig `_agents_workspace/ocr-kamera-20261112/10-uji-mesin-angka.md`
+(repo API, tidak di-commit; bagian 9 = konversi TFLite) dan rig `C:\Users\USER\sidik-ocr-eval\`.
+Nama berkas ini masih `onnx` dari masa pemilihan runtime; banyak rujukan (`§10`) menunjuk ke sini, jadi
+nama dan nomor bagian dipertahankan.
 
 > **SEMUA ANGKA AKURASI DI DOKUMEN INI SINTETIS** (digit MNIST + font bergaya tulisan tangan di atas
 > latar sel buatan). Bukan tulisan teknisi di kertas yang difoto. Tidak ada klaim akurasi lapangan.
+
+**Keputusan runtime (13 Nov 2026): TFLite lewat `tflite_flutter` 0.12.1 (LiteRT 1.4.0), runtime yang SUDAH
+ada di APK.** ONNX Runtime tidak dipakai (+29..57 MB). Model ONNX asli dikonversi ke `rec_en_f32.tflite`
+(float32, 7,83 MB) dengan `onnx2tf` tanpa mengubah operator; di rig hasilnya IDENTIK dengan ONNX Runtime
+pada seluruh 5.900 sel uji (teks, skor, keputusan; bagian 3.4). INT8 dan float16 tidak dipakai.
 
 ## 0. Status (apa yang ada, apa yang belum)
 
 | bagian | status |
 |---|---|
 | Lapisan Dart murni `lib/services/ocr_angka/` (praproses, dekoder CTC, gerbang format, pagar tinta, status sel) | ADA, diuji di CI |
-| `PembacaSelOnnx` di balik sakelar `PAKAI_MESIN_ANGKA_ONNX` (bawaan MATI), ML Kit sebagai cadangan | ADA, diuji dengan sesi tiruan |
-| Layar diagnostik `Ukur OCR` (debug / `TAMPILKAN_UKUR_OCR`) | ADA, diuji (logika + layar); ML Kit bisa diukur SEKARANG di tablet |
+| `PembacaSelOnnx` di balik sakelar `PAKAI_MESIN_ANGKA` (bawaan MATI; nama lama `PAKAI_MESIN_ANGKA_ONNX` tetap diterima), ML Kit sebagai cadangan | ADA, diuji dengan sesi tiruan |
+| Layar diagnostik `Ukur OCR` (debug / `TAMPILKAN_UKUR_OCR`) | ADA, diuji (logika + layar); ML Kit bisa diukur SEKARANG, mesin angka bila dibangun dengan sakelar |
 | UX isi cepat di layar review (urutan kertas, keypad di layar lega / papan ketik sistem di layar sempit, konfirmasi dan lanjut) | ADA, aktif untuk semua pembaca |
-| **Runtime inferensi (ONNX Runtime / LiteRT) di app** | **TIDAK ADA** — dependensi ditahan, lihat bagian 4 |
-| Model `ocr_angka_en.onnx` di APK | TIDAK ADA (7,8 MB bobot mati tanpa runtime) |
-| Inferensi nyata di HP/tablet, latensi nyata, akurasi pada foto nyata | **TIDAK TERBUKTI** |
+| Adaptor runtime `SesiInferensiTflite` (+ `PelariTfliteIsolate`, `InterpreterMentahTflite`) | ADA, diuji dengan pelari tiruan dan isolate sungguhan; **runtime native TIDAK diuji di host** |
+| Model `assets/models/ocr_angka_en.tflite` (7,83 MB) + meta di APK | ADA di APK walau sakelar mati; DIMUAT hanya bila sakelar menyala dan sha256-nya cocok dengan yang dipatok |
+| `integration_test/ocr_tflite_hp_test.dart` (model sungguhan di perangkat, 21 crop golden) | ADA, **belum pernah dijalankan** |
+| Inferensi nyata di HP/tablet, XNNPACK Android, latensi, memori, akurasi pada foto nyata | **TIDAK TERBUKTI** |
 
-Selama runtime belum ada, menyalakan sakelar tidak mengubah apa pun: `buatSesiOcrAngkaProvider` bernilai
-`null`, mesin tidak termuat, semua sel dibaca ML Kit. Aturan keras tetap: OCR hanya di HP, hasil hanya
-usulan, sel kosong tetap kosong, tulisan tangan tidak pernah hijau, `siap_pindai`/pintu server tidak
-disentuh, tidak ada perhitungan kalibrasi di HP.
+Sakelar mati (bawaan rilis): `buatSesiOcrAngkaProvider` bernilai `null`, `pabrikPembacaPindaiProvider`
+memberi ML Kit murni, model tidak dibuka. Sakelar menyala: model dimuat malas pada sel pertama; gagal
+memuat runtime/model (atau galat saat membaca satu sel) → sisa lembar dibaca ML Kit, tanpa crash; sel
+bertinta yang tak muat di kanvas model (lebar > 320 px) dibaca ML Kit satu per satu, mesin tetap aktif.
+Pemuatan runtime yang gagal diingat per proses (paling banyak 2 percobaan, lalu aset tidak dibaca lagi).
+Aturan keras tetap: OCR hanya di HP, hasil hanya usulan, sel kosong tetap kosong, tulisan tangan tidak pernah
+hijau, `siap_pindai`/pintu server tidak disentuh, tidak ada perhitungan kalibrasi di HP.
 
 ## 1. Arsitektur
 
@@ -34,7 +45,7 @@ foto → (registrasi halaman, kode formulir)        ← tidak berubah
                            MesinAngka.baca(crop, AturanFormatSel)
                              1. PagarTinta         tanpa tinta → kosong, model tidak dijalankan
                              2. PraprosesSel       BGR, tinggi 48, (x/255-0,5)/0,5, pad nol ke 320
-                             3. SesiInferensiCtc   ← jahitan ke runtime (belum ada)
+                             3. SesiInferensiCtc   ← jahitan; implementasi: SesiInferensiTflite (LiteRT)
                              4. DekoderCtc         kolom whitelist, CTC greedy, skor jalur
                              5. putuskanSelAngka   ambang jalur + gerbang format
                                  ▼
@@ -52,9 +63,10 @@ foto → (registrasi halaman, kode formulir)        ← tidak berubah
 
 | parameter | nilai | sumber |
 |---|---|---|
-| model | `en_PP-OCRv5_mobile_rec_onnx` rev `3fafbc3b`, 7.848.423 bita, Apache-2.0 | rig (sha256 di `assets/models/ocr_angka_en.meta.json`) |
-| masukan | `[1,3,48,W]` float32 BGR, `W = max(320, ceil(48·lebar/tinggi))`, pad nol di kanan | `MesinPaddle._praproses` rig |
-| keluaran | softmax `[1,W/8,438]`; kolom whitelist = indeks kelas `[0,1..10,76,74,75]` (blank, 0–9, `.`, `,`, `-`) | `inference.yml` |
+| model | `en_PP-OCRv5_mobile_rec` rev `3fafbc3b` dikonversi ke `rec_en_f32.tflite` (`onnx2tf` 2.6.9, operator tak diubah), **7.829.508 bita**, sha256 `e1121d54…43b7`, Apache-2.0 | rig; `assets/models/ocr_angka_en.meta.json`, dipatok di `muat_mesin_bawaan.dart` |
+| masukan (praproses) | `PraprosesSel`: `[1,3,48,W]` float32 CHW BGR, `W = max(320, ceil(48·lebar/tinggi))`, pad nol di kanan | `MesinPaddle._praproses` rig |
+| masukan (model) | `x` `[1,48,320,3]` float32 NHWC BGR, `(p/255−0,5)/0,5`, pad nol SETELAH normalisasi; `SesiInferensiTflite.chwKeNhwc` hanya menata ulang. Lebar TETAP 320: sel yang hasil resize-nya > 320 px ditahan (`ukuranTakWajar`) | `meta.json` rig |
+| keluaran | **peluang softmax (bukan logit)** `[1,40,438]` float32; kolom whitelist = indeks kelas `[0,1..10,76,74,75]` (blank, 0–9, `.`, `,`, `-`); `KeluaranCtc.sudahPeluang = true` supaya tidak di-softmax ulang | `inference.yml`, `meta.json` rig |
 | dekode | normalkan ulang ke 14 kolom, argmax per frame, buang blank, lebur kembar (blank memisahkan) | `dekode.py` rig |
 | skor sel | `jalur` = rata-rata geometrik peluang maks SEMUA frame; 0 bila teks kosong | `dekode.py` rig |
 | ambang awal | **0,990** pada `jalur` | rig, B-en |
@@ -110,51 +122,68 @@ Penahan sisa tetangga tetap teknisi yang memeriksa tiap usulan.
 Tanpa jumlah desimal (gerbang umum), tetangga terisi 56/300 (19%) lawan 3,3% dengan desimal diketahui.
 Karena itu mesin tidak dipakai untuk sel tanpa `desimal` (bagian 5).
 
-## 4. Keputusan dependensi (tidak ditambahkan)
+### 3.4 Paritas TFLite (SINTETIS)
+
+**Di rig** (laporan bagian 9; `tf.lite.Interpreter` TF 2.21 dengan XNNPACK, Windows x86, 1 thread):
+`rec_en_f32.tflite` lawan ONNX Runtime 1.31.1 pada 5.900 sel uji + 600 sampel tetap: teks identik 100%,
+identik pada skor ≥ 0,99 (1.277 sel) 100%, keputusan jawab/tahan beda pada 0,990 = **0** (tanpa dan dengan
+gerbang format), cakupan dan akurasi terjawab sama (selisih 0,00 poin). Selisih peluang maks 8,8e-4 (median
+2e-10); selisih `jalur` median 6e-8, p95 9,5e-7. Silang-cek kernel referensi (`ai-edge-litert`, tanpa
+XNNPACK): teks identik 100%, selisih maks 1,9e-4. Latensi laptop i7 (x86, 1 thread, praproses + inferensi +
+dekode, bergantian dalam satu proses): TFLite 53,7 ms median lawan ONNX Runtime 66,2 ms; ini BUKAN
+prediksi untuk HP (perkiraan kasar 2–5× lebih lambat, tidak diukur).
+
+**Rantai Dart** (diukur SEKALI di sini, ad hoc; skripnya tidak di-commit): praproses Dart + `chwKeNhwc` Dart +
+model `assets/models/ocr_angka_en.tflite` ASLI dijalankan lewat `ai-edge-litert` Python (1 thread, tanpa
+XNNPACK) + `DekoderCtc` Dart, pada 295 crop uji (setiap ke-20), dibanding `pred_B_en_tflite_f32_uji.csv`:
+
+- 7 sel ditahan pagar tinta (rig tidak menjawab satu pun dari itu); 288 dibaca model; 0 ditahan pagar lebar 320.
+- teks identik **285/288 (98,96%)**; pada sel yang skor rig-nya ≥ 0,99: **58/58**. Tiga sel yang berbeda
+  semuanya berskor rig < 0,96 (ditahan di kedua sisi, jadi tidak mengubah keputusan).
+- selisih `jalur` (teks sama): median 2,3e-4, p95 2,4e-3, maks 1,0e-2 (sumber: bilinear Dart lawan OpenCV,
+  bagian 3.2).
+- keputusan jawab/tahan (0,990 + gerbang format) beda pada **1 dari 288** (skor 0,9903 di rig, 0,9892 di
+  Dart: melintasi ambang); tanpa gerbang format 2.
+- 21 crop yang dibundel (`integration_test/fixtures/ocr_tflite/`): 13/13 sel "yakin" teks identik, selisih
+  skor maks 1,7e-3, keputusan 21/21 sama.
+
+Ini membuktikan penataan NHWC, urutan kanal BGR, pad nol, dan dekoder peluang tidak menggeser hasil model
+asli. Ini **TIDAK membuktikan** LiteRT 1.4.0 di Android (kernel ARM, XNNPACK Android, operator `BATCH_MATMUL`).
+
+## 4. Keputusan runtime: TFLite (LiteRT yang sudah ada)
 
 Batas pemilik: delta bersih ≤ ±12 MB per APK dua-ABI (`arm` + `arm64`, `--target-platform
-android-arm,android-arm64`). APK saat ini (rilis v1.0.791): 74.991.208 bita.
+android-arm,android-arm64`). APK rilis v1.0.791: 74.991.208 bita.
 
-`flutter_onnxruntime` 1.9.0 (6 Okt 2026, MIT, 8 rilis dalam 5 bulan, Android/iOS/Linux/macOS/Windows/web)
-menarik `com.microsoft.onnxruntime:onnxruntime-android:1.28.0` (minSdk 21; app memakai
-`flutter.minSdkVersion`). Diukur dari AAR di Maven Central (bukan dari APK):
+| opsi | delta APK dua-ABI | keputusan |
+|---|---:|---|
+| **LiteRT 1.4.0 lewat `tflite_flutter` 0.12.1 (sudah ada) + model `.tflite` float32** | **+7,83 MB** (model; runtime 0 MB) | **DIPAKAI** |
+| `flutter_onnxruntime` 1.9.0 → ORT android 1.28.0 + model ONNX | +57,1 MB mentah (+28,3 MB bila .so dikompresi); +49,9 MB bila `tflite_flutter` dibuang | ditolak (> 12 MB) |
+| ORT 1.28.0 arm64 saja (32-bit jatuh ke ML Kit) | +29,4 MB (+14,9 MB) | ditolak |
+| `onnxruntime-mobile` 1.18.0 (Mei 2024, paket tidak dirilis lagi) | ≈ +8,5 MB bila `tflite_flutter` dibuang (+15,7 MB bila tidak) | ditolak: butuh format `.ort` + substitusi Gradle, belum terbukti, paket usang |
+| ORT build minimal sendiri | beberapa MB per ABI (perkiraan dokumentasi ORT, tidak diukur) | ditolak: butuh CI build AAR sendiri |
 
-| pustaka native | arm64-v8a | armeabi-v7a | 2 ABI |
-|---|---:|---:|---:|
-| ONNX Runtime 1.28.0 `libonnxruntime.so` + jni | 28,75 MB (deflate 11,1) | 20,47 MB (deflate 9,9) | **49,2 MB (deflate 21,0)** |
-| LiteRT 1.4.0 `libtensorflowlite_jni.so` (tflite_flutter) | 4,32 MB | 2,87 MB | 7,2 MB (deflate 3,4) |
-| model B-en | 7,85 MB (deflate 7,2) | | |
+Ukuran pustaka native (diukur dari AAR di Maven Central, bukan dari APK): ORT 1.28.0 `libonnxruntime.so` +
+jni 28,75 MB (arm64-v8a) + 20,47 MB (armeabi-v7a) = 49,2 MB; LiteRT 1.4.0 `libtensorflowlite_jni.so`
+4,32 + 2,87 = 7,2 MB (sudah di APK). .so disimpan tanpa kompresi di APK (AGP bawaan, minSdk ≥ 23); delta
+APK nyata tidak diukur.
 
-Delta bersih APK dua-ABI: ORT + model = **+57,1 MB** mentah (+28,3 MB bila .so dikompresi); bila
-`tflite_flutter` dibuang sebagai pengimbang, **+49,9 MB** (+24,9 MB). .so disimpan tanpa kompresi di
-APK (AGP bawaan, minSdk ≥ 23) sehingga angka "mentah" yang lebih mungkin; tidak diukur pada APK nyata.
-arm64-saja (32-bit jatuh ke ML Kit): +29,4 MB (+14,9 MB). **Semua jauh di atas 12 MB, jadi dependensi
-TIDAK ditambahkan.** Windows (Lab dan Studio, karena Studio memakai paket ini lewat path) juga akan
-mengunduh zip ONNX Runtime 1.28.3 (78,6 MB) dari GitHub saat build; ukuran DLL tidak diukur.
+### Beban sesudah keputusan (13 Nov 2026)
 
-**`tflite_flutter` / LiteRT tidak terpakai** (`grep`): satu-satunya pemakainya `interpreter_tflite.dart`
-(adaptor yang sengaja tidak dipasang; masuk PENGECUALIAN `tool/cek-berkas-yatim.sh`) untuk
-`PembacaDigitTflite`, yang hanya dirujuk test; sakelar `pakaiModelDigit` tidak dibaca kode mana pun.
-Membuangnya menghemat 7,2 MB (3,4 MB terkompresi) — tidak dilakukan di sini (bukan bagian tugas, dan
-keputusan "model digit TFLite mati" ada di tangan pemilik).
-
-### Opsi (belum dikerjakan; pilihan pemilik)
-
-1. **Pakai LiteRT yang sudah ada**: ubah model ke `.tflite` (ONNX → TFLite, mis. `onnx2tf`), jalankan lewat
-   `tflite_flutter` yang sudah dibundel. Runtime baru 0 MB; selisih APK ≈ ukuran model (7,8 MB FP32;
-   kuantisasi dinamis mungkin jauh lebih kecil — belum diukur). Syarat: konversi terbukti setara
-   (bandingkan keluaran ke ORT pada 600 crop), semua operator model didukung. Model memakai 25 jenis operator
-   dasar (Conv, MatMul, Softmax, HardSigmoid, BatchNorm, Reshape, Transpose, ReduceMean, …, 1.019 node).
-2. **`onnxruntime-mobile` 1.18.0** (Maven Central, rilis terakhir paket itu: Mei 2024): arm64 4,5 MB +
-   arm32 3,3 MB = **7,8 MB** mentah (deflate 3,4 MB) untuk dua ABI → delta bersih ≈ **+8,5 MB** bila
-   `tflite_flutter` dibuang (+15,7 MB bila tidak; terkompresi +7,2 / +10,6 MB). Syarat belum terbukti: model harus dikonversi ke format `.ort` dengan
-   kumpulan operator paket mobile; plugin dikompilasi terhadap API 1.28 sehingga butuh substitusi Gradle
-   dan pengecekan kompatibilitas; paket sudah tidak dirilis lagi.
-3. **ORT build minimal sendiri** (hanya operator model ini, format `.ort`): ukuran biasanya beberapa MB
-   per ABI (perkiraan dokumentasi ORT, tidak diukur di sini); butuh CI build AAR sendiri.
-4. **ORT penuh, arm64-saja** atau hanya Android/Windows: tetap +14,9 sampai +29,4 MB; ditolak oleh batas 12 MB.
-5. **Tetap ML Kit** sampai satu opsi di atas terbukti, sambil mengukur ML Kit di tablet dengan layar
-   `Ukur OCR` (sudah bisa, bagian 6).
+- **Paket baru: NOL.** `pubspec.yaml` hanya menambah entri aset dan mengubah komentar; `pubspec.lock` tidak
+  berubah oleh pekerjaan ini.
+- **`tflite_flutter` kini TERPAKAI** (sebelumnya tidak terpakai oleh jalur mana pun). Pemakainya
+  `lib/services/ocr_angka/interpreter_mentah_tflite.dart` (satu-satunya berkas yang menyentuh pustaka native).
+- **Aset:** `assets/models/ocr_angka_en.tflite` **+7.829.508 bita** (+7,83 MB mentah; APK mengompres aset
+  bila `aapt` tidak mengecualikan `.tflite`, perkiraan ±7,2 MB, tidak diukur pada APK nyata) + meta 1 KB +
+  ±126 KB crop uji sintetis (`integration_test/fixtures/ocr_tflite/`, hanya dipakai tes perangkat). Ikut APK
+  **walau sakelar mati**; yang menahannya dimuat adalah sakelar dan pin sha256.
+- **Dihapus karena terbukti mati** (grep: tak dirujuk dari `lib/`, `studio/`, `integration_test/`; hanya
+  `test/pembaca_digit_tflite_test.dart`): `lib/services/pembaca_digit_tflite.dart`,
+  `lib/services/interpreter_tflite.dart`, tes-nya, dan baris PENGECUALIAN di `tool/cek-berkas-yatim.sh`
+  (408 baris Dart). Efek ke ukuran APK ≈ 0 (kode yang tak terjangkau sudah dibuang tree-shaker; tidak ada aset
+  digit di repo); keuntungannya satu adaptor `tflite_flutter` saja, bukan dua. Sakelar `pakaiModelDigit`
+  dipertahankan (bawaan mati, dijaga tes) tetapi tidak membaca apa pun.
 
 ## 5. Kesenjangan templat (verifikasi di repo API `sidik-api-undangan-aman`, `62ab1b4d`)
 
@@ -178,36 +207,112 @@ gerbang umum yang lebih longgar). Tidak ada nilai yang dikarang.
 
 ## 6. Mengukur di tablet
 
-1. Titipkan ke folder app (`adb push`, tanpa izin penyimpanan):
-   `/sdcard/Android/data/com.ptsidik.kalibrasi/files/ocr-ukur/` berisi `labels.csv` (`file,teks[,desimal,bertanda]`)
-   dan crop; untuk mesin angka juga `ocr_angka_en.onnx` + `ocr_angka_en.meta.json` (dari `assets/models/`).
-   Rig: `sidik-ocr-eval\data\uji` (crop + `labels.csv`, SINTETIS) atau crop foto nyata.
-2. Build debug (layar tampil otomatis) atau rilis dengan `--dart-define=TAMPILKAN_UKUR_OCR=true`.
-   Profil → Sistem → **Ukur OCR (pengembang)**.
-3. Pilih **ML Kit** (bisa SEKARANG) atau **Mesin angka** (butuh runtime), batas sel, ambang `jalur`, lalu
-   Mulai. Hasil: akurasi terjawab, cakupan, exact, isi-palsu, latensi median/p95 per sel. Tersimpan
-   `hasil.csv` + `hasil_<mesin>.csv`: kolom `file,teks,keyakinan` sama dengan CSV ML Kit untuk
-   `muat_foto_nyata.py --mlkit`, plus `status,ms`.
+Model sudah ada di APK (aset) dan dibaca dari sana: **tidak perlu `adb push` model**. Semua langkah di
+bawah mensyaratkan APK dibangun dengan sakelar developer: `--dart-define=PAKAI_MESIN_ANGKA=true`
+(tanpanya `buatSesiOcrAngkaProvider` `null` dan mesin angka berhenti dengan pesan "Mesin angka tidak aktif").
+Tidak ada emulator/APK lokal di laptop pemilik; bangun lewat jalur yang biasa.
+
+### 6.1 Tes otomatis di perangkat (21 crop golden)
+
+```
+flutter test integration_test/ocr_tflite_hp_test.dart -d <id-perangkat>
+```
+
+(`flutter devices` / `adb devices` untuk id.) Tes memuat model dari aset lewat gerbang rilis penuh (sha256
+dipatok, kontrak tensor diperiksa), membaca 21 crop sintetis dari `integration_test/fixtures/ocr_tflite/`
+dan memeriksa: sel "yakin" (skor rig ≥ 0,995) → teks IDENTIK dengan rig, selisih `jalur` ≤ 0,01, jadi
+usulan; sel "ditahan"/"kosong" → tidak pernah jadi usulan; panggilan bersamaan = berurutan; lalu mencetak
+satu baris `OCR-TFLITE:` berisi latensi per sel (putaran dingin dan hangat, median/p95). Tanpa perangkat
+Android tes ini SKIP. **Belum pernah dijalankan: TIDAK TERBUKTI** sampai baris `OCR-TFLITE:` ada di laporan.
+
+Set besar dari folder perangkat (opsional): `integration_test/ocr_onnx_hp_test.dart` (nama lama; paritas
+terhadap `pred_rig.csv` ≥ 95% dan latensi pada ≤ 200 sel).
+
+### 6.2 Layar `Ukur OCR`: ML Kit lawan mesin angka pada set yang SAMA
+
+1. Bangun debug (layar tampil otomatis) atau rilis dengan `--dart-define=TAMPILKAN_UKUR_OCR=true`, keduanya
+   dengan `--dart-define=PAKAI_MESIN_ANGKA=true`.
+2. Titipkan set ke folder app (`adb push`, tanpa izin penyimpanan). Folder:
+   `/sdcard/Android/data/com.ptsidik.kalibrasi/files/ocr-ukur/` berisi `labels.csv`
+   (`file,teks[,desimal,bertanda]`) dan crop dengan nama yang sama. Set kecil siap pakai (21 crop sintetis +
+   `labels.csv`, dari repo ini):
+   `adb shell mkdir -p /sdcard/Android/data/com.ptsidik.kalibrasi/files/ocr-ukur` lalu
+   `adb push integration_test/fixtures/ocr_tflite/. /sdcard/Android/data/com.ptsidik.kalibrasi/files/ocr-ukur/`
+   (`golden.json` ikut terkirim; tidak dibaca layar). Set besar: rig `sidik-ocr-eval\data\uji` (crop +
+   `labels.csv`, SINTETIS) atau crop foto nyata.
+3. Profil → Sistem → **Ukur OCR (pengembang)**. Pilih **ML Kit** → Mulai (folder, batas sel, dan label
+   sama). Catat ringkasan, lalu pilih **Mesin angka** → Mulai pada folder yang SAMA. Hasil tiap mesin:
+   akurasi terjawab, cakupan, exact, isi-palsu, latensi median/p95 per sel (waktu per sel mencakup pagar
+   tinta + praproses + inferensi + dekode; sel kosong tanpa tinta tidak menjalankan model). Tersimpan
+   `hasil.csv` + `hasil_mlkit.csv` / `hasil_mesin_angka.csv` (kolom `file,teks,keyakinan` plus `status,ms`).
+   `hasil.csv` ditimpa tiap putaran; yang tetap per mesin adalah `hasil_<mesin>.csv`.
 4. Banding di laptop: `python muat_foto_nyata.py <folder> --mesin B_en --mlkit hasil_mlkit.csv`.
-5. Tes perangkat otomatis: `integration_test/ocr_onnx_hp_test.dart` (paritas dengan prediksi rig dan latensi).
-   SKIP selama `buatSesiUji` kosong; **TIDAK TERBUKTI**.
 
 Sel kosong tanpa kolom `desimal`: layar memakai satu asumsi (desimal 2, tanpa minus) untuk semuanya;
 isi kolom `desimal` per baris untuk ukuran isi-palsu yang jujur.
 
 ## 7. Batas dan yang belum terbukti
 
-- Inferensi NYATA di perangkat, latensi tablet (perkiraan laporan: 2–5× laptop ≈ 120–300 ms/sel; satu
-  lembar ±150 sel ≈ 15–45 detik tanpa optimasi lawan target ≤ 8 detik), dan paritas Android: belum.
+- Inferensi NYATA di perangkat, latensi tablet (perkiraan laporan: 2–5× laptop ≈ 110–270 ms/sel; satu
+  lembar ±150 sel ≈ 15–45 detik tanpa optimasi lawan target ≤ 8 detik), memori puncak, dan paritas Android:
+  **belum**. Termasuk yang spesifik TFLite:
+  - **LiteRT 1.4.0 memuat model ini?** Rig memakai TF 2.21 (x86) dan `ai-edge-litert` 2.1.2 (kernel
+    referensi), bukan `libtensorflowlite_jni.so` 1.4.0 di ARM. Model hanya memakai operator versi 1 (18 jenis,
+    342 operator, tanpa CUSTOM/Flex), tetapi `BATCH_MATMUL` (13 buah) dan penguraian `HardSigmoid` (30×
+    `MUL`+`ADD`+`RELU_0_TO_1`) belum pernah dijalankan di LiteRT 1.4.0. Gagal memuat = `runtimeGagalDimuat` →
+    ML Kit, tanpa crash (diuji dengan pustaka native yang memang tidak ada di mesin test).
+  - **XNNPACK di Android:** app hanya menyetel jumlah thread (setengah inti, 2–4); delegate TIDAK ditambahkan
+    eksplisit. Apakah delegate XNNPACK bawaan aktif di build LiteRT 1.4.0 tidak diperiksa. Tanpa XNNPACK
+    jalurnya kernel referensi (di Windows 5× lebih lambat: 298 lawan 58 ms), yang bisa membuat latensi HP
+    jauh di atas perkiraan. Ukur sebelum menambah delegate.
+  - **Memori dan umur model:** `Interpreter.fromBuffer` menyalin model ke heap native dengan `calloc` yang
+    tidak pernah dibebaskan paket, juga oleh `close()` (±7,8 MB bocor per pemuatan). Alur pindai membuat
+    `PembacaSelOnnx` baru untuk TIAP foto, jadi tanpa tindakan tiap foto memuat ulang model (baca aset,
+    sha256, spawn isolate, urai flatbuffer) dan membocorkan 7,8 MB lagi. Karena itu
+    `buatSesiOcrAngkaProvider` memberi `PabrikSesiTfliteBersama`: model dimuat SEKALI per proses dan dilepas
+    saat provider dibuang; `tutup()` per foto tidak menutupnya. Harganya: sesudah pindai pertama model
+    (perkiraan ±20 MB: salinan native + bobot XNNPACK + isolate) tetap resident sampai proses berakhir.
+    Puncak sementara saat muat: byte aset + salinan ke isolate pekerja + salinan native + bobot yang dikemas
+    XNNPACK. Semuanya perkiraan, TIDAK diukur. Alternatif bila resident dipersoalkan: `Interpreter.fromFile`
+    (mmap, tanpa salinan Dart/`calloc`) dengan berkas sementara, atau pelepasan setelah menganggur.
+  - **Kegagalan muat diingat, jatahnya dibatasi.** Tiap percobaan memuat yang gagal juga membocorkan ≥ 7,8 MB
+    native, jadi pabrik menyerah sesudah 2 pemuatan gagal per proses (`batasGagal`): sesudahnya
+    `muatMesinAngka` (parameter `menyerah`) langsung `runtimeGagalDimuat` TANPA membuka sumber model, tanpa
+    membaca aset 7,8 MB, tanpa membuka isolate. Pekerja yang MATI sesudah berhasil dimuat (`PelariTflite.mati`)
+    dibuang dan dimuat ulang paling banyak SEKALI per proses (`batasMuatUlang`); kematian berikutnya membuat
+    pabrik menyerah. Ingatan ini hidup selama provider (≈ proses); memulai ulang app mencoba lagi.
+  - **Biaya per foto yang TERSISA:** gerbang `muatMesinAngka` tetap membaca aset 7,8 MB dan menghitung
+    sha256-nya tiap foto sebelum pabrik bersama dipanggil (kecuali sudah menyerah). Tidak diukur di perangkat
+    (perkiraan puluhan sampai ratusan milidetik). Menyimpan hasil verifikasi berarti membuat gerbang stateful di
+    dua tempat; sengaja tidak dilakukan.
+  - **Isolate:** `IsolateInterpreter` bawaan paket TIDAK dipakai (diam-diam kembali bila sibuk, lalu
+    membaca keluaran lama; menggantung selamanya bila satu sel melempar galat). Pekerja sendiri:
+    `PelariTfliteIsolate` (id per permintaan, galat dikirim balik, batas waktu 60 detik per sel dan 60 detik
+    untuk memuat, penutupan menunggu sel yang berjalan paling lama 5 detik, pekerja yang mati ditandai
+    sehingga sel berikutnya gagal seketika dan `tutup()` tidak menunggu). Diuji dengan isolate sungguhan dan
+    interpreter tiruan; kematian pekerja disimulasikan dengan `Isolate.exit()`, BUKAN dengan kegagalan native
+    sungguhan (crash di pustaka native mematikan seluruh proses, bukan hanya isolate).
 - Akurasi pada foto nyata: belum ada satu pun. Kurva sintetis tidak boleh dikutip sebagai akurasi lapangan.
 - Ambang 0,990 dipilih di runtime laptop pada data sintetis; geser sedikit (±0,003) membalik keputusan
-  sebagian sel (3.2). Hitung ulang di runtime final.
+  sebagian sel (3.2, 3.4: 1 dari 288 sel melintasi ambang pada rantai Dart). **Konfirmasi di perangkat**
+  dengan runtime final dan hitung ulang pada foto nyata.
+- **Lebar kanvas tetap 320.** Sel BERTINTA yang hasil resize-nya > 320 px (lebar:tinggi > 6,67:1) ditahan
+  `MesinAngka` (`ukuranTakWajar`, model tidak dijalankan) dan `PembacaSelOnnx` mengalihkannya ke ML Kit,
+  persis seperti `keluaranTakValid`: sel itu tidak hilang dari review dan tidak berisi teks dari model.
+  Mesin tetap aktif untuk sel lain. Sel yang memang kosong (di bawah pagar tinta) tetap kosong. ONNX dinamis
+  akan membacanya dengan aspek utuh. Di set sintetis maksimum 277 px, jadi tak ada yang kena; pada foto nyata
+  dengan padding sel besar bisa. Layar `Ukur OCR` memakai `bacaLengkap` (mesin saja, tanpa ML Kit), jadi sel
+  itu tampak sebagai status `kosong` dengan teks kosong pada sel berisi: itu cara menghitung berapa banyak
+  sel yang beralih ke ML Kit sebelum sakelar menyala. Bila banyak, jalurnya: model kedua W=480.
 - Sisa tulisan tetangga (3,3%) dan minus hilang tetap lolos sebagai usulan; hanya pemeriksaan teknisi
   per sel yang menahannya (tes "BATAS DIKETAHUI" di `test/ocr_angka_keputusan_test.dart`).
 - Urutan review kini urutan kertas (bukan merah dulu); alasan dan pengamannya di bagian 10.
 - Paritas bagian 3.2 diukur terhadap model rig sebelum berkas model di rig diubah proses lain (agen
   konversi TFLite). Tidak diukur ulang; jangan menjalankan ulang terhadap rig tanpa memeriksa sha256
-  `inference.onnx` (`b5f833df…`).
+  `inference.onnx` (`b5f833df…`). Paritas TFLite (3.4) memakai `rec_en_f32.tflite` sha256 `e1121d54…43b7`.
+- Kontrak tensor diperiksa setelah model dimuat (`SesiInferensiTflite.periksaKontrak`): masukan
+  `[1,48,320,3]` float32, keluaran `[1,40,438]` float32. Model lain (lebar dinamis, INT8, keluaran logit)
+  ditolak, bukan dibaca dengan tebakan; jumlah nilai keluaran juga diperiksa tiap sel.
 - Keluaran model NaN / tak hingga / negatif tidak pernah menjadi usulan: dekoder menandainya tidak valid,
   keputusan menahan selnya (`keluaranTakValid`), dan `PembacaSelOnnx` membaca sel itu dengan ML Kit tanpa
   mematikan mesin. Skor dan ambang dibandingkan dengan `!(jalur >= ambang)` supaya NaN menahan.
@@ -228,12 +333,17 @@ tetap sakelar developer; ML Kit pembaca bawaan.
 
 ## 9. Cara menukar model
 
-1. Ganti berkas model dan `meta.json` di folder perangkat (atau di `assets/models/` bila kelak dibundel).
+1. Ganti berkas model dan `meta.json` di `assets/models/` (dibundel; build rilis hanya memuat sha256 yang
+   dipatok di `sha256ModelDipercaya`, jadi pin ikut diganti dan dijaga `test/ocr_angka_tflite_aset_test.dart`)
+   atau, hanya di build debug, di folder perangkat. Model TFLite WAJIB berkontrak `[1,48,320,3]` →
+   `[1,40,438]` float32 (`SesiInferensiTflite.periksaKontrak`); model lain butuh sesi/praproses sendiri.
 2. Isi `meta.json`: `berkas`, `sha256` (diperiksa saat dimuat, tidak cocok → ditolak), `alfabet`
    (`0123456789.,-`), `kolom` = indeks kelas model untuk `[blank, 0..9, ., ,, -]` (dari
    `inference.yml`: `[0] + [indeks karakter + 1]`, lihat `charset_dari_yml` di rig), `ambang_jalur`,
    `bukti_akurasi` (`SINTETIS` ditolak tanpa sakelar developer).
 3. Bila arsitektur keluaran lain (bukan CTC `[1,T,K]` softmax), ganti `SesiInferensiCtc`/dekoder, bukan meta.
+   Sesi yang tahu bentuk keluarannya mengisi `KeluaranCtc.sudahPeluang` (`true` = peluang, `false` = logit);
+   `null` meniru rig dengan menebak dari jumlah baris pertama.
 4. Ulangi pengukuran (bagian 6) dan hitung ulang ambang.
 
 ## 10. UX isi cepat (layar review)
@@ -275,7 +385,7 @@ dan `sel KUNING wajib dicek…` di `test/foto_review_screen_test.dart`.
 
 ## 11. Prasyarat sebelum sakelar menyala (BELUM dikerjakan)
 
-Sakelar `PAKAI_MESIN_ANGKA_ONNX` tetap mati sampai semua ini ada:
+Sakelar `PAKAI_MESIN_ANGKA` (dulu `PAKAI_MESIN_ANGKA_ONNX`) tetap mati sampai semua ini ada:
 
 1. **Ukur berapa persen sel KOSONG di kertas yang berakhir jadi merah-wajib-isi.** Sel kosong yang oleh
    mesin dibaca sebagai noise berskor rendah berstatus "ditahan" (merah) dan tombol Masukkan menuntut
@@ -286,11 +396,15 @@ Sakelar `PAKAI_MESIN_ANGKA_ONNX` tetap mati sampai semua ini ada:
 3. **Pagar tinta: histogram + isolate.** Pengukuran peninjau 6,1 ms/sel; `PagarTinta.ukur` mengurutkan semua
    piksel jendela tengah. Ganti dengan histogram (persentil dari 256 tingkat) dan jalankan praproses +
    pagar di isolate latar (bersama `petaTerbatas`), lalu ukur ulang di tablet.
-4. Runtime inferensi terpilih (bagian 4), inferensi nyata di tablet, dan paritas Android
-   (`integration_test/ocr_onnx_hp_test.dart`).
+4. Runtime inferensi: TFLite terpilih dan terpasang (bagian 4). BELUM: inferensi nyata di tablet dan paritas
+   Android (`integration_test/ocr_tflite_hp_test.dart`, lalu set besar `ocr_onnx_hp_test.dart`), termasuk
+   latensi, XNNPACK, dan memori (bagian 7).
 5. Ambang dihitung ulang di runtime final dan di crop SEBENARNYA dari app: `PindaiLembar.potongSel` memangkas
    6% ke dalam, sedangkan crop rig memakai padding keluar 2–12 px dengan garis tabel di tepi.
 6. Respons produksi per formulir diperiksa: `aturan.desimal` terisi (bagian 5).
 7. Ukur ML Kit pada crop yang sama sebagai pembanding, dan set foto nyata berlabel (bagian 8).
-8. Pagar rilis: sha256 model dipatok di app (sudah), dan keputusan apakah model dibundel di APK atau
-   diunduh; `izinkanSintetis` tetap hanya lewat sakelar developer.
+8. Pagar rilis: sha256 model dipatok di app (sudah); model dibundel di APK (sudah, +7,83 MB walau sakelar
+   mati; keputusan bundel lawan unduh bisa ditinjau bila ukuran dipersoalkan); `izinkanSintetis` tetap
+   hanya lewat sakelar developer.
+9. Pagar lebar 320 (bagian 7): ukur berapa sel nyata yang beralih ke ML Kit karena `ukuranTakWajar`, dan
+   putuskan jalurnya.

@@ -91,12 +91,14 @@ class _UkurOcrScreenState extends ConsumerState<UkurOcrScreen> {
         baca = pembacaUkurMlKit(mlKit = MlKitPembacaSel());
       } else {
         final buatSesi = ref.read(buatSesiOcrAngkaProvider);
+        final pabrikSesi = ref.read(pabrikSesiOcrAngkaProvider);
         onnx = PembacaSelOnnx(
           cadangan: MlKitPembacaSel(),
           muatMesin: () => muatMesinAngkaBawaan(
             buatSesi,
             // Layar ini hanya terjangkau di debug / dengan flag developer.
             izinkanSintetis: tampilkanUkurOcrAktif,
+            menyerah: pabrikSesi == null ? null : () => pabrikSesi.menyerah,
           ),
         );
         baca = pembacaUkurMesinAngka(

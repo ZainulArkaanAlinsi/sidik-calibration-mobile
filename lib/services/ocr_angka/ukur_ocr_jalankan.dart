@@ -55,7 +55,9 @@ PembacaUkur pembacaUkurMesinAngka(
   final h = await pembaca.bacaLengkap(crop, aturan, ambang: ambang);
   if (h == null) {
     throw StateError(
-      'Mesin angka tidak aktif: tidak ada runtime atau model valid di perangkat.',
+      'Mesin angka tidak aktif: sakelar mati (bangun dengan '
+      '--dart-define=PAKAI_MESIN_ANGKA=true) atau runtime/model tidak valid di '
+      'perangkat.',
     );
   }
 

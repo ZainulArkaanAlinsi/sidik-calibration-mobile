@@ -45,15 +45,18 @@ class DekoderCtc {
   /// Ambil kolom whitelist dari keluaran model `[frame, kelas]` (baris demi
   /// baris). [kolom] = indeks kelas model untuk `[blank, ...alfabet]`.
   ///
-  /// Keluaran model PP-OCR sudah softmax. Seperti rig, bila baris pertama tidak
-  /// berjumlah 1 (selisih > 0,01) keluaran dianggap logit dan di-softmax dulu.
-  /// Hasil: `[frame, kolom.length]` peluang MENTAH (belum dinormalkan ulang).
+  /// Keluaran model PP-OCR sudah softmax. [sudahPeluang] `true` memakainya apa
+  /// adanya, `false` men-softmax dulu; `null` (bawaan) seperti rig: bila baris
+  /// pertama tidak berjumlah 1 (selisih > 0,01) keluaran dianggap logit dan
+  /// di-softmax dulu. Hasil: `[frame, kolom.length]` peluang MENTAH (belum
+  /// dinormalkan ulang).
   static Float64List ambilKolom(
     Float32List keluaran,
     int frame,
     int kelas,
-    List<int> kolom,
-  ) {
+    List<int> kolom, {
+    bool? sudahPeluang,
+  }) {
     if (frame < 1 || kelas < 1 || keluaran.length < frame * kelas) {
       throw ArgumentError('keluaran ${keluaran.length} < $frame×$kelas');
     }
@@ -67,7 +70,9 @@ class DekoderCtc {
     for (var k = 0; k < kelas; k++) {
       jumlah0 += keluaran[k];
     }
-    final softmax = (jumlah0 - 1.0).abs() > 1e-2;
+    final softmax = sudahPeluang == null
+        ? (jumlah0 - 1.0).abs() > 1e-2
+        : !sudahPeluang;
 
     final hasil = Float64List(frame * kolom.length);
     for (var t = 0; t < frame; t++) {

@@ -29,7 +29,11 @@ enum AlasanSelAngka {
   /// sel ini; tidak pernah jadi usulan.
   keluaranTakValid,
 
-  /// Crop terlalu besar atau terlalu pipih untuk sel angka.
+  /// Crop terlalu besar atau terlalu pipih untuk sel angka, atau lebih lebar
+  /// dari kanvas model berlebar tetap (TFLite: hasil resize > 320 piksel). Model
+  /// tidak dijalankan. `PembacaSelOnnx` mengalihkan sel ini ke ML Kit (ada
+  /// tinta, tidak boleh hilang diam-diam dari review); hanya layar diagnostik
+  /// yang melihatnya sebagai `kosong`.
   ukuranTakWajar,
 }
 

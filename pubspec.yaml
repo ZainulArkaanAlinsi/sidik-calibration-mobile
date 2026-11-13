@@ -106,11 +106,12 @@ dependencies:
   # pernah dilihat). Sama kayak text recognition: sepenuhnya on-device.
   google_mlkit_barcode_scanning: ^0.14.0
 
-  # Runtime TFLite on-device untuk pengenal KARAKTER sendiri (persetujuan
-  # pemilik, 20 Okt 2026). Tidak ada jaringan: model dibaca dari berkas lokal,
-  # inferensi di HP. Model v0 TIDAK dibundel di APK, sakelar `pakaiModelDigit`
-  # bawaan MATI, dan model `asal_data` publik/sintetis ditolak mengisi sel —
-  # lihat `lib/services/pembaca_digit_tflite.dart`.
+  # Runtime TFLite/LiteRT on-device (persetujuan pemilik, 20 Okt 2026). Kini
+  # dipakai mesin angka sel (`lib/services/ocr_angka/sesi_inferensi_tflite.dart`,
+  # 13 Nov 2026): model PP-OCRv5 en hasil konversi di `assets/models/`, di
+  # balik sakelar developer `PAKAI_MESIN_ANGKA` (bawaan MATI, ML Kit tetap
+  # pembaca bawaan). Tidak ada jaringan: inferensi di HP. Dipilih karena
+  # runtime-nya sudah ada di APK; ONNX Runtime menambah +29..57 MB.
   tflite_flutter: ^0.12.1
 
   # sha256 berkas model diadu ke meta.json sebelum dimuat. Sudah ada di lock
@@ -221,6 +222,18 @@ flutter:
     # Repeat, bukan geometri sel.
     - test/assets/tabel-viscometer-uji.png
     - test/assets/viscometer-bentuk-hasil.json
+    # Mesin angka sel tulisan tangan (TFLite, 7,83 MB), dimuat HANYA bila
+    # sakelar developer PAKAI_MESIN_ANGKA menyala; bawaan mati, jadi pembaca
+    # bawaannya tetap ML Kit. Sengaja DUA berkas, bukan seluruh folder
+    # `assets/models/`. sha256 berkas ini dipatok di
+    # `lib/services/ocr_angka/muat_mesin_bawaan.dart` dan dijaga
+    # `test/ocr_angka_tflite_aset_test.dart`.
+    - assets/models/ocr_angka_en.tflite
+    - assets/models/ocr_angka_en.meta.json
+    # 21 crop uji SINTETIS + golden rig (~126 KB) buat `integration_test/
+    # ocr_tflite_hp_test.dart`; aset uji cuma terbaca lewat `rootBundle` di HP,
+    # jadi ikut dibundel (seperti test/assets di atas). Satu folder datar.
+    - integration_test/fixtures/ocr_tflite/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

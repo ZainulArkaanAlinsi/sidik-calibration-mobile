@@ -1,9 +1,9 @@
 {
-  "versi": "en_PP-OCRv5_mobile_rec_onnx@3fafbc3b",
-  "berkas": "ocr_angka_en.onnx",
-  "sha256": "b5f833dfc5d0eb71da397b4efa06ebeee9b431b690a47d6af40d77d8eabc557f",
-  "ukuran_byte": 7848423,
-  "sumber": "https://huggingface.co/PaddlePaddle/en_PP-OCRv5_mobile_rec_onnx (revisi 3fafbc3b5dcf93dd72add9f48368be8a3a2cd33b, berkas inference.onnx)",
+  "versi": "en_PP-OCRv5_mobile_rec_tflite_f32@3fafbc3b",
+  "berkas": "ocr_angka_en.tflite",
+  "sha256": "e1121d540ae96a69f2891a6d8811ecb89cb5e55d8eafb69efce2ee1fae4043b7",
+  "ukuran_byte": 7829508,
+  "sumber": "https://huggingface.co/PaddlePaddle/en_PP-OCRv5_mobile_rec_onnx (revisi 3fafbc3b5dcf93dd72add9f48368be8a3a2cd33b, inference.onnx sha256 b5f833dfc5d0eb71da397b4efa06ebeee9b431b690a47d6af40d77d8eabc557f) dikonversi onnx2tf 2.6.9 (-tb flatbuffer_direct, -ois x:1,3,48,320), tanpa mengubah operator; berkas rec_en_f32.tflite di rig sidik-ocr-eval, 13 Nov 2026",
   "lisensi": "Apache-2.0",
   "asal_data": "publik",
   "bukti_akurasi": "SINTETIS",
@@ -12,7 +12,7 @@
   "kolom": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 76, 74, 75],
   "kelas_model": 438,
   "ambang_jalur": 0.99,
-  "masukan": "x float32 [1,3,48,W], BGR, (x/255-0,5)/0,5, W = max(320, ceil(48*lebar/tinggi)), padding nol di kanan",
-  "keluaran": "softmax [1,W/8,438]; kolom = blank, 0-9, '.', ',', '-'; dekode CTC greedy",
-  "catatan": "Ambang 0,990 dan seluruh angka akurasi berasal dari rig SINTETIS (12 Nov 2026). Belum ada foto nyata. Hitung ulang ambang di runtime final."
+  "masukan": "x float32 [1,48,320,3] NHWC, BGR, (p/255-0,5)/0,5, lebar TETAP 320, padding nol di kanan SETELAH normalisasi",
+  "keluaran": "PELUANG softmax (bukan logit) [1,40,438], 40 frame = 320/8; kolom = blank, 0-9, '.', ',', '-'; dekode CTC greedy",
+  "catatan": "Setara ONNX Runtime 1.31.1 pada 5.900 sel uji SINTETIS di rig (teks, skor, keputusan identik; selisih peluang maks 8,8e-4) dengan tf.lite TF 2.21. TIDAK terbukti di perangkat (LiteRT 1.4.0 via tflite_flutter, kernel ARM, XNNPACK Android). Ambang 0,990 dan seluruh angka akurasi berasal dari rig SINTETIS (12-13 Nov 2026). Belum ada foto nyata. Hitung ulang ambang di runtime final. INT8 dan float16 sengaja tidak dipakai (INT8 merusak model, float16 menggeser 0,95% keputusan)."
 }
