@@ -185,13 +185,14 @@ void main() {
     }
 
     test(
-      'saklar kKameraSendiri BAWAAN MATI di build/test biasa',
+      'saklar kKameraSendiri BAWAAN MENYALA di build/test biasa',
       () {
         expect(
           kKameraSendiri,
-          isFalse,
+          isTrue,
           reason:
-              'membalik bawaan butuh bukti di HP nyata (lihat pubspec.yaml)',
+              'sejak 13 Nov 2026 (keputusan pemilik) bawaannya menyala; mati '
+              'darurat hanya lewat --dart-define=KAMERA_SENDIRI=false',
         );
       },
       skip: const String.fromEnvironment('KAMERA_SENDIRI').isNotEmpty
@@ -199,7 +200,7 @@ void main() {
           : false,
     );
 
-    test('deklarasi bawaan di sumber tetap `defaultValue: false`', () {
+    test('deklarasi bawaan di sumber tetap `defaultValue: true`', () {
       // Tes di atas bisa dikelabui --dart-define; yang ini membaca deklarasinya.
       final isi = File(
         'lib/providers/sumber_foto_provider.dart',
@@ -208,10 +209,12 @@ void main() {
       expect(
         RegExp(
           r"const bool kKameraSendiri = bool\.fromEnvironment\(\s*"
-          r"'KAMERA_SENDIRI',\s*defaultValue: false,?\s*\);",
+          r"'KAMERA_SENDIRI',\s*defaultValue: true,?\s*\);",
         ).hasMatch(isi),
         isTrue,
-        reason: 'bawaan saklar harus tetap MATI',
+        reason:
+            'bawaan saklar harus tetap MENYALA; membaliknya ke mati adalah '
+            'keputusan pemilik (kembali ke image_picker)',
       );
       // Provider benar-benar meneruskan saklar ke pemilih sumber (cabang HP
       // tak bisa dijalankan di host).

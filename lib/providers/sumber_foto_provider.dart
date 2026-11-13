@@ -8,26 +8,26 @@ import '../services/kamera_pindai.dart';
 import '../services/kamera_plugin.dart';
 import '../services/photo_source.dart';
 
-/// Saklar KAMERA SENDIRI — bawaan MATI.
+/// Saklar KAMERA SENDIRI — bawaan MENYALA (sejak 13 Nov 2026, keputusan
+/// pemilik: dicoba langsung di aplikasi asli, tanpa APK uji terpisah).
 ///
-/// Mati (rilis biasa) = HP memakai jalur lama `image_picker`
-/// ([KameraSumberFoto]) seperti sebelum layar kamera ada, untuk alur "Foto
-/// lembar kerja" MAUPUN "Foto tabel ini" (keduanya memakai
-/// [sumberFotoProvider]). Layar kamera ([KameraAplikasiSumberFoto]) tidak
-/// terjangkau sama sekali.
+/// Menyala (rilis biasa) = HP memakai layar kamera sendiri
+/// ([KameraAplikasiSumberFoto]) untuk alur "Foto lembar kerja" MAUPUN "Foto
+/// tabel ini" (keduanya memakai [sumberFotoProvider]); cadangan `image_picker`
+/// bila kamera tidak ada atau gagal dibuka.
 ///
-/// Alasannya: layar kamera belum terbukti di HP (fokus, senter, JPEG,
-/// ambang saran per merek), sedangkan merge ke `main` merilis Lab otomatis
-/// ke teknisi sungguhan.
+/// PERHATIAN: sebelum dibalik, layar kamera BELUM terbukti di HP nyata
+/// (fokus ketuk, senter, JPEG, ambang saran per merek). Bukti HP masih harus
+/// dikumpulkan; lihat komentar `camera:` di `pubspec.yaml`.
 ///
-/// APK uji: `flutter build apk --dart-define=KAMERA_SENDIRI=true`.
-/// Membalik bawaan ke `true` hanya setelah ada bukti di HP nyata — lihat
-/// komentar `camera:` di `pubspec.yaml`. Dijaga `test/
-/// kamera_aplikasi_sumber_foto_test.dart`. Const (compile-time), seperti
-/// `tampilkanUkurOcrAktif`: tidak bisa dinyalakan dari UI.
+/// Mati darurat (kembali ke jalur lama `image_picker`, [KameraSumberFoto]):
+/// bangun dengan `--dart-define=KAMERA_SENDIRI=false`, atau balikkan
+/// bawaan di sini lewat PR. Dijaga `test/kamera_aplikasi_sumber_foto_test.dart`.
+/// Const (compile-time), seperti `tampilkanUkurOcrAktif`: tidak bisa
+/// dinyalakan dari UI.
 const bool kKameraSendiri = bool.fromEnvironment(
   'KAMERA_SENDIRI',
-  defaultValue: false,
+  defaultValue: true,
 );
 
 /// Pembuka sesi kamera sendiri. Provider terpisah supaya test bisa mengganti

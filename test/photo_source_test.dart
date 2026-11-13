@@ -23,8 +23,8 @@ void main() {
     if (Platform.isAndroid || Platform.isIOS) {
       expect(
         sumber,
-        // Bawaan: image_picker lama; kamera sendiri hanya di APK uji
-        // (`--dart-define=KAMERA_SENDIRI=true`).
+        // Bawaan: kamera sendiri (menyala sejak 13 Nov 2026); image_picker
+        // lama hanya bila dibangun dengan `--dart-define=KAMERA_SENDIRI=false`.
         kKameraSendiri
             ? isA<KameraAplikasiSumberFoto>()
             : isA<KameraSumberFoto>(),
