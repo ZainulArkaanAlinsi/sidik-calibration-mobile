@@ -108,15 +108,15 @@ dependencies:
   # = 24). Manifest paket ini menyisipkan RECORD_AUDIO &
   # WRITE_EXTERNAL_STORAGE; keduanya DICABUT di AndroidManifest.xml app.
   #
-  # LAYAR KAMERA INI DIKUNCI SAKLAR `KAMERA_SENDIRI` (bawaan MATI): rilis biasa
-  # tetap memakai `image_picker`, dan layar kamera tidak terjangkau. APK uji:
-  #   flutter build apk --dart-define=KAMERA_SENDIRI=true
-  # Bawaan baru boleh dibalik ke `true` (`kKameraSendiri` di
-  # `lib/providers/sumber_foto_provider.dart`, bersama tes penjaganya) SETELAH
-  # ada bukti di HP nyata, lintas merek: fokus ketuk, senter, JPEG yang
-  # dihasilkan (ukuran, orientasi, ketajaman), dan ambang saran
-  # (`AmbangFotoLembar`, masih usulan rig) — plus performa aliran frame di HP
-  # murah.
+  # LAYAR KAMERA INI DIATUR SAKLAR `KAMERA_SENDIRI` (`kKameraSendiri` di
+  # `lib/providers/sumber_foto_provider.dart`, bersama tes penjaganya). Bawaan
+  # MENYALA sejak 13 Nov 2026 atas keputusan pemilik (dicoba langsung di
+  # aplikasi asli). Mati darurat (kembali ke `image_picker`):
+  #   flutter build apk --dart-define=KAMERA_SENDIRI=false
+  # BELUM terbukti di HP nyata lintas merek: fokus ketuk, senter, JPEG yang
+  # dihasilkan (ukuran, orientasi, ketajaman), ambang saran
+  # (`AmbangFotoLembar`, masih usulan rig), dan performa aliran frame di HP
+  # murah. Bukti itu tetap harus dikumpulkan.
   camera: ^0.12.2
 
   # QR versi lembar (`{template_id}|v{versi}`). Server NOLAK seluruh pindai
