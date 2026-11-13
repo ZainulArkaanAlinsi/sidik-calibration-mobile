@@ -90,10 +90,18 @@ void main() {
       for (final w in [WarnaStudio.terangBawaan, WarnaStudio.gelapBawaan]) {
         final m = TemaStudio.bangun(w).extension<SidikMaterial>();
         expect(m, isNotNull);
-        // Bukan kertas krem app lapangan.
+        // Studio memakai tokennya sendiri, bukan bawaan app lapangan.
         expect(m!.kertas, w.permukaan);
         expect(m.tinta, w.teks);
-        expect(m.kertas, isNot(SidikMaterial.terangDefault.kertas));
+        // Dulu pembedanya "kertas Studio bukan kertas krem Lab". Sejak
+        // fondasi desain Lab (13 Nov 2026) kertas Lab ikut putih, sama dengan
+        // permukaan Studio terang, jadi kertas tak lagi membedakan. Yang tetap
+        // membedakan: Studio rata (logam atas = bawah), Lab punya gradasi
+        // logam, jadi logam bawah keduanya berbeda.
+        final lab = m.terang
+            ? SidikMaterial.terangDefault
+            : SidikMaterial.gelapDefault;
+        expect(m.logamBawah, isNot(lab.logamBawah));
         // Logam rata: tanpa gradien.
         expect(m.logamAtas, m.logamBawah);
       }
