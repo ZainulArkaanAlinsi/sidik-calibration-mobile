@@ -2,7 +2,10 @@ import 'dart:io' show Platform;
 import 'dart:math' as math;
 import 'dart:typed_data';
 
-import 'interpreter_mentah_tflite.dart';
+// Web tidak punya dart:ffi, dan package:tflite_flutter mengimpornya: berkas asli
+// hanya ikut graf impor bila dart.library.ffi ada (Android, iOS, desktop).
+import 'interpreter_mentah_tflite_stub.dart'
+    if (dart.library.ffi) 'interpreter_mentah_tflite.dart';
 import 'pelari_tflite.dart';
 import 'praproses_sel.dart';
 import 'sesi_inferensi.dart';

@@ -20,6 +20,7 @@ Alur satu sel: `pagar_tinta` → `praproses_sel` → `SesiInferensiCtc` (model) 
 | `sesi_inferensi_tflite.dart` | adaptor TFLite: CHW → NHWC `[1,48,320,3]`, periksa kontrak tensor, muat malas satu kali, tutup; lebar TETAP 320. `PabrikSesiTfliteBersama` memuat model sekali per proses (alur pindai membuat pembaca baru tiap foto; `fromBuffer` membocorkan 7,8 MB per muat) |
 | `pelari_tflite.dart` | `PelariTfliteIsolate`: satu isolate pekerja yang memegang interpreter (bukan `IsolateInterpreter` bawaan paket); seam `InterpreterMentah` |
 | `interpreter_mentah_tflite.dart` | satu-satunya berkas yang menyentuh `tflite_flutter` (tidak diuji di host; dibuktikan `integration_test/ocr_tflite_hp_test.dart`) |
+| `interpreter_mentah_tflite_stub.dart` | pengganti tanpa `dart:ffi` untuk WEB (`buat` melempar `UnsupportedError` → `runtimeGagalDimuat` → ML Kit). `sesi_inferensi_tflite.dart` memilihnya lewat `import '..._stub.dart' if (dart.library.ffi) '....dart'`; tanpa itu `flutter build web` gagal (`tflite_flutter` mengimpor `dart:ffi`). Antarmuka publik kedua berkas harus tetap sama |
 | `mesin_angka.dart` | menyambung semuanya per sel |
 | `muat_mesin.dart`, `sumber_model_ocr.dart`, `muat_mesin_bawaan.dart` | gerbang muat model, sumber aset/folder |
 | `ukur_ocr.dart`, `ukur_ocr_jalankan.dart` | logika layar diagnostik `Ukur OCR` |

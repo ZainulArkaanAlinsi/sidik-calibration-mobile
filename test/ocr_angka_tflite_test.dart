@@ -9,6 +9,10 @@ import 'package:sidik_calibration/providers/sakelar_ocr_provider.dart';
 import 'package:sidik_calibration/providers/worksheet_scan_provider.dart';
 import 'package:sidik_calibration/services/ocr_angka/aturan_format_sel.dart';
 import 'package:sidik_calibration/services/ocr_angka/dekoder_ctc.dart';
+import 'package:sidik_calibration/services/ocr_angka/interpreter_mentah_tflite.dart'
+    as asli;
+import 'package:sidik_calibration/services/ocr_angka/interpreter_mentah_tflite_stub.dart'
+    as stub;
 import 'package:sidik_calibration/services/ocr_angka/keputusan_sel.dart';
 import 'package:sidik_calibration/services/ocr_angka/mesin_angka.dart';
 import 'package:sidik_calibration/services/ocr_angka/meta_model.dart';
@@ -953,6 +957,75 @@ void main() {
       expect(c.read(pabrikSesiOcrAngkaProvider), isNull);
       expect(c.read(buatSesiOcrAngkaProvider), isNull);
     });
+  });
+
+  group('platform tanpa dart:ffi (web): berkas pengganti', () {
+    test(
+      'antarmuka publik sama dengan berkas asli (jaga kompilasi kedua cabang)',
+      () {
+        // Impor bersyarat memilih SATU berkas per platform; keduanya harus
+        // memenuhi kontrak pabrik yang sama atau salah satu platform tidak
+        // terkompilasi. Tes ini gagal dikompilasi bila tanda tangan menyimpang.
+        final PabrikInterpreterMentah a = asli.InterpreterMentahTflite.buat;
+        final PabrikInterpreterMentah b = stub.InterpreterMentahTflite.buat;
+
+        expect(a, isNotNull);
+        expect(b, isNotNull);
+      },
+    );
+
+    test(
+      'pabrik pengganti melempar UnsupportedError, tidak mengembalikan interpreter',
+      () {
+        expect(
+          () => stub.InterpreterMentahTflite.buat(Uint8List(4), 2),
+          throwsA(
+            isA<UnsupportedError>().having(
+              (e) => e.message,
+              'pesan',
+              contains('dart:ffi'),
+            ),
+          ),
+        );
+      },
+    );
+
+    test(
+      'lewat isolate dan gerbang: runtimeGagalDimuat, lalu ML Kit, tanpa crash',
+      () async {
+        final garbage = Uint8List.fromList(List.generate(64, (i) => i));
+        final sumber = SumberPalsu(
+          meta: jsonEncode({
+            'berkas': 'm.tflite',
+            'sha256': sha256Dari(garbage),
+            'bukti_akurasi': 'SINTETIS',
+            'kolom': kolomModel,
+          }),
+          model: garbage,
+        );
+
+        final h = await muatMesinAngka(
+          sumber: sumber,
+          buatSesi: (model) => SesiInferensiTflite.dariByte(
+            model,
+            pabrik: stub.InterpreterMentahTflite.buat,
+          ),
+          izinkanSintetis: true,
+        );
+
+        expect(h.mesin, isNull);
+        expect(h.ditolak, PenolakanMesin.runtimeGagalDimuat);
+
+        final cadangan = PembacaCadangan();
+        final b = await PembacaSelOnnx(
+          cadangan: cadangan,
+          muatMesin: () async => h.mesin,
+        ).bacaBerformat(crop(160, 60), aturan3);
+
+        expect(b.teks, 'cadangan');
+        expect(cadangan.dibaca, 1);
+      },
+    );
   });
 
   group('gagal muat runtime -> ML Kit, tanpa crash', () {

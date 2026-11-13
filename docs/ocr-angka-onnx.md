@@ -174,6 +174,10 @@ APK nyata tidak diukur.
   berubah oleh pekerjaan ini.
 - **`tflite_flutter` kini TERPAKAI** (sebelumnya tidak terpakai oleh jalur mana pun). Pemakainya
   `lib/services/ocr_angka/interpreter_mentah_tflite.dart` (satu-satunya berkas yang menyentuh pustaka native).
+  Berkas itu mengimpor `dart:ffi`, yang ditolak kompilator web, jadi `sesi_inferensi_tflite.dart` memakai impor
+  bersyarat (`if (dart.library.ffi)`) dengan `interpreter_mentah_tflite_stub.dart` sebagai pengganti di web:
+  `flutter build web` hijau (260 detik, lokal), dan mesin angka di web berakhir sebagai `runtimeGagalDimuat` →
+  ML Kit. Android, iOS, dan desktop (Studio) tetap memakai berkas asli.
 - **Aset:** `assets/models/ocr_angka_en.tflite` **+7.829.508 bita** (+7,83 MB mentah; APK mengompres aset
   bila `aapt` tidak mengecualikan `.tflite`, perkiraan ±7,2 MB, tidak diukur pada APK nyata) + meta 1 KB +
   ±126 KB crop uji sintetis (`integration_test/fixtures/ocr_tflite/`, hanya dipakai tes perangkat). Ikut APK
