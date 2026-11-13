@@ -1,98 +1,89 @@
 import 'package:flutter/material.dart';
 
-/// Palet "Meja Kerja Lab" — di bawah NAMA-NAMA LAMA palet "Cobalt".
+import 'palet_lab.dart';
+
+/// Palet Lab (kobalt + netral dingin) di bawah NAMA-NAMA LAMA.
 ///
 /// ## Kenapa namanya tidak diganti
 ///
 /// 33 berkas di luar `core/theme` memanggil `AppColors.xxx` langsung. Mengganti
-/// nama berarti menyentuh 33 berkas layar yang logikanya sudah benar — dan
-/// pemilik proyek minta tugas ini cuma mengganti tampilan. Jadi yang berubah
-/// cuma NILAINYA: tiap nama lama dipetakan ke peran yang sama di sistem baru,
-/// dan setiap layar yang memakainya ikut berganti tanpa satu baris logika pun
-/// disentuh.
+/// nama berarti menyentuh puluhan layar yang logikanya sudah benar. Jadi yang
+/// berubah cuma NILAINYA (13 Nov 2026): tiap nama lama dipetakan ke peran yang
+/// sama di palet baru, dan setiap layar yang memakainya ikut berganti tanpa
+/// satu baris logika pun disentuh. Nama lama dikikis bertahap oleh paket layar.
 ///
-/// Petanya (nama lama → peran baru):
+/// Petanya (nama lama → peran sekarang):
 ///
-/// | Nama lama | Peran di "Meja Kerja Lab" |
+/// | Nama lama | Peran |
 /// |---|---|
-/// | `ivory` | MEJA — latar layar |
-/// | `white` | KERTAS — kartu & isian |
-/// | `ivoryDim` / `hairline` | kertas tingkat dua / tepi kertas |
-/// | `ink` / `textMuted` | tinta pulpen / tinta keterangan |
-/// | `cobalt*` | biru anodisasi — satu-satunya warna interaktif |
-/// | `mintDeep` / `mintSoft` | tinta cap LULUS + dasarnya |
-/// | `crimson*` | tinta cap GAGAL + dasarnya |
-/// | `mint` | hijau LCD — cuma di atas permukaan gelap/kaca |
-/// | `ink*` (tema gelap) | meja & kertas versi gelap |
+/// | `ivory` | latar layar (`#F2F4F8`) |
+/// | `white` | kertas: baris, kartu, isian (`#FFFFFF`) |
+/// | `ivoryDim` / `hairline` | permukaan cekung / garis halus |
+/// | `ink` / `textMuted` | tinta / tinta kedua |
+/// | `cobalt*` | kobalt `#043EA1` dan jenjangnya, satu-satunya warna interaktif |
+/// | `mintDeep` / `mintSoft` | status berlaku/PASS + latar tipisnya |
+/// | `crimson*` | status gagal/FAIL + latar tipisnya |
+/// | `mint` | hijau di atas permukaan gelap saja |
+/// | `ink*` (tema gelap) | latar dan permukaan gelap |
 ///
-/// Sumber kebenaran nilainya `SidikMaterial` (lihat `sidik_material.dart`);
-/// angka di sini disalin dari sana, dan `test/tema/kontras_sidik_test.dart`
-/// menjaga kontrasnya. Kalau salah satu digeser, geser dua-duanya.
+/// Sumber nilainya `PaletLab`; `SidikMaterial` membaca dari sana juga, dan
+/// `test/tema/kontras_sidik_test.dart` menjaga keduanya tetap selaras dan
+/// kontrasnya.
 ///
-/// Aturan yang tetap sama dari palet lama: **tidak ada gradasi dua rona
-/// berbeda.** Kedalaman datang dari bayangan & gradien satu-nada material.
+/// Aturan yang tetap: **tidak ada gradasi dua rona berbeda.**
 class AppColors {
   const AppColors._();
 
   // ── Inti ────────────────────────────────────────────────────────────────
-  static const Color crimson = Color(0xFFA81B33); // tinta cap GAGAL, 6,5:1 di kertas
-  static const Color ink = Color(0xFF1A1F26); // tinta pulpen, 14,7:1 di kertas
-  static const Color mint = Color(0xFF7FE3A8); // hijau LCD — di atas gelap saja
-  static const Color ivory = Color(0xFFD6D2C8); // MEJA: latar layar tema terang
-  static const Color cobalt = Color(0xFF1D4292); // biru anodisasi, 8,3:1 di kertas
+  static const Color crimson = PaletLab.gagalTerang; // FAIL, 7,3:1 di kertas
+  static const Color ink = PaletLab.tintaTerang; // tinta, 17,7:1 di kertas
+  static const Color mint = PaletLab.lulusGelap; // hijau di atas gelap saja
+  static const Color ivory = PaletLab.latarTerang; // latar layar tema terang
+  static const Color cobalt = PaletLab.kobalt700; // kobalt, 9,5:1 di kertas
 
   // ── Turunan (satu rona, beda terang) ────────────────────────────────────
-  static const Color cobaltDeep = Color(0xFF14306E);
-  static const Color cobaltSoft = Color(0xFFDFE7F8);
-  static const Color cobaltLight = Color(0xFF8FB0FF); // biru di tema gelap, 7,0:1
+  static const Color cobaltDeep = PaletLab.kobalt900;
+  static const Color cobaltSoft = PaletLab.kobalt100;
+  static const Color cobaltLight = PaletLab.kobalt300; // kobalt di tema gelap
 
-  static const Color mintDeep = Color(0xFF125739); // LULUS, 7,6:1 di kertas
-  static const Color mintSoft = Color(0xFFDCEBE0);
-  static const Color mintInk = Color(0xFF16301F); // dasar LULUS tema gelap
+  static const Color mintDeep = PaletLab.lulusTerang; // LULUS, 7,3:1 di kertas
+  static const Color mintSoft = PaletLab.lulusLatarTerang;
+  static const Color mintInk = PaletLab.lulusLatarGelap; // dasar LULUS gelap
 
-  static const Color crimsonDeep = Color(0xFF7E1426);
-  static const Color crimsonSoft = Color(0xFFF6DEE2);
-  static const Color crimsonLight = Color(0xFFFF8092); // GAGAL tema gelap, 6,2:1
+  static const Color crimsonDeep = PaletLab.gagalTua;
+  static const Color crimsonSoft = PaletLab.gagalLatarTerang;
+  static const Color crimsonLight = PaletLab.gagalGelap; // GAGAL tema gelap
 
   // ── Netral terang ───────────────────────────────────────────────────────
-  // `white` sekarang KERTAS krem, bukan putih murni. Namanya dipertahankan
-  // karena artinya di kode lama memang "permukaan kartu di atas ground".
-  // Tempat yang BENAR-BENAR butuh putih (latar QR, kanvas tanda tangan)
-  // sudah memakai `Colors.white` langsung dan tidak terpengaruh.
-  static const Color white = Color(0xFFF5F1E7);
-  static const Color ivoryDim = Color(0xFFEAE5D8); // kertas tingkat dua / baki
-  static const Color hairline = Color(0xFFD9D2C0); // tepi kertas
-  static const Color textMuted = Color(0xFF4A5059); // 7,2:1 di kertas · 5,4:1 di meja
-  // Garis komponen (isian, sakelar) — 3:1 di kertas, ambang WCAG 1.4.11.
-  // `logamTepi` #9C998F cuma 2,6:1 dan terlalu pucat untuk batas isian.
-  static const Color outline = Color(0xFF7A776F);
+  // `white` adalah putih murni sekarang (dulu krem). Tempat yang BENAR-BENAR
+  // butuh putih (latar QR, kanvas tanda tangan) memakai `Colors.white`
+  // langsung dan tidak terpengaruh.
+  static const Color white = PaletLab.kertasTerang;
+  static const Color ivoryDim = PaletLab.kertas2Terang; // permukaan cekung
+  static const Color hairline = PaletLab.garisHalusTerang; // garis halus
+  static const Color textMuted = PaletLab.tinta2Terang; // 7,7:1 di kertas
+  // Garis komponen (isian, sakelar): 4,6:1 di kertas, ambang WCAG 1.4.11 = 3:1.
+  static const Color outline = PaletLab.garisTegasTerang;
 
   // ── Netral gelap ────────────────────────────────────────────────────────
-  static const Color inkDeep = Color(0xFF0F1114); // meja gelap
-  // Dulu alias `ink`. Sekarang berdiri sendiri: `ink` adalah TINTA di tema
-  // terang, dan menjadikannya permukaan gelap sekaligus membuat satu warna
-  // punya dua arti yang berlawanan.
-  static const Color inkSurface = Color(0xFF24272D); // kertas gelap
-  static const Color inkElevated = Color(0xFF2C3037);
-  static const Color inkOutline = Color(0xFF33373E);
-  static const Color inkTextMuted = Color(0xFFA6A9B1); // 6,4:1 di kertas gelap
+  static const Color inkDeep = PaletLab.latarGelap; // latar gelap
+  static const Color inkSurface = PaletLab.kertasGelap; // kertas gelap
+  static const Color inkElevated = PaletLab.latar2Gelap;
+  static const Color inkOutline = PaletLab.garisHalusGelap;
+  static const Color inkTextMuted =
+      PaletLab.tinta2Gelap; // 7,9:1 di kertas gelap
 
   // ── Semantik status ─────────────────────────────────────────────────────
-  static const Color success = mintDeep; // PASS / disetujui
-  static const Color danger = crimson; // FAIL / ditolak
-  // Overdue / perlu revisi = "butuh dilihat". Di palet Cobalt dulu dipakai
-  // biru karena amber lama terbaca coklat kusam di atas ivory. Amber di sini
-  // (#8C5C0A) disetel ulang: 5,1:1 di kertas, dan TERANGNYA dijauhkan dari
-  // hijau & merah (beda luminans ≥ 0,02) supaya tetap kebeda di fotokopi
-  // hitam-putih dan buat mata buta warna merah-hijau. Biru sekarang kembali
-  // ke satu arti saja: "bisa dipencet".
-  static const Color warning = Color(0xFF8C5C0A);
-  static const Color info = Color(0xFF474D55); // menunggu approval / draft
+  static const Color success = PaletLab.lulusTerang; // PASS / disetujui
+  static const Color danger = PaletLab.gagalTerang; // FAIL / ditolak
+  // "Butuh dilihat" (segera, perlu revisi). Amber: 5,1:1 di latar tipisnya.
+  static const Color warning = PaletLab.awasTerang;
+  static const Color info = PaletLab.tungguTerang; // menunggu / draf
 
-  static const Color successDark = Color(0xFF5DCE93);
-  static const Color dangerDark = crimsonLight;
-  static const Color warningDark = Color(0xFFF2B655);
-  static const Color infoDark = Color(0xFFB6BAC4);
+  static const Color successDark = PaletLab.lulusGelap;
+  static const Color dangerDark = PaletLab.gagalGelap;
+  static const Color warningDark = PaletLab.awasGelap;
+  static const Color infoDark = PaletLab.tungguGelap;
 
   static bool _gelap(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark;
@@ -108,7 +99,7 @@ class AppColors {
   static Color statusInfo(BuildContext context) =>
       _gelap(context) ? infoDark : info;
 
-  /// Latar layar = permukaan MEJA.
+  /// Latar layar = permukaan latar tema aktif.
   static Color warnaLatar(BuildContext context) {
     return Theme.of(context).brightness == Brightness.dark ? inkDeep : ivory;
   }

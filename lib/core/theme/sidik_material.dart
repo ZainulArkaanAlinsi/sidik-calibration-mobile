@@ -1,34 +1,35 @@
 import 'package:flutter/material.dart';
 
-/// Token & resep material untuk sistem visual **"Meja Kerja Lab"**.
+import 'bentuk_lab.dart';
+import 'palet_lab.dart';
+
+/// Token & resep permukaan untuk tema Lab (kobalt + netral dingin).
 ///
-/// Ini SATU-SATUNYA tempat warna dan bentuk permukaan ditulis. Tidak boleh ada
-/// `Color(0x...)` yang ditulis langsung di widget — sama persis seperti aturan
-/// lama di `AppColors`, cuma sekarang ikut tema lewat [ThemeExtension] jadi
-/// mode gelap nggak perlu `if (isDark)` bertebaran di layar.
+/// Ini SATU-SATUNYA tempat peran warna dan bentuk permukaan ditentukan; nilai
+/// mentahnya ada di `PaletLab`. Tidak boleh ada `Color(0x...)` yang ditulis
+/// langsung di widget (dijaga `test/tema/token_only_test.dart`). Token ikut
+/// tema lewat [ThemeExtension], jadi mode gelap tidak perlu `if (isDark)`
+/// bertebaran di layar.
 ///
-/// ## Tiga material, tiga tugas
+/// ## Nama lama, isi baru (13 Nov 2026)
 ///
-/// Kalau ragu suatu elemen harus pakai apa, tanya: orang **membaca**,
-/// **menekan**, atau **melirik**?
+/// Nama-nama di sini (`meja`, `kertas`, `logam`, `kaca`, `etsa`, ...) berasal
+/// dari sistem "Meja Kerja Lab" yang meniru material fisik. Layar-layar masih
+/// memakainya, jadi namanya dipertahankan dan yang berganti isinya:
 ///
-/// - **KERTAS** → tempat membaca & mengisi angka. Kartu, daftar, tabel, sel
-///   lembar kerja, isian form. → [kertasLembar], [kertasBaki]
-/// - **LOGAM** → tempat menekan, dan bingkai yang megang isi. App bar,
-///   navigasi, tombol, chip, sakelar, ubin ikon. → [logamPanel], [logamTimbul]
-/// - **KACA** → angka hidup yang dilirik sekilas. Panel teknisi, meteran.
-///   → [kacaCekung]
+/// - [meja] latar layar (`#F2F4F8`), [kertas] baris/kartu/sel (putih),
+///   [kertas2] permukaan cekung.
+/// - [logam] permukaan app bar dan navigasi: sekarang putih, bukan aluminium
+///   disikat. [logamTepi] adalah GARIS TEGAS (tepi tombol sekunder dan isian,
+///   >= 3:1); garis pemisah halus ada di [kertasTepi] dan [garis].
+/// - [kaca] dan `lcd*` permukaan alat ukur yang selalu gelap.
+/// - Resep di bawah ([kertasLembar], [logamTimbul], ...) menghasilkan
+///   permukaan DATAR: tanpa gradien, tanpa bayangan, tanpa bayangan dalam.
+///   Kedalaman dibangun dari garis halus dan beda warna permukaan.
 ///
-/// Turunan dari aturan itu: label HURUF BESAR + spasi lebar **cuma boleh di
-/// logam** (memang begitu cara panel alat ukur diukir). Di kertas semuanya
-/// sentence case seperti formulir cetak.
-///
-/// ## Kenapa nggak ada blur di sini
-///
-/// Semua kedalaman digambar pakai gradien + bayangan, nol `BackdropFilter` dan
-/// nol `MaskFilter.blur`. Dua itu sumber lag paling nyata di HP kelas bawah,
-/// dan versi UI sebelumnya memakai keduanya (`GlassSurface`, `NeuInset`).
-/// Gradien + bayangan dirender GPU tanpa bikin layer offscreen.
+/// Label HURUF BESAR dengan spasi lebar tidak lagi dibenarkan di mana pun;
+/// [gayaEtsa] sekarang gaya keterangan kecil biasa. Layar yang masih memanggil
+/// `toUpperCase()` akan dirapikan oleh paket layarnya.
 ///
 /// ## Cara pakai
 ///
@@ -145,204 +146,111 @@ class SidikMaterial extends ThemeExtension<SidikMaterial> {
   static SidikMaterial of(BuildContext context) =>
       Theme.of(context).extension<SidikMaterial>() ?? terangDefault;
 
+  /// Garis tegas (tepi isian, sel, tombol sekunder, ikon penting): >= 3:1.
+  Color get garisTegas => logamTepi;
+
+  /// Warna label/ikon DI ATAS isi [biru] (tombol utama). Putih di tema terang,
+  /// kobalt tua di tema gelap (isi [biru]-nya kobalt terang).
+  Color get teksDiBiru => terang ? PaletLab.putih : PaletLab.kobaltDiAtas300;
+
+  /// Warna label/ikon DI ATAS isi [gagal] (tombol bahaya).
+  Color get teksDiGagal => terang ? PaletLab.putih : PaletLab.gagalDiAtasGelap;
+
   // ══════════════════════════════════════════════════════════════════════
-  // RESEP MATERIAL
+  // RESEP PERMUKAAN (datar)
   // ══════════════════════════════════════════════════════════════════════
 
-  /// Sudut ngikut material: kertas dipotong lurus, logam dilembutkan mesin.
-  static const double sudutKertas = 5;
-  static const double sudutLogam = 10;
-  static const double sudutKaca = 12;
+  /// Sudut permukaan: panel data 8, kontrol 10. Lihat [BentukLab].
+  static const double sudutKertas = BentukLab.panel;
+  static const double sudutLogam = BentukLab.kontrol;
+  static const double sudutKaca = BentukLab.panel;
 
-  /// Lembar kertas yang terangkat sedikit dari meja.
-  ///
-  /// Seratnya SENGAJA tidak digambar di Flutter. Di CSS dia dua
-  /// `repeating-linear-gradient` 3% alpha; di HP seratnya praktis tak terlihat
-  /// sementara biayanya nyata kalau digambar per kartu. Yang bikin kertas
-  /// kebaca sebagai kertas itu warnanya, tepinya, dan bayangannya — bukan
-  /// seratnya.
+  /// Lembar kertas: putih + garis halus. Tidak ada bayangan; pemisahnya garis.
   BoxDecoration kertasLembar({double radius = sudutKertas, Color? warna}) =>
       BoxDecoration(
         color: warna ?? kertas,
         borderRadius: BorderRadius.circular(radius),
         border: Border.all(color: kertasTepi),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: terang ? 0.13 : 0.45),
-            blurRadius: 1.5,
-            offset: const Offset(0, 1),
-          ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: terang ? 0.16 : 0.55),
-            blurRadius: 16,
-            spreadRadius: -10,
-            offset: const Offset(0, 7),
-          ),
-        ],
       );
 
-  /// Baki cekung: tempat menaruh isi tambahan di atas lembar.
+  /// Baki: tempat menaruh isi tambahan di atas lembar. Permukaan sedikit
+  /// berbeda + garis halus.
   BoxDecoration kertasBaki({double radius = sudutKertas}) => BoxDecoration(
     color: kertas2,
     borderRadius: BorderRadius.circular(radius),
-    boxShadow: [
-      BoxShadow(
-        color: Colors.black.withValues(alpha: terang ? 0.14 : 0.5),
-        blurRadius: 4,
-        offset: const Offset(0, 2),
-        blurStyle: BlurStyle.inner,
-      ),
-    ],
+    border: Border.all(color: kertasTepi),
   );
 
-  /// Panel aluminium disikat. Dipakai app bar, navigasi bawah, bar aksi.
+  /// Panel app bar, navigasi bawah, bar aksi: permukaan rata.
   ///
-  /// Garis sikatnya digambar [SikatLogam] sebagai lapisan terpisah — di sini
-  /// cuma gradien dasar + bevel, supaya panel tanpa sikat pun tetap benar.
+  /// Garis pemisah ke isi layar digambar pemanggil lewat [border].
   BoxDecoration logamPanel({BorderRadius? radius, Border? border}) =>
-      BoxDecoration(
-        borderRadius: radius,
-        border: border,
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [logamAtas, logam, logamBawah],
-          stops: const [0, 0.42, 1],
-        ),
-      );
+      BoxDecoration(color: logam, borderRadius: radius, border: border);
 
-  /// Benda logam yang TIMBUL dan bisa ditekan: tombol, chip, ubin ikon.
+  /// Benda yang bisa ditekan: tombol, ubin ikon.
   ///
-  /// [warna] mengganti gradien dasar untuk tombol anodisasi (biru/merah).
+  /// [warna] mengganti isi (tombol biru/merah). Daftar dengan beberapa warna
+  /// (peninggalan gradien) dibaca tengahnya; hasilnya tetap SATU warna rata.
+  /// [tepi] bawaannya garis halus; tombol sekunder memberi [garisTegas].
   BoxDecoration logamTimbul({
     double radius = sudutLogam,
     List<Color>? warna,
     Color? tepi,
-  }) {
-    final isi = warna ?? [logamAtas, logam, logamBawah];
-    return BoxDecoration(
-      borderRadius: BorderRadius.circular(radius),
-      border: Border.all(color: tepi ?? logamTepi),
-      gradient: LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: isi,
-        stops: isi.length == 3 ? const [0, 0.52, 1] : null,
-      ),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: terang ? 0.20 : 0.45),
-          blurRadius: 1,
-          offset: const Offset(0, 1),
-        ),
-        BoxShadow(
-          color: Colors.black.withValues(alpha: terang ? 0.30 : 0.55),
-          blurRadius: 6,
-          spreadRadius: -3,
-          offset: const Offset(0, 3),
-        ),
-      ],
-    );
-  }
+  }) => BoxDecoration(
+    color: warna == null ? logam : warna[warna.length ~/ 2],
+    borderRadius: BorderRadius.circular(radius),
+    border: Border.all(color: tepi ?? kertasTepi),
+  );
 
-  /// Keadaan DITEKAN: benda masuk ke dalam panel. Dipakai bareng geseran 1 px
-  /// di [SidikTombol] — dua-duanya perlu, karena bayangan saja tanpa gerakan
-  /// kebaca sebagai "berubah warna", bukan "tertekan".
+  /// Keadaan DITEKAN atau TERPILIH.
+  ///
+  /// Tanpa [warna]: isi kobalt tipis (kapsul item navigasi aktif, tombol
+  /// sekunder yang sedang ditekan). Dengan [warna] (tombol biru/merah): isi
+  /// itu menggelap sedikit. Dipakai bareng geseran 1 px di `SidikTombol`,
+  /// karena perubahan warna saja kebaca "berubah", bukan "tertekan".
   BoxDecoration logamTertekan({
     double radius = sudutLogam,
     List<Color>? warna,
     Color? tepi,
   }) {
-    final isi = warna ?? [logamBawah, logamAtas];
+    final isi = warna == null
+        ? biruTipis
+        : Color.alphaBlend(
+            Colors.black.withValues(alpha: terang ? 0.10 : 0.18),
+            warna[warna.length ~/ 2],
+          );
     return BoxDecoration(
+      color: isi,
       borderRadius: BorderRadius.circular(radius),
-      border: Border.all(color: tepi ?? logamTepi),
-      gradient: LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: isi,
-      ),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.30),
-          blurRadius: 4,
-          offset: const Offset(0, 2),
-          blurStyle: BlurStyle.inner,
-        ),
-      ],
+      border: Border.all(color: tepi ?? kertasTepi),
     );
   }
 
-  /// Layar readout cekung. Selalu gelap, di dua tema.
+  /// Layar readout alat ukur. Selalu gelap, di dua tema.
   BoxDecoration kacaCekung({double radius = sudutKaca}) => BoxDecoration(
     color: kaca,
     borderRadius: BorderRadius.circular(radius),
-    border: Border.all(color: const Color(0xFF05070A)),
-    gradient: LinearGradient(
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter,
-      colors: [
-        Colors.white.withValues(alpha: 0.055),
-        Colors.black.withValues(alpha: 0.30),
-      ],
-      stops: const [0, 0.62],
-    ),
-    boxShadow: [
-      BoxShadow(
-        color: Colors.black.withValues(alpha: 0.75),
-        blurRadius: 5,
-        offset: const Offset(0, 2),
-        blurStyle: BlurStyle.inner,
-      ),
-    ],
+    border: Border.all(color: kaca2),
   );
 
-  /// Isian di kertas: sedikit cekung, dengan garis isian tebal di bawahnya
-  /// seperti kolom di formulir cetak.
-  ///
-  /// Bordernya sengaja SATU WARNA per keadaan. Flutter menolak `borderRadius`
-  /// pada `Border` yang sisi-sisinya berbeda warna ("A borderRadius can only be
-  /// given on borders with uniform colors") — assert di debug, cat rusak di
-  /// rilis. Jadi keadaan biasa cuma punya garis bawah, dan keadaan fokus
-  /// membiru di keempat sisi (lebar boleh beda, warnanya sama).
+  /// Isian: kotak berisi permukaan cekung dengan garis tegas (kontrol 10).
+  /// Fokus = garis kobalt 2 dp. Bordernya SATU WARNA per keadaan supaya aman
+  /// dipasangi `borderRadius`.
   BoxDecoration isian({Color? garisBawah, bool fokus = false}) => BoxDecoration(
     color: kertas2,
-    borderRadius: BorderRadius.circular(4),
+    borderRadius: BorderRadius.circular(BentukLab.kontrol),
     border: fokus
-        ? Border(
-            top: BorderSide(color: biru),
-            left: BorderSide(color: biru),
-            right: BorderSide(color: biru),
-            bottom: BorderSide(color: biru, width: 2),
-          )
-        : Border(
-            bottom: BorderSide(color: garisBawah ?? tinta2, width: 2),
-          ),
-    boxShadow: [
-      BoxShadow(
-        color: Colors.black.withValues(alpha: 0.10),
-        blurRadius: 3,
-        offset: const Offset(0, 2),
-        blurStyle: BlurStyle.inner,
-      ),
-    ],
+        ? Border.all(color: biru, width: 2)
+        : Border.all(color: garisBawah ?? garisTegas),
   );
 
-  /// Gaya teks label yang diukir di logam. HURUF BESAR + spasi lebar di sini
-  /// BENAR — itu memang cara panel alat ukur diberi label.
-  TextStyle gayaEtsa({double ukuran = 11}) => TextStyle(
-    color: etsa,
-    fontSize: ukuran,
+  /// Gaya keterangan kecil (dulu label terukir). Minimum 12 sp: ukuran di
+  /// bawahnya dinaikkan, karena beberapa layar masih meminta 11.
+  TextStyle gayaEtsa({double ukuran = 12}) => TextStyle(
+    color: tinta2,
+    fontSize: ukuran < 12 ? 12 : ukuran,
     fontWeight: FontWeight.w600,
-    letterSpacing: 0.09 * ukuran,
-    shadows: [
-      Shadow(
-        color: terang
-            ? Colors.white.withValues(alpha: 0.52)
-            : Colors.black.withValues(alpha: 0.65),
-        offset: Offset(0, terang ? 1 : -1),
-      ),
-    ],
+    letterSpacing: 0.2,
   );
 
   // ══════════════════════════════════════════════════════════════════════
@@ -467,141 +375,96 @@ class SidikMaterial extends ThemeExtension<SidikMaterial> {
   }
 
   // ══════════════════════════════════════════════════════════════════════
-  // NILAI TOKEN
-  // Angka kontrasnya sudah diuji ke WCAG AA di dua tema — lihat
+  // NILAI TOKEN (dari PaletLab)
+  // Angka kontrasnya diuji WCAG AA di dua tema: lihat
   // test/tema/kontras_sidik_test.dart. Jangan ubah satu warna tanpa
-  // menjalankan test itu lagi.
+  // menjalankan tes itu lagi.
   // ══════════════════════════════════════════════════════════════════════
 
   static const SidikMaterial terangDefault = SidikMaterial(
     terang: true,
-    meja: Color(0xFFD6D2C8),
-    meja2: Color(0xFFCBC7BC),
-    kertas: Color(0xFFF5F1E7),
-    kertas2: Color(0xFFEAE5D8),
-    kertasTepi: Color(0xFFD9D2C0),
-    garis: Color(0xFFC9D5E2),
-    tinta: Color(0xFF1A1F26), // 14,7:1 di kertas
-    // Sengaja lebih tua dari pilihan pertama (#585E67). Di situ keterangan
-    // yang jatuh langsung di atas permukaan meja cuma 4,3:1 — di bawah
-    // ambang, dan itu kejadian nyata di beberapa layar.
-    tinta2: Color(0xFF4A5059), // 7,2:1 di kertas · 5,4:1 di meja
-    pensil: Color(0xFF616770), // 4,9:1 — batas AA, jangan diterangin lagi
-    logam: Color(0xFFC7C4BC),
-    logamAtas: Color(0xFFDAD7D0),
-    logamBawah: Color(0xFFB3B0A8),
-    logamTepi: Color(0xFF9C998F),
-    etsa: Color(0xFF2B2F35), // 7,7:1 di logam
-    kilau: Color(0xC7FFFFFF),
-    lekuk: Color(0x33000000),
-    biru: Color(0xFF1D4292), // 8,3:1 di kertas · putih di atasnya 9,4:1
-    biruAtas: Color(0xFF3563C4),
-    biruTipis: Color(0xFFDFE7F8),
-    biruTinta: Color(0xFF1D4292),
-    // Hijau sengaja LEBIH TUA dari pilihan pertama (#166B3C). Di situ hijau
-    // dan merahnya nyaris sama terangnya, jadi di fotokopi hitam-putih —
-    // dan buat mata yang buta warna merah-hijau — PASS dan FAIL jadi satu
-    // rupa. Lihat kontras_sidik_test.dart.
-    lulus: Color(0xFF125739), // 7,6:1
-    lulusTipis: Color(0xFFDCEBE0),
-    gagal: Color(0xFFA81B33), // 6,5:1
-    gagalTipis: Color(0xFFF6DEE2),
-    awas: Color(0xFF8C5C0A), // 5,1:1
-    awasTipis: Color(0xFFF7EBD5),
-    tunggu: Color(0xFF474D55), // 7,6:1
-    tungguTipis: Color(0xFFE4E2DD),
-    kaca: Color(0xFF0C1013),
-    kaca2: Color(0xFF151B20),
-    lcdHijau: Color(0xFF7FE3A8),
-    lcdAmber: Color(0xFFF0B95E),
-    lcdTeks: Color(0xFFD8E4E8),
+    meja: PaletLab.latarTerang,
+    meja2: PaletLab.latar2Terang,
+    kertas: PaletLab.kertasTerang,
+    kertas2: PaletLab.kertas2Terang,
+    kertasTepi: PaletLab.garisHalusTerang,
+    garis: PaletLab.garisHalusTerang,
+    tinta: PaletLab.tintaTerang, // 17,7:1 di kertas
+    tinta2: PaletLab.tinta2Terang, // 7,7:1 di kertas, 7,0:1 di latar
+    pensil: PaletLab.pensilTerang, // saran OCR, 5,4:1 di kertas
+    logam: PaletLab.kertasTerang,
+    logamAtas: PaletLab.kertasTerang,
+    logamBawah: PaletLab.latar2Terang,
+    logamTepi: PaletLab.garisTegasTerang, // garis tegas, 4,6:1 di kertas
+    etsa: PaletLab.tintaTerang,
+    kilau: PaletLab.tembus,
+    lekuk: PaletLab.tembus,
+    biru: PaletLab.kobalt700, // 9,5:1 di kertas; putih di atasnya 9,5:1
+    biruAtas: PaletLab.kobalt300,
+    biruTipis: PaletLab.kobalt100,
+    biruTinta: PaletLab.kobalt700,
+    lulus: PaletLab.lulusTerang, // 7,3:1 di latar tipisnya
+    lulusTipis: PaletLab.lulusLatarTerang,
+    gagal: PaletLab.gagalTerang, // 6,1:1
+    gagalTipis: PaletLab.gagalLatarTerang,
+    awas: PaletLab.awasTerang, // 6,3:1
+    awasTipis: PaletLab.awasLatarTerang,
+    tunggu: PaletLab.tungguTerang, // 8,7:1
+    tungguTipis: PaletLab.tungguLatarTerang,
+    kaca: PaletLab.latarGelap,
+    kaca2: PaletLab.kertasGelap,
+    lcdHijau: PaletLab.lulusGelap,
+    lcdAmber: PaletLab.awasGelap,
+    lcdTeks: PaletLab.tintaGelap,
   );
 
-  /// Lab waktu lampu atas dimatikan — benda yang sama, cahayanya beda.
-  /// Bukan warna yang dibalik: kertas tetap kertas, cuma diterangi lampu meja.
+  /// Tema gelap: latar `#0E1320`, permukaan `#171D2B`, kobalt jenjang 300.
   static const SidikMaterial gelapDefault = SidikMaterial(
     terang: false,
-    meja: Color(0xFF0F1114),
-    meja2: Color(0xFF16191D),
-    kertas: Color(0xFF24272D),
-    kertas2: Color(0xFF1B1E23),
-    kertasTepi: Color(0xFF33373E),
-    garis: Color(0xFF39414B),
-    tinta: Color(0xFFEAE6DC), // 12,0:1
-    tinta2: Color(0xFFA6A9B1), // 6,4:1
-    pensil: Color(0xFF8F949C), // 4,9:1
-    logam: Color(0xFF393D45),
-    logamAtas: Color(0xFF4A4F58),
-    logamBawah: Color(0xFF2C3037),
-    logamTepi: Color(0xFF21242A),
-    etsa: Color(0xFFD9DCE2),
-    kilau: Color(0x21FFFFFF),
-    lekuk: Color(0x8C000000),
-    biru: Color(0xFF2B4E9E),
-    biruAtas: Color(0xFF4470CE),
-    biruTipis: Color(0xFF1C2740),
-    biruTinta: Color(0xFF8FB0FF), // 7,0:1
-    lulus: Color(0xFF5DCE93), // 7,6:1
-    lulusTipis: Color(0xFF16301F),
-    gagal: Color(0xFFFF8092), // 6,2:1
-    gagalTipis: Color(0xFF3A1820),
-    awas: Color(0xFFF2B655), // 8,3:1
-    awasTipis: Color(0xFF36280F),
-    tunggu: Color(0xFFB6BAC4), // 7,7:1
-    tungguTipis: Color(0xFF262A31),
-    kaca: Color(0xFF0C1013),
-    kaca2: Color(0xFF151B20),
-    lcdHijau: Color(0xFF7FE3A8),
-    lcdAmber: Color(0xFFF0B95E),
-    lcdTeks: Color(0xFFD8E4E8),
+    meja: PaletLab.latarGelap,
+    meja2: PaletLab.latar2Gelap,
+    kertas: PaletLab.kertasGelap,
+    kertas2: PaletLab.kertas2Gelap,
+    kertasTepi: PaletLab.garisHalusGelap,
+    garis: PaletLab.garisHalusGelap,
+    tinta: PaletLab.tintaGelap, // 14,0:1 di kertas
+    tinta2: PaletLab.tinta2Gelap, // 7,9:1
+    pensil: PaletLab.pensilGelap, // 5,8:1
+    logam: PaletLab.kertasGelap,
+    logamAtas: PaletLab.kertasGelap,
+    logamBawah: PaletLab.latar2Gelap,
+    logamTepi: PaletLab.garisTegasGelap, // garis tegas, 4,7:1 di kertas
+    etsa: PaletLab.tintaGelap,
+    kilau: PaletLab.tembus,
+    lekuk: PaletLab.tembus,
+    biru: PaletLab.kobalt300, // isi tombol & teks aksen: 7,8:1 di kertas
+    biruAtas: PaletLab.kobalt300,
+    biruTipis: PaletLab.kobaltGelapTipis,
+    biruTinta: PaletLab.kobalt300,
+    lulus: PaletLab.lulusGelap,
+    lulusTipis: PaletLab.lulusLatarGelap,
+    gagal: PaletLab.gagalGelap,
+    gagalTipis: PaletLab.gagalLatarGelap,
+    awas: PaletLab.awasGelap,
+    awasTipis: PaletLab.awasLatarGelap,
+    tunggu: PaletLab.tungguGelap,
+    tungguTipis: PaletLab.tungguLatarGelap,
+    kaca: PaletLab.latarGelap,
+    kaca2: PaletLab.kertasGelap,
+    lcdHijau: PaletLab.lulusGelap,
+    lcdAmber: PaletLab.awasGelap,
+    lcdTeks: PaletLab.tintaGelap,
   );
 }
 
-/// Garis sikat aluminium, digambar sebagai lapisan tipis di atas panel logam.
-///
-/// Sengaja pakai painter, bukan gambar: sikatnya cuma garis 1 px tiap 3 px,
-/// jadi menggambarnya lebih murah daripada memuat & men-tile tekstur, dan
-/// ukurannya ikut panel tanpa perlu aset per-kerapatan layar.
-///
-/// Dipakai cuma di permukaan logam yang KECIL (app bar, nav, bar aksi, tombol).
-/// Jangan dipasang di area sebesar layar penuh.
+/// Sisa API "sikat logam". Tidak menggambar apa pun lagi (tema datar); kelas
+/// dipertahankan supaya pemanggil lama tetap jalan sampai dikikis.
 class SikatLogam extends StatelessWidget {
   const SikatLogam({super.key, this.kerapatan = 3, this.kekuatan = 0.16});
 
-  /// Jarak antar garis sikat, dalam piksel logis.
-  final double kerapatan;
-
-  /// Alpha garis terangnya.
-  final double kekuatan;
-
-  @override
-  Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: CustomPaint(
-        painter: _PelukisSikat(kerapatan: kerapatan, kekuatan: kekuatan),
-        size: Size.infinite,
-      ),
-    );
-  }
-}
-
-class _PelukisSikat extends CustomPainter {
-  const _PelukisSikat({required this.kerapatan, required this.kekuatan});
-
   final double kerapatan;
   final double kekuatan;
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final cat = Paint()
-      ..color = Colors.white.withValues(alpha: kekuatan)
-      ..strokeWidth = 1;
-    for (double x = 0; x < size.width; x += kerapatan) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), cat);
-    }
-  }
-
-  @override
-  bool shouldRepaint(_PelukisSikat old) =>
-      old.kerapatan != kerapatan || old.kekuatan != kekuatan;
+  Widget build(BuildContext context) => const SizedBox.shrink();
 }

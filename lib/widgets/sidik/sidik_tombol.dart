@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/theme/bentuk_lab.dart';
 import '../../core/theme/sidik_material.dart';
 
 /// Ragam tombol. Satu layar cuma boleh punya SATU [RagamTombol.utama].
@@ -80,25 +81,22 @@ class _SidikTombolState extends State<SidikTombol> {
   @override
   Widget build(BuildContext context) {
     final m = SidikMaterial.of(context);
-    final tinggi = widget.kecil ? 42.0 : 48.0;
+    // Aksi utama 56 dp, aksi lain 48 dp (`UkuranLab`); `kecil` untuk baris padat.
+    final tinggi = widget.kecil
+        ? 42.0
+        : (widget.ragam == RagamTombol.utama
+              ? UkuranLab.aksiUtama
+              : UkuranLab.aksi);
     final radius = widget.kecil
         ? SidikMaterial.sudutLogam - 1
         : SidikMaterial.sudutLogam;
 
-    final (List<Color>? isi, Color? tepi, Color teks) = switch (widget.ragam) {
-      RagamTombol.utama => (
-        [m.biruAtas, m.biru, const Color(0xFF14306E)],
-        const Color(0xFF12275C),
-        Colors.white,
-      ),
-      RagamTombol.bahaya => (
-        [const Color(0xFFC63049), m.gagal, const Color(0xFF7E1426)],
-        const Color(0xFF6E0F20),
-        m.terang ? Colors.white : const Color(0xFF24070D),
-      ),
+    final (List<Color>? isi, Color tepi, Color teks) = switch (widget.ragam) {
+      RagamTombol.utama => ([m.biru], m.biru, m.teksDiBiru),
+      RagamTombol.bahaya => ([m.gagal], m.gagal, m.teksDiGagal),
       RagamTombol.bahayaGaris => (null, m.gagal, m.gagal),
       RagamTombol.teks => (null, Colors.transparent, m.biruTinta),
-      RagamTombol.biasa => (null, null, m.etsa),
+      RagamTombol.biasa => (null, m.garisTegas, m.etsa),
     };
 
     final datar =
@@ -115,7 +113,7 @@ class _SidikTombolState extends State<SidikTombol> {
     } else if (datar) {
       hiasan = BoxDecoration(
         borderRadius: BorderRadius.circular(radius),
-        border: Border.all(color: tepi ?? Colors.transparent),
+        border: Border.all(color: tepi),
         color: _ditekan ? m.tinta.withValues(alpha: 0.06) : Colors.transparent,
       );
     } else if (_ditekan) {
@@ -136,7 +134,10 @@ class _SidikTombolState extends State<SidikTombol> {
             child: SizedBox(
               width: 16,
               height: 16,
-              child: CircularProgressIndicator(strokeWidth: 2, color: warnaTeks),
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: warnaTeks,
+              ),
             ),
           )
         else if (widget.ikon != null)
@@ -152,20 +153,6 @@ class _SidikTombolState extends State<SidikTombol> {
               color: warnaTeks,
               fontSize: widget.kecil ? 14 : 15,
               fontWeight: FontWeight.w600,
-              // Teks diukir ke permukaan: kilau di bawah huruf untuk logam
-              // terang, bayangan di atas huruf untuk anodisasi gelap.
-              shadows: (widget._mati || datar)
-                  ? null
-                  : [
-                      Shadow(
-                        color: isi != null
-                            ? Colors.black.withValues(alpha: 0.45)
-                            : (m.terang
-                                  ? Colors.white.withValues(alpha: 0.45)
-                                  : Colors.black.withValues(alpha: 0.55)),
-                        offset: Offset(0, isi != null || !m.terang ? -1 : 1),
-                      ),
-                    ],
             ),
           ),
         ),
