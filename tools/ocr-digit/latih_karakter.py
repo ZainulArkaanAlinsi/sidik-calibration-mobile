@@ -10,9 +10,12 @@ float32 [1, 28, 28, 1] dalam 0..1, tinta terang. Keluaran = softmax 14 kelas
 ``asal_data`` di meta.json:
 
 - ``publik`` — hanya MNIST + tanda baca sintetis. Aplikasi WAJIB menolak
-  memakai model ini untuk mengisi sel (``PembacaDigitTflite``): tulisan
-  teknisi bukan MNIST, dan akurasi di set uji publik bukan ramalan akurasi di
-  lembar kerja.
+  memakai model ini untuk mengisi sel: tulisan teknisi bukan MNIST, dan
+  akurasi di set uji publik bukan ramalan akurasi di lembar kerja. (Pembaca
+  karakter di app, ``PembacaDigitTflite``, dihapus 13 Nov 2026 karena tidak
+  terpasang ke alur mana pun; gerbang ``asal_data`` ini harus ditulis ulang
+  bila model karakter sendiri dipasang kelak. Yang ada sekarang di app adalah
+  mesin angka SEL utuh, lihat ``docs/ocr-angka-onnx.md``.)
 - ``asli`` — ada contoh sel terkonfirmasi dari HP (``--dari``). Itu pun belum
   izin pakai: harus lewat mode bayangan dan pengukuran per lembar dulu.
 

@@ -23,6 +23,13 @@ import 'pembaca_sel.dart';
 /// → seluruh sisa lembar dibaca ML Kit. Galat di sini tidak pernah sampai ke
 /// pemanggil.
 ///
+/// Dua hal membuat SATU sel (bukan seluruh lembar) dibaca ML Kit, mesin tetap
+/// aktif: keluaran model tak valid (`keluaranTakValid`) dan sel BERTINTA yang
+/// tak bisa dibaca model ini (`ukuranTakWajar`: crop raksasa, atau hasil resize
+/// lebih lebar dari kanvas model berlebar tetap). Sel itu tidak boleh hilang
+/// diam-diam dari review. Sel yang memang kosong (di bawah pagar tinta) tetap
+/// kosong.
+///
 /// ## Bentuk keluaran ke alur yang sudah ada
 ///
 /// [BacaanSel] tidak diubah; makna status dipetakan ke aturan yang sudah ada:
@@ -77,6 +84,13 @@ class PembacaSelOnnx implements PembacaSelBerformat {
 
     try {
       final hasil = await mesin.baca(potongan, aturan);
+      if (hasil.alasan == AlasanSelAngka.ukuranTakWajar) {
+        // Ada tinta tetapi model ini tak bisa membacanya (mis. lebar hasil
+        // resize > 320 px pada TFLite). ML Kit membacanya, seperti sebelum
+        // sakelar menyala; bukan teks dari model dan bukan sel kosong.
+        catat?.call('sel terlalu lebar/besar untuk mesin angka, dibaca ML Kit');
+        return _cadangan.baca(potongan);
+      }
       if (hasil.alasan == AlasanSelAngka.keluaranTakValid) {
         // Keluaran model NaN/tak hingga untuk sel ini: bukan usulan, dan sel
         // tidak boleh hilang diam-diam dari review. ML Kit membacanya; mesin

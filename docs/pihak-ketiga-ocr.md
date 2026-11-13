@@ -78,17 +78,18 @@ laptop), dan selisih ukuran APK (hanya kode Dart; CI yang melaporkan).
 
 ## Mesin angka tulisan tangan (Fase 3, `lib/services/ocr_angka/`)
 
-Dependensi BARU: tidak ada. `pubspec.yaml` tidak berubah (tidak ada paket, aset, atau biner native baru);
-runtime inferensi sengaja TIDAK ditambahkan karena melewati batas ukuran pemilik. Rincian ukuran per-ABI,
-opsi, dan hasil rig: `docs/ocr-angka-onnx.md`.
+Dependensi BARU: tidak ada (13 Nov 2026). Tidak ada paket atau biner native baru: runtime inferensi adalah
+`tflite_flutter` 0.12.1 / LiteRT 1.4.0 yang SUDAH ada di APK. `pubspec.yaml` hanya menambah aset
+(`assets/models/ocr_angka_en.tflite` +7,83 MB, meta, dan crop uji sintetis ±126 KB). ONNX Runtime ditolak
+karena melewati batas ukuran pemilik. Rincian ukuran per-ABI, opsi, dan hasil rig: `docs/ocr-angka-onnx.md`.
 
 | Apa | Sumber | Versi | Lisensi | Status |
 |---|---|---|---|---|
-| `en_PP-OCRv5_mobile_rec_onnx` | https://huggingface.co/PaddlePaddle/en_PP-OCRv5_mobile_rec_onnx | rev `3fafbc3b`, 7.848.423 bita | Apache-2.0 | dirujuk di `assets/models/ocr_angka_en.meta.json`; BELUM dibundel |
+| `en_PP-OCRv5_mobile_rec_onnx` → `ocr_angka_en.tflite` | https://huggingface.co/PaddlePaddle/en_PP-OCRv5_mobile_rec_onnx | rev `3fafbc3b`; ONNX 7.848.423 bita dikonversi `onnx2tf` 2.6.9 ke TFLite float32 7.829.508 bita | Apache-2.0 | DIBUNDEL di APK (`assets/models/`), dimuat hanya bila sakelar developer menyala; sha256 dipatok |
 | `flutter_onnxruntime` | https://pub.dev/packages/flutter_onnxruntime | 1.9.0 (6 Okt 2026) | MIT | DITAHAN: ORT 1.28.0 menambah ±49 MB mentah ke APK dua-ABI |
 | `com.microsoft.onnxruntime:onnxruntime-android` | Maven Central | 1.28.0 | MIT | dibawa plugin di atas; diukur dari AAR, tidak dipakai |
 | `com.microsoft.onnxruntime:onnxruntime-mobile` | Maven Central | 1.18.0 (rilis terakhir paket itu) | MIT | opsi, belum dicoba (±7,8 MB dua-ABI) |
-| `tflite_flutter` / LiteRT | pub.dev | 0.12.1 / 1.4.0 | Apache-2.0 | sudah ada; tidak terpakai oleh alur mana pun (±7,2 MB di APK dua-ABI) |
+| `tflite_flutter` / LiteRT | pub.dev | 0.12.1 / 1.4.0 | Apache-2.0 | sudah ada (±7,2 MB di APK dua-ABI); KINI TERPAKAI mesin angka (`interpreter_mentah_tflite.dart`) di balik sakelar developer |
 
 Kode (milik sendiri, metode terbuka): pengubah ukuran bilinear 11-bit ala OpenCV `INTER_LINEAR`
 (`praproses_sel.dart`, OpenCV hanya ACUAN perilaku, tidak ada kode disalin), dekode CTC greedy, persentil linier.

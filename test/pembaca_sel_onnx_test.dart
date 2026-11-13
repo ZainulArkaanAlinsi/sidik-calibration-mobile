@@ -324,7 +324,7 @@ void main() {
         )!;
 
         expect(m.kolom, kolomModel);
-        expect(m.berkas, 'ocr_angka_en.onnx');
+        expect(m.berkas, 'ocr_angka_en.tflite');
         expect(m.sha256, hasLength(64));
         expect(m.ambangJalur, 0.990);
         expect(m.buktiSintetis, isTrue, reason: 'belum ada foto nyata');

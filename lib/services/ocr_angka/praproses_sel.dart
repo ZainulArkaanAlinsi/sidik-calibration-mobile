@@ -57,7 +57,13 @@ class PraprosesSel {
       sh >= 1 &&
       sw <= sisiMaks &&
       sh <= sisiMaks &&
-      math.max(16, (tinggi * sw / sh).ceil()) <= lebarMaks;
+      lebarHasilResize(sw, sh) <= lebarMaks;
+
+  /// Lebar isi (piksel) crop `sw×sh` sesudah diubah ke tinggi [tinggi]:
+  /// `ceil(48·sw/sh)`, paling kecil 16. Sebelum pad ke [lebarMin]. Model
+  /// berlebar tetap (TFLite, 320) menahan sel yang nilainya melewati kanvas.
+  static int lebarHasilResize(int sw, int sh) =>
+      math.max(16, (tinggi * sw / sh).ceil());
   static const _bitKoef = 11;
   static const _skalaKoef = 1 << _bitKoef;
 
@@ -68,7 +74,7 @@ class PraprosesSel {
       throw ArgumentError('ukuran potongan tak wajar ($sw×$sh)');
     }
 
-    final rw = math.max(16, (tinggi * sw / sh).ceil());
+    final rw = lebarHasilResize(sw, sh);
     final kecil = ubahUkuranBgr(_rgb(potongan), sw, sh, rw, tinggi);
     final lebar = math.max(lebarMin, rw);
     final data = Float32List(TensorSel.kanal * tinggi * lebar);

@@ -6,30 +6,32 @@ import 'package:integration_test/integration_test.dart';
 import 'package:sidik_calibration/services/ocr_angka/muat_mesin.dart';
 import 'package:sidik_calibration/services/ocr_angka/muat_mesin_bawaan.dart';
 import 'package:sidik_calibration/services/ocr_angka/sesi_inferensi.dart';
+import 'package:sidik_calibration/services/ocr_angka/sesi_inferensi_tflite.dart';
 import 'package:sidik_calibration/services/ocr_angka/ukur_ocr.dart';
 import 'package:sidik_calibration/services/ocr_angka/ukur_ocr_jalankan.dart';
 import 'package:sidik_calibration/services/pembaca_sel.dart';
 import 'package:sidik_calibration/services/pembaca_sel_onnx.dart';
 
-/// Uji **DI PERANGKAT** untuk mesin angka (inferensi NYATA di tablet) — satu-
-/// satunya tempat dua hal ini bisa dibuktikan:
+/// Uji **DI PERANGKAT** untuk mesin angka (inferensi NYATA di tablet) pada SET
+/// BESAR dari folder perangkat; pelengkap `ocr_tflite_hp_test.dart` (21 crop
+/// bawaan APK). Dua hal yang dibuktikan:
 ///
-///  1. model dimuat oleh runtime yang dipilih dan menjawab tanpa galat;
+///  1. model dimuat oleh runtime (TFLite/LiteRT) dan menjawab tanpa galat;
 ///  2. teks dari tablet sama dengan teks rig Python pada crop yang sama
 ///     (paritas praproses Dart + runtime Android), dan latensinya per sel.
 ///
-/// ## STATUS: TIDAK TERBUKTI (12 Nov 2026)
+/// Nama berkas masih `onnx` dari masa pemilihan runtime; runtime-nya kini
+/// TFLite (`docs/ocr-angka-onnx.md`).
 ///
-/// Belum ada runtime inferensi di app (keputusan dependensi menunggu pemilik,
-/// lihat `docs/ocr-angka-onnx.md`), jadi [buatSesiUji] masih `null` dan tes
-/// di bawah SKIP. Begitu runtime dipilih, isi [buatSesiUji] dengan adaptor
-/// `SesiInferensiCtc`-nya dan jalankan.
+/// ## STATUS: TIDAK TERBUKTI (13 Nov 2026)
+///
+/// Belum pernah dijalankan di perangkat. SKIP bila bukan Android.
 ///
 /// ## Persiapan di tablet (adb)
 ///
 /// ```
 /// adb shell mkdir -p /sdcard/Android/data/com.ptsidik.kalibrasi/files/ocr-ukur
-/// adb push ocr_angka_en.onnx ocr_angka_en.meta.json labels.csv crop \
+/// adb push labels.csv crop \
 ///   /sdcard/Android/data/com.ptsidik.kalibrasi/files/ocr-ukur/
 /// # opsional, untuk paritas: prediksi rig pada crop yang sama
 /// adb push pred_rig.csv /sdcard/Android/data/com.ptsidik.kalibrasi/files/ocr-ukur/
@@ -41,9 +43,10 @@ import 'package:sidik_calibration/services/pembaca_sel_onnx.dart';
 /// ## Menjalankan
 ///
 /// ```
-/// flutter test integration_test/ocr_onnx_hp_test.dart -d <id-perangkat> \
-///   --dart-define=PAKAI_MESIN_ANGKA_ONNX=true
+/// flutter test integration_test/ocr_onnx_hp_test.dart -d <id-perangkat>
 /// ```
+///
+/// Model dibaca dari ASET APK (tidak perlu di-push).
 ///
 /// Folder lain: `--dart-define=OCR_UKUR_DIR=/path`. Jumlah sel: `--dart-define=OCR_UKUR_N=200`.
 ///
@@ -51,8 +54,7 @@ import 'package:sidik_calibration/services/pembaca_sel_onnx.dart';
 /// ditulis di folder itu. Tes GAGAL hanya untuk kerusakan struktural (mesin tidak
 /// termuat, galat per sel, paritas di bawah 95%); angka akurasi tidak diadili
 /// di sini.
-BuatSesiCtc? get buatSesiUji =>
-    null; // TODO: isi dengan adaptor runtime terpilih.
+BuatSesiCtc get buatSesiUji => SesiInferensiTflite.dariByte;
 
 const _dirEnv = String.fromEnvironment('OCR_UKUR_DIR');
 const _nEnv = int.fromEnvironment('OCR_UKUR_N', defaultValue: 200);
@@ -141,7 +143,7 @@ void main() {
         );
       }
     },
-    skip: buatSesiUji == null,
+    skip: !Platform.isAndroid,
   );
 }
 
