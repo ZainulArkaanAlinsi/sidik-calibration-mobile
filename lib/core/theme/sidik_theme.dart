@@ -2,9 +2,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../motion/transisi_halaman.dart';
+import 'bentuk_lab.dart';
+import 'palet_lab.dart';
 import 'sidik_material.dart';
 
-/// Tema **"Meja Kerja Lab"** — pengganti `AppTheme`.
+/// Tema Lab: Material 3 datar, kobalt + netral dingin, terang dan gelap.
 ///
 /// Kenapa file ini penting: hampir semua layar di `lib/screens/` memakai widget
 /// Material bawaan (`Card`, `FilledButton`, `TextFormField`, `ListTile`).
@@ -12,35 +14,28 @@ import 'sidik_material.dart';
 /// tanpa satu pun layar disentuh**. Itu yang bikin perubahan ini aman: logika,
 /// provider, service, dan test alur tetap utuh.
 ///
-/// Cara pasang — satu perubahan di `lib/app.dart`:
+/// Nilai warna datang dari [SidikMaterial] (yang membaca `PaletLab`); bentuk
+/// dan ukuran sentuh dari [BentukLab] dan [UkuranLab]:
 ///
-/// ```dart
-/// // sebelum
-/// theme: AppTheme.light,
-/// darkTheme: AppTheme.dark,
+/// - Aksi utama (`FilledButton`) 56 dp, radius 16. Semua aksi lain 48 dp,
+///   radius 10 (desktop Windows 44, alat tunjuk tetikus).
+/// - Isian = kolom bergaris bawah tegas (3:1); fokus = garis kobalt 2 dp.
+/// - Tanpa gradien dan tanpa bayangan di layar; hanya lembar bawah dan dialog
+///   yang punya bayangan lembut.
+/// - Huruf minimum 12 sp, termasuk di desktop (skala 0,9 tidak boleh menembus).
 ///
-/// // sesudah
-/// theme: SidikTheme.terang,
-/// darkTheme: SidikTheme.gelap,
-/// ```
-///
-/// Tidak ada file lain yang wajib diubah.
+/// Dipasang lewat `AppTheme.light` / `AppTheme.dark` (`lib/app.dart`).
 class SidikTheme {
   const SidikTheme._();
 
-  /// Keluarga huruf bawaan.
-  ///
-  /// Dipatok ke **Inter** karena itu yang SUDAH dibundel di `pubspec.yaml`,
-  /// jadi tema ini langsung jalan tanpa menambah aset. Desainnya sendiri minta
-  /// IBM Plex Sans; cara menukarnya ada di `PASANG-TEMA-SIDIK.md` — satu baris
-  /// di sini plus dua berkas font.
+  /// Keluarga huruf bawaan: **Inter**, sudah dibundel di `pubspec.yaml`.
   static const String keluarga = 'Inter';
 
-  /// Huruf angka ukur, nomor sertifikat, dan serial.
+  /// Huruf angka ukur, nomor sertifikat, dan serial (IBM Plex Mono).
   ///
-  /// Dibundel di `assets/fonts/IBMPlexMono-*.ttf` (30 Sep 2026) — sama di
-  /// Android, iOS, desktop, dan golden. `fontFeatures` tabular tetap dipasang
-  /// di [gayaAngka] sebagai jaring kalau font gagal dimuat.
+  /// Dibundel di `assets/fonts/IBMPlexMono-*.ttf` — sama di Android, iOS,
+  /// desktop, dan golden. `fontFeatures` tabular tetap dipasang di
+  /// [gayaAngka] sebagai jaring kalau font gagal dimuat.
   static const String keluargaMono = 'IBMPlexMono';
 
   static ThemeData get terang => _bangun(SidikMaterial.terangDefault);
@@ -49,8 +44,7 @@ class SidikTheme {
   /// Platform meja: jendela dilihat dari ~60 cm pakai tetikus, bukan digenggam.
   ///
   /// Dibaca dari `defaultTargetPlatform`, BUKAN dari lebar jendela — yang
-  /// menentukan ukuran kontrol itu alat tunjuknya. Aturan ini disalin apa
-  /// adanya dari `AppTheme` lama supaya golden test yang ada tidak bergeser.
+  /// menentukan ukuran kontrol itu alat tunjuknya.
   static bool get _meja => switch (defaultTargetPlatform) {
     TargetPlatform.windows ||
     TargetPlatform.macOS ||
@@ -80,15 +74,22 @@ class SidikTheme {
     final skema = ColorScheme(
       brightness: brightness,
       primary: m.biru,
-      onPrimary: terang ? Colors.white : const Color(0xFFEFF3FF),
+      onPrimary: m.teksDiBiru,
       primaryContainer: m.biruTipis,
-      onPrimaryContainer: m.biruTinta,
-      secondary: m.lulus,
-      onSecondary: terang ? Colors.white : const Color(0xFF0F1114),
-      secondaryContainer: m.lulusTipis,
-      onSecondaryContainer: m.lulus,
+      onPrimaryContainer: terang
+          ? PaletLab.kobalt900
+          : PaletLab.kobaltGelapTeks,
+      // Kobalt juga untuk `secondary`: satu warna merek. Dulu hijau (warna
+      // "lulus"), dan layar yang memakai `secondaryContainer` (pil aktif rail,
+      // baris terpilih) jadi hijau yang bertabrakan dengan arti PASS.
+      secondary: m.biruTinta,
+      onSecondary: m.teksDiBiru,
+      secondaryContainer: m.biruTipis,
+      onSecondaryContainer: terang
+          ? PaletLab.kobalt900
+          : PaletLab.kobaltGelapTeks,
       error: m.gagal,
-      onError: terang ? Colors.white : const Color(0xFF24070D),
+      onError: m.teksDiGagal,
       errorContainer: m.gagalTipis,
       onErrorContainer: m.gagal,
       surface: m.kertas,
@@ -99,24 +100,35 @@ class SidikTheme {
       surfaceContainer: m.kertas2,
       surfaceContainerHigh: m.kertas2,
       surfaceContainerHighest: m.meja2,
-      // BUKAN `m.kertasTepi`. Tepi kertas cuma 1,3:1 di atas kertas — pas untuk
-      // garis dekoratif yang dilukis `SidikMaterial` sendiri, tapi `outline`
-      // dipakai 21 tempat di app sebagai TEKS & ikon redup (keterangan
-      // "12 bulan ini", ikon keadaan kosong, label arsip). Dengan tepi kertas,
-      // semuanya nyaris tak terbaca. Nada tengah ini ≥4,5:1 di kertas kedua
-      // tema, dan sekaligus memenuhi syarat Material 3 (≥3:1) untuk garis
-      // bawaan widget yang bersandar pada `outline`.
-      outline: terang ? const Color(0xFF666359) : const Color(0xFF9095A0),
+      // `outline` dipakai 22 tempat sebagai TEKS dan ikon redup (keterangan,
+      // ikon keadaan kosong), bukan hanya garis. Jadi nilainya harus >= 4,5:1
+      // di kertas dan baki: di tema terang sedikit lebih tua dari garis tegas
+      // (`m.garisTegas`, 4,6:1 di kertas tetapi 4,4:1 di baki); di tema gelap
+      // garis tegas sudah cukup.
+      outline: terang ? PaletLab.garisTeksTerang : m.garisTegas,
       outlineVariant: m.garis,
       shadow: Colors.black,
       scrim: Colors.black,
-      inverseSurface: m.kaca,
-      onInverseSurface: m.lcdTeks,
-      inversePrimary: m.biruTinta,
+      inverseSurface: terang ? PaletLab.tintaTerang : PaletLab.terangkatGelap,
+      onInverseSurface: terang ? PaletLab.latarTerang : PaletLab.tintaGelap,
+      inversePrimary: PaletLab.kobalt300,
+      surfaceTint: Colors.transparent,
     );
 
     final teks = _teks(m).apply(fontFamily: keluarga);
-    final teksSkala = _meja ? teks.apply(fontSizeFactor: 0.9) : teks;
+    final teksSkala = _meja ? _skalaMeja(teks) : teks;
+
+    final tinggiUtama = _meja ? UkuranLab.aksiMeja : UkuranLab.aksiUtama;
+    final tinggiAksi = _meja ? UkuranLab.aksiMeja : UkuranLab.aksi;
+    final sudutUtama = _meja ? BentukLab.kontrol : BentukLab.utama;
+    final bentukUtama = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(sudutUtama),
+    );
+    final bentukKontrol = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(BentukLab.kontrol),
+    );
+    final garisHalus = BorderSide(color: m.kertasTepi);
+    final tengahTebal = teksSkala.labelLarge;
 
     return ThemeData(
       useMaterial3: true,
@@ -126,16 +138,16 @@ class SidikTheme {
       textTheme: teksSkala,
       visualDensity: VisualDensity.adaptivePlatformDensity,
 
-      // Latar layar = permukaan meja.
+      // Latar layar = permukaan latar.
       scaffoldBackgroundColor: m.meja,
       canvasColor: m.meja,
       dividerColor: m.garis,
 
       extensions: <ThemeExtension<dynamic>>[m],
 
-      // Dipertahankan dari AppTheme lama apa adanya: transisi halaman bukan
-      // bagian dari ganti tampilan, dan iOS/macOS sengaja tetap pakai bawaan
-      // platform (gestur geser-balik).
+      // Dipertahankan apa adanya: transisi halaman bukan bagian dari ganti
+      // tampilan, dan iOS/macOS sengaja tetap pakai bawaan platform (gestur
+      // geser-balik).
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
           TargetPlatform.android: TransisiHalus(),
@@ -145,99 +157,91 @@ class SidikTheme {
         },
       ),
 
-      // ── App bar: panel logam yang megang layar ──────────────────────
-      // Bedanya dari versi lama: app bar sekarang PUNYA permukaan sendiri
-      // (logam), bukan menyatu dengan ground. Itu yang bikin isi layar kebaca
-      // sebagai kertas yang diletakkan DI DALAM alat, bukan kotak melayang.
+      // ── App bar: permukaan putih, dipisah garis halus ────────────────
       appBarTheme: AppBarTheme(
         backgroundColor: m.logam,
         surfaceTintColor: Colors.transparent,
         foregroundColor: m.etsa,
         elevation: 0,
-        scrolledUnderElevation: 2,
-        shadowColor: Colors.black.withValues(alpha: 0.4),
+        scrolledUnderElevation: 0,
         centerTitle: false,
-        toolbarHeight: _meja ? 54 : 62,
-        titleTextStyle: teksSkala.titleLarge?.copyWith(
-          color: m.etsa,
-          fontWeight: FontWeight.w600,
-        ),
-        iconTheme: IconThemeData(color: m.etsa, size: 22),
-        shape: Border(bottom: BorderSide(color: m.logamTepi)),
+        toolbarHeight: _meja ? 54 : 56,
+        titleTextStyle: teksSkala.titleLarge?.copyWith(color: m.etsa),
+        iconTheme: IconThemeData(color: m.etsa, size: 24),
+        shape: Border(bottom: garisHalus),
       ),
 
-      // ── Kartu = lembar kertas ────────────────────────────────────────
+      // ── Kartu: permukaan putih + garis halus, tanpa bayangan ─────────
       cardTheme: CardThemeData(
         elevation: 0,
         color: m.kertas,
         surfaceTintColor: Colors.transparent,
-        shadowColor: Colors.black.withValues(alpha: terang ? 0.16 : 0.55),
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(SidikMaterial.sudutKertas),
-          side: BorderSide(color: m.kertasTepi),
+          side: garisHalus,
         ),
       ),
 
-      // ── Tombol utama: anodisasi biru ─────────────────────────────────
-      // `FilledButton` dipakai di banyak layar sebagai aksi utama. Di sini dia
-      // dapat warna & bentuknya; efek "tertekan"-nya ada di SidikTombol untuk
-      // layar yang sudah dimigrasi.
+      // ── Aksi utama: kobalt, 56 dp, radius 16 ─────────────────────────
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          minimumSize: Size.fromHeight(_meja ? 42 : 48),
-          backgroundColor: m.biru,
-          foregroundColor: Colors.white,
-          disabledBackgroundColor: m.kertas2,
-          disabledForegroundColor: m.tinta2.withValues(alpha: 0.55),
+          minimumSize: Size.fromHeight(tinggiUtama),
+          backgroundColor: skema.primary,
+          foregroundColor: skema.onPrimary,
+          disabledBackgroundColor: m.tungguTipis,
+          disabledForegroundColor: m.tinta2.withValues(alpha: 0.7),
           elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 18),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(SidikMaterial.sudutLogam),
-            side: BorderSide(
-              color: terang ? const Color(0xFF12275C) : m.logamTepi,
-            ),
-          ),
-          textStyle: teksSkala.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          shape: bentukUtama,
+          textStyle: tengahTebal,
         ),
       ),
 
-      // ── Tombol sekunder: logam polos ─────────────────────────────────
+      // ── Aksi sekunder: garis tegas, 48 dp, radius 10 ─────────────────
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          minimumSize: Size.fromHeight(_meja ? 42 : 48),
-          foregroundColor: m.etsa,
-          backgroundColor: m.logam,
+          minimumSize: Size.fromHeight(tinggiAksi),
+          foregroundColor: m.biruTinta,
+          backgroundColor: m.kertas,
           padding: const EdgeInsets.symmetric(horizontal: 18),
-          side: BorderSide(color: m.logamTepi),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(SidikMaterial.sudutLogam),
-          ),
-          textStyle: teksSkala.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          side: BorderSide(color: m.garisTegas),
+          shape: bentukKontrol,
+          textStyle: tengahTebal,
         ),
       ),
 
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
+          minimumSize: Size(48, tinggiAksi),
           foregroundColor: m.biruTinta,
-          textStyle: teksSkala.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          shape: bentukKontrol,
+          textStyle: tengahTebal,
         ),
       ),
 
       iconButtonTheme: IconButtonThemeData(
         style: IconButton.styleFrom(
           foregroundColor: m.etsa,
-          minimumSize: const Size(48, 48),
+          minimumSize: Size.square(tinggiAksi),
         ),
       ),
 
-      // ── Isian: kolom di formulir cetak ───────────────────────────────
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: m.biru,
+        foregroundColor: m.teksDiBiru,
+        elevation: 2,
+        focusElevation: 2,
+        hoverElevation: 3,
+        highlightElevation: 2,
+        shape: bentukUtama,
+      ),
+
+      // ── Isian: kolom dengan garis bawah tegas ────────────────────────
+      // Tetap garis bawah (bukan kotak): ~100 isian di layar dan `NeuTextField`
+      // (login) dibangun di atas bentuk ini, dan menggantinya jadi kotak
+      // menggandakan tepi. Gaya isian tunggal (kotak) = paket lembar kerja.
+      // Warna garisnya sekarang garis tegas 3:1, bukan `tinta2` yang pudar.
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: m.kertas2,
@@ -246,134 +250,136 @@ class SidikTheme {
           horizontal: 12,
           vertical: 14,
         ),
-        hintStyle: teksSkala.bodyMedium?.copyWith(
-          color: m.tinta2.withValues(alpha: 0.75),
-        ),
+        hintStyle: teksSkala.bodyMedium?.copyWith(color: skema.outline),
         labelStyle: teksSkala.bodySmall?.copyWith(
           color: m.tinta,
           fontWeight: FontWeight.w600,
         ),
         helperStyle: teksSkala.bodySmall?.copyWith(color: m.tinta2),
         errorStyle: teksSkala.bodySmall?.copyWith(color: m.gagal),
-        // Garis bawah tebal = tempat menulis. Sisi lain tipis.
-        // `UnderlineInputBorder` dipakai, bukan `OutlineInputBorder`: yang
-        // bikin isian kebaca sebagai kolom formulir itu garis bawahnya yang
-        // tebal, dan Flutter tidak bisa menebalkan satu sisi saja pada
-        // OutlineInputBorder.
-        border: _garisIsian(m.tinta2),
-        enabledBorder: _garisIsian(m.tinta2),
+        prefixIconColor: m.tinta2,
+        suffixIconColor: m.tinta2,
+        border: _garisIsian(m.garisTegas),
+        enabledBorder: _garisIsian(m.garisTegas),
         focusedBorder: _garisIsian(m.biru),
         errorBorder: _garisIsian(m.gagal),
         focusedErrorBorder: _garisIsian(m.gagal),
         disabledBorder: _garisIsian(m.kertasTepi),
       ),
 
-      // ── Navigasi bawah: panel logam ──────────────────────────────────
+      // ── Navigasi: putih, keadaan aktif = kapsul kobalt tipis ─────────
       navigationBarTheme: NavigationBarThemeData(
         height: 74,
         backgroundColor: m.logam,
         surfaceTintColor: Colors.transparent,
-        indicatorColor: m.logamBawah,
+        indicatorColor: m.biruTipis,
         elevation: 0,
-        shadowColor: Colors.black.withValues(alpha: 0.4),
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         iconTheme: WidgetStateProperty.resolveWith(
           (s) => IconThemeData(
-            size: 22,
-            color: s.contains(WidgetState.selected) ? m.biruTinta : m.etsa,
+            size: 24,
+            color: s.contains(WidgetState.selected) ? m.biruTinta : m.tinta2,
           ),
         ),
-        labelTextStyle: WidgetStatePropertyAll(
-          TextStyle(
-            fontFamily: keluarga,
-            fontSize: 10.5,
-            height: 1.24,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.6,
-            color: m.etsa,
+        labelTextStyle: WidgetStateProperty.resolveWith(
+          (s) => teksSkala.labelMedium?.copyWith(
+            color: s.contains(WidgetState.selected) ? m.tinta : m.tinta2,
           ),
         ),
       ),
 
       navigationRailTheme: NavigationRailThemeData(
         backgroundColor: m.logam,
-        selectedIconTheme: IconThemeData(color: m.biruTinta, size: 22),
-        unselectedIconTheme: IconThemeData(color: m.etsa, size: 22),
-        selectedLabelTextStyle: TextStyle(
-          fontFamily: keluarga,
-          color: m.etsa,
-          fontWeight: FontWeight.w700,
-          fontSize: 12,
-        ),
-        unselectedLabelTextStyle: TextStyle(
-          fontFamily: keluarga,
-          color: m.etsa,
-          fontSize: 12,
+        indicatorColor: m.biruTipis,
+        elevation: 0,
+        selectedIconTheme: IconThemeData(color: m.biruTinta, size: 24),
+        unselectedIconTheme: IconThemeData(color: m.tinta2, size: 24),
+        selectedLabelTextStyle: teksSkala.labelMedium?.copyWith(color: m.tinta),
+        unselectedLabelTextStyle: teksSkala.labelMedium?.copyWith(
+          color: m.tinta2,
         ),
       ),
 
-      // ── Lembar, dialog, snack ────────────────────────────────────────
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: ButtonStyle(
+          minimumSize: WidgetStatePropertyAll(Size(0, tinggiAksi)),
+          side: WidgetStatePropertyAll(BorderSide(color: m.garisTegas)),
+          textStyle: WidgetStatePropertyAll(tengahTebal),
+          backgroundColor: WidgetStateProperty.resolveWith(
+            (s) => s.contains(WidgetState.selected) ? m.biruTipis : m.kertas,
+          ),
+          foregroundColor: WidgetStateProperty.resolveWith(
+            (s) => s.contains(WidgetState.selected)
+                ? skema.onPrimaryContainer
+                : m.tinta,
+          ),
+        ),
+      ),
+
+      // ── Lembar, dialog, snack: satu-satunya yang punya bayangan ──────
       bottomSheetTheme: BottomSheetThemeData(
-        // Pegangan tetap ada seperti tema lama — beberapa sheet (lembar tolak)
-        // mengandalkannya sebagai satu-satunya tanda bisa ditarik.
+        // Pegangan tetap ada: beberapa sheet (lembar tolak) mengandalkannya
+        // sebagai satu-satunya tanda bisa ditarik.
         showDragHandle: true,
-        dragHandleColor: m.tinta2.withValues(alpha: 0.45),
+        dragHandleColor: m.garisTegas,
         backgroundColor: m.kertas,
         surfaceTintColor: Colors.transparent,
         modalBackgroundColor: m.kertas,
-        elevation: 0,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+        elevation: 3,
+        shadowColor: Colors.black.withValues(alpha: 0.25),
+        shape: RoundedRectangleBorder(
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(BentukLab.lembar),
+          ),
+          side: garisHalus,
         ),
       ),
 
       dialogTheme: DialogThemeData(
-        // Batas lebar dari tema lama: di desktop dialog 1.200 px itu garis baca
-        // yang tidak bisa diikuti mata.
+        // Batas lebar: di desktop dialog 1.200 px itu garis baca yang tidak
+        // bisa diikuti mata.
         constraints: const BoxConstraints(minWidth: 280, maxWidth: 560),
         backgroundColor: m.kertas,
         surfaceTintColor: Colors.transparent,
-        elevation: 0,
+        elevation: 3,
+        shadowColor: Colors.black.withValues(alpha: 0.25),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: BorderSide(color: m.kertasTepi),
+          borderRadius: BorderRadius.circular(BentukLab.lembar),
+          side: garisHalus,
         ),
         titleTextStyle: teksSkala.titleLarge,
         contentTextStyle: teksSkala.bodyMedium,
       ),
 
-      // Snack = pelat logam gelap yang muncul di atas meja.
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: const Color(0xFF1C2228),
-        contentTextStyle: TextStyle(
-          fontFamily: keluarga,
-          color: const Color(0xFFEAE6DC),
-          fontSize: 14,
-          height: 1.43,
+        backgroundColor: skema.inverseSurface,
+        contentTextStyle: teksSkala.bodyMedium?.copyWith(
+          color: skema.onInverseSurface,
         ),
-        actionTextColor: const Color(0xFF8FB0FF),
+        actionTextColor: skema.inversePrimary,
         behavior: SnackBarBehavior.floating,
-        elevation: 6,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(9),
-          side: const BorderSide(color: Color(0xFF05070A)),
-        ),
+        elevation: 2,
+        shape: bentukKontrol,
       ),
 
       // ── Sisanya ──────────────────────────────────────────────────────
       chipTheme: ChipThemeData(
-        backgroundColor: m.logam,
+        backgroundColor: m.kertas,
         selectedColor: m.biru,
-        side: BorderSide(color: m.logamTepi),
+        checkmarkColor: skema.onPrimary,
+        side: BorderSide(color: m.garisTegas),
+        // Warna label ikut keadaan: kobalt terpilih = label di atas kobalt.
         labelStyle: teksSkala.bodyMedium?.copyWith(
-          color: m.etsa,
+          color: WidgetStateColor.resolveWith(
+            (s) => s.contains(WidgetState.selected) ? skema.onPrimary : m.tinta,
+          ),
           fontWeight: FontWeight.w600,
         ),
         secondaryLabelStyle: teksSkala.bodyMedium?.copyWith(
-          color: Colors.white,
+          color: skema.onPrimary,
           fontWeight: FontWeight.w600,
         ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: bentukKontrol,
       ),
 
       listTileTheme: ListTileThemeData(
@@ -386,118 +392,136 @@ class SidikTheme {
 
       progressIndicatorTheme: ProgressIndicatorThemeData(
         color: m.biru,
-        linearTrackColor: m.kertas2,
-        circularTrackColor: m.kertas2,
+        linearTrackColor: m.meja2,
+        circularTrackColor: m.meja2,
       ),
 
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith(
-          (s) => s.contains(WidgetState.selected) ? Colors.white : m.logamAtas,
+          (s) =>
+              s.contains(WidgetState.selected) ? skema.onPrimary : m.garisTegas,
         ),
         trackColor: WidgetStateProperty.resolveWith(
           (s) => s.contains(WidgetState.selected) ? m.biru : m.kertas2,
         ),
-        trackOutlineColor: WidgetStatePropertyAll(m.logamTepi),
+        trackOutlineColor: WidgetStateProperty.resolveWith(
+          (s) => s.contains(WidgetState.selected) ? m.biru : m.garisTegas,
+        ),
       ),
 
       checkboxTheme: CheckboxThemeData(
         fillColor: WidgetStateProperty.resolveWith(
           (s) => s.contains(WidgetState.selected) ? m.biru : Colors.transparent,
         ),
-        checkColor: const WidgetStatePropertyAll(Colors.white),
-        side: BorderSide(color: m.tinta2, width: 1.5),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(3)),
+        checkColor: WidgetStatePropertyAll(m.teksDiBiru),
+        side: BorderSide(color: m.garisTegas, width: 1.5),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(BentukLab.sel),
+        ),
       ),
 
       radioTheme: RadioThemeData(
         fillColor: WidgetStateProperty.resolveWith(
-          (s) => s.contains(WidgetState.selected) ? m.biru : m.tinta2,
+          (s) => s.contains(WidgetState.selected) ? m.biru : m.garisTegas,
         ),
       ),
 
       tooltipTheme: TooltipThemeData(
         decoration: BoxDecoration(
-          color: const Color(0xFF1C2228),
-          borderRadius: BorderRadius.circular(6),
+          color: skema.inverseSurface,
+          borderRadius: BorderRadius.circular(BentukLab.sel),
         ),
-        textStyle: const TextStyle(color: Color(0xFFEAE6DC), fontSize: 12),
+        textStyle: teksSkala.bodySmall?.copyWith(color: skema.onInverseSurface),
       ),
     );
   }
 
   static InputBorder _garisIsian(Color bawah) => UnderlineInputBorder(
-    borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+    borderRadius: const BorderRadius.vertical(
+      top: Radius.circular(BentukLab.sel),
+    ),
     borderSide: BorderSide(color: bawah, width: 2),
   );
 
-  /// Skala tipografi. Prinsipnya sama dengan `AppTypography` lama — heading
-  /// rapat & berat, body longgar — dengan dua perubahan:
+  /// Skala huruf desktop: 0,9x, tetapi tidak pernah di bawah 12 sp.
+  static TextTheme _skalaMeja(TextTheme t) {
+    TextStyle? kecil(TextStyle? g) {
+      final u = g?.fontSize;
+      if (g == null || u == null) return g;
+      final skala = (u * 0.9).roundToDouble();
+      return g.copyWith(fontSize: skala < 12 ? 12 : skala);
+    }
+
+    return t.copyWith(
+      displayLarge: kecil(t.displayLarge),
+      displayMedium: kecil(t.displayMedium),
+      displaySmall: kecil(t.displaySmall),
+      headlineLarge: kecil(t.headlineLarge),
+      headlineMedium: kecil(t.headlineMedium),
+      headlineSmall: kecil(t.headlineSmall),
+      titleLarge: kecil(t.titleLarge),
+      titleMedium: kecil(t.titleMedium),
+      titleSmall: kecil(t.titleSmall),
+      bodyLarge: kecil(t.bodyLarge),
+      bodyMedium: kecil(t.bodyMedium),
+      bodySmall: kecil(t.bodySmall),
+      labelLarge: kecil(t.labelLarge),
+      labelMedium: kecil(t.labelMedium),
+      labelSmall: kecil(t.labelSmall),
+    );
+  }
+
+  /// Skala tipografi Lab (Inter; angka ukur memakai [gayaAngka]).
   ///
-  /// 1. Tidak ada lagi ukuran di bawah 12 (panel teknisi lama sampai 8,5).
-  /// 2. `labelLarge` TIDAK lagi huruf besar. Kapital cuma dipakai di logam,
-  ///    lewat `SidikMaterial.gayaEtsa`, karena di situ dia benar secara fisik.
+  /// | Tingkat    | Ukuran/baris | Berat | Slot `TextTheme`          |
+  /// |------------|--------------|-------|---------------------------|
+  /// | tampilan   | 28/34        | 700   | display*                  |
+  /// | judul      | 20/26        | 600   | headline*                 |
+  /// | app bar    | 18/24        | 600   | titleLarge                |
+  /// | subjudul   | 16/24        | 600   | titleMedium               |
+  /// | bagian     | 14/20        | 600   | titleSmall (tinta kedua)  |
+  /// | isi        | 15/22        | 400   | bodyMedium (bodyLarge 16) |
+  /// | keterangan | 13/18        | 400   | bodySmall (tinta kedua)   |
+  /// | tombol     | 15/20        | 600   | labelLarge                |
+  /// | label      | 12/16        | 600   | labelMedium, labelSmall   |
+  ///
+  /// Minimum 12 sp: tidak ada ukuran di bawahnya (panel lama sampai 8,5).
+  /// Kapital hanya untuk singkatan (PASS, FAIL, KAN), bukan gaya label.
   static TextTheme _teks(SidikMaterial m) {
+    TextStyle gaya(
+      double ukuran,
+      double baris,
+      FontWeight berat,
+      Color warna, [
+      double spasi = 0,
+    ]) => TextStyle(
+      fontSize: ukuran,
+      height: baris / ukuran,
+      fontWeight: berat,
+      letterSpacing: spasi,
+      color: warna,
+    );
+
+    final tampilan = gaya(28, 34, FontWeight.w700, m.tinta, -0.3);
+    final judul = gaya(20, 26, FontWeight.w600, m.tinta, -0.1);
+    final label = gaya(12, 16, FontWeight.w600, m.tinta2);
+
     return TextTheme(
-      displaySmall: TextStyle(
-        fontSize: 28,
-        height: 34 / 28,
-        fontWeight: FontWeight.w700,
-        letterSpacing: -0.56,
-        color: m.tinta,
-      ),
-      headlineMedium: TextStyle(
-        fontSize: 24,
-        height: 30 / 24,
-        fontWeight: FontWeight.w600,
-        letterSpacing: -0.24,
-        color: m.tinta,
-      ),
-      headlineSmall: TextStyle(
-        fontSize: 22,
-        height: 28 / 22,
-        fontWeight: FontWeight.w600,
-        letterSpacing: -0.22,
-        color: m.tinta,
-      ),
-      titleLarge: TextStyle(
-        fontSize: 19,
-        height: 25 / 19,
-        fontWeight: FontWeight.w600,
-        color: m.tinta,
-      ),
-      titleMedium: TextStyle(
-        fontSize: 15,
-        height: 22 / 15,
-        fontWeight: FontWeight.w600,
-        color: m.tinta,
-      ),
-      titleSmall: TextStyle(
-        fontSize: 13,
-        height: 18 / 13,
-        fontWeight: FontWeight.w600,
-        color: m.tinta2,
-      ),
-      bodyLarge: TextStyle(fontSize: 17, height: 26 / 17, color: m.tinta),
-      bodyMedium: TextStyle(fontSize: 15, height: 22 / 15, color: m.tinta),
-      bodySmall: TextStyle(fontSize: 13, height: 18 / 13, color: m.tinta2),
-      labelLarge: TextStyle(
-        fontSize: 14,
-        height: 20 / 14,
-        fontWeight: FontWeight.w600,
-        color: m.tinta,
-      ),
-      labelMedium: TextStyle(
-        fontSize: 12,
-        height: 16 / 12,
-        fontWeight: FontWeight.w600,
-        color: m.tinta2,
-      ),
-      labelSmall: TextStyle(
-        fontSize: 12,
-        height: 16 / 12,
-        fontWeight: FontWeight.w600,
-        color: m.tinta2,
-      ),
+      displayLarge: tampilan,
+      displayMedium: tampilan,
+      displaySmall: tampilan,
+      headlineLarge: judul,
+      headlineMedium: judul,
+      headlineSmall: judul,
+      titleLarge: gaya(18, 24, FontWeight.w600, m.tinta),
+      titleMedium: gaya(16, 24, FontWeight.w600, m.tinta),
+      titleSmall: gaya(14, 20, FontWeight.w600, m.tinta2),
+      bodyLarge: gaya(16, 24, FontWeight.w400, m.tinta),
+      bodyMedium: gaya(15, 22, FontWeight.w400, m.tinta),
+      bodySmall: gaya(13, 18, FontWeight.w400, m.tinta2),
+      labelLarge: gaya(15, 20, FontWeight.w600, m.tinta),
+      labelMedium: label,
+      labelSmall: label,
     );
   }
 }

@@ -94,7 +94,7 @@ class AppTypography {
       ),
       labelSmall: TextStyle(
         fontFamily: family,
-        fontSize: 11,
+        fontSize: 12,
         fontWeight: FontWeight.w600,
         letterSpacing: 0.5,
         color: muted,
