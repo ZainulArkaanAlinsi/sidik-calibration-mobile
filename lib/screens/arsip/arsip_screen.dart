@@ -21,6 +21,7 @@ import '../../widgets/glass_surface.dart';
 import '../../widgets/skeleton.dart';
 import '../history/calibration_detail_screen.dart';
 import '../history/kirim_email_screen.dart';
+import 'garis_waktu_arsip_screen.dart';
 
 /// Arsip — daftar folder perusahaan, pintu masuk ke file manager.
 ///
@@ -53,7 +54,22 @@ class _ArsipScreenState extends ConsumerState<ArsipScreen> {
       decoration: BoxDecoration(color: AppColors.warnaLatar(context)),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(title: Text(l10n.arsipTitle)),
+        appBar: AppBar(
+          title: Text(l10n.arsipTitle),
+          actions: [
+            // Cara lain melihat dokumen yang sama: menurut tanggal terbit,
+            // plus pencarian terpadu. Folder di bawah tidak berubah.
+            IconButton(
+              icon: const Icon(Icons.timeline_outlined),
+              tooltip: l10n.gwJudul,
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const GarisWaktuArsipScreen(),
+                ),
+              ),
+            ),
+          ],
+        ),
         body: Column(
           children: [
             Padding(

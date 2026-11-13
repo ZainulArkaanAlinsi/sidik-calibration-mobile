@@ -7935,4 +7935,156 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get jlDaftarManual => 'All sheet types';
+
+  @override
+  String get gwJudul => 'Archive timeline';
+
+  @override
+  String get gwCariHint => 'Search serial no., certificate no., or order no.';
+
+  @override
+  String get gwCariHapus => 'Clear search';
+
+  @override
+  String get gwCariMinHuruf => 'Type at least 2 characters to search.';
+
+  @override
+  String get gwSemuaPt => 'All customers';
+
+  @override
+  String get gwFilterTanggal => 'Calibration date';
+
+  @override
+  String get gwHapusFilter => 'Clear all filters';
+
+  @override
+  String get gwPilihPt => 'Choose a customer (PT)';
+
+  @override
+  String get gwCariPtHint => 'Search customer name';
+
+  @override
+  String get gwPtKosong => 'No customer found.';
+
+  @override
+  String get gwPtGagal => 'Could not load the customer list.';
+
+  @override
+  String get gwPilihRentang => 'Choose the calibration date range';
+
+  @override
+  String get gwAkar => 'All years';
+
+  @override
+  String gwJumlahDokumen(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: '$jumlah documents',
+      one: '1 document',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String gwTotalDokumen(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: '$jumlah documents in total',
+      one: '1 document in total',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get gwKosong => 'No documents here yet.';
+
+  @override
+  String gwHasilKosong(String kata) {
+    return 'No results for \"$kata\".';
+  }
+
+  @override
+  String get gwHasilKosongFilter => 'No sessions match these filters.';
+
+  @override
+  String get gwHasilKosongSaran =>
+      'Check the spelling, or try another serial, certificate, or order number.';
+
+  @override
+  String gwHasilTotal(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: '$jumlah sessions match',
+      one: '1 session matches',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get gwGabungSeri =>
+      'One row per instrument. Other sessions of the same instrument are folded away; the latest issued certificate is shown.';
+
+  @override
+  String gwSesiLain(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: '$jumlah other sessions of this instrument',
+      one: '1 other session of this instrument',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get gwTutupRiwayatLain => 'Hide other sessions';
+
+  @override
+  String get gwMuatLagi => 'Load more';
+
+  @override
+  String get gwMuatLagiGagal =>
+      'Could not load the next page. Tap to try again.';
+
+  @override
+  String get gwTanpaPt => 'No customer';
+
+  @override
+  String get gwGalat403 => 'This account is not allowed to view this archive.';
+
+  @override
+  String get gwGalat429 => 'Too many requests. Wait a moment, then try again.';
+
+  @override
+  String get gwServerLama =>
+      'The server does not support the unified archive search yet. Contact an admin.';
+
+  @override
+  String gwNoSeri(String nomor) {
+    return 'Serial no. $nomor';
+  }
+
+  @override
+  String gwOrder(String nomor) {
+    return 'Order $nomor';
+  }
+
+  @override
+  String gwTglKalibrasi(String tanggal) {
+    return 'Calibrated $tanggal';
+  }
+
+  @override
+  String gwTglTerbit(String tanggal) {
+    return 'Issued $tanggal';
+  }
+
+  @override
+  String get gwOffline =>
+      'No connection. The archive can only be opened online — check your network, then try again.';
+
+  @override
+  String get gwMemuat => 'Loading';
 }
