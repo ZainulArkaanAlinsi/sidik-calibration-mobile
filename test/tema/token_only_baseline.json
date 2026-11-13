@@ -1,7 +1,7 @@
 {
   "_catatan": "Baseline ratchet token-only (dua arah). Hanya boleh MENGECIL; hitungan turun wajib menurunkan baseline. Kenaikan harus disebut di PR. Lihat test/tema/token_only_test.dart dan docs/standar-kualitas-desain.md.",
   "_ringkasan": {
-    "berkas_dipindai": 415,
+    "berkas_dipindai": 422,
     "total": {
       "hex_mentah": 74,
       "color_0x": 73,
@@ -9,7 +9,7 @@
       "colors_mentah": 55,
       "fontsize_kecil": 37,
       "radius_literal": 58,
-      "radius_ekspresi": 10,
+      "radius_ekspresi": 9,
       "tinggi_tombol_kecil": 5
     }
   },
@@ -129,7 +129,6 @@
   },
   "radius_ekspresi": {
     "lib/screens/auth/widgets/neu.dart": 1,
-    "lib/screens/certificate/revisi_sertifikat_screen.dart": 1,
     "lib/widgets/folder_kertas.dart": 4,
     "lib/widgets/liquid_glass.dart": 1,
     "lib/widgets/sakelar_tema.dart": 1,

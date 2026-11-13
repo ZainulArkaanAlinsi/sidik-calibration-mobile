@@ -173,6 +173,37 @@ BorderRadius.circular(SidikMaterial.sudutKertas),
       expect(h['radius_literal'], 0);
     });
 
+    test(
+      'radius: panggilan yang dibungkus dart format dengan koma penutup',
+      () {
+        final h = hitung('''
+borderRadius: BorderRadius.circular(
+  AppSpacing.radiusMd,
+),
+const Radius.circular(
+  BentukLab.kontrol,
+),
+''');
+        expect(
+          h['radius_ekspresi'],
+          0,
+          reason: 'token bernama yang dibungkus formatter bukan ekspresi',
+        );
+        expect(h['radius_literal'], 0);
+
+        final campuran = hitung('''
+BorderRadius.circular(
+  AppSpacing.radiusMd + 2,
+),
+BorderRadius.circular(
+  6,
+),
+''');
+        expect(campuran['radius_ekspresi'], 1);
+        expect(campuran['radius_literal'], 1);
+      },
+    );
+
     test('tinggi tombol di bawah 48: minimumSize, fixedSize, SizedBox', () {
       final h = hitung('''
 a: FilledButton.styleFrom(minimumSize: const Size(0, 44)),

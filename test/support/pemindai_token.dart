@@ -118,7 +118,14 @@ class PemindaiToken {
     var radiusAngka = 0;
     var radiusEkspresi = 0;
     for (final m in _radius.allMatches(kode)) {
-      final arg = _isiKurung(kode, m.end - 1)?.trim();
+      // `dart format` membungkus panggilan panjang dan menaruh koma penutup:
+      // `BorderRadius.circular(\n  AppSpacing.radiusMd,\n)`. Koma itu bukan
+      // bagian ekspresi, jadi dibuang sebelum nama murni dikenali (tanpa ini
+      // token yang sah dihitung sebagai ekspresi campuran).
+      final arg = _isiKurung(
+        kode,
+        m.end - 1,
+      )?.trim().replaceFirst(RegExp(r',\s*$'), '').trim();
       if (arg == null || arg.isEmpty) continue;
       if (nilai(arg) != null) {
         radiusAngka++;
