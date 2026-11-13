@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/config/app_config.dart';
@@ -14,12 +15,36 @@ import 'auth_provider.dart';
 /// punya token push, dan di mode mock kita nggak mau nyentuh layanan Google
 /// sama sekali. Di situ kabarnya sudah lewat websocket Reverb.
 final sumberTokenPushProvider = Provider<SumberTokenPush>((ref) {
-  if (AppConfig.useMock || !FcmSumberTokenPush.didukung) {
+  return pilihSumberTokenPush(
+    useMock: AppConfig.useMock,
+    didukung: FcmSumberTokenPush.didukung,
+    firebaseSiap: Firebase.apps.isNotEmpty,
+    buatFcm: FcmSumberTokenPush.new,
+  );
+});
+
+/// Memilih sumber token push — dipisah dari provider supaya tiap cabangnya
+/// bisa diuji di host (di sana Firebase tidak ada).
+///
+/// Cabang `firebaseSiap`: build TANPA konfigurasi Firebase (APK uji, atau
+/// rilis yang secret `GOOGLE_SERVICES_JSON`-nya kosong) tidak punya app
+/// Firebase `[DEFAULT]`. Membentuk `FcmSumberTokenPush` di situ melempar
+/// `[core/no-app]` dari konstruktornya (`FirebaseMessaging.instance`), dan
+/// galat itu merambat ke provider pendaftaran lalu ke layar tepat setelah
+/// login — aplikasinya tidak bisa dipakai. Tanpa Firebase pendaftaran push
+/// cukup dilewati: kabar tetap masuk daftar & lonceng di dalam aplikasi.
+SumberTokenPush pilihSumberTokenPush({
+  required bool useMock,
+  required bool didukung,
+  required bool firebaseSiap,
+  required SumberTokenPush Function() buatFcm,
+}) {
+  if (useMock || !didukung || !firebaseSiap) {
     return const TanpaTokenPush();
   }
 
-  return FcmSumberTokenPush();
-});
+  return buatFcm();
+}
 
 final pendaftaranPushServiceProvider = Provider<PendaftaranPush>(
   (ref) => ApiPendaftaranPush(ref.watch(apiClientProvider)),
