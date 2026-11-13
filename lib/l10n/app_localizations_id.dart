@@ -7754,4 +7754,134 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get jlDaftarManual => 'Semua jenis lembar';
+
+  @override
+  String get gwJudul => 'Garis waktu arsip';
+
+  @override
+  String get gwCariHint => 'Cari no. seri, no. sertifikat, atau no. order';
+
+  @override
+  String get gwCariHapus => 'Hapus pencarian';
+
+  @override
+  String get gwCariMinHuruf => 'Ketik minimal 2 karakter untuk mencari.';
+
+  @override
+  String get gwSemuaPt => 'Semua PT';
+
+  @override
+  String get gwFilterTanggal => 'Tanggal kalibrasi';
+
+  @override
+  String get gwHapusFilter => 'Hapus semua saringan';
+
+  @override
+  String get gwPilihPt => 'Pilih pelanggan (PT)';
+
+  @override
+  String get gwCariPtHint => 'Cari nama PT';
+
+  @override
+  String get gwPtKosong => 'PT tidak ditemukan.';
+
+  @override
+  String get gwPtGagal => 'Gagal memuat daftar PT.';
+
+  @override
+  String get gwPilihRentang => 'Pilih rentang tanggal kalibrasi';
+
+  @override
+  String get gwAkar => 'Semua tahun';
+
+  @override
+  String gwJumlahDokumen(int jumlah) {
+    return '$jumlah dokumen';
+  }
+
+  @override
+  String gwTotalDokumen(int jumlah) {
+    return 'Total $jumlah dokumen';
+  }
+
+  @override
+  String get gwKosong => 'Belum ada dokumen di sini.';
+
+  @override
+  String gwHasilKosong(String kata) {
+    return 'Tidak ada hasil untuk \"$kata\".';
+  }
+
+  @override
+  String get gwHasilKosongFilter =>
+      'Tidak ada sesi yang cocok dengan saringan ini.';
+
+  @override
+  String get gwHasilKosongSaran =>
+      'Periksa ejaannya, atau coba nomor seri, nomor sertifikat, atau nomor order yang lain.';
+
+  @override
+  String gwHasilTotal(int jumlah) {
+    return '$jumlah sesi cocok';
+  }
+
+  @override
+  String get gwGabungSeri =>
+      'Satu baris per alat. Sesi lain dari alat yang sama dilipat; yang tampil sertifikat terbit terbaru.';
+
+  @override
+  String gwSesiLain(int jumlah) {
+    return '$jumlah sesi lain alat ini';
+  }
+
+  @override
+  String get gwTutupRiwayatLain => 'Tutup sesi lain';
+
+  @override
+  String get gwMuatLagi => 'Muat lebih banyak';
+
+  @override
+  String get gwMuatLagiGagal =>
+      'Gagal memuat halaman berikutnya. Ketuk untuk mencoba lagi.';
+
+  @override
+  String get gwTanpaPt => 'Tanpa pelanggan';
+
+  @override
+  String get gwGalat403 => 'Akun ini tidak diizinkan melihat arsip ini.';
+
+  @override
+  String get gwGalat429 =>
+      'Terlalu banyak permintaan. Tunggu sebentar, lalu coba lagi.';
+
+  @override
+  String get gwServerLama =>
+      'Server belum mendukung pencarian arsip terpadu. Hubungi admin.';
+
+  @override
+  String gwNoSeri(String nomor) {
+    return 'No. Seri $nomor';
+  }
+
+  @override
+  String gwOrder(String nomor) {
+    return 'Order $nomor';
+  }
+
+  @override
+  String gwTglKalibrasi(String tanggal) {
+    return 'Kalibrasi $tanggal';
+  }
+
+  @override
+  String gwTglTerbit(String tanggal) {
+    return 'Terbit $tanggal';
+  }
+
+  @override
+  String get gwOffline =>
+      'Tidak ada koneksi. Arsip hanya bisa dibuka saat online — periksa jaringan, lalu coba lagi.';
+
+  @override
+  String get gwMemuat => 'Memuat';
 }

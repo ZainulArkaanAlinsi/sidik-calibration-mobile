@@ -13555,6 +13555,216 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All sheet types'**
   String get jlDaftarManual;
+
+  /// No description provided for @gwJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive timeline'**
+  String get gwJudul;
+
+  /// No description provided for @gwCariHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search serial no., certificate no., or order no.'**
+  String get gwCariHint;
+
+  /// No description provided for @gwCariHapus.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get gwCariHapus;
+
+  /// No description provided for @gwCariMinHuruf.
+  ///
+  /// In en, this message translates to:
+  /// **'Type at least 2 characters to search.'**
+  String get gwCariMinHuruf;
+
+  /// No description provided for @gwSemuaPt.
+  ///
+  /// In en, this message translates to:
+  /// **'All customers'**
+  String get gwSemuaPt;
+
+  /// No description provided for @gwFilterTanggal.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration date'**
+  String get gwFilterTanggal;
+
+  /// No description provided for @gwHapusFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all filters'**
+  String get gwHapusFilter;
+
+  /// No description provided for @gwPilihPt.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a customer (PT)'**
+  String get gwPilihPt;
+
+  /// No description provided for @gwCariPtHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search customer name'**
+  String get gwCariPtHint;
+
+  /// No description provided for @gwPtKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No customer found.'**
+  String get gwPtKosong;
+
+  /// No description provided for @gwPtGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the customer list.'**
+  String get gwPtGagal;
+
+  /// No description provided for @gwPilihRentang.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the calibration date range'**
+  String get gwPilihRentang;
+
+  /// No description provided for @gwAkar.
+  ///
+  /// In en, this message translates to:
+  /// **'All years'**
+  String get gwAkar;
+
+  /// No description provided for @gwJumlahDokumen.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah, plural, =1{1 document} other{{jumlah} documents}}'**
+  String gwJumlahDokumen(int jumlah);
+
+  /// No description provided for @gwTotalDokumen.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah, plural, =1{1 document in total} other{{jumlah} documents in total}}'**
+  String gwTotalDokumen(int jumlah);
+
+  /// No description provided for @gwKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No documents here yet.'**
+  String get gwKosong;
+
+  /// No description provided for @gwHasilKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No results for \"{kata}\".'**
+  String gwHasilKosong(String kata);
+
+  /// No description provided for @gwHasilKosongFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'No sessions match these filters.'**
+  String get gwHasilKosongFilter;
+
+  /// No description provided for @gwHasilKosongSaran.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the spelling, or try another serial, certificate, or order number.'**
+  String get gwHasilKosongSaran;
+
+  /// No description provided for @gwHasilTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah, plural, =1{1 session matches} other{{jumlah} sessions match}}'**
+  String gwHasilTotal(int jumlah);
+
+  /// No description provided for @gwGabungSeri.
+  ///
+  /// In en, this message translates to:
+  /// **'One row per instrument. Other sessions of the same instrument are folded away; the latest issued certificate is shown.'**
+  String get gwGabungSeri;
+
+  /// No description provided for @gwSesiLain.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah, plural, =1{1 other session of this instrument} other{{jumlah} other sessions of this instrument}}'**
+  String gwSesiLain(int jumlah);
+
+  /// No description provided for @gwTutupRiwayatLain.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide other sessions'**
+  String get gwTutupRiwayatLain;
+
+  /// No description provided for @gwMuatLagi.
+  ///
+  /// In en, this message translates to:
+  /// **'Load more'**
+  String get gwMuatLagi;
+
+  /// No description provided for @gwMuatLagiGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the next page. Tap to try again.'**
+  String get gwMuatLagiGagal;
+
+  /// No description provided for @gwTanpaPt.
+  ///
+  /// In en, this message translates to:
+  /// **'No customer'**
+  String get gwTanpaPt;
+
+  /// No description provided for @gwGalat403.
+  ///
+  /// In en, this message translates to:
+  /// **'This account is not allowed to view this archive.'**
+  String get gwGalat403;
+
+  /// No description provided for @gwGalat429.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many requests. Wait a moment, then try again.'**
+  String get gwGalat429;
+
+  /// No description provided for @gwServerLama.
+  ///
+  /// In en, this message translates to:
+  /// **'The server does not support the unified archive search yet. Contact an admin.'**
+  String get gwServerLama;
+
+  /// No description provided for @gwNoSeri.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial no. {nomor}'**
+  String gwNoSeri(String nomor);
+
+  /// No description provided for @gwOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Order {nomor}'**
+  String gwOrder(String nomor);
+
+  /// No description provided for @gwTglKalibrasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibrated {tanggal}'**
+  String gwTglKalibrasi(String tanggal);
+
+  /// No description provided for @gwTglTerbit.
+  ///
+  /// In en, this message translates to:
+  /// **'Issued {tanggal}'**
+  String gwTglTerbit(String tanggal);
+
+  /// No description provided for @gwOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'No connection. The archive can only be opened online — check your network, then try again.'**
+  String get gwOffline;
+
+  /// No description provided for @gwMemuat.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading'**
+  String get gwMemuat;
 }
 
 class _AppLocalizationsDelegate

@@ -74,48 +74,43 @@ class StatusBadge extends StatelessWidget {
   /// Dipisah dari labelnya dengan sengaja: yang ini bagian yang dipertaruhkan
   /// buat teknisi yang buta warna, dan dia harus bisa dibuktikan test tanpa
   /// perlu membangun widget tree atau memilih locale.
-  static ({BadgeTone nada, IconData? ikon}) artiApi(String value) =>
-      switch (value) {
-        'PASS' => (nada: BadgeTone.success, ikon: Icons.check_circle_outline),
-        'FAIL' => (nada: BadgeTone.danger, ikon: Icons.cancel_outlined),
-        'aktif' => (nada: BadgeTone.success, ikon: Icons.check_circle_outline),
-        'overdue' => (nada: BadgeTone.warning, ikon: Icons.schedule),
-        'nonaktif' => (
-          nada: BadgeTone.neutral,
-          ikon: Icons.remove_circle_outline,
-        ),
-        'draft' => (nada: BadgeTone.neutral, ikon: Icons.edit_note),
-        'menunggu_approval' => (
-          nada: BadgeTone.info,
-          ikon: Icons.hourglass_empty,
-        ),
-        // Gerbang pengesahan (26 Sep): sudah diperiksa admin, belum sah.
-        // Nada `info` (abu), bukan `warning`: tidak ada yang salah dengan
-        // sesinya — dia cuma menunggu giliran di meja orang lain.
-        'menunggu_pengesahan' => (
-          nada: BadgeTone.info,
-          ikon: Icons.verified_user_outlined,
-        ),
-        'disetujui' => (nada: BadgeTone.success, ikon: Icons.verified_outlined),
-        // Sertifikat ditarik ke lembar kerja (K-50-03): bukan dibatalkan — sesinya
-        // dikoreksi lalu terbit ulang sebagai -R1.
-        'ditarik' => (nada: BadgeTone.warning, ikon: Icons.undo),
-        'perlu_revisi' => (nada: BadgeTone.warning, ikon: Icons.edit_outlined),
-        // Status Order (`Order::STATUS_*` di backend).
-        'baru' => (nada: BadgeTone.info, ikon: Icons.fiber_new_outlined),
-        'diproses' => (nada: BadgeTone.warning, ikon: Icons.autorenew),
-        'selesai' => (nada: BadgeTone.success, ikon: Icons.task_alt),
-        // Ikonnya sengaja BUKAN `cancel_outlined` yang dipakai FAIL. Order yang
-        // dibatalkan itu pekerjaan yang tidak jadi; FAIL itu alat yang tidak
-        // lolos. Dua hal yang tidak boleh terbaca sama sekilas.
-        'dibatalkan' => (
-          nada: BadgeTone.danger,
-          ikon: Icons.do_not_disturb_on_outlined,
-        ),
-        // Status yang belum dikenal tetap ditampilkan apa adanya, bukan bikin
-        // app crash — kalau backend nambah status baru, kelihatan di UI.
-        _ => (nada: BadgeTone.neutral, ikon: null),
-      };
+  static ({BadgeTone nada, IconData? ikon}) artiApi(
+    String value,
+  ) => switch (value) {
+    'PASS' => (nada: BadgeTone.success, ikon: Icons.check_circle_outline),
+    'FAIL' => (nada: BadgeTone.danger, ikon: Icons.cancel_outlined),
+    'aktif' => (nada: BadgeTone.success, ikon: Icons.check_circle_outline),
+    'overdue' => (nada: BadgeTone.warning, ikon: Icons.schedule),
+    'nonaktif' => (nada: BadgeTone.neutral, ikon: Icons.remove_circle_outline),
+    'draft' => (nada: BadgeTone.neutral, ikon: Icons.edit_note),
+    'menunggu_approval' => (nada: BadgeTone.info, ikon: Icons.hourglass_empty),
+    // Gerbang pengesahan (26 Sep): sudah diperiksa admin, belum sah.
+    // Nada `info` (abu), bukan `warning`: tidak ada yang salah dengan
+    // sesinya — dia cuma menunggu giliran di meja orang lain.
+    'menunggu_pengesahan' => (
+      nada: BadgeTone.info,
+      ikon: Icons.verified_user_outlined,
+    ),
+    'disetujui' => (nada: BadgeTone.success, ikon: Icons.verified_outlined),
+    // Sertifikat ditarik ke lembar kerja (K-50-03): bukan dibatalkan — sesinya
+    // dikoreksi lalu terbit ulang sebagai -R1.
+    'ditarik' => (nada: BadgeTone.warning, ikon: Icons.undo),
+    'perlu_revisi' => (nada: BadgeTone.warning, ikon: Icons.edit_outlined),
+    // Status Order (`Order::STATUS_*` di backend).
+    'baru' => (nada: BadgeTone.info, ikon: Icons.fiber_new_outlined),
+    'diproses' => (nada: BadgeTone.warning, ikon: Icons.autorenew),
+    'selesai' => (nada: BadgeTone.success, ikon: Icons.task_alt),
+    // Ikonnya sengaja BUKAN `cancel_outlined` yang dipakai FAIL. Order yang
+    // dibatalkan itu pekerjaan yang tidak jadi; FAIL itu alat yang tidak
+    // lolos. Dua hal yang tidak boleh terbaca sama sekilas.
+    'dibatalkan' => (
+      nada: BadgeTone.danger,
+      ikon: Icons.do_not_disturb_on_outlined,
+    ),
+    // Status yang belum dikenal tetap ditampilkan apa adanya, bukan bikin
+    // app crash — kalau backend nambah status baru, kelihatan di UI.
+    _ => (nada: BadgeTone.neutral, ikon: null),
+  };
 
   /// Kata-kata satu kode status, dalam bahasa yang sedang berlaku.
   ///
@@ -219,11 +214,18 @@ class StatusBadge extends StatelessWidget {
             Icon(icon, size: 14, color: color),
             const SizedBox(width: AppSpacing.xs),
           ],
-          Text(
-            labelUntuk(AppLocalizations.of(context)),
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: color,
-              letterSpacing: 0.65,
+          // Flexible + elipsis: lencana tidak boleh meluap di ruang sempit
+          // (HP 320 dp, huruf 1,3x). Selama labelnya muat, tampilannya sama
+          // persis dengan sebelumnya.
+          Flexible(
+            child: Text(
+              labelUntuk(AppLocalizations.of(context)),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: color,
+                letterSpacing: 0.65,
+              ),
             ),
           ),
         ],

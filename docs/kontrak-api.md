@@ -2453,6 +2453,43 @@ yang satu diunggahin gambar TTD.
 
 ---
 
+## 19. Arsip menurut waktu + pencarian terpadu (live 13 Nov 2026)
+
+Salinan ringkas dari `docs/perintah-frontend-arsip-cari.md` di repo API (nomor §19 mengikuti `docs/kontrak-api.md` API). **Aditif** — tidak ada rute, field, atau urutan lama yang berubah. Dipakai layar *Garis waktu arsip* (`lib/screens/arsip/garis_waktu_arsip_screen.dart`).
+
+**Aturan klien (wajib):** app tidak menghitung apa pun (pengelompokan, nomor pekan, label, jumlah, peringkat datang dari server); `q` dikirim apa adanya (hanya spasi ujung dipotong), HANYA bila >= 2 karakter, debounce >= 300 ms, kosong = jangan kirim parameternya; tanggal adalah tanggal kalender polos `YYYY-MM-DD` (jangan di-parse lewat UTC); teknisi hanya mendapat dokumen sesinya sendiri (server yang menegakkan).
+
+### `GET /api/calibrations` — parameter baru (semua opsional)
+| Parameter | Isi |
+|---|---|
+| `q` | 2–100 huruf: nomor seri (terdaftar dan yang diketik di lembar), nomor sertifikat (dinormalisasi: besar/kecil, `/`, `-`, spasi diabaikan; `-R<n>` ikut), nomor order, nomor sesi, nama alat/merek/PT. 1 huruf → `422`. Hasil berurut persis → awalan → mengandung, lalu `id` menurun |
+| `dari`, `sampai` | `YYYY-MM-DD`, **tanggal kalibrasi**, kedua ujung termasuk; `sampai` < `dari` → `422` |
+| `customer_id` | id PT (`customers.id`) |
+| `per_page` | 1–50 (bawaan 15); 51 → `422` |
+| `bentuk` | `ringan` — tanpa `titik`, `standar_acuan`, `metode_kalibrasi`, `reviewer`, `pembacaan_mentah`, `hasil_autoclave`, `spesifikasi_alat`; kunci lain sama dengan bentuk penuh. Ada kunci baru `keputusan` (sama dengan `hasil.keputusan`); `hasil` hanya `{keputusan}` |
+
+Memuat semua: ulangi `page` sampai `page >= meta.last_page`. Server lama mengabaikan parameter baru → **cek `meta.per_page`** (harus sama dengan yang diminta; kalau tidak, jangan tampilkan sebagai hasil tersaring). `equipment.id` tersedia di tiap baris (dipakai app sebagai identitas alat).
+
+### `GET /api/arsip/garis-waktu` — semua peran internal, throttle 60/menit/pengguna
+Hierarki TAHUN › BULAN › PEKAN (ISO, Senin–Minggu, **dipotong di batas bulan**) › HARI menurut `diterbitkan_pada`; dihitung sertifikat `terbit`, `dibatalkan`, `ditarik`.
+
+| Parameter | Isi |
+|---|---|
+| `tingkat` | `tahun` (bawaan) · `bulan` · `pekan` · `hari` |
+| `tahun` / `bulan` / `pekan` / `tanggal` | induk wajib per tingkat (`bulan` butuh `tahun`; `pekan` butuh `tahun`+`bulan`; `hari` butuh `tahun`+`bulan`+`pekan`, `tanggal` opsional). Induk kurang/berlebih/tak ada → `422`. **Jangan menyusun sendiri — pakai `telusuri` kelompok** |
+| `customer_id`, `q` | menyempitkan semua tingkat |
+| `per_page`, `page` | paginasi `item` (tingkat `hari` saja), 1–50, bawaan 20 |
+
+Jawaban: `data.tingkat`, `data.induk`, `data.total_dokumen`, `data.kelompok[]` (`kunci`, `label` berbahasa Indonesia, `jumlah`, `mulai`, `selesai`, `telusuri` = query string tingkat berikutnya), `data.item[]` (tingkat `hari`: `id`, `nomor`, `status`, `revisi_ke`, `tanggal`, `nama_alat`, `serial_number`, `perusahaan`, `customer_id`, `nomor_order`, `calibration_session_id`, `pdf_url`), `meta` = paginasi `item`. Kelompok terbaru dulu, yang berjumlah 0 tidak dikirim.
+
+### Kode galat
+`401` token · `403` token app lain · `422` parameter salah (tingkat/induk, tanggal, `per_page` > 50, `bentuk`, `q` larik/> 100/1 huruf di rute baru) · `429` throttle garis waktu. Rute `/arsip/garis-waktu` yang `404` = server belum memuat paket ini.
+
+### Biaya
+Pencarian `q` O(N) per laboratorium (±1–4 dtk pada 10.000 baris); filter tanggal memakai indeks. Karena itu debounce + minimal 2 karakter adalah kewajiban klien. Aplikasi pelanggan memakai rute terpisah (`/api/pelanggan/v1/sertifikat/garis-waktu`) — di luar dokumen ini.
+
+---
+
 ## Akun buat nyoba (seeder)
 
 | ID pegawai | Email | Role | Status |
