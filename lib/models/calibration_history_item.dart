@@ -68,6 +68,7 @@ class CalibrationHistoryItem {
     this.tersembunyi = false,
     this.nomorOrder,
     this.nomorOrderDiketahui = false,
+    this.equipmentId,
   });
 
   final int id;
@@ -200,6 +201,13 @@ class CalibrationHistoryItem {
   /// semua sesi padahal servernya tidak mensyaratkan apa-apa.
   final bool nomorOrderDiketahui;
 
+  /// Id alat di master (`equipment.id`) — identitas alat yang sebenarnya.
+  ///
+  /// Dipakai layar Arsip untuk menentukan "alat yang sama" (satu baris per
+  /// alat). Nomor seri TIDAK cukup: itu isian teks bebas teknisi, jadi "-" atau
+  /// "N/A" bisa sama untuk dua alat berbeda. Null buat respons lama.
+  final int? equipmentId;
+
   /// Order Number pasti kosong menurut server → Setujui minta diisi dulu.
   bool get perluNomorOrder =>
       nomorOrderDiketahui && (nomorOrder == null || nomorOrder!.trim().isEmpty);
@@ -266,6 +274,7 @@ class CalibrationHistoryItem {
     tersembunyi: tersembunyi ?? this.tersembunyi,
     nomorOrder: nomorOrder,
     nomorOrderDiketahui: nomorOrderDiketahui,
+    equipmentId: equipmentId,
   );
 
   factory CalibrationHistoryItem.fromJson(Map<String, dynamic> json) {
@@ -321,7 +330,8 @@ class CalibrationHistoryItem {
       // Tingkat atas tetap dipakai sebagai cadangan: kalau suatu hari backend
       // nambahin kuncinya, yang kebaca tetap nomor yang bener — bukan null.
       nomorSertifikat:
-          sertifikat?['nomor'] as String? ?? json['nomor_sertifikat'] as String?,
+          sertifikat?['nomor'] as String? ??
+          json['nomor_sertifikat'] as String?,
       catatanRevisi: json['catatan_revisi'] as String?,
       certificateId: (json['certificate_id'] as num?)?.toInt(),
       namaPelanggan:
@@ -342,6 +352,12 @@ class CalibrationHistoryItem {
       tersembunyi: json['tersembunyi'] == true,
       nomorOrder: isi(json['nomor_order']),
       nomorOrderDiketahui: json.containsKey('nomor_order'),
+      // `is num`, bukan cast: nilai aneh dibaca "tidak diketahui", bukan
+      // membuang barisnya lewat `parseListAman`.
+      equipmentId: switch (equipment?['id']) {
+        final num id => id.toInt(),
+        _ => null,
+      },
     );
   }
 }
