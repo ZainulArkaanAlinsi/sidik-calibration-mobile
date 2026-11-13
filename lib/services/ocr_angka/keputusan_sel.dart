@@ -10,6 +10,14 @@ enum StatusSelAngka {
   /// Ada bacaan, tapi DITAHAN: skor `jalur` di bawah ambang atau format tidak
   /// cocok dengan aturan sel. Kotak tetap kosong, teknisi mengetik sendiri;
   /// bacaan mentah hanya untuk pratinjau.
+  ///
+  /// Juga dipakai untuk sel yang BERTINTA (lolos pagar tinta) tetapi tidak
+  /// menghasilkan bacaan sama sekali: model tidak mengeluarkan karakter
+  /// ([AlasanSelAngka.tintaTebalTakTerbaca], mis. CORET/TIMPA/STRIP) atau
+  /// pemotong tidak yakin ([AlasanSelAngka.pemotongTakYakin]), atau tinta
+  /// terlalu pudar untuk pagar ([AlasanSelAngka.tintaPudar]). [HasilSelAngka.bacaanMentah]
+  /// kosong; sel ini TIDAK boleh dianggap kosong (lihat
+  /// [HasilSelAngka.perluCekTanpaBacaan]).
   perluCek,
 
   /// Bacaan lolos ambang dan gerbang format: dijadikan USULAN (kuning). Tetap
@@ -35,6 +43,24 @@ enum AlasanSelAngka {
   /// tinta, tidak boleh hilang diam-diam dari review); hanya layar diagnostik
   /// yang melihatnya sebagai `kosong`.
   ukuranTakWajar,
+
+  /// Sel lolos pagar tinta (ada tulisan) tetapi model tidak mengeluarkan satu
+  /// karakter pun. Dulu `kosong` + [teksKosong] sehingga tidak ikut review;
+  /// padahal CORET/TIMPA/STRIP bertinta tebal dibaca kosong. Sekarang
+  /// [StatusSelAngka.perluCek]: teknisi yang memutuskan.
+  tintaTebalTakTerbaca,
+
+  /// `PemotongSel` tidak yakin bagian mana yang milik baris ini (tulisan
+  /// menempel di tepi jendela, komponen terlalu tinggi, garis datar di tengah,
+  /// kotak terlalu kecil). Model tidak dijalankan; [StatusSelAngka.perluCek].
+  pemotongTakYakin,
+
+  /// `PemotongSel` menemukan tulisan (crop ada) tetapi pagar tinta menolaknya
+  /// (`gelap` di bawah ambang): tinta pudar, rasio tinta/kertas ±0,70–0,78.
+  /// Pemotong memakai ambang tinta 0,78, pagar `gelap` memakai 0,70; tanpa
+  /// alasan ini sel itu jadi `kosong` diam-diam. Model tidak dijalankan;
+  /// [StatusSelAngka.perluCek] tanpa bacaan, teknisi yang memutuskan.
+  tintaPudar,
 }
 
 /// Putusan satu sel + bahan pratinjau.
@@ -68,6 +94,15 @@ class HasilSelAngka {
   /// Teks yang boleh jadi USULAN di kotak isian, atau `null`.
   String? get usulan =>
       status == StatusSelAngka.usulanKeyakinanTinggi ? bacaanMentah : null;
+
+  /// Sel ini harus dicek teknisi walau TIDAK ada bacaan untuk ditampilkan
+  /// (tinta tebal tak terbaca, pemotong tak yakin). Pemanggil wajib meneruskan
+  /// ini ke review (merah, kotak kosong); sel TIDAK boleh diperlakukan kosong.
+  bool get perluCekTanpaBacaan =>
+      status == StatusSelAngka.perluCek &&
+      (alasan == AlasanSelAngka.tintaTebalTakTerbaca ||
+          alasan == AlasanSelAngka.pemotongTakYakin ||
+          alasan == AlasanSelAngka.tintaPudar);
 }
 
 /// Ambang awal skor `jalur` (B-en, gerbang format). Sintetis: lihat
@@ -78,10 +113,17 @@ const ambangJalurAwal = 0.990;
 ///
 /// Urutan pemeriksaan sama dengan `jawab` di rig (`sidik_ocr/ukur.py`): teks
 /// kosong → ambang → gerbang format. Semuanya harus lolos untuk jadi usulan.
+///
+/// [bertinta]: pemanggil sudah memastikan crop LOLOS pagar tinta (ada tulisan).
+/// Bila model lalu tidak mengeluarkan karakter, hasilnya BUKAN `kosong`
+/// melainkan [StatusSelAngka.perluCek] ([AlasanSelAngka.tintaTebalTakTerbaca]):
+/// ada tinta yang tidak terbaca, teknisi yang memutuskan. Bawaan `false` =
+/// perilaku lama (dipakai pemanggil yang belum menjalankan pagar tinta).
 HasilSelAngka putuskanSelAngka({
   required HasilDekodeCtc dekode,
   required AturanFormatSel aturan,
   double ambang = ambangJalurAwal,
+  bool bertinta = false,
 }) {
   if (!dekode.valid || !dekode.jalur.isFinite) {
     return const HasilSelAngka(
@@ -93,6 +135,15 @@ HasilSelAngka putuskanSelAngka({
   }
 
   if (dekode.teks.isEmpty) {
+    if (bertinta) {
+      return const HasilSelAngka(
+        status: StatusSelAngka.perluCek,
+        bacaanMentah: '',
+        jalur: 0,
+        alasan: AlasanSelAngka.tintaTebalTakTerbaca,
+      );
+    }
+
     return const HasilSelAngka.kosong(AlasanSelAngka.teksKosong);
   }
 

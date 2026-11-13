@@ -328,6 +328,7 @@ class AturanSelAsli {
     this.resolusi,
     this.desimal,
     this.izinkanMinus,
+    this.bolehBulat,
   });
 
   final double? min;
@@ -347,6 +348,14 @@ class AturanSelAsli {
   final double? resolusi;
   final int? desimal;
 
+  /// `boleh_bulat` dari server: sel ini boleh ditulis "0" polos (tanpa pemisah
+  /// dan tanpa desimal), mis. baris M0 timbangan Piston. FIELD USULAN: server
+  /// BELUM mengirimnya, jadi sekarang selalu `null`. Hanya bool sungguhan
+  /// yang dibaca; tanpa penanda ini gerbang format mesin angka menolak "0"
+  /// polos (`AturanFormatSel.nolBulat`). Dipakai gerbang format, tidak oleh
+  /// [lolos].
+  final bool? bolehBulat;
+
   static AturanSelAsli? dari(Object? json) {
     if (json is! Map<String, dynamic> || json['tipe'] != 'desimal') return null;
 
@@ -364,6 +373,9 @@ class AturanSelAsli {
       // diketahui, bukan galat yang menjatuhkan seluruh templat.
       izinkanMinus: json['izinkan_minus'] is bool
           ? json['izinkan_minus'] as bool
+          : null,
+      bolehBulat: json['boleh_bulat'] is bool
+          ? json['boleh_bulat'] as bool
           : null,
     );
   }

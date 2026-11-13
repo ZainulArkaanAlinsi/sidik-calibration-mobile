@@ -12,19 +12,32 @@ import '../../models/worksheet_template.dart' show AturanSelAsli;
 /// desimal, tepat [desimal] digit sesudahnya, tanda minus hanya bila
 /// [bolehNegatif], total paling banyak [maksKarakter] karakter.
 class AturanFormatSel {
-  AturanFormatSel({required this.desimal, required this.bolehNegatif})
-    : assert(desimal >= 0 && desimal <= desimalMaks),
-      _pola = RegExp(
-        desimal == 0
-            ? '^${bolehNegatif ? '-?' : ''}\\d{1,8}\$'
-            : '^${bolehNegatif ? '-?' : ''}\\d{1,8}[.,]\\d{$desimal}\$',
-      );
+  AturanFormatSel({
+    required this.desimal,
+    required this.bolehNegatif,
+    this.nolBulat = false,
+  }) : assert(desimal >= 0 && desimal <= desimalMaks),
+       _pola = RegExp(
+         desimal == 0
+             ? '^${bolehNegatif ? '-?' : ''}\\d{1,8}\$'
+             : '^${bolehNegatif ? '-?' : ''}\\d{1,8}[.,]\\d{$desimal}\$',
+       );
 
   /// Jumlah angka di belakang pemisah; 0 = bilangan bulat tanpa pemisah.
   final int desimal;
 
   /// Sel ini boleh bertanda minus.
   final bool bolehNegatif;
+
+  /// Tulisan "0" polos (tanpa pemisah dan tanpa desimal) juga lolos. Hanya bila
+  /// templat server MENYATAKANNYA per sel lewat `boleh_bulat` (kasus: baris M0
+  /// timbangan Piston, teknisi menulis "0", bukan "0.0000"). Field itu BELUM
+  /// ada di server (usulan), jadi sekarang selalu `false`. Dulu diturunkan dari
+  /// `nominal == 0`, dicabut: server mengirim `nominal = 0` untuk SEMUA baris
+  /// grid Enclosure/Autoklaf, sehingga "0" polos lolos di sel suhu. Tanpa
+  /// penanda, "0" di sel berdesimal ditahan (`perluCek`), arah yang aman. Hanya
+  /// string persis "0" yang diloloskan: nilainya sama dengan 0,0000.
+  final bool nolBulat;
 
   final RegExp _pola;
 
@@ -55,10 +68,12 @@ class AturanFormatSel {
     return AturanFormatSel(
       desimal: d,
       bolehNegatif: aturan.izinkanMinus == true || (aturan.min ?? 0) < 0,
+      nolBulat: aturan.bolehBulat == true,
     );
   }
 
   /// Teks hasil mesin cocok dengan aturan sel ini?
   bool lolos(String teks) =>
-      teks.length <= maksKarakter && _pola.hasMatch(teks);
+      teks.length <= maksKarakter &&
+      (_pola.hasMatch(teks) || (nolBulat && teks == '0'));
 }

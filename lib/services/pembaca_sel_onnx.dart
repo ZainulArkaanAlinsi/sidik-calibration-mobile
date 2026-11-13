@@ -3,6 +3,8 @@ import 'package:image/image.dart' as img;
 import 'ocr_angka/aturan_format_sel.dart';
 import 'ocr_angka/keputusan_sel.dart';
 import 'ocr_angka/mesin_angka.dart';
+import 'ocr_angka/pagar_tinta.dart';
+import 'ocr_angka/pemotong_sel.dart' show HasilPotongSel;
 import 'pembaca_sel.dart';
 
 /// Pembaca sel angka tulisan tangan di atas [MesinAngka], dengan ML Kit sebagai
@@ -37,10 +39,22 @@ import 'pembaca_sel.dart';
 ///  - kosong → `teks: null` (sel tetap kosong, tidak masuk review);
 ///  - ditahan ([StatusSelAngka.perluCek]) → `keyakinan: 0,0` → vonis MERAH,
 ///    kotak mulai kosong, teknisi mengetik sendiri;
+///  - ditahan TANPA bacaan (tinta tebal tak terbaca, pemotong tak yakin):
+///    `teks: null` tetapi [BacaanSelMesin.perluCekTanpaBacaan] `true`. Alur
+///    pindai menandainya lewat `HasilBacaAsli.gagalDibaca` (jalur MERAH kosong
+///    yang sudah ada). Sel ini BUKAN kosong; dulu ia hilang dari review;
 ///  - usulan → `keyakinan` = skor `jalur` (≥ ambang) → vonis KUNING (tulisan
 ///    tangan tidak pernah hijau). Skor ini BUKAN persen; layar review
 ///    menyembunyikan angka persen saat sakelar menyala.
-class PembacaSelOnnx implements PembacaSelBerformat {
+///
+/// ## Dua crop per sel (mesin angka v2)
+///
+/// [bacaMesin] menerima crop sel apa adanya DAN hasil `PemotongSel`. Mesin angka
+/// membaca hasil pemotong (garis tabel dihapus, hanya tulisan milik baris,
+/// dipangkas ke kotak tinta); ML Kit (cadangan) tetap membaca crop sel apa
+/// adanya, seperti sebelum mesin angka ada. [bacaBerformat] = tanpa pemotong:
+/// mesin membaca crop yang diberikan (jalur lama, layar diagnostik).
+class PembacaSelOnnx implements PembacaSelMesin {
   PembacaSelOnnx({
     required PembacaSel cadangan,
     required Future<MesinAngka?> Function() muatMesin,
@@ -73,39 +87,67 @@ class PembacaSelOnnx implements PembacaSelBerformat {
   Future<BacaanSel> bacaBerformat(
     img.Image potongan,
     AturanFormatSel? aturan,
+  ) async => (await bacaMesin(potongan, null, aturan)).bacaan;
+
+  @override
+  Future<BacaanSelMesin> bacaMesin(
+    img.Image potongan,
+    HasilPotongSel? potong,
+    AturanFormatSel? aturan,
   ) async {
-    if (aturan == null || _rusak) return _cadangan.baca(potongan);
+    Future<BacaanSelMesin> cadangan({required bool bertinta}) async {
+      final b = await _cadangan.baca(potongan);
+      // ML Kit tidak menemukan apa pun di sel yang BERTINTA (coretan, strip,
+      // timpaan): bukan sel kosong, teknisi yang memutuskan.
+      final tanpaTeks = (b.teks ?? '').trim().isEmpty;
+
+      return (bacaan: b, perluCekTanpaBacaan: tanpaTeks && bertinta);
+    }
+
+    if (aturan == null || _rusak) return cadangan(bertinta: false);
 
     final mesin = await _mesin();
     if (mesin == null) {
       _rusak = true;
-      return _cadangan.baca(potongan);
+      return cadangan(bertinta: false);
     }
 
     try {
-      final hasil = await mesin.baca(potongan, aturan);
+      final hasil = potong == null
+          ? await mesin.baca(potongan, aturan)
+          : await mesin.bacaPotongan(potong, aturan);
       if (hasil.alasan == AlasanSelAngka.ukuranTakWajar) {
         // Ada tinta tetapi model ini tak bisa membacanya (mis. lebar hasil
         // resize > 320 px pada TFLite). ML Kit membacanya, seperti sebelum
         // sakelar menyala; bukan teks dari model dan bukan sel kosong.
         catat?.call('sel terlalu lebar/besar untuk mesin angka, dibaca ML Kit');
-        return _cadangan.baca(potongan);
+        return cadangan(bertinta: _adaTinta(potong?.crop ?? potongan));
       }
       if (hasil.alasan == AlasanSelAngka.keluaranTakValid) {
         // Keluaran model NaN/tak hingga untuk sel ini: bukan usulan, dan sel
         // tidak boleh hilang diam-diam dari review. ML Kit membacanya; mesin
         // tetap aktif untuk sel lain (bisa jadi hanya crop ini yang bermasalah).
         catat?.call('keluaran model tak valid, sel ini dibaca ML Kit');
-        return _cadangan.baca(potongan);
+        return cadangan(bertinta: _adaTinta(potong?.crop ?? potongan));
       }
 
-      return keBacaanSel(hasil);
+      if (hasil.perluCekTanpaBacaan) {
+        return (
+          bacaan: (teks: null, keyakinan: null, didalamKotak: true),
+          perluCekTanpaBacaan: true,
+        );
+      }
+
+      return (bacaan: keBacaanSel(hasil), perluCekTanpaBacaan: false);
     } catch (e) {
       _rusak = true;
       catat?.call('mesin angka gagal membaca sel, pakai ML Kit: $e');
-      return _cadangan.baca(potongan);
+      return cadangan(bertinta: false);
     }
   }
+
+  /// Crop punya tinta menurut pagar tinta? Dipakai bila sel dialihkan ke ML Kit.
+  static bool _adaTinta(img.Image c) => PagarTinta.adaTinta(PagarTinta.ukur(c));
 
   /// Baca lengkap (status, bacaan mentah, skor) untuk layar diagnostik.
   /// `null` bila mesin tidak aktif.

@@ -12,7 +12,10 @@ import 'foto_untuk_ocr.dart';
 import 'modul_pembaca_teks.dart';
 import 'pembaca_halaman.dart';
 import 'ocr_angka/aturan_format_sel.dart' show AturanFormatSel;
-import 'pembaca_sel.dart' show BacaanSel, PembacaSel, PembacaSelBerformat;
+import 'ocr_angka/pemotong_sel.dart'
+    show HasilPotongSel, KotakPiksel, PemotongSel;
+import 'pembaca_sel.dart'
+    show BacaanSel, PembacaSel, PembacaSelBerformat, PembacaSelMesin;
 import 'pindai_lembar.dart';
 import 'registrasi_jangkar_teks.dart';
 
@@ -99,6 +102,7 @@ class HasilBacaAsli {
     this.isian = const [],
     this.potongan = const {},
     this.gagalDibaca = const {},
+    this.pemotongGagal = false,
   });
 
   final List<SelAsliTerbaca> sel;
@@ -119,7 +123,19 @@ class HasilBacaAsli {
   /// himpunan ini. Penampil review wajib menjadikannya MERAH dan kosong —
   /// kalau diperlakukan seperti sel kosong, sel yang tak terbaca hilang
   /// diam-diam dari review.
+  ///
+  /// Sejak mesin angka v2 himpunan ini juga memuat sel BERTINTA yang tidak
+  /// menghasilkan bacaan (`BacaanSelMesin.perluCekTanpaBacaan`: coretan,
+  /// timpaan, strip, pemotong tak yakin). Nasibnya di review sama: merah dan
+  /// kosong, teknisi yang memutuskan. Memakai himpunan yang sama karena alur
+  /// review (`pindai_formulir_asli_flow.dart`) hanya mengenal ini.
   final Set<String> gagalDibaca;
+
+  /// `PemotongSel` melempar galat pada foto ini (di isolate perataan). Pindai
+  /// TIDAK jatuh: semua sel dibaca dari crop apa adanya lewat jalur sebelum mesin
+  /// angka v2 (lebar > 320 px → ML Kit). Penanda ini supaya kegagalannya tidak
+  /// senyap: pemanggil/diagnostik boleh mencatatnya; tidak mengubah review.
+  final bool pemotongGagal;
 }
 
 /// Satu foto formulir SIDIK-FM-CAL ASLI → bacaan per sel, SELURUHNYA di HP
@@ -145,6 +161,7 @@ class JalankanPindaiAsli {
     this.mesin = const PindaiLembar(),
     this.registrasi = const RegistrasiJangkarTeks(),
     this.skalaPxPerPt = 3.0,
+    this.potongSemua = PemotongSel.potongSemua,
   });
 
   /// ML Kit SEHALAMAN — buat mengenali formulir & mencari jangkar.
@@ -161,6 +178,12 @@ class JalankanPindaiAsli {
   /// yang dibesarkan [PembacaSel] sebelum dibaca, dan kanvas Letter lanskap
   /// (2376×1836) masih jauh di bawah batas unggah server setelah JPEG.
   final double skalaPxPerPt;
+
+  /// Pemotong sel v2. Hanya untuk test: ditukar fungsi yang melempar untuk
+  /// membuktikan pindai tidak jatuh. HARUS fungsi puncak/statik (dikirim ke
+  /// isolate perataan).
+  @visibleForTesting
+  final List<HasilPotongSel> Function(img.Image, List<KotakPiksel>) potongSemua;
 
   /// Syarat jangkar — PANDUAN §3 ("≥8 jangkar, menyebar di 4 kuadran"),
   /// angka yang sama dengan `ocr.geometri.jangkar_teks.jumlah_min` server.
@@ -283,14 +306,47 @@ class JalankanPindaiAsli {
     // instans membawa `this` (dan pembaca ML Kit native) ke isolate lain.
     final skala = skalaPxPerPt;
     final mesinLokal = mesin;
+    final potongLokal = potongSemua;
     final templateKeFoto = reg.templateKeFoto;
-    final (:warp, :mutu) = await _ratakanDanUkurDiIsolate((
+
+    // Mesin angka v2: sel yang akan dibaca mesin (templat menyebut format-nya)
+    // dipotong oleh PemotongSel DI ISOLATE YANG SAMA dengan perataan, jadi
+    // halaman 4,4 MP tidak disalin ke isolate lain dan isolate UI tidak
+    // menanggung kerja per piksel. Pembaca biasa (ML Kit): tidak ada kerja
+    // tambahan sama sekali.
+    final indeksMesin = <int>[];
+    if (pembaca is PembacaSelMesin) {
+      for (var k = 0; k < template.selAsli.length; k++) {
+        if (AturanFormatSel.dari(template.selAsli[k].aturan) != null) {
+          indeksMesin.add(k);
+        }
+      }
+    }
+    final kotakMesin = <KotakSel>[
+      for (final k in indeksMesin) template.selAsli[k].kotak!,
+    ];
+
+    final (
+      :warp,
+      :mutu,
+      potong: potongMesin,
+      :potongGagal,
+    ) = await _ratakanDanUkurDiIsolate((
       foto: citra,
       templateKeFoto: templateKeFoto,
       halamanPt: halamanPt,
       skala: skala,
       mesin: mesinLokal,
+      kotakPotong: kotakMesin,
+      potongSemua: potongLokal,
     ));
+    // Pemotong gagal (daftar kosong, [potongGagal]) = sel dibaca dari crop apa
+    // adanya oleh jalur lama pembaca; bukan alasan menggugurkan pindai.
+    final potongPerSel = <int, HasilPotongSel>{
+      if (potongMesin.length == indeksMesin.length)
+        for (var j = 0; j < indeksMesin.length; j++)
+          indeksMesin[j]: potongMesin[j],
+    };
 
     // ---- Mutu: dihitung di HP, diputuskan server ---------------------------
     final sudut = _sudutSisaDeg(reg.templateKeFoto, halamanPt);
@@ -323,9 +379,17 @@ class JalankanPindaiAsli {
     // [bacaSelSerentak] sekaligus. Hasil dipasangkan menurut INDEKS — urutan
     // selesai ML Kit tidak pernah menentukan sel mana mendapat bacaan mana.
     final antrean =
-        <({String kunci, img.Image potong, AturanFormatSel? format})>[];
+        <
+          ({
+            String kunci,
+            img.Image potong,
+            AturanFormatSel? format,
+            HasilPotongSel? potongMesin,
+          })
+        >[];
 
-    for (final s in template.selAsli) {
+    for (var k = 0; k < template.selAsli.length; k++) {
+      final s = template.selAsli[k];
       final p = piksel(s.kotak!);
       final potong = mesin.potongSel(warp, x: p.x, y: p.y, w: p.w, h: p.h);
 
@@ -336,6 +400,7 @@ class JalankanPindaiAsli {
         kunci: s.kunci,
         potong: potong,
         format: AturanFormatSel.dari(s.aturan),
+        potongMesin: potongPerSel[k],
       ));
     }
 
@@ -345,16 +410,41 @@ class JalankanPindaiAsli {
       final kunci = kunciPotonganIsian(i.kode);
 
       gambar[kunci] = potong;
-      antrean.add((kunci: kunci, potong: potong, format: null));
+      antrean.add((
+        kunci: kunci,
+        potong: potong,
+        format: null,
+        potongMesin: null,
+      ));
     }
 
     final pembacaLokal = pembaca;
+    // Sel bertinta yang tidak punya bacaan (bukan galat baca): lihat
+    // [HasilBacaAsli.gagalDibaca]. Dipisah dari [gagalDibaca] supaya TIDAK ikut
+    // hitungan "semua sel gagal = pengenal mati" di bawah.
+    final perluCek = <String>{};
     final bacaan =
         await petaTerbatas<
-          ({String kunci, img.Image potong, AturanFormatSel? format}),
+          ({
+            String kunci,
+            img.Image potong,
+            AturanFormatSel? format,
+            HasilPotongSel? potongMesin,
+          }),
           BacaanSel
         >(antrean, (a) async {
           try {
+            if (pembacaLokal is PembacaSelMesin) {
+              final r = await pembacaLokal.bacaMesin(
+                a.potong,
+                a.potongMesin,
+                a.format,
+              );
+              if (r.perluCekTanpaBacaan) perluCek.add(a.kunci);
+
+              return r.bacaan;
+            }
+
             return pembacaLokal is PembacaSelBerformat
                 ? await pembacaLokal.bacaBerformat(a.potong, a.format)
                 : await pembacaLokal.baca(a.potong);
@@ -400,7 +490,8 @@ class JalankanPindaiAsli {
       revisiTerbaca: revisiTerbaca,
       isian: hasilIsian,
       potongan: potongan,
-      gagalDibaca: gagalDibaca,
+      gagalDibaca: {...gagalDibaca, ...perluCek},
+      pemotongGagal: potongGagal,
     );
   }
 
@@ -707,7 +798,14 @@ img.Image tegakkanDanPutar(img.Image foto, int sudut) {
   return hasil;
 }
 
-Future<({img.Image warp, ({double blur, double kecerahan, double glare}) mutu})>
+Future<
+  ({
+    img.Image warp,
+    ({double blur, double kecerahan, double glare}) mutu,
+    List<HasilPotongSel> potong,
+    bool potongGagal,
+  })
+>
 _ratakanDanUkurDiIsolate(
   ({
     img.Image foto,
@@ -715,6 +813,8 @@ _ratakanDanUkurDiIsolate(
     ({double w, double h}) halamanPt,
     double skala,
     PindaiLembar mesin,
+    List<KotakSel> kotakPotong,
+    List<HasilPotongSel> Function(img.Image, List<KotakPiksel>) potongSemua,
   })
   a,
 ) => Isolate.run(() => _ratakanDanUkur(a));
@@ -729,7 +829,12 @@ Map<String, Uint8List> _encodePotongan(Map<String, img.Image> gambar) => {
     e.key: Uint8List.fromList(img.encodePng(e.value)),
 };
 
-({img.Image warp, ({double blur, double kecerahan, double glare}) mutu})
+({
+  img.Image warp,
+  ({double blur, double kecerahan, double glare}) mutu,
+  List<HasilPotongSel> potong,
+  bool potongGagal,
+})
 _ratakanDanUkur(
   ({
     img.Image foto,
@@ -737,6 +842,8 @@ _ratakanDanUkur(
     ({double w, double h}) halamanPt,
     double skala,
     PindaiLembar mesin,
+    List<KotakSel> kotakPotong,
+    List<HasilPotongSel> Function(img.Image, List<KotakPiksel>) potongSemua,
   })
   a,
 ) {
@@ -747,5 +854,33 @@ _ratakanDanUkur(
     skala: a.skala,
   );
 
-  return (warp: warp, mutu: a.mesin.mutu(warp));
+  // Kotak templat (ternormal 0..1) → piksel kanvas. Kosong = tidak ada kerja.
+  final kotak = <KotakPiksel>[
+    for (final k in a.kotakPotong)
+      (
+        x: k.x * warp.width,
+        y: k.y * warp.height,
+        w: k.w * warp.width,
+        h: k.h * warp.height,
+      ),
+  ];
+
+  // Galat tak terduga di pemotong tidak boleh menjatuhkan seluruh pindai:
+  // daftar kosong → pembaca memakai crop sel apa adanya (jalur sebelum v2).
+  // Tidak senyap: [potongGagal] sampai ke `HasilBacaAsli.pemotongGagal`.
+  List<HasilPotongSel> potong;
+  var potongGagal = false;
+  try {
+    potong = kotak.isEmpty ? const [] : a.potongSemua(warp, kotak);
+  } catch (_) {
+    potong = const [];
+    potongGagal = true;
+  }
+
+  return (
+    warp: warp,
+    mutu: a.mesin.mutu(warp),
+    potong: potong,
+    potongGagal: potongGagal,
+  );
 }

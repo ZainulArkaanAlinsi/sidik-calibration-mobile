@@ -77,12 +77,16 @@ void main() {
   )!;
 
   /// Crop [w]×[h] kertas abu-abu; [tinta] menaruh batang gelap di tengah.
+  /// Batang melebar pada crop lebar supaya porsi gelapnya tetap di atas
+  /// `PagarTinta.gelapMin` (sejak 13 Nov 2026 hanya `gelap` yang menentukan;
+  /// batang 6 px di sel 900 px hanya ±0,7% dan dianggap kosong).
   img.Image crop(int w, int h, {bool tinta = true}) {
     final i = img.Image(width: w, height: h, numChannels: 3);
     img.fill(i, color: img.ColorRgb8(235, 235, 235));
     if (tinta) {
+      final setengah = w > 200 ? (w * 0.03).round() : 3;
       for (var y = h ~/ 4; y < h - h ~/ 4; y++) {
-        for (var x = w ~/ 2 - 3; x < w ~/ 2 + 3; x++) {
+        for (var x = w ~/ 2 - setengah; x < w ~/ 2 + setengah; x++) {
           i.setPixelRgb(x, y, 30, 30, 30);
         }
       }

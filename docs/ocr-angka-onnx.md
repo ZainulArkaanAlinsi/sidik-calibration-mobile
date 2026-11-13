@@ -18,6 +18,7 @@ pada seluruh 5.900 sel uji (teks, skor, keputusan; bagian 3.4). INT8 dan float16
 | bagian | status |
 |---|---|
 | Lapisan Dart murni `lib/services/ocr_angka/` (praproses, dekoder CTC, gerbang format, pagar tinta, status sel) | ADA, diuji di CI |
+| Pemotong sel v2 `pemotong_sel.dart` (varian "luas" rig) + keadaan baru "bertinta tapi tak terbaca = `perluCek`" + pagar tinta `gelap` saja (bagian 12) | ADA, diuji di host (citra sintetis, uji mutasi, paritas Dart-vs-rig); **kecepatan dan akurasi di HP TIDAK TERBUKTI** |
 | `PembacaSelOnnx` di balik sakelar `PAKAI_MESIN_ANGKA` (bawaan MATI; nama lama `PAKAI_MESIN_ANGKA_ONNX` tetap diterima), ML Kit sebagai cadangan | ADA, diuji dengan sesi tiruan |
 | Layar diagnostik `Ukur OCR` (debug / `TAMPILKAN_UKUR_OCR`) | ADA, diuji (logika + layar); ML Kit bisa diukur SEKARANG, mesin angka bila dibangun dengan sakelar |
 | UX isi cepat di layar review (urutan kertas, keypad di layar lega / papan ketik sistem di layar sempit, konfirmasi dan lanjut) | ADA, aktif untuk semua pembaca |
@@ -71,7 +72,8 @@ foto → (registrasi halaman, kode formulir)        ← tidak berubah
 | skor sel | `jalur` = rata-rata geometrik peluang maks SEMUA frame; 0 bila teks kosong | `dekode.py` rig |
 | ambang awal | **0,990** pada `jalur` | rig, B-en |
 | gerbang format | tepat `desimal` digit di belakang pemisah, `-` hanya bila boleh negatif, 1–8 digit bulat, ≤ 8 karakter | `lolos_format` rig |
-| pagar tinta | tolak bila `gelap < 0,002` DAN `kontras < 0,02` (margin 15%, tinta > 0,30) | diukur di sini, bagian 3.3 |
+| pagar tinta | tolak bila `gelap < 0,02` (margin 15%, tinta > 0,30). Cabang `kontras` DICABUT 13 Nov 2026 (kena tekstur kertas di foto nyata). Ambang SEMENTARA, dari 2 foto | bagian 12 (dulu: `gelap < 0,002` DAN `kontras < 0,02`, sintetis, bagian 3.3) |
+| pemotong sel | `PemotongSel`: jendela meluber ±0,6 tinggi baris, garis tabel mendatar dihapus di tepi atas/bawah kotak, goresan yang melintas garis dijembatani, komponen milik baris, pangkas ke kotak tinta; ukuran relatif terhadap tinggi baris | rig `potong_luas` (varian D), bagian 12 |
 
 Skor `jalur` **bukan persen** (ECE 0,44–0,57): layar review tidak menampilkannya sebagai persen saat
 sakelar menyala (`FotoReviewScreen.tampilkanPersen: false` → "Usulan mesin: skor mentah, bukan persen").
@@ -121,6 +123,9 @@ Penahan sisa tetangga tetap teknisi yang memeriksa tiap usulan.
 
 Tanpa jumlah desimal (gerbang umum), tetangga terisi 56/300 (19%) lawan 3,3% dengan desimal diketahui.
 Karena itu mesin tidak dipakai untuk sel tanpa `desimal` (bagian 5).
+
+> **Diganti 13 Nov 2026 (foto nyata):** angka pagar di atas (`gelap < 0,002` DAN `kontras < 0,02`) tidak
+> berlaku lagi; sekarang hanya `gelap < 0,02` (bagian 12).
 
 ### 3.4 Paritas TFLite (SINTETIS)
 
@@ -205,6 +210,16 @@ Sumber: `app/Services/Ocr/TemplateLembarKerja.php` (`aturan()`, `aturanPembacaan
 - Sel `tipe: jam`/`suhu` dan isian lingkungan: tanpa `desimal` di sisi app → tetap ML Kit.
 - `desimal > 4`: di luar yang diukur rig (format `d4`) → tetap ML Kit.
 - Panjang: rig memakai ≤ 8 karakter; server mengizinkan `maks_digit` 9. Yang lebih dari 8 ditahan.
+- **Sel bulat tanpa desimal di kolom berdesimal** (baris M0 timbangan Piston: teknisi menulis "0", bukan
+  "0.0000"): templat TIDAK punya penanda per sel untuk itu (tidak ada `desimal` per baris, `bulat`, atau
+  daftar bentuk tulisan yang sah). **PERMINTAAN FIELD SERVER: `aturan.boleh_bulat` (bool, per sel).**
+  HP sudah membacanya (`AturanSelAsli.bolehBulat`, hanya bool sungguhan) dan, hanya bila `true`, gerbang
+  format meloloskan string persis "0" (`AturanFormatSel.nolBulat`; nilainya sama dengan 0,0000). Selama
+  server belum mengirimnya hasilnya `false`: "0" di sel berdesimal ditahan (`perluCek`), arah yang aman.
+  Turunan lama `nominal == 0` DICABUT (review 13 Nov): server mengirim `nominal = 0` (`titik_ukur 0,0`)
+  untuk SEMUA baris grid Enclosure/Autoklaf (`TemplateLembarKerja.php` ±396-442 dan `aturanPembacaan`
+  ±586, repo API), sehingga "0" polos lolos di sel suhu. Server juga perlu menetapkan baris mana yang
+  boleh bulat (M0 Piston) dan mematuhi `maks_digit` di HP (kini HP membatasi 8).
 
 Gerbang bertahap yang dipakai: ada `desimal` → gerbang penuh; tidak ada → mesin tidak dipakai (bukan
 gerbang umum yang lebih longgar). Tidak ada nilai yang dikarang.
@@ -403,12 +418,102 @@ Sakelar `PAKAI_MESIN_ANGKA` (dulu `PAKAI_MESIN_ANGKA_ONNX`) tetap mati sampai se
 4. Runtime inferensi: TFLite terpilih dan terpasang (bagian 4). BELUM: inferensi nyata di tablet dan paritas
    Android (`integration_test/ocr_tflite_hp_test.dart`, lalu set besar `ocr_onnx_hp_test.dart`), termasuk
    latensi, XNNPACK, dan memori (bagian 7).
-5. Ambang dihitung ulang di runtime final dan di crop SEBENARNYA dari app: `PindaiLembar.potongSel` memangkas
-   6% ke dalam, sedangkan crop rig memakai padding keluar 2–12 px dengan garis tabel di tepi.
+5. Ambang dihitung ulang di runtime final dan di crop SEBENARNYA dari app. Sejak 13 Nov mesin angka membaca
+   hasil `PemotongSel` (bagian 12), bukan `PindaiLembar.potongSel` (yang tetap dipakai untuk ML Kit dan
+   tampilan review). Ukur ulang di kanvas pindai HP (3 px/pt), bukan hanya di foto rig (±5 px/pt).
 6. Respons produksi per formulir diperiksa: `aturan.desimal` terisi (bagian 5).
 7. Ukur ML Kit pada crop yang sama sebagai pembanding, dan set foto nyata berlabel (bagian 8).
 8. Pagar rilis: sha256 model dipatok di app (sudah); model dibundel di APK (sudah, +7,83 MB walau sakelar
    mati; keputusan bundel lawan unduh bisa ditinjau bila ukuran dipersoalkan); `izinkanSintetis` tetap
    hanya lewat sakelar developer.
 9. Pagar lebar 320 (bagian 7): ukur berapa sel nyata yang beralih ke ML Kit karena `ukuranTakWajar`, dan
-   putuskan jalurnya.
+   putuskan jalurnya. Sesudah `PemotongSel`: 0 dari 103 crop Dart di dua foto rig melewati 320 px (pagar
+   tetap ada sebagai jaring terakhir); di HP belum diukur.
+
+## 12. Pemotong sel v2 dan keadaan "bertinta tapi tak terbaca" (13 Nov 2026, foto nyata)
+
+> **SEMUA ANGKA DI BAGIAN INI IN-SAMPLE:** dua foto nyata (Sieve 114 sel, Piston 42 sel; 95 sel berisi
+> berlabel buatan model, BELUM diverifikasi manusia), parameter disetel sambil melihat dua foto itu. BUKAN
+> akurasi lapangan. Foto dan potongan sel nyata tidak ada di repo.
+
+**Masalah (rig `sidik-ocr-eval\foto-nyata`, `hasil\analisis.md`):** sel utuh Sieve/Piston berbentuk 5–8:1,
+kanvas model 320 px, sehingga 60% sel tak pernah sampai ke model; crop dipangkas ke kotak tinta menaikkan
+cakupan 20% → 41% tetapi memunculkan 4 salah-yakin (1/7, 9→1) karena tinta menempel/terpotong di tepi
+atas-bawah. Varian D rig ("luas") memberi cakupan 44,2% dengan 42/42 benar dan 0 salah-yakin.
+
+**Yang dikerjakan:**
+
+| bagian | perubahan |
+|---|---|
+| `PemotongSel` (`ocr_angka/pemotong_sel.dart`) | port Dart murni varian D. Dijalankan di isolate perataan `JalankanPindaiAsli` (halaman tidak disalin ke isolate lain). Hanya untuk sel yang templatnya punya format (yang dibaca mesin) dan hanya bila pembacanya `PembacaSelMesin`; ML Kit murni = nol kerja tambahan |
+| Garis tabel | yang dihapus hanya garis mendatar di tepi atas/bawah kotak (garis terluar tiap sisi); garis datar di TENGAH sel adalah tulisan (STRIP "—"). Garis tegak yang masuk jendela dibuang (tipis, tinggi, dekat tepi; serpihan di tepi) |
+| Pagar tinta | hanya `gelap >= 0,02` (konstanta `PagarTinta.gelapMin`, SEMENTARA, in-sample dari 2 foto). Angka `gelap` per sumber crop: **rig, sel utuh ternormalisasi** kosong maks 0,0000 / berisi min 0,063; **rig, varian D Python** kosong maks 0,013 / berisi min 0,033; **Dart `PemotongSel`** (setelan rig mutlak) kosong maks 0,0000 (50 + 3 sel) / berisi min 0,14 (Sieve), 0,08 (Piston), setelan produksi 0,21 / 0,08. Batas dikunci dari dua sisi oleh tes (0,014 ditolak, 0,026 lolos) |
+| Tinta pudar | pemotong menganggap tinta bila abu ternormalisasi ≤ 0,78 × kertas, pagar menghitung `gelap` hanya di bawah 0,70 × kertas. Crop yang ADA (pemotong melihat tulisan) tetapi ditolak pagar = `perluCek`/`tintaPudar`, BUKAN `kosong` (dulu hilang diam-diam; sebelum perubahan 13 Nov cabang kontras meloloskannya). Hanya sel yang pemotongnya tidak menemukan apa pun yang tetap kosong. Batas diketahui: tinta lebih pudar dari 0,78 × kertas dianggap kertas oleh pemotong (sama dengan rig) |
+| Keadaan baru | sel BERTINTA (lolos pagar) tetapi model diam, pemotong tak yakin, atau ML Kit juga diam setelah dialihkan = `perluCek` TANPA bacaan, bukan `kosong`. Diteruskan lewat `BacaanSelMesin.perluCekTanpaBacaan` → `HasilBacaAsli.gagalDibaca` → review MERAH kosong yang sudah ada (tidak ada teks/UI baru; aturan tinjauan tidak diubah) |
+| Pemotong tak yakin | tinta menempel jendela atas/bawah, menempel tepi samping, komponen > 1,35 tinggi baris, garis datar panjang di tengah, kotak < 12 px. Model tidak dijalankan |
+| `AturanFormatSel` | `nolBulat` hanya dari penanda eksplisit `boleh_bulat` (belum ada di server; bagian 5). Tanpa penanda "0" ditolak |
+| Kegagalan pemotong | galat di `PemotongSel` (isolate perataan) tidak menjatuhkan pindai: sel dibaca dari crop apa adanya lewat jalur lama; `HasilBacaAsli.pemotongGagal = true` supaya tidak senyap. Diuji dengan pemotong yang melempar |
+| Pagar lebar 320 | tetap ada; sel lebar yang lolos pagar tinta dialihkan ke ML Kit seperti sebelumnya |
+
+**Paritas Dart vs rig** (`tool/ukur_pemotong_sel.dart`, masukan dari `SIDIK_PARITAS_DIR`, hasil dump
+`dump_rig.py` yang tidak ada di repo; host saja, model TIDAK dijalankan: yang diukur kemiripan CROP):
+
+| ukuran | Sieve (114 sel) | Piston (42 sel) |
+|---|---|---|
+| normalisasi cahaya: IoU tinta (≤198) lawan `norm` rig | 0,999 | 0,997 |
+| selisih abu rata-rata per sel (0–255), median | 0,30 | 0,45 |
+| crop sel berisi: IoU tinta gabungan, median (angka rig mutlak) | 0,994 | 0,990 |
+| crop dengan IoU tinta ≥ 0,9 | 59 dari 64 | 35 dari 39 |
+| kosong/berisi cocok dengan rig | 112/114 | 41/42 |
+| crop > 320 px sesudah resize | 0 | 0 |
+
+Tiga sel yang kosong/berisinya beda dari rig semuanya berlabel KOSONG: rig menyisakan serpihan (yang dibaca kosong
+oleh model), Dart langsung kosong. Pada sel berisi kesepakatan kosong/berisi 100%.
+
+**Efek ke usulan rig** (varian D, ambang 0,990, gerbang format; 42 usulan, semuanya benar): pemotong yang
+tak yakin menahan 2 di antaranya (keduanya benar) → 40 dari 95 sel berisi = 42,1% lawan 44,2% di rig; tidak
+ada bacaan salah yang menjadi usulan sebelum maupun sesudahnya. STRIP: 4 dari 5 sel ditandai "garis datar"
+(perluCek tanpa bacaan); CORET/TIMPA dan STRIP sisanya: menurut status rig dibaca kosong atau berskor rendah → `perluCek` (model TIDAK
+dijalankan di Dart, jadi ini bacaan dari hasil rig, bukan ukuran baru).
+
+**Kepekaan** (bukan jaminan):
+
+- kotak digeser 3 px: status kosong/berisi dan jumlah sel tak yakin tidak berubah;
+- halaman dikecilkan ×0,6 (≈ 3 px/pt, kanvas pindai HP; pengecilan rata-rata, BUKAN homography bilinear
+  seperti `ratakanHalaman`): IoU kotak median turun menjadi 0,946/0,954, dan sel tak yakin naik: Sieve 4 sel
+  berisi (3 usulan rig benar ikut tertahan), Piston 16 (5 usulan rig benar ikut tertahan). Cakupan di HP
+  hampir pasti lebih rendah dari angka rig; arahnya aman (menahan, bukan menebak);
+- penyebab utama sel tak yakin di Piston: angka baris sebelah menyentuh garis dan tersambung lewat
+  jembatan sehingga komponen menembus jendela. Itu kegagalan nyata, bukan artefak.
+
+**Waktu** (host desktop, BUKAN HP): halaman ×0,6 (±4,6 MP): normalisasi ±150 ms + 114 sel ±150 ms (AOT);
+JIT pada halaman rig penuh (12,7 MP) 0,7–1,2 s per halaman. **Kecepatan di HP TIDAK TERBUKTI.**
+
+**Tidak terbukti / terbuka:** akurasi lapangan dan kecepatan di HP; ambang `gelapMin` dan semua ukuran
+relatif pemotong (tak ada set validasi terpisah); perilaku pada foto selain dua foto ini; kode rig memakai
+`ext=0,60` (jendela meluber ±0,6) sementara ringkasan tugas menulis ±0,5 (dipakai 0,6, angka rig);
+bar hitam di bekas garis pada crop (piksel jembatan diberi nilai tinta pekat) diwarisi dari rig.
+
+**Risiko yang dicatat (review 13 Nov):**
+
+- **Laju "tak yakin"/perlu-cek pada sel KOSONG di skala HP BELUM diukur.** Di dua foto rig 0 dari 53 sel
+  kosong menghasilkan crop (semuanya `kosong`), tetapi itu di ±5 px/pt; di kanvas pindai 3 px/pt (simulasi
+  ×0,6 hanya mengukur sel berisi) sel kosong yang menghasilkan crop kecil (debu, tepi garis) akan jadi
+  baris merah.
+- **Baris merah kosong tidak bisa dilewati:** `FotoReviewScreen` (`foto_review_screen.dart` ±334) mematikan
+  Masukkan selama ada merah kosong atau kuning belum dicek, dan tidak ada "terima semua". Sel bertinta yang
+  salah ditandai memaksa teknisi mengetik sesuatu di kotak itu. Karena itu laju di atas harus diukur di HP
+  sebelum sakelar menyala.
+- `HasilBacaAsli.gagalDibaca` kini dipakai ganda (galat baca dan "bertinta tak terbaca"); teknisi tidak
+  bisa membedakannya di layar. `AturanFormulirAsli.periksa` (`aturan_formulir_asli.dart` ±160, hanya
+  formulir 0541) menghitung `gagalDibaca` sebagai "terisi" saat menilai kelengkapan blok per kolom: untuk
+  sel bertinta yang tak terbaca itu BENAR (ada tulisan; dulu sel itu dihitung kosong dan blok tampak tidak
+  lengkap). Hanya untuk tanda palsu (debu) pada kolom yang kosong, blok akan tampak "terisi sebagian" dan
+  sel kosongnya jadi merah (`blokTidakLengkap`). Tidak diubah di berkas itu.
+
+**Uji:** `test/ocr_angka_pemotong_sel_test.dart` (halaman sintetis: garis tabel, derau, bayangan, digit
+melewati garis, palang "7", dua nol menyatu, titik, strip, coretan, garis tegak, fuzz kotak),
+`test/ocr_angka_pemotong_mesin_test.dart` (keputusan sel, `PembacaSelOnnx.bacaMesin`, `nolBulat`),
+tambahan di `jalankan_pindai_asli_test.dart` dan `ocr_angka_pagar_tinta_test.dart`. Uji mutasi (salinan
+`mut-pemotong-<acak>` di scratchpad): semua mutan tertangkap sesudah tes ditambah (putaran 1: 19 mutan;
+putaran review: tinta pudar, `boleh_bulat`, batas `gelapMin` dari dua sisi, blok `catch` pemotong).
