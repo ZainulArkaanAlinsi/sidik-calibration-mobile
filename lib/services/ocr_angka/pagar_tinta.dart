@@ -8,27 +8,54 @@ class UkuranTinta {
   const UkuranTinta({required this.gelap, required this.kontras});
 
   /// Porsi piksel di jendela tengah dengan tinta > [PagarTinta.batasGelap].
+  /// SATU-SATUNYA ukuran yang memutuskan [PagarTinta.adaTinta].
   final double gelap;
 
-  /// Persentil 98 dikurangi median tinta di jendela tengah.
+  /// Persentil 98 dikurangi median tinta di jendela tengah. Hanya untuk
+  /// diagnostik: TIDAK lagi ikut memutuskan (lihat [PagarTinta]).
   final double kontras;
 }
 
 /// Pagar tinta: crop yang praktis tak berisi apa-apa tidak dikirim ke model.
 ///
-/// ## Apa yang dijamin (dan tidak)
+/// ## Apa yang menentukan (berubah 13 Nov 2026, foto nyata)
 ///
-/// Crop ditolak hanya bila KEDUA ukuran rendah ([gelapMin], [kontrasMin]).
-/// Angkanya dipilih di set uji sintetis rig (5.900 crop; `pagar_tinta` di
-/// dokumen `docs/ocr-angka-onnx.md`): pada angka ini 0 dari 4.400 sel berisi
-/// dan 0 dari 908 jawaban benar ikut tertolak, 12,8% sel kosong biasa dan 5,3%
-/// sel kosong sulit tertolak.
+/// Dulu crop ditolak bila `gelap < 0,002` DAN `kontras < 0,02` (diukur di 5.900
+/// crop SINTETIS). Di dua foto nyata cabang `kontras` kena tekstur kertas:
+/// median kontras sel kosong 0,031, jadi hanya 11 dari 53 sel kosong yang
+/// tertolak. `gelap` saja memisahkan bersih. Angka `gelap` per sumber crop
+/// (SEMUA in-sample: 53 sel kosong, 95 sel berisi, dua foto; alat paritas
+/// `tool/ukur_pemotong_sel.dart`, docs/ocr-angka-onnx.md §12):
 ///
-/// Pagar ini TIDAK menyaring garis tabel atau noise: ukuran tinta tidak bisa
-/// memisahkan garis dari tulisan tanpa membuang jawaban benar (setiap ambang
-/// yang lebih ketat membuang 7–34% jawaban benar). Penahan sel kosong bergaris
-/// adalah gerbang format + ambang `jalur`, bukan pagar ini. Hemat waktu per
-/// lembar jauh di bawah perkiraan awal (25–30% sel kosong): ±13% sel kosong.
+/// | crop | sel kosong maks | sel berisi min |
+/// |---|---|---|
+/// | rig, sel utuh ternormalisasi (`norm_app`) | 0,0000 | 0,063 |
+/// | rig, varian D Python (`potong_luas`) | 0,013 | 0,033 |
+/// | Dart `PemotongSel`, setelan rig mutlak | 0,0000 | 0,083 (Piston), 0,144 (Sieve) |
+/// | Dart `PemotongSel`, setelan produksi | 0,0000 | 0,080 (Piston), 0,206 (Sieve) |
+///
+/// Maka sekarang HANYA [gelapMin] yang memutuskan. Tidak ada cabang kontras.
+///
+/// ## Tinta pudar
+///
+/// `PemotongSel` menganggap tinta bila abu ternormalisasi ≤ 0,78 × kertas,
+/// sedangkan [batasGelap] menghitung "gelap" hanya di bawah 0,70 × kertas.
+/// Tinta pudar (rasio 0,70–0,78) lolos pemotong tetapi `gelap` = 0 di sini.
+/// `MesinAngka.bacaPotongan` memperlakukan crop yang ADA tetapi ditolak pagar
+/// sebagai `perluCek` (`AlasanSelAngka.tintaPudar`), bukan `kosong`.
+///
+/// ## Yang dijamin (dan tidak)
+///
+/// Pagar ini TIDAK menyaring garis tabel: ukuran tinta tidak memisahkan garis
+/// dari tulisan. Itu tugas `PemotongSel` (garis dihapus sebelum diukur) dan,
+/// sesudahnya, gerbang format + ambang `jalur`.
+///
+/// ## Ambang SEMENTARA
+///
+/// [gelapMin] dipilih dari DUA foto (95 sel berisi, 53 sel kosong) dan berlaku
+/// pada crop hasil `PemotongSel`; pada crop mentah satu goresan tipis 1 px di
+/// sel lebar kini tidak lolos lagi (lihat tes). Perlu data lebih banyak
+/// (docs/ocr-angka-onnx.md §8) sebelum diperlakukan sebagai angka yang terbukti.
 class PagarTinta {
   const PagarTinta._();
 
@@ -38,8 +65,15 @@ class PagarTinta {
   /// Pinggiran yang diabaikan (porsi tiap sisi): garis sel dan sisa tetangga.
   static const margin = 0.15;
 
-  static const gelapMin = 0.002;
-  static const kontrasMin = 0.02;
+  /// Porsi minimum piksel gelap di jendela tengah agar crop dianggap berisi.
+  /// Sementara, IN-SAMPLE dari 2 foto: pada crop varian D Python sel kosong maks
+  /// 0,013 dan sel berisi min 0,033; pada crop Dart sel kosong maks 0,0000 dan
+  /// sel berisi min 0,08 (tabel di atas). Rentang kasar yang masuk akal
+  /// 0,02–0,03; diambil ujung bawah: salah menahan sel kosong = satu sel
+  /// tambahan untuk dicek teknisi, salah membuang sel berisi = tulisan hilang
+  /// diam-diam. Batasnya dikunci dari dua sisi oleh tes kerapatan antara
+  /// (0,014 ditolak, 0,026 lolos).
+  static const gelapMin = 0.02;
 
   /// Ukur [potongan]. Hasilnya dihitung ulang dari piksel, tanpa efek samping.
   static UkuranTinta ukur(img.Image potongan) {
@@ -91,9 +125,9 @@ class PagarTinta {
     );
   }
 
-  /// `true` bila crop punya cukup tinta untuk dibaca.
-  static bool adaTinta(UkuranTinta u) =>
-      !(u.gelap < gelapMin && u.kontras < kontrasMin);
+  /// `true` bila crop punya cukup tinta untuk dibaca. Hanya `gelap` yang
+  /// menentukan; ditulis `>=` supaya nilai NaN jatuh ke "tidak ada tinta".
+  static bool adaTinta(UkuranTinta u) => u.gelap >= gelapMin;
 
   /// Persentil dengan interpolasi linier (sama dengan `np.percentile`).
   static double _persentil(List<double> terurut, double q) {

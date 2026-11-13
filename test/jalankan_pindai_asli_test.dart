@@ -11,6 +11,7 @@ import 'package:image/image.dart' as img;
 import 'package:sidik_calibration/models/worksheet_template.dart';
 import 'package:sidik_calibration/services/jalankan_pindai_asli.dart';
 import 'package:sidik_calibration/services/ocr_angka/aturan_format_sel.dart';
+import 'package:sidik_calibration/services/ocr_angka/pemotong_sel.dart';
 import 'package:sidik_calibration/services/pembaca_halaman.dart';
 import 'package:sidik_calibration/services/pembaca_sel.dart';
 import 'package:sidik_calibration/services/registrasi_jangkar_teks.dart';
@@ -596,6 +597,141 @@ void main() {
       },
     );
 
+    test(
+      'pembaca mesin: sel ber-format menerima hasil PemotongSel; isian tidak',
+      () async {
+        final pembaca = _PembacaMesinPalsu();
+        await JalankanPindaiAsli(
+          halaman: MockPembacaHalaman(kataCetak()),
+          pembaca: pembaca,
+        ).baca(
+          foto(dicentang: {}),
+          template: templateDengan({'sel': selDenganAturan}),
+        );
+
+        expect(pembaca.denganPotong, 60);
+        expect(pembaca.tanpaPotong, 4, reason: 'empat isian Env.');
+        expect(pembaca.potongDiterima, hasLength(60));
+        // Halaman sintetis kertas berderau + kotak centang: tidak ada tulisan
+        // milik baris di dalam sel angka, kecuali bila geometri meleset.
+        expect(
+          pembaca.potongDiterima.where((p) => p.takYakin),
+          isEmpty,
+          reason: 'pemotong tidak ragu pada sel kosong',
+        );
+      },
+    );
+
+    test(
+      'templat tanpa format sel: pemotong tidak dijalankan sama sekali',
+      () async {
+        final pembaca = _PembacaMesinPalsu();
+        await JalankanPindaiAsli(
+          halaman: MockPembacaHalaman(kataCetak()),
+          pembaca: pembaca,
+        ).baca(foto(dicentang: {}), template: template);
+
+        expect(pembaca.denganPotong, 0);
+        expect(pembaca.tanpaPotong, 64);
+      },
+    );
+
+    test(
+      'sel bertinta tanpa bacaan masuk gagalDibaca (review MERAH kosong) dan '
+      'TIDAK dihitung sebagai pembaca mati',
+      () async {
+        // Semua 64 sel ditandai: bila ikut hitungan galat baca, pindai ini
+        // melempar `pembacaMati`. Yang benar: lolos, semua kuncinya ada di
+        // gagalDibaca supaya review tidak membuangnya diam-diam.
+        final hasil =
+            await JalankanPindaiAsli(
+              halaman: MockPembacaHalaman(kataCetak()),
+              pembaca: _PembacaMesinPalsu(tandai: true),
+            ).baca(
+              foto(dicentang: {}),
+              template: templateDengan({'sel': selDenganAturan}),
+            );
+
+        expect(hasil.gagalDibaca, hasLength(64));
+        expect(
+          hasil.gagalDibaca,
+          containsAll([for (final b in hasil.sel) b.sel.kunci]),
+        );
+        expect(
+          hasil.sel.every((b) => b.bacaan.teks == null),
+          isTrue,
+          reason: 'tidak ada teks karangan',
+        );
+      },
+    );
+
+    test(
+      'pemotong MELEMPAR: pindai tidak jatuh, jalur lama dipakai, dan tidak senyap',
+      () async {
+        final pembaca = _PembacaMesinPalsu();
+        final hasil =
+            await JalankanPindaiAsli(
+              halaman: MockPembacaHalaman(kataCetak()),
+              pembaca: pembaca,
+              potongSemua: _potongMelempar,
+            ).baca(
+              foto(dicentang: {}),
+              template: templateDengan({'sel': selDenganAturan}),
+            );
+
+        expect(hasil.pemotongGagal, isTrue, reason: 'penanda diagnostik');
+        expect(pembaca.denganPotong, 0, reason: 'tak ada hasil pemotong');
+        expect(
+          pembaca.tanpaPotong,
+          64,
+          reason: 'semua sel tetap dibaca, tanpa potongan mesin',
+        );
+        expect(hasil.sel, hasLength(60));
+        expect(hasil.gagalDibaca, isEmpty, reason: 'bukan galat baca sel');
+      },
+    );
+
+    test('pemotong sehat: pemotongGagal false', () async {
+      final hasil =
+          await JalankanPindaiAsli(
+            halaman: MockPembacaHalaman(kataCetak()),
+            pembaca: _PembacaMesinPalsu(),
+          ).baca(
+            foto(dicentang: {}),
+            template: templateDengan({'sel': selDenganAturan}),
+          );
+
+      expect(hasil.pemotongGagal, isFalse);
+    });
+
+    test('pembaca biasa (ML Kit): pemotong tidak dipanggil sama sekali, '
+        'pemotongGagal false', () async {
+      final hasil =
+          await JalankanPindaiAsli(
+            halaman: MockPembacaHalaman(kataCetak()),
+            pembaca: MockPembacaSel(bacaan: bacaanSel),
+            potongSemua: _potongMelempar,
+          ).baca(
+            foto(dicentang: {}),
+            template: templateDengan({'sel': selDenganAturan}),
+          );
+
+      expect(hasil.pemotongGagal, isFalse);
+    });
+
+    test('sel yang tidak ditandai tidak masuk gagalDibaca', () async {
+      final hasil =
+          await JalankanPindaiAsli(
+            halaman: MockPembacaHalaman(kataCetak()),
+            pembaca: _PembacaMesinPalsu(),
+          ).baca(
+            foto(dicentang: {}),
+            template: templateDengan({'sel': selDenganAturan}),
+          );
+
+      expect(hasil.gagalDibaca, isEmpty);
+    });
+
     test('pembaca biasa tetap dipanggil lewat baca()', () async {
       final biasa = MockPembacaSel(bacaan: bacaanSel);
       await JalankanPindaiAsli(
@@ -639,6 +775,55 @@ class _PembacaBerformatPalsu implements PembacaSelBerformat {
 
     return (teks: null, keyakinan: null, didalamKotak: true);
   }
+
+  @override
+  Future<void> tutup() async {}
+}
+
+/// Pemotong yang rusak (fungsi puncak: dikirim ke isolate perataan).
+List<HasilPotongSel> _potongMelempar(
+  img.Image halaman,
+  List<KotakPiksel> kotak,
+) => throw StateError('pemotong rusak (uji)');
+
+/// Pembaca mesin angka tiruan: mencatat hasil `PemotongSel` yang diterima per
+/// sel dan (bila [tandai]) menyatakan semua sel bertinta tanpa bacaan.
+class _PembacaMesinPalsu implements PembacaSelMesin {
+  _PembacaMesinPalsu({this.tandai = false});
+
+  final bool tandai;
+  int denganPotong = 0;
+  int tanpaPotong = 0;
+  final potongDiterima = <HasilPotongSel>[];
+
+  @override
+  Future<BacaanSelMesin> bacaMesin(
+    img.Image potongan,
+    HasilPotongSel? potong,
+    AturanFormatSel? aturan,
+  ) async {
+    if (potong == null) {
+      tanpaPotong++;
+    } else {
+      denganPotong++;
+      potongDiterima.add(potong);
+    }
+
+    return (
+      bacaan: (teks: null, keyakinan: null, didalamKotak: true),
+      perluCekTanpaBacaan: tandai,
+    );
+  }
+
+  @override
+  Future<BacaanSel> bacaBerformat(
+    img.Image potongan,
+    AturanFormatSel? aturan,
+  ) => throw StateError('pembaca mesin harus lewat bacaMesin');
+
+  @override
+  Future<BacaanSel> baca(img.Image potongan) =>
+      throw StateError('pembaca mesin harus lewat bacaMesin');
 
   @override
   Future<void> tutup() async {}

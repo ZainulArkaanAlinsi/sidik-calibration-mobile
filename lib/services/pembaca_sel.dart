@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 
 import 'modul_pembaca_teks.dart';
 import 'ocr_angka/aturan_format_sel.dart' show AturanFormatSel;
+import 'ocr_angka/pemotong_sel.dart' show HasilPotongSel;
 
 /// Hasil baca satu potongan sel.
 typedef BacaanSel = ({String? teks, double? keyakinan, bool didalamKotak});
@@ -53,6 +54,29 @@ abstract class PembacaSel {
 /// [baca] untuk yang lain; [aturan] `null` = templat tidak menyebut format sel.
 abstract interface class PembacaSelBerformat implements PembacaSel {
   Future<BacaanSel> bacaBerformat(img.Image potongan, AturanFormatSel? aturan);
+}
+
+/// Hasil [PembacaSelMesin.bacaMesin]: bacaan biasa + tanda "sel ini bertinta
+/// tetapi tidak ada bacaan untuk ditampilkan".
+///
+/// [perluCekTanpaBacaan] `true` = sel TIDAK boleh dianggap kosong: ada tulisan
+/// (tinta tebal) yang tak terbaca, ditolak gerbang, atau pemotong tak yakin.
+/// [bacaan] tetap `teks: null` karena tidak ada angka; pemanggil WAJIB
+/// menandainya ke review (merah, kotak kosong, teknisi mengetik sendiri).
+typedef BacaanSelMesin = ({BacaanSel bacaan, bool perluCekTanpaBacaan});
+
+/// Pembaca berformat yang juga menerima hasil `PemotongSel` (mesin angka v2).
+///
+/// Dipisah dari [PembacaSelBerformat] supaya pembaca lain dan tiruan test yang
+/// sudah ada tidak berubah. [potongan] = crop sel apa adanya (dibaca ML Kit bila
+/// jatuh ke cadangan, dan yang dilihat teknisi di review); [potong] = hasil
+/// pemotong untuk mesin angka, `null` bila pemanggil tidak menjalankannya.
+abstract interface class PembacaSelMesin implements PembacaSelBerformat {
+  Future<BacaanSelMesin> bacaMesin(
+    img.Image potongan,
+    HasilPotongSel? potong,
+    AturanFormatSel? aturan,
+  );
 }
 
 class MlKitPembacaSel implements PembacaSel {
