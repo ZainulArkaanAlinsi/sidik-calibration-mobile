@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="480" height="480"><defs><radialGradient id="sh" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#0B2545" stop-opacity=".3"/><stop offset="1" stop-color="#0B2545" stop-opacity="0"/></radialGradient><linearGradient id="b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".6" stop-color="#E7ECF1"/><stop offset="1" stop-color="#C3CCD6"/></linearGradient><linearGradient id="c" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7F8A96"/><stop offset=".3" stop-color="#FFFFFF"/><stop offset=".6" stop-color="#B5BEC8"/><stop offset="1" stop-color="#6F7A86"/></linearGradient><radialGradient id="ch" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".55" stop-color="#C9D2DB"/><stop offset="1" stop-color="#6F7A86"/></radialGradient><linearGradient id="gl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#CFEAFB"/><stop offset=".35" stop-color="#FFFFFF"/><stop offset="1" stop-color="#A8D3EE"/></linearGradient><linearGradient id="liq" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F6D36B" stop-opacity=".75"/><stop offset="1" stop-color="#D9A93A" stop-opacity=".85"/></linearGradient></defs>
+<ellipse cx="120" cy="220" rx="62" ry="9" fill="url(#sh)"/>
+<rect x="82" y="40" width="76" height="172" rx="10" fill="url(#gl)" stroke="#8EB9D8" stroke-width="2"/>
+<rect x="86" y="96" width="68" height="112" rx="7" fill="url(#liq)"/><ellipse cx="120" cy="96" rx="34" ry="4" fill="#FBE7A8"/>
+<rect x="114" y="10" width="12" height="104" rx="6" fill="#FFFFFF" stroke="#8EB9D8" stroke-width="1.8"/>
+<path d="M114 22h7M114 32h5M114 42h7M114 52h5M114 62h7M114 72h5M114 82h7" stroke="#C0392B" stroke-width="1.4"/>
+<path d="M120 112c-18 0-20 14-20 26v26c0 14 8 24 20 24s20-10 20-24v-26c0-12-2-26-20-26z" fill="#FFFFFF" stroke="#8EB9D8" stroke-width="2" opacity=".95"/>
+<ellipse cx="120" cy="176" rx="14" ry="10" fill="#3A4656"/>
+<path d="M90 48v156" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" opacity=".7"/>
+<rect x="74" y="206" width="92" height="8" rx="3" fill="#8EB9D8"/>
+</svg>

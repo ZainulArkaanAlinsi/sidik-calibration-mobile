@@ -23,6 +23,9 @@ analyzer:
     - web/**
     - windows/**
     - macos/**
+    # Paket desain ulang (docs/desain-ulang/): kerangka Dart referensi yang
+    # belum tersambung ke proyek (impor ke berkas yang baru dibuat di L1+).
+    - docs/desain-ulang/**
     # Sidik Studio: proyek sendiri dengan pubspec & package_config sendiri.
     # Dianalisis dari dalam `studio/` (`cd studio && flutter analyze`), bukan
     # dari akar — tanpa `pub get` di studio, analyzer akar tidak bisa

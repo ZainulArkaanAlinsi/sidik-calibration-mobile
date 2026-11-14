@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Lembar kerja (dikunci)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600;700&display=swap">
+<style>
+body{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:#0F4F94}a:hover{color:#0B2545}
+@keyframes naik{from{opacity:0;translate:0 12px}to{opacity:1;translate:0 0}}
+@keyframes muncul{from{opacity:0;scale:.92}to{opacity:1;scale:1}}
+@keyframes tumbuh{from{scale:1 0}to{scale:1 1}}
+@keyframes isi{from{scale:0 1}to{scale:1 1}}
+a,button{transition:scale 120ms cubic-bezier(.33,1,.68,1),background-color 120ms}a:active,button:active{scale:.97}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width: 390px; height: 960px; box-sizing: border-box; padding: 16px; display: flex; flex-direction: column; background: #F3F7FB; color: #0B2545; font-family: 'Inter', system-ui, sans-serif; overflow: hidden; position: relative">
+<div style="display: flex; flex-direction: column; gap: 14px; height: 100%">
+  <span style="align-self: flex-start"><span style="flex-shrink: 0; height: 30px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; border-radius: 15px; background: #0B2545; color: #FFFFFF; font-size: 12px; font-weight: 700; white-space: nowrap"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11h14v10H5zM8 11V8a4 4 0 0 1 8 0v3"/></svg>Dikunci, tidak diubah</span></span>
+  <h1 style="margin: 0; font-size: 28px; line-height: 34px; font-weight: 800; letter-spacing: -0.025em">Lembar kerja tetap seperti sekarang</h1>
+  <p style="margin: 0; font-size: 15px; line-height: 22px; color: #4A5D78">Tata letak, warna, ukuran, keypad, dan perilakunya tidak disentuh. Saat token tema berganti ke Biru Awan, layar-layar ini dibungkus tema beku (salinan tema hari ini) supaya tampilannya tidak ikut berubah.</p>
+  <section style="padding: 16px; border-radius: 24px; background: #FFFFFF; display: flex; flex-direction: column; gap: 8px">
+    <span style="font-size: 14px; font-weight: 800">Berkas beku di lib/screens/calibration/</span>
+    <ul style="margin: 0; padding-left: 18px"><li style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; line-height: 20px">lembar_kerja_screen.dart</li><li style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; line-height: 20px">lembar_kerja_state.dart</li><li style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; line-height: 20px">kinerja_lembar.dart</li><li style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; line-height: 20px">grid_sensor_state.dart</li><li style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; line-height: 20px">titik_sesi_state.dart</li><li style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; line-height: 20px">skema_dinamis_screen.dart</li><li style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; line-height: 20px">temperatur_indikator_gerbang_screen.dart</li><li style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; line-height: 20px">calibration_input_screen.dart</li><li style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; line-height: 20px">widgets/lembar_kerja_grid.dart</li><li style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; line-height: 20px">widgets/lembar_kerja_matriks.dart</li><li style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; line-height: 20px">widgets/lembar_kerja_tabel.dart</li><li style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; line-height: 20px">widgets/lembar_kerja_kartu_baris.dart</li><li style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; line-height: 20px">widgets/keypad_angka.dart</li><li style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; line-height: 20px">widgets/pengatur_titik.dart</li><li style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; line-height: 20px">widgets/pengatur_titik_sesi.dart</li><li style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; line-height: 20px">widgets/tanda_lompat.dart</li><li style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; line-height: 20px">widgets/dropdown_gagal.dart</li></ul>
+  </section>
+  <section style="padding: 16px; border-radius: 24px; background: #E4F2FD; display: flex; flex-direction: column; gap: 6px; font-size: 13px; line-height: 19px">
+    <span style="font-size: 14px; font-weight: 800">Yang tetap boleh berubah di sekitarnya</span>
+    <span>Tombol masuk ke lembar kerja (dari beranda, draf, pilih alat) dan layar sesudahnya (Cek hasil pindai, Ringkasan sebelum kirim) memakai desain baru.</span>
+  </section>
+  <a href="Ringkasan.dc.html" style="margin-top: auto; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 24px; background: #0B2545; color: #FFFFFF; font-size: 15px; font-weight: 700; text-decoration: none">Lanjut ke Ringkasan</a>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":960}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>
