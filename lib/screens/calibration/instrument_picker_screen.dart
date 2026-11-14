@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/beku_lembar_kerja.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/category.dart';
 import '../../providers/calibration_input_provider.dart';
@@ -490,7 +491,9 @@ class _InstrumenCard extends StatelessWidget {
     if (namaTemperaturIndikator(kemampuan.namaAlat)) {
       Navigator.of(context).push(
         MaterialPageRoute<void>(
-          builder: (_) => TemperaturIndikatorGerbangScreen(kategori: kategori),
+          builder: (_) => BekuLembarKerja(
+            child: TemperaturIndikatorGerbangScreen(kategori: kategori),
+          ),
         ),
       );
       return;
@@ -516,9 +519,11 @@ class _InstrumenCard extends StatelessWidget {
     if (profil != null) {
       Navigator.of(context).push(
         MaterialPageRoute<void>(
-          builder: (_) => LembarKerjaScreen(
-            profil: profil,
-            judulTambahan: kemampuan.namaAlat,
+          builder: (_) => BekuLembarKerja(
+            child: LembarKerjaScreen(
+              profil: profil,
+              judulTambahan: kemampuan.namaAlat,
+            ),
           ),
         ),
       );
@@ -527,7 +532,9 @@ class _InstrumenCard extends StatelessWidget {
 
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => CalibrationInputScreen(kategoriAwal: kategori.kode),
+        builder: (_) => BekuLembarKerja(
+          child: CalibrationInputScreen(kategoriAwal: kategori.kode),
+        ),
       ),
     );
   }

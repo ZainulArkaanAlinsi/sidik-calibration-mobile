@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/theme/beku_lembar_kerja.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/onboarding_provider.dart';
 import '../../providers/platform_provider.dart';
@@ -38,9 +39,11 @@ class AuthGate extends ConsumerWidget {
             ? DesktopShell(key: ValueKey(value.id))
             : onboarding.when(
                 data: (status) => status.perluTampil(value.id)
-                    ? OnboardingScreen(
-                        key: ValueKey('onboarding-${value.id}'),
-                        user: value,
+                    ? BekuLembarKerja(
+                        child: OnboardingScreen(
+                          key: ValueKey('onboarding-${value.id}'),
+                          user: value,
+                        ),
                       )
                     : MainShell(key: ValueKey(value.id)),
                 loading: () => const SplashScreen(),

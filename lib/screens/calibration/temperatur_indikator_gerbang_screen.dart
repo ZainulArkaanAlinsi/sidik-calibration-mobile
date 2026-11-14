@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/beku_lembar_kerja.dart';
 import '../../core/utils/angka.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/category.dart';
@@ -316,8 +317,12 @@ class _PilihanCard extends StatelessWidget {
     // lampiran akreditasi, dan itu beda ejaan antara dua varian ini.
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) =>
-            LembarKerjaScreen(profil: profil, judulTambahan: baris.namaAlat),
+        builder: (_) => BekuLembarKerja(
+          child: LembarKerjaScreen(
+            profil: profil,
+            judulTambahan: baris.namaAlat,
+          ),
+        ),
       ),
     );
   }

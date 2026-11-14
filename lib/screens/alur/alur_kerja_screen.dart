@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/beku_lembar_kerja.dart';
 import '../../core/utils/waktu_tampil.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/calibration_history_item.dart';
@@ -613,12 +614,12 @@ class _TombolLangkah extends ConsumerWidget {
               // nggak pernah bisa kena: alat di master terdaftar "Temperature
               // Calibrator" / "Temperature Recorder Controller", nol kemiripan
               // sama "Temperature Indicator tanpa Sensor".
-              ? () => buka(LembarKerjaScreen(
+              ? () => buka(BekuLembarKerja(child: LembarKerjaScreen(
                     sesiId: sesi.id,
                     profil: sesi.profil ??
                         profilLembarKerjaUntuk(sesi.namaAlat) ??
                         'ph_meter',
-                  ))
+                  )))
               : null,
         ),
       _Tahap.perhitungan => (
@@ -724,7 +725,8 @@ class _BelumMilih extends StatelessWidget {
             style: OutlinedButton.styleFrom(minimumSize: const Size(0, 44)),
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute<void>(
-                builder: (_) => const CalibrationInputScreen(),
+                builder: (_) =>
+                    const BekuLembarKerja(child: CalibrationInputScreen()),
               ),
             ),
             icon: const Icon(Icons.add, size: 18),

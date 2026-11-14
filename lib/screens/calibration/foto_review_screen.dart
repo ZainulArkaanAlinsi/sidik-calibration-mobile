@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/theme/beku_lembar_kerja.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/review_foto.dart';
 import '../../services/peta_tabel_foto.dart';
@@ -414,17 +415,19 @@ class _FotoReviewScreenState extends State<FotoReviewScreen> {
     if (_keypadLayar) {
       return SafeArea(
         top: false,
-        child: KeypadAngka(
-          kepala: kepala,
-          tinggiTombol: (tinggiTersedia * 0.06).clamp(36.0, 48.0),
-          onTombol: _ketik,
-          onKonfirmasi: _konfirmasiLanjut,
-          onTutup: () => setState(() => _aktif = null),
-          labelKonfirmasi: l10n.fotoReviewKonfirmasiLanjut,
-          labelTutup: l10n.fotoReviewTutupKeypad,
-          labelHapus: l10n.fotoReviewKeypadHapus,
-          labelMinus: l10n.fotoReviewKeypadMinus,
-          bisaKonfirmasi: _bisaKonfirmasi,
+        child: BekuLembarKerja(
+          child: KeypadAngka(
+            kepala: kepala,
+            tinggiTombol: (tinggiTersedia * 0.06).clamp(36.0, 48.0),
+            onTombol: _ketik,
+            onKonfirmasi: _konfirmasiLanjut,
+            onTutup: () => setState(() => _aktif = null),
+            labelKonfirmasi: l10n.fotoReviewKonfirmasiLanjut,
+            labelTutup: l10n.fotoReviewTutupKeypad,
+            labelHapus: l10n.fotoReviewKeypadHapus,
+            labelMinus: l10n.fotoReviewKeypadMinus,
+            bisaKonfirmasi: _bisaKonfirmasi,
+          ),
         ),
       );
     }

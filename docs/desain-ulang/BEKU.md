@@ -66,3 +66,11 @@ tema diganti begitu saja, lembar kerja ikut berubah walau berkasnya tidak disent
    SETIAP PR berikutnya.
 
 Kalau sebuah tugas terasa butuh mengubah berkas beku: BERHENTI dan tanya pemilik.
+
+## Catatan implementasi L1a (14 Nov 2026) — kontrak pembungkus yang berlaku
+
+Hasil pelaksanaan L1a menyimpang dari langkah 5 di atas, dan yang berlaku adalah ini:
+
+- `BekuLembarKerja` dipasang di **setiap pemanggil route** yang membuka layar/area beku (`Navigator.push`, `MaterialPageRoute`, `showDialog`, `showModalBottomSheet`), BUKAN di akar `build` layar beku. Alasannya: pembungkus di dalam `build` tidak menjangkau `Theme.of(context)` dan `showDialog(context:)` yang dipanggil dari State (context di atas pembungkus), dan memaksa tema produksi pada 6 tes lama yang memasang layar langsung di bawah tema bawaan.
+- Penjaganya `test/beku/tema_beku_terpasang_test.dart` (pemindai sumber + pemeriksaan `PenandaBeku`). Pemanggil baru yang membuka layar beku harus ikut dibungkus; jangan menambah pembungkus akar.
+- Belum dibungkus (dikerjakan sebelum token berubah di L1b): area pratinjau di `history/certificate_screen.dart` (`_IdentitasSesi`, `_TabelLaporan`, `_StandarDipakai`).

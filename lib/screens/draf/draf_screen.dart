@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/beku_lembar_kerja.dart';
 import '../../core/utils/waktu_tampil.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/calibration_history_item.dart';
@@ -377,7 +378,7 @@ class _KartuDraf extends StatelessWidget {
           borderRadius: BorderRadius.circular(22),
           onTap: () => Navigator.of(context).push(
             MaterialPageRoute<void>(
-              builder: (_) => LembarKerjaScreen(
+              builder: (_) => BekuLembarKerja(child: LembarKerjaScreen(
                 sesiId: item.id,
                 // Profil WAJIB ikut — sama alasannya kayak di layar detail sesi
                 // & Alur Kerja. Tanpa ini lembar Chlorine dibuka pakai formulir
@@ -386,7 +387,7 @@ class _KartuDraf extends StatelessWidget {
                 profil: item.profil ??
                     profilLembarKerjaUntuk(item.namaAlat) ??
                     'ph_meter',
-              ),
+              )),
             ),
           ),
           child: Padding(
@@ -575,12 +576,12 @@ class _KartuLokal extends ConsumerWidget {
           onTap: () async {
             await Navigator.of(context).push(
               MaterialPageRoute<void>(
-                builder: (_) => LembarKerjaScreen(
+                builder: (_) => BekuLembarKerja(child: LembarKerjaScreen(
                   sesiId: draf.sesiId,
                   profil: draf.profil,
                   judulTambahan: draf.judulTambahan,
                   drafLokal: draf,
-                ),
+                )),
               ),
             );
             ref.invalidate(drafLokalProvider);

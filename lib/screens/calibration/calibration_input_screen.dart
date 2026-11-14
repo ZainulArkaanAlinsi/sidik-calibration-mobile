@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/beku_lembar_kerja.dart';
 import '../../core/utils/uuid.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/calibration_draft.dart';
@@ -325,7 +326,10 @@ class _FormState extends ConsumerState<_Form> {
       // disuruh jepret ulang — pesan "nggak ada tabel" tanpa buktinya bikin
       // dia mengulang jepretan yang sama.
       final dikoreksi = await navigator.push<SkemaDokumen>(
-        MaterialPageRoute(builder: (_) => SkemaDinamisScreen(skema: skema)),
+        MaterialPageRoute(
+          builder: (_) =>
+              BekuLembarKerja(child: SkemaDinamisScreen(skema: skema)),
+        ),
       );
 
       if (!mounted || dikoreksi == null) return;
