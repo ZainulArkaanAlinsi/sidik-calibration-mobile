@@ -6,6 +6,7 @@ import '../../services/buka_berkas.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/beku_lembar_kerja.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/certificate_snapshot.dart';
 import '../../models/izin.dart';
@@ -147,7 +148,11 @@ class _Isi extends ConsumerWidget {
             ),
           ),
         ),
-        Expanded(child: SertifikatPdfView(certificateId: sertifikat.id)),
+        Expanded(
+          child: BekuLembarKerja(
+            child: SertifikatPdfView(certificateId: sertifikat.id),
+          ),
+        ),
       ],
     );
   }

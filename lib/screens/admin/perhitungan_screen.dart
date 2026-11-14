@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/beku_lembar_kerja.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/calibration_detail.dart' show CalibrationDetail;
 import '../../models/izin.dart';
@@ -142,7 +143,7 @@ class _PerhitunganScreenState extends ConsumerState<PerhitunganScreen> {
 
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => LembarKerjaScreen(
+        builder: (_) => BekuLembarKerja(child: LembarKerjaScreen(
           sesiId: widget.calibrationId,
           // Sama dengan tombol Edit lembar di detail sesi: profil dari
           // backend dulu, tebakan dari nama cuma cadangan server lama.
@@ -150,7 +151,7 @@ class _PerhitunganScreenState extends ConsumerState<PerhitunganScreen> {
               detail.profil ??
               profilLembarKerjaUntuk(detail.namaAlat) ??
               'ph_meter',
-        ),
+        )),
       ),
     );
     if (!mounted) return;
@@ -496,9 +497,11 @@ class _Isi extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.md),
                 ],
-                TabelPerhitunganWidget(
-                  tabel: tabel,
-                  resolusiAlat: perhitungan.identitasAlat.resolusi,
+                BekuLembarKerja(
+                  child: TabelPerhitunganWidget(
+                    tabel: tabel,
+                    resolusiAlat: perhitungan.identitasAlat.resolusi,
+                  ),
                 ),
               ],
             ],

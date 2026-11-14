@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sidik_calibration/core/theme/app_colors.dart';
 import 'package:sidik_calibration/core/theme/sidik_material.dart';
 import 'package:sidik_calibration/core/theme/sidik_theme.dart';
+import 'package:sidik_calibration/core/theme/tema_beku.dart';
 import 'package:sidik_calibration/widgets/sidik/sidik_tombol.dart';
 
 /// Gerbang desain Lab, bagian 2: KONTRAS pasangan token (WCAG 2.x).
@@ -427,11 +428,13 @@ void main() {
     });
   }
 
-  group('AppColors tetap selaras dengan SidikMaterial', () {
-    // Docblock `app_colors.dart`: "Kalau salah satu digeser, geser dua-duanya."
-    // 137 pemanggilan `AppColors.xxx` memakai salinan ini.
-    final t = SidikMaterial.terangDefault;
-    final g = SidikMaterial.gelapDefault;
+  group('AppColors tetap selaras dengan SidikMaterial milik TemaBeku', () {
+    // Sejak L1a `AppColors` membaca `PaletBeku` (salinan beku palet Lab), jadi
+    // pasangannya adalah `SidikMaterial` di tema beku, BUKAN `terangDefault` /
+    // `gelapDefault` (yang ikut palet Lab saat palet itu diganti).
+    // Docblock `app_colors.dart`: 138 pemanggilan `AppColors.xxx` memakai salinan ini.
+    final t = TemaBeku.terang.extension<SidikMaterial>()!;
+    final g = TemaBeku.gelap.extension<SidikMaterial>()!;
 
     test('terang', () {
       expect(AppColors.ink, t.tinta);

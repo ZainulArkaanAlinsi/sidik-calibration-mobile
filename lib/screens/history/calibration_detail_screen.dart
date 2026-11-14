@@ -6,6 +6,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/utils/angka.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
+import '../../core/theme/beku_lembar_kerja.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/calibration_detail.dart';
 import '../../models/calibration_history_item.dart';
@@ -1515,7 +1516,7 @@ class _TombolLanjutkanLembar extends ConsumerWidget {
       variant: AppButtonVariant.secondary,
       onPressed: () => Navigator.of(context).push(
         MaterialPageRoute<void>(
-          builder: (_) => LembarKerjaScreen(
+          builder: (_) => BekuLembarKerja(child: LembarKerjaScreen(
             sesiId: detail.id,
             // Profil WAJIB ikut — tanpa ini layar jatuh ke formulir pH dan
             // admin ngedit lembar Conductivity pakai 3 titik 4/7/10,01.
@@ -1529,7 +1530,7 @@ class _TombolLanjutkanLembar extends ConsumerWidget {
                 detail.profil ??
                 profilLembarKerjaUntuk(detail.namaAlat) ??
                 'ph_meter',
-          ),
+          )),
         ),
       ),
     );

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'palet_lab.dart';
+import 'palet_beku.dart';
 
 /// Palet Lab (kobalt + netral dingin) di bawah NAMA-NAMA LAMA.
 ///
@@ -26,64 +26,71 @@ import 'palet_lab.dart';
 /// | `mint` | hijau di atas permukaan gelap saja |
 /// | `ink*` (tema gelap) | latar dan permukaan gelap |
 ///
-/// Sumber nilainya `PaletLab`; `SidikMaterial` membaca dari sana juga, dan
-/// `test/tema/kontras_sidik_test.dart` menjaga keduanya tetap selaras dan
-/// kontrasnya.
+/// Sumber nilainya `PaletBeku` (salinan beku `PaletLab` per 14 Nov 2026; desain
+/// ulang Lab L1a), BUKAN `PaletLab`: pemakai `AppColors` yang masih beku
+/// (lembar kerja) tidak boleh ikut berubah saat palet Lab diganti.
+/// `test/tema/kontras_sidik_test.dart` menjaga kesejajarannya dengan
+/// `SidikMaterial` milik `TemaBeku`, dan kontrasnya.
+///
+/// Catatan: `AppColors` juga dipakai layar yang TIDAK beku (138 pemakaian di 35
+/// berkas luar `core/theme`, dihitung 14 Nov 2026; hanya 8 di antaranya di tiga
+/// berkas beku). Layar itu tetap membaca nilai lama sampai ia sendiri didesain
+/// ulang dan berhenti memakai `AppColors`.
 ///
 /// Aturan yang tetap: **tidak ada gradasi dua rona berbeda.**
 class AppColors {
   const AppColors._();
 
   // ── Inti ────────────────────────────────────────────────────────────────
-  static const Color crimson = PaletLab.gagalTerang; // FAIL, 7,3:1 di kertas
-  static const Color ink = PaletLab.tintaTerang; // tinta, 17,7:1 di kertas
-  static const Color mint = PaletLab.lulusGelap; // hijau di atas gelap saja
-  static const Color ivory = PaletLab.latarTerang; // latar layar tema terang
-  static const Color cobalt = PaletLab.kobalt700; // kobalt, 9,5:1 di kertas
+  static const Color crimson = PaletBeku.gagalTerang; // FAIL, 7,3:1 di kertas
+  static const Color ink = PaletBeku.tintaTerang; // tinta, 17,7:1 di kertas
+  static const Color mint = PaletBeku.lulusGelap; // hijau di atas gelap saja
+  static const Color ivory = PaletBeku.latarTerang; // latar layar tema terang
+  static const Color cobalt = PaletBeku.kobalt700; // kobalt, 9,5:1 di kertas
 
   // ── Turunan (satu rona, beda terang) ────────────────────────────────────
-  static const Color cobaltDeep = PaletLab.kobalt900;
-  static const Color cobaltSoft = PaletLab.kobalt100;
-  static const Color cobaltLight = PaletLab.kobalt300; // kobalt di tema gelap
+  static const Color cobaltDeep = PaletBeku.kobalt900;
+  static const Color cobaltSoft = PaletBeku.kobalt100;
+  static const Color cobaltLight = PaletBeku.kobalt300; // kobalt di tema gelap
 
-  static const Color mintDeep = PaletLab.lulusTerang; // LULUS, 7,3:1 di kertas
-  static const Color mintSoft = PaletLab.lulusLatarTerang;
-  static const Color mintInk = PaletLab.lulusLatarGelap; // dasar LULUS gelap
+  static const Color mintDeep = PaletBeku.lulusTerang; // LULUS, 7,3:1 di kertas
+  static const Color mintSoft = PaletBeku.lulusLatarTerang;
+  static const Color mintInk = PaletBeku.lulusLatarGelap; // dasar LULUS gelap
 
-  static const Color crimsonDeep = PaletLab.gagalTua;
-  static const Color crimsonSoft = PaletLab.gagalLatarTerang;
-  static const Color crimsonLight = PaletLab.gagalGelap; // GAGAL tema gelap
+  static const Color crimsonDeep = PaletBeku.gagalTua;
+  static const Color crimsonSoft = PaletBeku.gagalLatarTerang;
+  static const Color crimsonLight = PaletBeku.gagalGelap; // GAGAL tema gelap
 
   // ── Netral terang ───────────────────────────────────────────────────────
   // `white` adalah putih murni sekarang (dulu krem). Tempat yang BENAR-BENAR
   // butuh putih (latar QR, kanvas tanda tangan) memakai `Colors.white`
   // langsung dan tidak terpengaruh.
-  static const Color white = PaletLab.kertasTerang;
-  static const Color ivoryDim = PaletLab.kertas2Terang; // permukaan cekung
-  static const Color hairline = PaletLab.garisHalusTerang; // garis halus
-  static const Color textMuted = PaletLab.tinta2Terang; // 7,7:1 di kertas
+  static const Color white = PaletBeku.kertasTerang;
+  static const Color ivoryDim = PaletBeku.kertas2Terang; // permukaan cekung
+  static const Color hairline = PaletBeku.garisHalusTerang; // garis halus
+  static const Color textMuted = PaletBeku.tinta2Terang; // 7,7:1 di kertas
   // Garis komponen (isian, sakelar): 4,6:1 di kertas, ambang WCAG 1.4.11 = 3:1.
-  static const Color outline = PaletLab.garisTegasTerang;
+  static const Color outline = PaletBeku.garisTegasTerang;
 
   // ── Netral gelap ────────────────────────────────────────────────────────
-  static const Color inkDeep = PaletLab.latarGelap; // latar gelap
-  static const Color inkSurface = PaletLab.kertasGelap; // kertas gelap
-  static const Color inkElevated = PaletLab.latar2Gelap;
-  static const Color inkOutline = PaletLab.garisHalusGelap;
+  static const Color inkDeep = PaletBeku.latarGelap; // latar gelap
+  static const Color inkSurface = PaletBeku.kertasGelap; // kertas gelap
+  static const Color inkElevated = PaletBeku.latar2Gelap;
+  static const Color inkOutline = PaletBeku.garisHalusGelap;
   static const Color inkTextMuted =
-      PaletLab.tinta2Gelap; // 7,9:1 di kertas gelap
+      PaletBeku.tinta2Gelap; // 7,9:1 di kertas gelap
 
   // ── Semantik status ─────────────────────────────────────────────────────
-  static const Color success = PaletLab.lulusTerang; // PASS / disetujui
-  static const Color danger = PaletLab.gagalTerang; // FAIL / ditolak
+  static const Color success = PaletBeku.lulusTerang; // PASS / disetujui
+  static const Color danger = PaletBeku.gagalTerang; // FAIL / ditolak
   // "Butuh dilihat" (segera, perlu revisi). Amber: 5,1:1 di latar tipisnya.
-  static const Color warning = PaletLab.awasTerang;
-  static const Color info = PaletLab.tungguTerang; // menunggu / draf
+  static const Color warning = PaletBeku.awasTerang;
+  static const Color info = PaletBeku.tungguTerang; // menunggu / draf
 
-  static const Color successDark = PaletLab.lulusGelap;
-  static const Color dangerDark = PaletLab.gagalGelap;
-  static const Color warningDark = PaletLab.awasGelap;
-  static const Color infoDark = PaletLab.tungguGelap;
+  static const Color successDark = PaletBeku.lulusGelap;
+  static const Color dangerDark = PaletBeku.gagalGelap;
+  static const Color warningDark = PaletBeku.awasGelap;
+  static const Color infoDark = PaletBeku.tungguGelap;
 
   static bool _gelap(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark;

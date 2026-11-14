@@ -43,10 +43,27 @@ import 'package:flutter_test/flutter_test.dart';
 /// Hash dihitung dari checkout `origin/main` de5ddf4. Kalau berkas di bawah
 /// berubah di `main` sebelum PR ini merge (PR lain sempat menyentuhnya), hitung
 /// ulang dari `main` terbaru — setelah memastikan perubahannya memang sah.
+///
+/// ## Perubahan hash yang SAH: L1a (14 Nov 2026)
+///
+/// Tiga layar beku (`lembar_kerja_screen`, `calibration_input_screen`,
+/// `temperatur_indikator_gerbang_screen`) berubah hash SEKALI di PR L1a "Tema
+/// beku". Isinya hanya satu baris `import` pembungkus dan pembungkus
+/// `BekuLembarKerja` pada pemanggil route yang ada DI DALAM berkas itu
+/// (`lembar_kerja_screen` `_buangSalinanHp`, `calibration_input_screen` ke
+/// `SkemaDinamisScreen`, `temperatur_indikator_gerbang_screen` ke
+/// `LembarKerjaScreen`). Akar layar TIDAK dibungkus (alasannya di
+/// `beku_lembar_kerja.dart`), jadi `skema_dinamis_screen` tidak berubah. Itu
+/// satu-satunya perubahan yang disetujui (BEKU.md langkah 5, diperluas ke
+/// pemanggil route; dijaga `tema_beku_terpasang_test.dart`). Tiga berkas tema
+/// beku (`palet_beku`, `tema_beku`, `beku_lembar_kerja`) masuk tabel mulai L1a.
 const Map<String, String> _hashBeku = {
   // ── Lembar kerja (`lib/screens/calibration/`), 17 berkas dari BEKU.md ────────
+  // Hash tiga layar (lembar_kerja_screen, temperatur_indikator_gerbang_screen,
+  // calibration_input_screen) = sesudah L1a (pembungkus `BekuLembarKerja` pada
+  // pemanggil di dalam berkas); lainnya masih hash L0.
   'lib/screens/calibration/lembar_kerja_screen.dart':
-      '3039aef623d313fa3e1c80b0cee04dda61a3a0cbea90f9bf99085d153c41c9a1',
+      '032448f4915740c2c61085733f0a0d5a3b75c8ef27b729fead132d8e151c7f06',
   'lib/screens/calibration/lembar_kerja_state.dart':
       '6e6005a486d13dfcc002fa339e38d0bee5c3b3054cbdf0e9ed843266c16cc093',
   'lib/screens/calibration/kinerja_lembar.dart':
@@ -58,9 +75,9 @@ const Map<String, String> _hashBeku = {
   'lib/screens/calibration/skema_dinamis_screen.dart':
       'ebbfb6fb7b00ee9505e3445a4bd9260f3d98f555d70ed39af0b4706b3f1be45d',
   'lib/screens/calibration/temperatur_indikator_gerbang_screen.dart':
-      '4428969cf48a10cc1becfc7a5fd932b8898a1bfd0c0f82b83b24e8f6e639a7b7',
+      'b9e4bb15b3c0e8d235f4b174215bac674e43d31c39b4212093dab9bdd96d55a6',
   'lib/screens/calibration/calibration_input_screen.dart':
-      'fe0866e4a9f880c89db225745fb8eb0d253c96dc4c1b2e2606c9ea5fe6975d1a',
+      '2f815c59ea88c2eeacc652b251cf956ed5408cb037162880788578f8ba33777e',
   'lib/screens/calibration/widgets/lembar_kerja_grid.dart':
       '0a83991529881b82d677f48fe2a49d8ed86a54e9dd979bee10e05593187baebc',
   'lib/screens/calibration/widgets/lembar_kerja_matriks.dart':
@@ -125,6 +142,15 @@ const Map<String, String> _hashBeku = {
   // Nilai `AppSpacing.*` (217 pemakaian di lembar kerja).
   'lib/core/theme/app_spacing.dart':
       '61f7abaa3870dd70fe53c3aabdc28d7192f7aee818b5581981e87777cb1f0ecd',
+  // ── TEMA BEKU (L1a, 14 Nov 2026) ─────────────────────────────────────────────
+  // Salinan palet dan tema Lab hari itu, plus pembungkus yang memasangnya. Isinya
+  // tidak boleh ikut berubah saat palet Lab diganti ke Biru Awan (L1b dst.).
+  'lib/core/theme/palet_beku.dart':
+      'dd27667f06c073ceac7c09116a5fd28957048abded7a7889599e7506682e96e3',
+  'lib/core/theme/tema_beku.dart':
+      '3a3b8f5fc5512e46fe69dddced4dda8098281d3b3dafcb427c539c200f07cc17',
+  'lib/core/theme/beku_lembar_kerja.dart':
+      '5fa134166b5b3585947ca9702ab11500812083a76c74a59313356c7d01ea820b',
 };
 
 /// Folder yang seluruh isinya dianggap beku-atau-diputuskan-sengaja: berkas

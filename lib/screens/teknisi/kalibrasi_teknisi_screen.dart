@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/beku_lembar_kerja.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/calibration_history_item.dart';
 import '../../providers/history_provider.dart';
@@ -240,7 +241,9 @@ class _KartuSesi extends ConsumerWidget {
                 KalibrasiTeknisiScreen.buka(
                   context,
                   ref,
-                  LembarKerjaScreen(sesiId: sesi.id, profil: profil),
+                  BekuLembarKerja(
+                    child: LembarKerjaScreen(sesiId: sesi.id, profil: profil),
+                  ),
                 );
               },
         child: Padding(

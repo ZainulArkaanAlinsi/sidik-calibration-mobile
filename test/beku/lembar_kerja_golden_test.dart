@@ -12,6 +12,7 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:sidik_calibration/core/theme/app_theme.dart';
+import 'package:sidik_calibration/core/theme/beku_lembar_kerja.dart';
 import 'package:sidik_calibration/l10n/app_localizations.dart';
 import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/calibration_input_provider.dart';
@@ -190,12 +191,15 @@ List<Override> _mock() => [
 
 /// Tema dipasang di SATU tempat ini.
 ///
-/// CATATAN UNTUK L1 (token Biru Awan): `LembarKerjaScreen` dan
-/// `CalibrationInputScreen` dibungkus tema beku di akarnya sendiri, jadi tema
-/// di sini tidak memengaruhi mereka. `KeypadAngka` BUKAN akar layar (lihat
-/// adegan keypad) — dia membaca tema dari atasnya, jadi saat `AppTheme`
-/// berganti, adegan keypad harus dibungkus tema beku DI SINI. Golden-nya
-/// tidak diperbarui.
+/// Sejak L1a (`lib/core/theme/beku_lembar_kerja.dart`) tiap layar beku dipasang
+/// dari LUAR dengan `BekuLembarKerja`, persis seperti pemanggil route di app
+/// (`MaterialPageRoute(builder: (_) => BekuLembarKerja(child: ...))`). Adegan di
+/// bawah meniru itu: `Theme.of(context)` yang ditulis di `State` layar memakai
+/// `context` di atas pembungkus akar layar itu sendiri (mis. gaya "5x" di app bar
+/// lembar kerja), jadi hanya pembungkus dari luar yang membekukannya. `KeypadAngka`
+/// BUKAN akar layar (lihat adegan keypad); dia dibungkus di sini sebagaimana
+/// `foto_review_screen.dart` membungkusnya. Dengan begitu `AppTheme` boleh
+/// berganti (L1b) tanpa golden-nya diperbarui.
 ThemeData _tema(Brightness mode) =>
     mode == Brightness.light ? AppTheme.light : AppTheme.dark;
 
@@ -367,7 +371,10 @@ Future<void> _lembarKerjaHalamanAkhir(
   Brightness mode,
   String profil,
 ) async {
-  await _muat(tester, _aplikasi(LembarKerjaScreen(profil: profil), mode));
+  await _muat(
+    tester,
+    _aplikasi(BekuLembarKerja(child: LembarKerjaScreen(profil: profil)), mode),
+  );
   // Halaman PENGUKURAN: tabel/matriks/grid ada di sana. Di 390 dan 1024 (< 1100)
   // lembar berhalaman; di atas 1100 dia dua kolom dan tombolnya tidak ada.
   await keHalamanAkhir(tester);
@@ -397,7 +404,8 @@ Future<void> _inputKalibrasi(WidgetTester tester, Brightness mode) async {
             child: ElevatedButton(
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute<void>(
-                  builder: (_) => const CalibrationInputScreen(),
+                  builder: (_) =>
+                      const BekuLembarKerja(child: CalibrationInputScreen()),
                 ),
               ),
               child: const Text('buka'),
@@ -463,29 +471,33 @@ Future<void> _keypad(WidgetTester tester, Brightness mode) async {
         builder: (context) {
           final l10n = AppLocalizations.of(context);
 
-          return Scaffold(
-            body: Column(
-              children: [
-                const Expanded(child: SizedBox.shrink()),
-                SafeArea(
-                  top: false,
-                  child: KeypadAngka(
-                    kepala: KepalaSelAktif(
-                      judul: 'Set Point 7,00 · Ulangan 2',
-                      sisa: l10n.fotoReviewSisaSel(3),
-                      teks: '-7,01',
+          // Dibungkus tema beku (L1a): Scaffold ini perancah tes, tapi warna latar
+          // dan huruf keypad harus tetap saat `AppTheme` berganti.
+          return BekuLembarKerja(
+            child: Scaffold(
+              body: Column(
+                children: [
+                  const Expanded(child: SizedBox.shrink()),
+                  SafeArea(
+                    top: false,
+                    child: KeypadAngka(
+                      kepala: KepalaSelAktif(
+                        judul: 'Set Point 7,00 · Ulangan 2',
+                        sisa: l10n.fotoReviewSisaSel(3),
+                        teks: '-7,01',
+                      ),
+                      onTombol: (_) {},
+                      onKonfirmasi: () {},
+                      onTutup: () {},
+                      labelKonfirmasi: l10n.fotoReviewKonfirmasiLanjut,
+                      labelTutup: l10n.fotoReviewTutupKeypad,
+                      labelHapus: l10n.fotoReviewKeypadHapus,
+                      labelMinus: l10n.fotoReviewKeypadMinus,
+                      bisaKonfirmasi: true,
                     ),
-                    onTombol: (_) {},
-                    onKonfirmasi: () {},
-                    onTutup: () {},
-                    labelKonfirmasi: l10n.fotoReviewKonfirmasiLanjut,
-                    labelTutup: l10n.fotoReviewTutupKeypad,
-                    labelHapus: l10n.fotoReviewKeypadHapus,
-                    labelMinus: l10n.fotoReviewKeypadMinus,
-                    bisaKonfirmasi: true,
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           );
         },
