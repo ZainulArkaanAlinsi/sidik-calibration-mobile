@@ -7,12 +7,15 @@ import '../../l10n/app_localizations.dart';
 import '../../models/calibration_history_item.dart';
 import '../../providers/history_provider.dart';
 import '../../providers/kalibrasi_teknisi_provider.dart';
+import '../../providers/kesiapan_pindai_lembar_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/notification_bell.dart';
 import '../../widgets/readable_width.dart';
 import '../../widgets/status_badge.dart';
+import '../../widgets/tombol_pindai_lembar.dart';
 import '../calibration/category_picker_screen.dart';
-import '../calibration/instrument_picker_screen.dart' show profilLembarKerjaUntuk;
+import '../calibration/instrument_picker_screen.dart'
+    show profilLembarKerjaUntuk;
 import '../calibration/lembar_kerja_screen.dart';
 
 /// Tab "Kalibrasi" — SATU-SATUNYA tempat kerja teknisi (keputusan pemilik
@@ -58,19 +61,32 @@ class KalibrasiTeknisiScreen extends ConsumerWidget {
         title: Text(l10n.tekKalibrasiJudul),
         // Lonceng tetap: lembar yang dikembalikan & kabar lain datang lewat
         // notifikasi.
-        actions: const [NotificationBell(), SizedBox(width: AppSpacing.sm)],
+        actions: const [
+          NotificationBell(),
+          SizedBox(width: AppSpacing.sm),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: () async {
           segarkan(ref);
+          // Daftar jenis lembar di-cache sepanjang sesi; tarik-segarkan satu-
+          // satunya jalan memintanya lagi (tombol "Pindai lembar kerja").
+          ref.invalidate(kesiapanPindaiLembarProvider);
           await Future.wait([
-            ref.read(perluRevisiTeknisiProvider.future).then((_) {}, onError: (_) {}),
+            ref
+                .read(perluRevisiTeknisiProvider.future)
+                .then((_) {}, onError: (_) {}),
             ref.read(drafProvider.future).then((_) {}, onError: (_) {}),
-            ref.read(terkirimTerakhirProvider.future).then((_) {}, onError: (_) {}),
+            ref
+                .read(terkirimTerakhirProvider.future)
+                .then((_) {}, onError: (_) {}),
           ]);
         },
         child: ReadableWidth(
           child: ListView(
+            // Selalu bisa ditarik, juga saat isinya pendek: tarik-segarkan
+            // satu-satunya jalan pulih dari galat awal (mis. tanpa koneksi).
+            physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.all(AppSpacing.md),
             children: [
               AppButton(
@@ -80,6 +96,9 @@ class KalibrasiTeknisiScreen extends ConsumerWidget {
                 onPressed: () =>
                     buka(context, ref, const CategoryPickerScreen()),
               ),
+              // Tampil hanya bila server menyatakan ada jenis lembar yang
+              // boleh dipindai; selain itu tidak memakan ruang.
+              TombolPindaiLembar(setelahKembali: () async => segarkan(ref)),
               const SizedBox(height: AppSpacing.lg),
               _Bagian(
                 kunci: 'bagian-perlu-revisi',
@@ -181,7 +200,10 @@ class _Bagian extends StatelessWidget {
                     ),
                   ),
                 ),
-                TextButton(onPressed: onCobaLagi, child: Text(l10n.folderRetry)),
+                TextButton(
+                  onPressed: onCobaLagi,
+                  child: Text(l10n.folderRetry),
+                ),
               ],
             )
           else

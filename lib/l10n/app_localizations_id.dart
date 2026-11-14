@@ -7953,6 +7953,20 @@ class AppLocalizationsId extends AppLocalizations {
   String get jlDaftarManual => 'Semua jenis lembar';
 
   @override
+  String get pindaiLembarTombol => 'Pindai lembar kerja';
+
+  @override
+  String get pindaiLembarKeterangan =>
+      'Foto lembarnya, aplikasi menyarankan jenisnya';
+
+  @override
+  String get pindaiLembarMembaca => 'Mengenali jenis lembar...';
+
+  @override
+  String get pindaiLembarButuhKoneksi =>
+      'Daftar jenis lembar butuh koneksi. Coba lagi atau mulai manual.';
+
+  @override
   String get gwJudul => 'Garis waktu arsip';
 
   @override

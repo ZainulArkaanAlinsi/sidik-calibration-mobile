@@ -8048,6 +8048,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get jlDaftarManual => 'All sheet types';
 
   @override
+  String get pindaiLembarTombol => 'Scan worksheet';
+
+  @override
+  String get pindaiLembarKeterangan =>
+      'Photograph the sheet, the app suggests its type';
+
+  @override
+  String get pindaiLembarMembaca => 'Recognizing the sheet type...';
+
+  @override
+  String get pindaiLembarButuhKoneksi =>
+      'The sheet type list needs a connection. Try again or start manually.';
+
+  @override
   String get gwJudul => 'Archive timeline';
 
   @override

@@ -13910,6 +13910,30 @@ abstract class AppLocalizations {
   /// **'All sheet types'**
   String get jlDaftarManual;
 
+  /// No description provided for @pindaiLembarTombol.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan worksheet'**
+  String get pindaiLembarTombol;
+
+  /// No description provided for @pindaiLembarKeterangan.
+  ///
+  /// In en, this message translates to:
+  /// **'Photograph the sheet, the app suggests its type'**
+  String get pindaiLembarKeterangan;
+
+  /// No description provided for @pindaiLembarMembaca.
+  ///
+  /// In en, this message translates to:
+  /// **'Recognizing the sheet type...'**
+  String get pindaiLembarMembaca;
+
+  /// No description provided for @pindaiLembarButuhKoneksi.
+  ///
+  /// In en, this message translates to:
+  /// **'The sheet type list needs a connection. Try again or start manually.'**
+  String get pindaiLembarButuhKoneksi;
+
   /// No description provided for @gwJudul.
   ///
   /// In en, this message translates to:
