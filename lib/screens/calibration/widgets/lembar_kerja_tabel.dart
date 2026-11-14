@@ -16,9 +16,11 @@ import '../../../services/ambil_foto_tabel.dart';
 import '../../../services/peta_tabel_foto.dart';
 import '../../../widgets/dekorasi_isian_wajib.dart';
 import '../../../widgets/label_standar.dart';
+import '../cek_bacaan_kamera.dart';
 import '../foto_review_screen.dart';
 import '../lembar_kerja_state.dart';
 import 'dropdown_gagal.dart';
+import 'tanda_cek_sel.dart';
 
 /// Satu tabel hasil kalibrasi — Before atau After adjustment.
 ///
@@ -491,6 +493,16 @@ class LembarKerjaTabel extends StatelessWidget {
                                     // ditandai supaya dicek yang itu saja, bukan
                                     // seluruh tabel.
                                     tanda: isian.tandaSel(
+                                      isian.kunciBaris(
+                                        _baris,
+                                        indexBaris,
+                                        tabel,
+                                      ),
+                                      tabel.kunciTabel,
+                                      kolom.kode,
+                                      tabel.pengulangan.indexOf(r),
+                                    ),
+                                    cek: isian.pemantauCekTabel(
                                       isian.kunciBaris(
                                         _baris,
                                         indexBaris,
@@ -1038,6 +1050,12 @@ class _TabelKeBawahState extends State<_TabelKeBawah> {
         kolom.kode,
         urutan,
       ),
+      cek: widget.isian.pemantauCekTabel(
+        titik,
+        _tabel.kunciTabel,
+        kolom.kode,
+        urutan,
+      ),
       wajib: kolom.kode == 'suhu' && widget.isian.bentuk.suhuWajib,
     );
   }
@@ -1463,6 +1481,7 @@ class _SelAngka extends StatelessWidget {
     required this.tinggi,
     required this.controller,
     this.tanda = TandaSel.tidakAda,
+    this.cek,
     this.terkunci = false,
     this.kumulatif = false,
     this.sebelumnya,
@@ -1488,6 +1507,12 @@ class _SelAngka extends StatelessWidget {
   /// isi benar — tetap berdiri.
   final TandaSel tanda;
 
+  /// Gerbang "wajib dicek": ada kalau sel ini hasil kamera. Menggantikan
+  /// kuning statis [TandaSel.keyakinanRendah] dengan tanda yang berubah begitu
+  /// teknisi mengubah isinya atau mengonfirmasi (ikon + kata, bukan cuma
+  /// warna). Permintaan revisi admin ([TandaSel.revisi]) tetap menang.
+  final PemantauCek? cek;
+
   /// Baris pasangannya udah mulai diisi, jadi baris ini nggak boleh diisi.
   /// Tetap KELIHATAN — cuma nggak bisa diketik — supaya teknisi paham ini
   /// alternatif satuan dari botol yang sama, bukan titik yang hilang.
@@ -1508,14 +1533,26 @@ class _SelAngka extends StatelessWidget {
   final bool wajib;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) =>
+      LapisCekSel(cek: cek, bangun: (context, status) => _isi(context, status));
+
+  Widget _isi(BuildContext context, StatusCekSel? status) {
     final theme = Theme.of(context);
+
+    // Sel hasil kamera: tandanya dari status gerbang (perlu / sudah dicek),
+    // bukan kuning statis. `keyakinanRendah` berkunci `titikUkur`, yang tidak
+    // unik antar baris/tabel, jadi sel yang BUKAN hasil kamera bisa ikut
+    // kuning; penentunya sekarang [cek] (berkunci peta), selalu.
+    final efektif = tanda == TandaSel.keyakinanRendah
+        ? TandaSel.tidakAda
+        : tanda;
 
     // Dua-duanya dipatok, bukan diambil dari skema tema: yang merah HARUS beda
     // jelas dari yang kuning di layar HP di bawah lampu bengkel, dan
     // `colorScheme.error` di tema terang ini terlalu dekat ke ambernya.
-    final warna = switch (tanda) {
-      TandaSel.tidakAda => null,
+    final warna = switch (efektif) {
+      TandaSel.tidakAda =>
+        status == StatusCekSel.perluCek ? kuningPerluDicek : null,
       // Amber gelap, kebaca di light & dark.
       TandaSel.keyakinanRendah => kuningPerluDicek,
       TandaSel.revisi => const Color(0xFFC62828),

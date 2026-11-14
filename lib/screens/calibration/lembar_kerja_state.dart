@@ -15,6 +15,7 @@ import '../../models/calibration_draft.dart' show LokasiKalibrasi;
 import '../../models/equipment_lookup.dart';
 import '../../core/utils/jam_lembar.dart';
 import '../../models/lembar_kerja.dart';
+import 'cek_bacaan_kamera.dart';
 import 'grid_sensor_state.dart';
 import '../../models/lembar_kerja_submission.dart';
 import '../../models/peran_isian_identitas.dart';
@@ -1080,21 +1081,54 @@ class LembarKerjaState {
     // set point 35 — tanpa error (tinjauan 6 Okt 2026). Isian dipindah menurut
     // NILAI titiknya; titik yang dihapus ikut kehilangan isiannya, seperti yang
     // dijanjikan pengatur titik.
-    final petaKunci = <double, double?>{};
-    for (final b in bentuk.bagian.where((b) => b.kode == kode)) {
-      for (final t in b.tabel.where((t) => t.berpasangan && t.titikBisaDiubah)) {
-        final barisLama = barisTabel(t);
-        for (var i = 0; i < barisLama.length; i++) {
-          final j = baru.indexOf(barisLama[i].titikUkur);
-          petaKunci[kunciBaris(barisLama, i, t)] =
-              j < 0 ? null : (_offsetParameter(t.parameter) + j).toDouble();
-        }
+    //
+    // Peta disusun untuk SEMUA tabel berpasangan di lembar, bukan cuma yang
+    // ada di bagian [kode]: kunci baris = offset blok parameter + posisi, dan
+    // offset blok kelembapan = jumlah baris blok suhu. Menghapus titik suhu
+    // menggeser KUNCI seluruh blok kelembapan; tanpa dipetakan isiannya
+    // mendarat di set point tetangga (RH 30% di baris 49%) tanpa error.
+    final petaKunci = _petaKunciBerpasangan(() {
+      _titikKustom[kode] = baru;
+
+      return true;
+    })!;
+
+    _bangunTitik(pertahankanIsian: true, petaKunci: petaKunci);
+  }
+
+  /// Peta kunci baris LAMA -> BARU untuk SEMUA tabel berpasangan di lembar,
+  /// dihitung dari keadaan sebelum dan sesudah [ubah] (yang mengubah set titik
+  /// dan memulangkan `false` kalau ternyata tidak ada yang berubah).
+  ///
+  /// Dicocokkan menurut NOMINAL baris di tabel yang sama; `null` = nominalnya
+  /// sudah tidak ada (isiannya dibuang). `null` dipulangkan bila [ubah]
+  /// memulangkan `false`.
+  Map<double, double?>? _petaKunciBerpasangan(bool Function() ubah) {
+    final lama = <TabelHasil, List<(double, double)>>{};
+    for (final bagian in bentuk.bagian) {
+      for (final t in bagian.tabel) {
+        if (!t.berpasangan) continue;
+
+        final baris = barisTabel(t);
+        lama[t] = [
+          for (var i = 0; i < baris.length; i++)
+            (kunciBaris(baris, i, t), baris[i].titikUkur),
+        ];
       }
     }
 
-    _titikKustom[kode] = baru;
+    if (!ubah()) return null;
 
-    _bangunTitik(pertahankanIsian: true, petaKunci: petaKunci);
+    final peta = <double, double?>{};
+    for (final e in lama.entries) {
+      final baru = barisTabel(e.key);
+      for (final (kunci, nominal) in e.value) {
+        final j = baru.indexWhere((b) => nominalCocok(b.titikUkur, nominal));
+        peta[kunci] = j < 0 ? null : kunciBaris(baru, j, e.key);
+      }
+    }
+
+    return peta;
   }
 
   /// Tabel yang barisnya boleh DITAMBAH: titiknya diatur teknisi dan
@@ -1468,30 +1502,10 @@ class LembarKerjaState {
   /// sama seperti [aturTitik] — tanpa itu menyisipkan titik di tengah
   /// menggeser bacaan ke set point tetangganya.
   void _segarkanBarisTitikSesi() {
-    final lama = <TabelHasil, List<(double, double)>>{};
-    for (final bagian in bentuk.bagian) {
-      for (final t in bagian.tabel) {
-        if (!t.berpasangan || !t.titikBisaDiubah) continue;
-        final baris = barisTabel(t);
-        lama[t] = [
-          for (var i = 0; i < baris.length; i++)
-            (kunciBaris(baris, i, t), baris[i].titikUkur),
-        ];
-      }
-    }
-
-    if (!_terapkanSetKeDaftar()) return;
-
-    final petaKunci = <double, double?>{};
-    for (final e in lama.entries) {
-      final baru = barisTabel(e.key);
-      for (final (kunci, nominal) in e.value) {
-        final j = baru.indexWhere((b) => nominalCocok(b.titikUkur, nominal));
-        petaKunci[kunci] = j < 0
-            ? null
-            : (_offsetParameter(e.key.parameter) + j).toDouble();
-      }
-    }
+    // Semua tabel berpasangan, bukan cuma yang `titikBisaDiubah`: kunci blok
+    // lain ikut bergeser kalau offsetnya berubah (lihat [aturTitik]).
+    final petaKunci = _petaKunciBerpasangan(_terapkanSetKeDaftar);
+    if (petaKunci == null) return;
 
     _bangunTitik(pertahankanIsian: true, petaKunci: petaKunci);
   }
@@ -1711,6 +1725,17 @@ class LembarKerjaState {
   /// posisi (`null` = titiknya dihapus, isiannya dibuang). Kunci yang tidak
   /// disebut tetap di kunci yang sama.
   int _bangunTitik({bool pertahankanIsian = false, Map<double, double?> petaKunci = const {}}) {
+    // Gerbang "wajib dicek" mengikuti ISI sel: isi yang pindah kunci membawa
+    // catatannya, isi yang dibuang membuang catatannya. Tanpa ini sel yang
+    // bergeser tampak "sudah dicek" tanpa aksi (isi awalnya tertinggal di
+    // kunci lama) dan tanda sel kamera lenyap dari gerbang.
+    if (pertahankanIsian) {
+      _petakanUlangGerbang(petaKunci);
+    } else if (selKamera.isNotEmpty) {
+      selKamera.clear();
+      cekTabel.kosongkan();
+    }
+
     // Isian sel disalin DULU, sebelum yang lama dibuang. Yang disalin cuma
     // angkanya — `TitikState`-nya sendiri dibikin ulang dari bentuk yang baru,
     // karena satuan/desimal/eksklusif-nya bisa berubah dan objek lama bakal
@@ -1788,6 +1813,8 @@ class LembarKerjaState {
       tujuan.tempelKotak(e.value);
     }
 
+    _pangkasGerbangTanpaState();
+
     // Penanda sel dibangun dari KUNCI baris, dan kuncinya baru saja dibikin
     // ulang. Tanpa disusun ulang di sini, penanda merah dari admin nyangkut di
     // kunci lembar yang sudah nggak ada — persis di kasus yang paling butuh:
@@ -1797,6 +1824,48 @@ class LembarKerjaState {
     _susunSelRevisi();
 
     return kebuang;
+  }
+
+  /// Buang catatan gerbang untuk baris yang TIDAK punya [TitikState] lagi
+  /// (titiknya dihapus). Tanpa ini kuncinya menunggu, dan begitu titik yang
+  /// sama ditambah lagi, ketikan tangan di selnya tampil "sudah dicek" (isi
+  /// awal tebakan lama masih tersimpan) atau, kalau kebetulan sama, menahan
+  /// Kirim — sel ketikan tangan dilabeli hasil kamera.
+  void _pangkasGerbangTanpaState() {
+    bool yatim(String kunci) {
+      final pisah = kunci.indexOf('|');
+      final peta = pisah <= 0 ? null : double.tryParse(kunci.substring(0, pisah));
+
+      return peta == null || !titik.containsKey(peta);
+    }
+
+    selKamera.removeWhere(yatim);
+    cekTabel.buangJika(yatim);
+  }
+
+  /// Petakan ulang kunci peta di [selKamera] dan [cekTabel] — aturan yang
+  /// SAMA dengan penyalinan isian di [_bangunTitik]: kunci yang tidak disebut
+  /// tetap, `null` dibuang.
+  void _petakanUlangGerbang(Map<double, double?> petaKunci) {
+    if (petaKunci.isEmpty) return;
+
+    String? peta(String kunci) {
+      final pisah = kunci.indexOf('|');
+      if (pisah <= 0) return kunci;
+
+      final lama = double.tryParse(kunci.substring(0, pisah));
+      if (lama == null || !petaKunci.containsKey(lama)) return kunci;
+
+      final baru = petaKunci[lama];
+
+      return baru == null ? null : '$baru${kunci.substring(pisah)}';
+    }
+
+    final baru = <String>{for (final k in selKamera) ?peta(k)};
+    selKamera
+      ..clear()
+      ..addAll(baru);
+    cekTabel.petakanUlang(peta);
   }
 
   /// Ganti bentuk lembar TANPA ngebuang isian yang udah diketik.
@@ -2540,6 +2609,13 @@ class LembarKerjaState {
   /// tinggal `manual` & `ocr`.
   bool adaIsianDariFoto = false;
 
+  /// Lembar ini berisi bacaan kamera: pernah diisi lewat jalur yang menyalakan
+  /// [adaIsianDariFoto], ATAU ada sel yang masih ditandai di gerbang. Yang
+  /// kedua menutup jalur yang tidak menyalakan bendera pertama (foto grid per
+  /// set point): tanpa itu `input_method` kembali `manual` dan konfirmasi
+  /// pasca-kirim tidak jalan, padahal barisnya lahir `is_verified=false`.
+  bool get adaBacaanKamera => adaIsianDariFoto || daftarSelCek().isNotEmpty;
+
   /// Sel yang diisi hasil pindai dengan vonis server **kuning atau merah** —
   /// ditandai di layar biar teknisi ngecek angka itu saja, bukan seluruh tabel.
   /// Kuncinya [kunciSel]. Dibersihin kalau selnya diisi ulang dengan vonis
@@ -2559,6 +2635,36 @@ class LembarKerjaState {
   ///
   /// Dikirim lewat `measurements[].ocr[]`; lihat [BacaanMesin].
   final Map<String, BacaanMesin> bacaanMesinSel = {};
+
+  /// Gerbang "wajib dicek": catatan per sel hasil kamera di tabel biasa. Kunci
+  /// sama dengan [selRendahKeyakinan] (penanda "dari kamera"-nya). Lihat
+  /// [CatatanCek] soal arti "sudah dicek".
+  final CatatanCek cekTabel = CatatanCek();
+
+  /// IDENTITAS gerbang untuk sel tabel hasil kamera: `kunciPeta|tahap|kolom|
+  /// index`, dengan kunci PETA [titik] (bukan `titikUkur`). `titikUkur` tidak
+  /// unik antar baris/tabel (Pressure Gauge naik & turun, Flowmeter, Anak
+  /// Timbangan, Thermohygro 50 C / 50 %RH): dua sel berbeda berbagi satu kunci,
+  /// catatan satu menimpa yang lain, dan sel kamera hilang dari gerbang tanpa
+  /// satu pun galat. [selRendahKeyakinan] tetap ada untuk jalur lama (warna
+  /// statis, `bacaanMesinSel`) tetapi BUKAN lagi yang menentukan gerbang.
+  final Set<String> selKamera = {};
+
+  /// Idem untuk sel matriks (kunci [kunciMatriks], penanda [matriksDariFoto]).
+  final CatatanCek cekMatriks = CatatanCek();
+
+  /// Isian kolom (header/Env.) yang angkanya datang dari foto — kode kolom.
+  /// Sebelumnya isian ini masuk tanpa tanda apa pun.
+  final Set<String> isianDariFoto = {};
+
+  /// Catatan gerbang untuk [isianDariFoto], berkunci kode kolom.
+  final CatatanCek cekIsian = CatatanCek();
+
+  /// Naik tiap ada perubahan yang bisa menggeser status "sudah dicek" — panel
+  /// gerbang, tombol Kirim, dan tanda di tiap sel mendengarkan ini supaya
+  /// tidak perlu membangun ulang seluruh lembar tiap ketukan.
+  final ValueNotifier<int> revisiCek = ValueNotifier<int>(0);
+  int _perluCekTerakhir = -1;
 
   /// Sel yang **admin** minta dibetulin — dibangun dari kode sel di
   /// [revisiField]. Kuncinya [kunciSel], sama persis kayak
@@ -3261,6 +3367,18 @@ class LembarKerjaState {
 
       if (kotakPembacaan.text.trim().isEmpty) {
         kotakPembacaan.text = formatAngka(m.pembacaan);
+
+        // Hasil kamera yang belum dicek tetap "perlu dicek" sesudah dimuat dari
+        // server — di HP yang sama pun: Simpan draf online menghapus salinan HP,
+        // dan tanpa ini angka kamera kembali sebagai ketikan biasa.
+        _pulihkanTandaKamera(
+          m,
+          tujuan,
+          tahap,
+          'pembacaan',
+          index,
+          kotakPembacaan.text,
+        );
       }
 
       final suhu = m.suhu;
@@ -3270,6 +3388,9 @@ class LembarKerjaState {
         if (kotakSuhu.text.trim().isEmpty) kotakSuhu.text = formatAngka(suhu);
       }
     }
+
+    // Tanda yang dipulihkan dari baris server: kabari bilah gerbang.
+    if (adaIsianDariFoto) _cekBerubah();
 
     return kebuang;
   }
@@ -3364,7 +3485,17 @@ class LembarKerjaState {
       ts.standardId ??= m.standardId;
 
       final kotak = ts.kotak(t.kunciTabel, t.kolom.first.kode, index);
-      if (kotak.text.trim().isEmpty) kotak.text = formatAngka(m.pembacaan);
+      if (kotak.text.trim().isEmpty) {
+        kotak.text = formatAngka(m.pembacaan);
+        _pulihkanTandaKamera(
+          m,
+          ts,
+          t.kunciTabel,
+          t.kolom.first.kode,
+          index,
+          kotak.text,
+        );
+      }
     }
 
     _pulihkanKotakBarisBernama();
@@ -3549,7 +3680,25 @@ class LembarKerjaState {
 
       final baris = _barisSensorUntuk(_setPointUntuk(g, titikUkur), no);
 
-      _isiKalauKosong(baris.pembacaanCtl[index], m.pembacaan);
+      if (_isiKalauKosong(baris.pembacaanCtl[index], m.pembacaan)) {
+        _pulihkanTandaKameraGrid(
+          m,
+          index,
+          baris.pembacaanCtl[index],
+          baris.dariFoto,
+          baris.cek,
+          baris.bacaanMesin,
+        );
+
+        // Baris server hanya membawa `sensor_ke`: nomor termokopel dari foto
+        // tidak bisa dibedakan dari ketikan. Kalau salah satu pembacaannya
+        // hasil kamera yang belum dicek, nomornya ikut ditandai — nomor yang
+        // salah baca memindahkan SELURUH baris ke termokopel lain.
+        if (m.dariKameraBelumDicek && !baris.noDariFoto) {
+          baris.noDariFoto = true;
+          baris.cek.tandai(BarisSensorState.kunciNoCek, baris.noCtl.text);
+        }
+      }
 
       // Kanal recorder ikut pulih. Tanpa ini sesi Recorder yang dikembalikan
       // bikin teknisi diteriakin "Channel wajib diisi" buat baris yang udah dia
@@ -3573,9 +3722,61 @@ class LembarKerjaState {
     final sp = _setPointUntuk(g, titikUkur);
     final deret = m.peranSensor == 'indikator' ? sp.indikator : sp.suhuRuang;
 
-    _isiKalauKosong(deret.ctl[index], m.pembacaan);
+    if (_isiKalauKosong(deret.ctl[index], m.pembacaan)) {
+      _pulihkanTandaKameraGrid(
+        m,
+        index,
+        deret.ctl[index],
+        deret.dariFoto,
+        deret.cek,
+        deret.bacaanMesin,
+      );
+    }
 
     return true;
+  }
+
+  /// Pulihkan tanda "perlu dicek" sebuah sel TABEL dari baris server
+  /// ([RawMeasurement.dariKameraBelumDicek]): sel ditandai di gerbang, tebakan
+  /// mesinnya dipasang lagi (supaya simpan berikutnya tetap membawa `ocr[]`),
+  /// dan lembar tercatat berisi hasil kamera (`input_method: ocr`).
+  void _pulihkanTandaKamera(
+    RawMeasurement m,
+    TitikState state,
+    String tahap,
+    String kolom,
+    int index,
+    String teks,
+  ) {
+    if (!m.dariKameraBelumDicek) return;
+
+    final kunci = kunciSel(state.titikUkur, tahap, kolom, index);
+    _tandai(kunci, _kunciGerbang(state, tahap, kolom, index), true, teks);
+    bacaanMesinSel[kunci] = BacaanMesin(
+      teksMentah: m.ocrRawText!,
+      keyakinan: m.ocrConfidence,
+    );
+    adaIsianDariFoto = true;
+  }
+
+  /// Idem untuk sel GRID (termokopel / indikator / suhu ruang).
+  void _pulihkanTandaKameraGrid(
+    RawMeasurement m,
+    int index,
+    TextEditingController kotak,
+    Set<int> dariFoto,
+    CatatanCek cek,
+    Map<int, BacaanMesin> bacaanMesin,
+  ) {
+    if (!m.dariKameraBelumDicek) return;
+
+    dariFoto.add(index);
+    cek.tandai('$index', kotak.text);
+    bacaanMesin[index] = BacaanMesin(
+      teksMentah: m.ocrRawText!,
+      keyakinan: m.ocrConfidence,
+    );
+    adaIsianDariFoto = true;
   }
 
   /// Baris termokopel bernomor [no] — yang udah ada, yang masih kosong, atau
@@ -3606,8 +3807,12 @@ class LembarKerjaState {
   /// sebelum detail sesinya nyampe dari jaringan lelet, dan angka yang barusan
   /// diketik ilang di depan mata itu kerusakan yang lebih besar daripada satu
   /// sel yang nggak kepulihkan.
-  static void _isiKalauKosong(TextEditingController kotak, double nilai) {
-    if (kotak.text.trim().isEmpty) kotak.text = formatAngka(nilai);
+  static bool _isiKalauKosong(TextEditingController kotak, double nilai) {
+    if (kotak.text.trim().isNotEmpty) return false;
+
+    kotak.text = formatAngka(nilai);
+
+    return true;
   }
 
   /// Cadangan buat sesi yang dikirim SEBELUM `raw_measurements.standard_id`
@@ -4235,9 +4440,10 @@ class LembarKerjaState {
           .toList(),
       measurements: measurements,
       measurementsGrid: measurementsGrid ?? measurementsPasangan,
-      inputMethod: adaIsianDariFoto ? MetodeInput.ocr : MetodeInput.manual,
+      inputMethod: adaBacaanKamera ? MetodeInput.ocr : MetodeInput.manual,
       alasanKoreksi: alasanKoreksi,
       titikSesi: _payloadTitikSesi(),
+      cekBacaan: ringkasanCekBacaan(),
     );
   }
 
@@ -4374,7 +4580,10 @@ class LembarKerjaState {
       );
     }
 
-    if (terisi > 0) adaIsianDariFoto = true;
+    if (terisi > 0) {
+      adaIsianDariFoto = true;
+      _cekBerubah();
+    }
 
     return terisi;
   }
@@ -4513,7 +4722,10 @@ class LembarKerjaState {
       );
     }
 
-    if (terisi > 0) adaIsianDariFoto = true;
+    if (terisi > 0) {
+      adaIsianDariFoto = true;
+      _cekBerubah();
+    }
 
     return terisi;
   }
@@ -4606,10 +4818,15 @@ class LembarKerjaState {
       if (kotak.text.trim().isNotEmpty) continue;
 
       kotak.text = formatAngka(nilai);
+      isianDariFoto.add(e.key);
+      cekIsian.tandai(e.key, kotak.text);
       terisi++;
     }
 
-    if (terisi > 0) adaIsianDariFoto = true;
+    if (terisi > 0) {
+      adaIsianDariFoto = true;
+      _cekBerubah();
+    }
 
     return terisi;
   }
@@ -4759,7 +4976,10 @@ class LembarKerjaState {
       );
     }
 
-    if (terisi > 0) adaIsianDariFoto = true;
+    if (terisi > 0) {
+      adaIsianDariFoto = true;
+      _cekBerubah();
+    }
 
     return terisi;
   }
@@ -4864,13 +5084,39 @@ class LembarKerjaState {
     }
   }
 
-  void _tandai(String kunci, bool perluDicek) {
+  void _tandai(
+    String kunci,
+    String kunciGerbang,
+    bool perluDicek,
+    String teks,
+  ) {
     if (perluDicek) {
       selRendahKeyakinan.add(kunci);
+      selKamera.add(kunciGerbang);
+      cekTabel.tandai(kunciGerbang, teks);
     } else {
       selRendahKeyakinan.remove(kunci);
+      selKamera.remove(kunciGerbang);
+      cekTabel.lepas(kunciGerbang);
     }
   }
+
+  /// Kunci PETA [titik] milik [state] (pencarian identitas, bukan nilai).
+  double _kunciPeta(TitikState state) {
+    for (final e in titik.entries) {
+      if (identical(e.value, state)) return e.key;
+    }
+
+    return state.titikUkur;
+  }
+
+  /// Identitas gerbang satu sel tabel — lihat [selKamera].
+  String _kunciGerbang(
+    TitikState state,
+    String tahap,
+    String kolom,
+    int index,
+  ) => kunciSel(_kunciPeta(state), tahap, kolom, index);
 
   int _isiSel(
     TitikState state,
@@ -4903,7 +5149,12 @@ class LembarKerjaState {
 
     // Sel yang vonis servernya kuning/merah ditandai; kalau pindai ulang
     // mengisinya dengan vonis bagus, tandanya dilepas.
-    _tandai(kunci, perluDicek);
+    _tandai(
+      kunci,
+      _kunciGerbang(state, tahap, kolom, index),
+      perluDicek,
+      kotak.text,
+    );
 
     // Disimpan TERPISAH dari kotaknya — lihat [bacaanMesinSel] soal kenapa dia
     // harus selamat waktu teknisi mengetik ulang isinya.
@@ -4911,6 +5162,446 @@ class LembarKerjaState {
 
     return 1;
   }
+
+  // ------------------------------------------- gerbang "wajib dicek"
+
+  static const _awalanTabel = 'tabel|';
+  static const _awalanMatriks = 'matriks|';
+  static const _awalanIsian = 'isian|';
+  static const _awalanGrid = 'grid|';
+
+  /// Semua sel hasil kamera yang ADA ISINYA, dengan statusnya. Sel kosong tidak
+  /// ikut: tidak ada angka yang perlu dicek, dan sel kosong tetap kosong.
+  ///
+  /// Satu-satunya sumber untuk panel gerbang, tombol Kirim, ringkasan sebelum
+  /// kirim, dan payload — supaya empat tempat itu tidak bisa berbeda pendapat.
+  List<SelCek> daftarSelCek() {
+    final hasil = <SelCek>[];
+
+    // 1. Isian kolom (header / kondisi ruang) yang dibaca dari foto.
+    for (final kode in isianDariFoto) {
+      final isi = teks[kode]?.text ?? '';
+      final status = cekIsian.status(kode, ditandai: true, teks: isi);
+      if (status == StatusCekSel.tanpaTanda) continue;
+
+      hasil.add(
+        SelCek(
+          kunci: '$_awalanIsian$kode',
+          jenis: JenisSelCek.isian,
+          judul: labelFieldIsian(kode) ?? kode,
+          teks: isi,
+          status: status,
+          // Kolom isian sudah punya sasaran lompat sendiri (kodenya).
+          sasaranLompat: kode,
+          bagianKode: _bagianKolom(kode),
+        ),
+      );
+    }
+
+    // 2. Sel tabel biasa.
+    for (final kunci in selKamera) {
+      final bagian = kunci.split('|');
+      if (bagian.length != 4) continue;
+
+      final kunciPeta = double.tryParse(bagian[0]);
+      final index = int.tryParse(bagian[3]);
+      if (kunciPeta == null || index == null) continue;
+
+      final state = titik[kunciPeta];
+      if (state == null) continue;
+
+      final isi = state.teksKotakJikaAda(bagian[1], bagian[2], index) ?? '';
+      final status = cekTabel.status(kunci, ditandai: true, teks: isi);
+      if (status == StatusCekSel.tanpaTanda) continue;
+
+      final tabel = _tabelDariGerbang(kunciPeta, bagian[1]);
+      final unik = '$_awalanTabel$kunci';
+      hasil.add(
+        SelCek(
+          kunci: unik,
+          jenis: JenisSelCek.tabel,
+          judul: _judulSelTabel(state, tabel, bagian[2]),
+          nomor: index + 1,
+          teks: isi,
+          status: status,
+          sasaranLompat: kodeLompatCek(unik),
+          bagianKode: _bagianTabel(bagian[1], tabel),
+        ),
+      );
+    }
+
+    // 3. Sel matriks (Autoklaf).
+    final bagianMx = bagianMatriks;
+    for (final kunci in matriksDariFoto) {
+      final pisah = kunci.lastIndexOf('#');
+      final waktu = pisah <= 0
+          ? null
+          : int.tryParse(kunci.substring(pisah + 1));
+      if (waktu == null) continue;
+
+      final isi = matriks[kunci]?.text ?? '';
+      final status = cekMatriks.status(kunci, ditandai: true, teks: isi);
+      if (status == StatusCekSel.tanpaTanda) continue;
+
+      final kodeData = kunci.substring(0, pisah);
+      final baris = bagianMx?.matriks?.semuaBaris
+          .where((b) => b.kodeData == kodeData)
+          .firstOrNull;
+      final unik = '$_awalanMatriks$kunci';
+      hasil.add(
+        SelCek(
+          kunci: unik,
+          jenis: JenisSelCek.matriks,
+          judul: baris?.label ?? kodeData,
+          nomor: waktu,
+          teks: isi,
+          status: status,
+          sasaranLompat: kodeLompatCek(unik),
+          bagianKode: bagianMx?.kode,
+        ),
+      );
+    }
+
+    // 4. Grid sensor (Enclosure).
+    final g = grid;
+    if (g != null) {
+      final bagianGrid = bentuk.bagian.where(bentuk.pemilikGrid).firstOrNull;
+
+      for (var p = 0; p < g.setPoint.length; p++) {
+        final sp = g.setPoint[p];
+        // Judul sel grid = nilai set point yang diketik teknisi (data); kata
+        // "Set point" / "Termokopel" disusun di lapisan tampilan lewat l10n.
+        final titikSp = sp.titikCtl.text.trim();
+
+        void deret(
+          String jenisKode,
+          int barisKe,
+          PeranSelGrid peran,
+          CatatanCek catatan,
+          Set<int> dariFoto,
+          List<TextEditingController> ctl,
+        ) {
+          for (final i in dariFoto.toList()..sort()) {
+            if (i < 0 || i >= ctl.length) continue;
+
+            final isi = ctl[i].text;
+            final status = catatan.status('$i', ditandai: true, teks: isi);
+            if (status == StatusCekSel.tanpaTanda) continue;
+
+            final unik = '$_awalanGrid$p|$jenisKode|$barisKe|$i';
+            hasil.add(
+              SelCek(
+                kunci: unik,
+                jenis: JenisSelCek.grid,
+                judul: titikSp,
+                peranGrid: peran,
+                setPoint: p + 1,
+                urutanBaris: peran == PeranSelGrid.termokopel ? barisKe + 1 : null,
+                nomor: i < g.bentuk.pengulangan.length
+                    ? g.bentuk.pengulangan[i]
+                    : i + 1,
+                teks: isi,
+                status: status,
+                sasaranLompat: kodeLompatCek(unik),
+                bagianKode: bagianGrid?.kode,
+              ),
+            );
+          }
+        }
+
+        for (var b = 0; b < sp.sensor.length; b++) {
+          final baris = sp.sensor[b];
+
+          if (baris.noDariFoto) {
+            final isi = baris.noCtl.text;
+            final status = baris.cek.status(
+              BarisSensorState.kunciNoCek,
+              ditandai: true,
+              teks: isi,
+            );
+            if (status != StatusCekSel.tanpaTanda) {
+              final unik = '$_awalanGrid$p|t|$b|${BarisSensorState.kunciNoCek}';
+              hasil.add(
+                SelCek(
+                  kunci: unik,
+                  jenis: JenisSelCek.grid,
+                  judul: titikSp,
+                  peranGrid: PeranSelGrid.nomorTermokopel,
+                  setPoint: p + 1,
+                  urutanBaris: b + 1,
+                  teks: isi,
+                  status: status,
+                  sasaranLompat: kodeLompatCek(unik),
+                  bagianKode: bagianGrid?.kode,
+                ),
+              );
+            }
+          }
+
+          deret(
+            't',
+            b,
+            PeranSelGrid.termokopel,
+            baris.cek,
+            baris.dariFoto,
+            baris.pembacaanCtl,
+          );
+        }
+
+        deret(
+          'i',
+          0,
+          PeranSelGrid.indikator,
+          sp.indikator.cek,
+          sp.indikator.dariFoto,
+          sp.indikator.ctl,
+        );
+        deret(
+          'r',
+          0,
+          PeranSelGrid.suhuRuang,
+          sp.suhuRuang.cek,
+          sp.suhuRuang.dariFoto,
+          sp.suhuRuang.ctl,
+        );
+      }
+    }
+
+    return hasil;
+  }
+
+  /// Tabel yang barisnya berkunci peta [kunciPeta] dan bertahap [tahap] —
+  /// tempat sel gerbang itu sebenarnya duduk (dua tabel boleh berbagi `tahap`,
+  /// tetapi tidak berbagi pasangan kunci-peta + tahap).
+  TabelHasil? _tabelDariGerbang(double kunciPeta, String tahap) {
+    for (final b in bentuk.bagian) {
+      for (final t in b.tabel) {
+        if (t.kunciTabel != tahap) continue;
+
+        final baris = barisTabel(t);
+        for (var i = 0; i < baris.length; i++) {
+          if (kunciBaris(baris, i, t) == kunciPeta) return t;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /// Judul sel tabel di lembar pemeriksa: label baris, ditambah judul tabel
+  /// bila lembarnya punya lebih dari satu tabel (baris yang sama di tabel
+  /// naik dan turun harus bisa dibedakan), dan nama kolom bila bukan
+  /// pembacaan. Semuanya data lembar dari server.
+  String _judulSelTabel(TitikState state, TabelHasil? tabel, String kolom) {
+    final bagian = <String>[state.label];
+
+    final banyakTabel = bentuk.bagian.expand((b) => b.tabel).length > 1;
+    if (banyakTabel && tabel != null && tabel.judul.trim().isNotEmpty) {
+      bagian.add(tabel.judul.trim());
+    }
+
+    if (kolom != 'pembacaan') {
+      final nama = tabel?.kolom.where((k) => k.kode == kolom).firstOrNull;
+      bagian.add(nama?.label ?? kolom);
+    }
+
+    return bagian.join(' · ');
+  }
+
+  String? _bagianTabel(String kunciTabelSel, [TabelHasil? tabel]) {
+    for (final b in bentuk.bagian) {
+      if (tabel != null
+          ? b.tabel.any((t) => identical(t, tabel))
+          : b.tabel.any((t) => t.kunciTabel == kunciTabelSel)) {
+        return b.kode;
+      }
+    }
+
+    return null;
+  }
+
+  String? _bagianKolom(String kode) {
+    for (final b in bentuk.bagian) {
+      if (b.field.any((f) => f.kode == kode)) return b.kode;
+    }
+
+    return null;
+  }
+
+  /// Status gerbang untuk payload ([LembarKerjaSubmission.cekBacaan]); `null`
+  /// kalau lembar ini tidak punya sel hasil kamera.
+  Map<String, dynamic>? ringkasanCekBacaan() {
+    final semua = daftarSelCek();
+    if (semua.isEmpty) return null;
+
+    return {
+      'perlu_cek': [
+        for (final s in semua)
+          if (s.status == StatusCekSel.perluCek) s.kunci,
+      ],
+      'sudah_dicek': [
+        for (final s in semua)
+          if (s.status == StatusCekSel.sudahDicek) s.kunci,
+      ],
+    };
+  }
+
+  /// Berapa sel hasil kamera yang BELUM dicek teknisi. Selama > 0, "Kirim
+  /// final" ditahan (draf tetap boleh disimpan).
+  int get jumlahPerluCek =>
+      daftarSelCek().where((s) => s.status == StatusCekSel.perluCek).length;
+
+  /// Sel yang perlu dicek sesudah [setelah] (urutan lembar, memutar ke awal);
+  /// tanpa [setelah], yang pertama. `null` = semuanya sudah dicek.
+  SelCek? selCekBerikutnya({String? setelah}) {
+    final semua = daftarSelCek();
+    if (semua.isEmpty) return null;
+
+    final mulai = setelah == null
+        ? 0
+        : (semua.indexWhere((s) => s.kunci == setelah) + 1) % semua.length;
+
+    for (var n = 0; n < semua.length; n++) {
+      final sel = semua[(mulai + n) % semua.length];
+      if (sel.status == StatusCekSel.perluCek) return sel;
+    }
+
+    return null;
+  }
+
+  /// Teknisi menekan konfirmasi pada SATU sel ([kunciUnik] = [SelCek.kunci]).
+  /// Hanya sel yang memang sedang "perlu dicek" yang berubah; tidak ada
+  /// jalan untuk mengonfirmasi banyak sel sekaligus. `true` = berubah.
+  bool konfirmasiSelCek(String kunciUnik) {
+    final sel = daftarSelCek().where((s) => s.kunci == kunciUnik).firstOrNull;
+    if (sel == null || sel.status != StatusCekSel.perluCek) return false;
+
+    if (kunciUnik.startsWith(_awalanTabel)) {
+      cekTabel.konfirmasi(kunciUnik.substring(_awalanTabel.length));
+    } else if (kunciUnik.startsWith(_awalanMatriks)) {
+      cekMatriks.konfirmasi(kunciUnik.substring(_awalanMatriks.length));
+    } else if (kunciUnik.startsWith(_awalanIsian)) {
+      cekIsian.konfirmasi(kunciUnik.substring(_awalanIsian.length));
+    } else if (kunciUnik.startsWith(_awalanGrid)) {
+      final bagian = kunciUnik.split('|');
+      final g = grid;
+      if (bagian.length != 5 || g == null) return false;
+
+      final p = int.tryParse(bagian[1]);
+      final b = int.tryParse(bagian[3]);
+      if (p == null || b == null || p < 0 || p >= g.setPoint.length) {
+        return false;
+      }
+
+      final sp = g.setPoint[p];
+      final CatatanCek? catatan = switch (bagian[2]) {
+        't' => b >= 0 && b < sp.sensor.length ? sp.sensor[b].cek : null,
+        'i' => sp.indikator.cek,
+        'r' => sp.suhuRuang.cek,
+        _ => null,
+      };
+      if (catatan == null) return false;
+
+      catatan.konfirmasi(bagian[4]);
+    } else {
+      return false;
+    }
+
+    _cekBerubah();
+
+    return true;
+  }
+
+  /// Beri tahu pendengar (panel gerbang, tombol Kirim) bahwa status berubah.
+  void _cekBerubah() {
+    _perluCekTerakhir = jumlahPerluCek;
+    revisiCek.value++;
+  }
+
+  /// Dipanggil tiap ketukan di kotak isian: menggeser pendengar hanya kalau
+  /// jumlah sel yang masih perlu dicek benar-benar berubah.
+  void segarkanCek() {
+    if (selKamera.isEmpty &&
+        matriksDariFoto.isEmpty &&
+        isianDariFoto.isEmpty &&
+        grid == null) {
+      return;
+    }
+
+    final n = jumlahPerluCek;
+    if (n == _perluCekTerakhir) return;
+
+    _perluCekTerakhir = n;
+    revisiCek.value++;
+  }
+
+  /// Pemantau reaktif untuk satu sel tabel, atau `null` kalau sel itu bukan
+  /// hasil kamera.
+  ///
+  /// [kunciPeta] = kunci peta [titik] (yang dipakai widget tabel lewat
+  /// [kunciBaris]), BUKAN `titikUkur`.
+  PemantauCek? pemantauCekTabel(
+    double kunciPeta,
+    String tahap,
+    String kolom,
+    int index,
+  ) {
+    final kunci = kunciSel(kunciPeta, tahap, kolom, index);
+    if (!selKamera.contains(kunci)) return null;
+
+    final state = titik[kunciPeta];
+    if (state == null) return null;
+
+    return PemantauCek(
+      controller: state.kotak(tahap, kolom, index),
+      catatan: cekTabel,
+      kunci: kunci,
+      sasaranLompat: kodeLompatCek('$_awalanTabel$kunci'),
+    );
+  }
+
+  /// Idem, untuk widget yang memegang [TitikState]-nya langsung (kartu per
+  /// baris) dan bukan kunci petanya.
+  PemantauCek? pemantauCekState(
+    TitikState state,
+    String tahap,
+    String kolom,
+    int index,
+  ) => pemantauCekTabel(_kunciPeta(state), tahap, kolom, index);
+
+  /// Idem untuk satu sel matriks.
+  PemantauCek? pemantauCekMatriks(String kodeData, int titikWaktu) {
+    final kunci = kunciMatriks(kodeData, titikWaktu);
+    if (!matriksDariFoto.contains(kunci)) return null;
+
+    return PemantauCek(
+      controller: kotakMatriks(kodeData, titikWaktu),
+      catatan: cekMatriks,
+      kunci: kunci,
+      sasaranLompat: kodeLompatCek('$_awalanMatriks$kunci'),
+    );
+  }
+
+  /// Idem untuk satu kolom isian.
+  PemantauCek? pemantauCekIsian(String kode) {
+    final kotak = teks[kode];
+    if (!isianDariFoto.contains(kode) || kotak == null) return null;
+
+    return PemantauCek(
+      controller: kotak,
+      catatan: cekIsian,
+      kunci: kode,
+      sasaranLompat: kode,
+    );
+  }
+
+  /// Kode lompat sel grid — format yang sama dengan [daftarSelCek].
+  static String kodeLompatGrid(
+    int setPoint,
+    String jenisKode,
+    int baris,
+    Object kunciCatatan,
+  ) => kodeLompatCek('$_awalanGrid$setPoint|$jenisKode|$baris|$kunciCatatan');
 
   /// Isi kolom yang ditandai `sumber: otomatis` di formulir. Kode-nya bertitik
   /// (`equipment.merk`), jadi nggak pernah jadi kunci payload — murni tampilan.
@@ -5175,6 +5866,7 @@ class LembarKerjaState {
 
       final kunci = kunciMatriks(b.kodeData, s.repeatNo);
       matriksDariFoto.add(kunci);
+      cekMatriks.tandai(kunci, kotak.text);
       // Teks APA ADANYA, bukan `nilai` yang sudah jadi angka.
       bacaanMesinMatriks[kunci] = BacaanMesin(
         teksMentah: s.teks,
@@ -5183,7 +5875,10 @@ class LembarKerjaState {
       terisi++;
     }
 
-    if (terisi > 0) adaIsianDariFoto = true;
+    if (terisi > 0) {
+      adaIsianDariFoto = true;
+      _cekBerubah();
+    }
 
     return terisi;
   }
@@ -5563,7 +6258,11 @@ class LembarKerjaState {
             keyakinan: (j['confidence'] as num?)?.toDouble(),
           ),
         );
-        matriksDariFoto.add(kunci);
+        // Hanya yang BARU ditandai: salinan HP yang sudah memulihkan penanda
+        // (dan catatan cek-nya) tidak boleh dikembalikan ke "perlu dicek".
+        if (matriksDariFoto.add(kunci)) {
+          cekMatriks.tandai(kunci, matriks[kunci]?.text ?? '');
+        }
       }
     }
   }
@@ -5615,10 +6314,12 @@ class LembarKerjaState {
       List<TextEditingController> ctl,
       Set<int> dariFoto,
       Map<int, BacaanMesin> mesin,
+      CatatanCek cek,
     ) => {
       'nilai': [for (final c in ctl) c.text],
       'dari_foto': [...dariFoto],
       'mesin': {for (final e in mesin.entries) '${e.key}': bacaan(e.value)},
+      'cek': cek.toJson(),
     };
 
     final g = grid;
@@ -5667,6 +6368,15 @@ class LembarKerjaState {
         for (final e in bacaanMesinMatriks.entries) e.key: bacaan(e.value),
       },
       'sel_rendah_keyakinan': [...selRendahKeyakinan],
+      // Gerbang "wajib dicek": tanpa ini tanda hilang waktu draf dimuat ulang
+      // atau diantrekan offline, dan sel kamera lolos tanpa dicek.
+      'cek_bacaan': {
+        'tabel': cekTabel.toJson(),
+        'matriks': cekMatriks.toJson(),
+        'isian': cekIsian.toJson(),
+        'isian_dari_foto': [...isianDariFoto],
+        'sel_kamera': [...selKamera],
+      },
       'bacaan_mesin_sel': {
         for (final e in bacaanMesinSel.entries) e.key: bacaan(e.value),
       },
@@ -5694,18 +6404,25 @@ class LembarKerjaState {
                         'no': s.noCtl.text,
                         'channel': s.channelCtl.text,
                         'no_dari_foto': s.noDariFoto,
-                        ...deret(s.pembacaanCtl, s.dariFoto, s.bacaanMesin),
+                        ...deret(
+                          s.pembacaanCtl,
+                          s.dariFoto,
+                          s.bacaanMesin,
+                          s.cek,
+                        ),
                       },
                   ],
                   'indikator': deret(
                     sp.indikator.ctl,
                     sp.indikator.dariFoto,
                     sp.indikator.bacaanMesin,
+                    sp.indikator.cek,
                   ),
                   'suhu_ruang': deret(
                     sp.suhuRuang.ctl,
                     sp.suhuRuang.dariFoto,
                     sp.suhuRuang.bacaanMesin,
+                    sp.suhuRuang.cek,
                   ),
                 },
             ],
@@ -5895,6 +6612,49 @@ class LembarKerjaState {
           '${e.key}': ?bacaan(e.value),
       });
 
+    // Catatan gerbang "wajib dicek". Salinan lama (sebelum gerbang ada) tidak
+    // punya blok ini: penanda kamera-nya tetap pulih, dan tanpa catatan isi
+    // awal sel-sel itu kembali "perlu dicek" — arah yang aman.
+    final cekBacaan = s['cek_bacaan'];
+    final cekMap = cekBacaan is Map ? cekBacaan : const {};
+    cekTabel.pulihkan(cekMap['tabel']);
+    cekMatriks.pulihkan(cekMap['matriks']);
+    cekIsian.pulihkan(cekMap['isian']);
+    isianDariFoto
+      ..clear()
+      ..addAll([
+        for (final k in (cekMap['isian_dari_foto'] as List? ?? [])) '$k',
+      ]);
+    selKamera.clear();
+    if (cekMap['sel_kamera'] case final List<dynamic> daftar) {
+      selKamera.addAll([for (final k in daftar) '$k']);
+      // Isi sel di atas sudah dipindah lewat `petaKunciDraf` (titik sesi yang
+      // berubah sejak salinan ditulis); catatannya ikut pindah.
+      _petakanUlangGerbang(petaKunciDraf);
+    } else {
+      // Salinan sebelum identitas gerbang berkunci-peta: kunci lamanya
+      // `titikUkur|tahap|kolom|index` bisa menunjuk lebih dari satu baris.
+      // Semua baris yang cocok dan MASIH berisi ikut ditandai (arah aman:
+      // lebih banyak dicek, bukan lebih sedikit).
+      for (final kunci in selRendahKeyakinan) {
+        final b = kunci.split('|');
+        if (b.length != 4) continue;
+
+        final tu = double.tryParse(b[0]);
+        final index = int.tryParse(b[3]);
+        if (tu == null || index == null) continue;
+
+        for (final e in titik.entries) {
+          if (e.key != tu && !_titikSama(e.value.titikUkur, tu)) continue;
+
+          final isi = e.value.teksKotakJikaAda(b[1], b[2], index);
+          if (isi == null || isi.trim().isEmpty) continue;
+
+          selKamera.add(kunciSel(e.key, b[1], b[2], index));
+        }
+      }
+    }
+
     // 6. Usage check.
     for (final u in usageCheck.values) {
       u.dipakai = false;
@@ -5923,8 +6683,10 @@ class LembarKerjaState {
         List<TextEditingController> ctl,
         Set<int> dariFoto,
         Map<int, BacaanMesin> mesin,
+        CatatanCek cek,
       ) {
         if (j is! Map) return;
+        cek.pulihkan(j['cek']);
         final nilai = j['nilai'] as List? ?? const [];
         for (var i = 0; i < ctl.length && i < nilai.length; i++) {
           ctl[i].text = '${nilai[i] ?? ''}';
@@ -5955,7 +6717,13 @@ class LembarKerjaState {
           baris.noCtl.text = '${js['no'] ?? ''}';
           baris.channelCtl.text = '${js['channel'] ?? ''}';
           baris.noDariFoto = js['no_dari_foto'] == true;
-          isiDeret(js, baris.pembacaanCtl, baris.dariFoto, baris.bacaanMesin);
+          isiDeret(
+            js,
+            baris.pembacaanCtl,
+            baris.dariFoto,
+            baris.bacaanMesin,
+            baris.cek,
+          );
         }
 
         isiDeret(
@@ -5963,12 +6731,14 @@ class LembarKerjaState {
           sp.indikator.ctl,
           sp.indikator.dariFoto,
           sp.indikator.bacaanMesin,
+          sp.indikator.cek,
         );
         isiDeret(
           j['suhu_ruang'],
           sp.suhuRuang.ctl,
           sp.suhuRuang.dariFoto,
           sp.suhuRuang.bacaanMesin,
+          sp.suhuRuang.cek,
         );
 
         g.setPoint.add(sp);
@@ -5993,6 +6763,10 @@ class LembarKerjaState {
       (grid?.setPoint.any((sp) => !sp.kosongSemua) ?? false);
 
   void dispose() {
+    cekTabel.dispose();
+    cekMatriks.dispose();
+    cekIsian.dispose();
+    revisiCek.dispose();
     for (final c in teks.values) {
       c.dispose();
     }

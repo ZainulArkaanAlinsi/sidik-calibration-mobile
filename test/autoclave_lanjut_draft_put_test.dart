@@ -211,13 +211,15 @@ void main() {
     );
 
     // Sel bertebakan ditandai "dari foto" lagi (penanda & tebakan selalu
-    // lahir bersamaan di jalur foto).
+    // lahir bersamaan di jalur foto). Sejak gerbang "wajib dicek" penandanya
+    // `cek` (pemantau status), bukan lagi bendera `dariFoto`; sel yang diketik
+    // tangan tidak punya pemantau.
     final sel = tester.widget(find.byKey(const Key('matriks_suhu.disk.0_1')));
-    expect((sel as dynamic).dariFoto, isTrue);
+    expect((sel as dynamic).cek, isNotNull);
     final selKetik = tester.widget(
       find.byKey(const Key('matriks_suhu.disk.1_1')),
     );
-    expect((selKetik as dynamic).dariFoto, isFalse);
+    expect((selKetik as dynamic).cek, isNull);
 
     await pilihAlatLaluSimpanDraft(tester);
 

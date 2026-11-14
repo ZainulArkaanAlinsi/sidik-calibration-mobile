@@ -44,8 +44,13 @@ abstract class HistoryService {
   /// teknisi nggak punya cara mbuka. Ketemu 7 Agt 2026 waktu sesi Refractometer
   /// pertama dari foto mentok di antrean.
   ///
-  /// Sengaja verifikasi SEMUA sekaligus (tanpa `measurement_ids`): yang dicek
-  /// teknisi itu tabelnya, bukan sel satu per satu.
+  /// Bentuk MASSAL (tanpa `measurement_ids`): menandai semua yang belum dicek.
+  ///
+  /// **Jangan dipakai dari layar lembar kerja.** Sejak gerbang "wajib dicek",
+  /// kirim final ditahan sampai tiap sel hasil kamera dicek satu per satu, dan
+  /// yang dikonfirmasi ke server adalah daftar id baris yang eksplisit lewat
+  /// `VerifikasiSelService`. Bentuk massal ini tinggal dipakai tombol pemulihan
+  /// di layar detail sesi (sesi lama / konfirmasi yang gagal).
   Future<CalibrationDetail> verifikasiPembacaan(String token, int id);
 }
 

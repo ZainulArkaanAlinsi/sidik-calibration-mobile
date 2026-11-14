@@ -101,6 +101,8 @@ class RawMeasurement {
     this.peranSensor,
     this.channel,
     this.satuan,
+    this.ocrRawText,
+    this.ocrConfidence,
   });
 
   final int id;
@@ -184,6 +186,17 @@ class RawMeasurement {
   /// `manual` / `ocr`.
   final String inputSource;
 
+  /// Teks APA ADANYA yang dibaca mesin untuk baris ini (`ocr_raw_text`), dan
+  /// skornya. Null = baris ini bukan hasil kamera, atau server lama yang tidak
+  /// mengirimnya. Dipakai memulihkan tanda "perlu dicek" waktu draf dimuat
+  /// dari server.
+  final String? ocrRawText;
+  final double? ocrConfidence;
+
+  /// Hasil kamera yang BELUM dikonfirmasi teknisi — penanda yang sama dipakai
+  /// server (`is_verified=false` + `ocr_raw_text`) untuk menahan approve.
+  bool get dariKameraBelumDicek => !isVerified && ocrRawText != null;
+
   /// Pembacaan hasil OCR yang belum dikonfirmasi teknisi — sesi nggak bisa
   /// di-approve selama masih ada yang `false` (`CalibrationController::approve()`).
   final bool isVerified;
@@ -226,6 +239,10 @@ class RawMeasurement {
       channel: (json['channel'] as num?)?.toInt(),
       inputSource: json['input_source'] as String? ?? 'manual',
       isVerified: json['is_verified'] as bool? ?? true,
+      ocrRawText: json['ocr_raw_text'] is String
+          ? json['ocr_raw_text'] as String
+          : null,
+      ocrConfidence: _angkaLuwes(json['ocr_confidence']),
     );
   }
 }

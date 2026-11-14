@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:sidik_calibration/l10n/app_localizations.dart';
 import 'package:sidik_calibration/models/calibration_detail.dart';
+import 'package:sidik_calibration/models/calibration_history_item.dart'
+    show CalibrationStatus;
 import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/history_provider.dart';
 import 'package:sidik_calibration/screens/history/calibration_detail_screen.dart';
@@ -23,7 +25,10 @@ import 'package:sidik_calibration/services/token_storage.dart';
 /// tombolnya BENERAN nembak endpoint-nya. Tombol yang cuma nyembunyiin
 /// peringatan justru lebih berbahaya daripada nggak ada tombol sama sekali.
 class _ServiceUjiVerifikasi extends MockHistoryService {
-  _ServiceUjiVerifikasi();
+  _ServiceUjiVerifikasi({this.status});
+
+  /// `null` = status bawaan sesi mock.
+  final CalibrationStatus? status;
 
   @override
   Future<CalibrationDetail> ambilDetail(String token, int id) async {
@@ -32,7 +37,7 @@ class _ServiceUjiVerifikasi extends MockHistoryService {
     return CalibrationDetail(
       id: asli.id,
       namaAlat: asli.namaAlat,
-      status: asli.status,
+      status: status ?? asli.status,
       tanggalKalibrasi: asli.tanggalKalibrasi,
       namaTeknisi: asli.namaTeknisi,
       perluVerifikasi: diverifikasi.isEmpty,
@@ -48,7 +53,9 @@ void main() {
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
 
-    final service = _ServiceUjiVerifikasi();
+    final service = _ServiceUjiVerifikasi(
+      status: CalibrationStatus.menungguApproval,
+    );
 
     await tester.pumpWidget(
       ProviderScope(
@@ -80,5 +87,42 @@ void main() {
       contains(1),
       reason: 'tombolnya nggak manggil verify — admin bakal keblokir terus',
     );
+  });
+
+  testWidgets('status DRAFT: tombol massal disembunyikan, diganti petunjuk '
+      'ke lembar kerja', (tester) async {
+    tester.view.physicalSize = const Size(1200, 2600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final service = _ServiceUjiVerifikasi(status: CalibrationStatus.draft);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          tokenStorageProvider.overrideWithValue(
+            InMemoryTokenStorage('token-uji'),
+          ),
+          historyServiceProvider.overrideWithValue(service),
+        ],
+        child: MaterialApp(
+          locale: const Locale('id'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const CalibrationDetailScreen(calibrationId: 1),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Peringatan tetap tampil, tapi konfirmasi massal melewati gerbang "wajib
+    // dicek" di draf: tidak boleh ada tombolnya.
+    expect(find.textContaining('belum dikonfirmasi'), findsOneWidget);
+    expect(find.text('Saya sudah cek angkanya'), findsNothing);
+    expect(
+      find.byKey(const ValueKey('detail-verifikasi-lewat-lembar')),
+      findsOneWidget,
+    );
+    expect(service.diverifikasi, isEmpty);
   });
 }

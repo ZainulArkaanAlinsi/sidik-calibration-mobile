@@ -17,8 +17,10 @@ import '../../services/analisis_dokumen.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_text_field.dart';
 import '../../widgets/sidik_loader.dart';
+import 'cek_bacaan_kamera.dart';
 import 'peta_kolom_screen.dart';
 import 'skema_dinamis_screen.dart';
+import 'widgets/tanda_cek_sel.dart';
 
 /// Form input kalibrasi — kategori → alat → standar acuan, lalu titik ukur
 /// (target + pembacaan berulang) yang dinamis. Nggak nyoba nyaingin worksheet
@@ -26,7 +28,17 @@ import 'skema_dinamis_screen.dart';
 /// **backend yang ngitung GUM & keputusan PASS/FAIL** — sesuai
 /// `docs/kontrak-api.md` §4.
 class CalibrationInputScreen extends ConsumerWidget {
-  const CalibrationInputScreen({super.key, this.kategoriAwal});
+  const CalibrationInputScreen({
+    super.key,
+    this.kategoriAwal,
+    this.petaFotoUji,
+  });
+
+  /// HANYA untuk test: hasil "Baca dari foto" yang sudah dipetakan, langsung
+  /// dituang ke form seolah teknisi baru menyelesaikan alurnya. Jalur kamera
+  /// aslinya (ML Kit + dua layar koreksi) tidak bisa dijalankan di test, padahal
+  /// yang perlu dibuktikan adalah gerbang "wajib dicek" sesudahnya.
+  final PetaKolomTerpakai? petaFotoUji;
 
   /// Kode kategori yang udah dipilih dari [CategoryPickerScreen] /
   /// [InstrumentPickerScreen] — kalau ada, dropdown Kategori di bawah
@@ -45,7 +57,12 @@ class CalibrationInputScreen extends ConsumerWidget {
 
     final Widget isi;
     if (kategori != null && standar != null) {
-      isi = _Form(kategoriList: kategori, standarList: standar, kategoriAwal: kategoriAwal);
+      isi = _Form(
+        kategoriList: kategori,
+        standarList: standar,
+        kategoriAwal: kategoriAwal,
+        petaFotoUji: petaFotoUji,
+      );
     } else if (kategoriAsync.hasError || standarAsync.hasError) {
       isi = _Gagal(
         onCobaLagi: () {
@@ -111,22 +128,69 @@ class _Titik {
     TextEditingController(),
   ];
 
+  /// Gerbang "wajib dicek": kotak yang isinya datang dari FOTO (kunci `target`
+  /// untuk nilai acuan, `0`, `1`, ... untuk pembacaan). Angka kamera tidak
+  /// boleh masuk kiriman final sebelum teknisi mengecek tiap kotaknya — aturan
+  /// yang sama dengan layar lembar kerja (`cek_bacaan_kamera.dart`).
+  final CatatanCek cek = CatatanCek();
+  final Set<String> dariFoto = {};
+  static const kunciTarget = 'target';
+
+  /// Tandai nilai acuan (sudah diisi dari foto) sebagai hasil kamera.
+  void tandaiTarget() {
+    if (nilaiTarget.text.trim().isEmpty) return;
+
+    dariFoto.add(kunciTarget);
+    cek.tandai(kunciTarget, nilaiTarget.text);
+  }
+
+  /// Pemantau tanda untuk kotak [kunci], atau `null` kalau bukan hasil kamera.
+  PemantauCek? pemantau(String kunci) {
+    if (!dariFoto.contains(kunci)) return null;
+
+    final kotak = kunci == kunciTarget
+        ? nilaiTarget
+        : pembacaan[int.parse(kunci)];
+
+    return PemantauCek(
+      controller: kotak,
+      catatan: cek,
+      kunci: kunci,
+      sasaranLompat: kodeLompatCek(kunci),
+    );
+  }
+
+  /// Berapa kotak hasil kamera yang belum dicek.
+  int get jumlahPerluCek => [
+    for (final k in dariFoto) pemantau(k)?.status,
+  ].where((st) => st == StatusCekSel.perluCek).length;
+
+  /// Semua yang mengubah status — buat membangun ulang tombol Kirim.
+  Listenable get dengarkan =>
+      Listenable.merge([cek, nilaiTarget, ...pembacaan]);
+
   /// Isi pembacaan dari kertas, menumbuhkan kotaknya kalau pengulangannya
   /// lebih banyak dari dua bawaan.
   ///
   /// Yang lebih dari kotak yang ada NGGAK boleh dibuang: pengulangan ke-5 yang
   /// hilang bikin sebaran Type A dihitung dari empat angka padahal kertasnya
   /// punya lima, dan hasilnya beda tanpa ada yang kelihatan salah.
-  void isiPembacaan(List<String> nilai) {
+  void isiPembacaan(List<String> nilai, {bool dariKamera = false}) {
     while (pembacaan.length < nilai.length) {
       pembacaan.add(TextEditingController());
     }
     for (var i = 0; i < nilai.length; i++) {
       pembacaan[i].text = nilai[i];
+
+      if (dariKamera && nilai[i].trim().isNotEmpty) {
+        dariFoto.add('$i');
+        cek.tandai('$i', pembacaan[i].text);
+      }
     }
   }
 
   void dispose() {
+    cek.dispose();
     nilaiTarget.dispose();
     satuan.dispose();
     for (final c in pembacaan) {
@@ -135,12 +199,23 @@ class _Titik {
   }
 }
 
+/// Alias publik untuk test gerbang "wajib dicek" (`_Titik` dan
+/// `_KotakDenganCek` privat; jalur foto aslinya butuh kamera).
+typedef TitikInput = _Titik;
+typedef KotakDenganCekInput = _KotakDenganCek;
+
 class _Form extends ConsumerStatefulWidget {
-  const _Form({required this.kategoriList, required this.standarList, this.kategoriAwal});
+  const _Form({
+    required this.kategoriList,
+    required this.standarList,
+    this.kategoriAwal,
+    this.petaFotoUji,
+  });
 
   final List<Category> kategoriList;
   final List<Standard> standarList;
   final String? kategoriAwal;
+  final PetaKolomTerpakai? petaFotoUji;
 
   @override
   ConsumerState<_Form> createState() => _FormState();
@@ -160,6 +235,8 @@ class _FormState extends ConsumerState<_Form> {
   void initState() {
     super.initState();
     _kategori = widget.kategoriAwal;
+
+    if (widget.petaFotoUji case final peta?) _terapkanPeta(peta);
   }
 
   /// Di-generate SEKALI waktu layar dibuka — lihat komentar yang sama di
@@ -340,21 +417,22 @@ class _FormState extends ConsumerState<_Form> {
   /// MENGGANTI, bukan menambah: yang ada sebelumnya baris kosong bawaan layar,
   /// dan menyisakannya bikin submit ditolak karena ada titik tanpa nilai —
   /// dengan pesan yang nunjuk ke isian kosong, bukan ke fotonya.
-  void _isiTitik(PetaKolomTerpakai peta) {
-    setState(() {
-      for (final t in _titikList) {
-        t.dispose();
-      }
-      _titikList
-        ..clear()
-        ..addAll([
-          for (final d in peta.titik)
-            _Titik()
-              ..nilaiTarget.text = d.nilaiAcuan
-              ..satuan.text = peta.satuan
-              ..isiPembacaan(d.pembacaan),
-        ]);
-    });
+  void _isiTitik(PetaKolomTerpakai peta) => setState(() => _terapkanPeta(peta));
+
+  void _terapkanPeta(PetaKolomTerpakai peta) {
+    for (final t in _titikList) {
+      t.dispose();
+    }
+    _titikList
+      ..clear()
+      ..addAll([
+        for (final d in peta.titik)
+          _Titik()
+            ..nilaiTarget.text = d.nilaiAcuan
+            ..satuan.text = peta.satuan
+            ..isiPembacaan(d.pembacaan, dariKamera: true)
+            ..tandaiTarget(),
+      ]);
   }
 
   double? _parse(String text) => double.tryParse(text.trim().replaceAll(',', '.'));
@@ -392,6 +470,22 @@ class _FormState extends ConsumerState<_Form> {
         ),
       );
       return;
+    }
+
+    // Gerbang "wajib dicek": angka dari foto harus dicek teknisi satu per satu
+    // sebelum kirim final. Draf tidak ditahan.
+    if (!draft) {
+      final belumDicek = _titikList.fold<int>(
+        0,
+        (jumlah, t) => jumlah + t.jumlahPerluCek,
+      );
+
+      if (belumDicek > 0) {
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.cekKirimDitahan(belumDicek))),
+        );
+        return;
+      }
     }
 
     // Mulai dari sini penjagaannya BERSYARAT — dan `draft` yang jadi syaratnya.
@@ -715,10 +809,40 @@ class _FormState extends ConsumerState<_Form> {
         ),
         const SizedBox(height: AppSpacing.xl),
 
-        AppButton(
-          label: l10n.calibKirimApproval,
-          isLoading: _mengirim,
-          onPressed: _mengirim ? null : () => _submit(draft: false),
+        ListenableBuilder(
+          listenable: Listenable.merge([for (final t in _titikList) t.dengarkan]),
+          builder: (context, _) {
+            final belumDicek = _titikList.fold<int>(
+              0,
+              (jumlah, t) => jumlah + t.jumlahPerluCek,
+            );
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (belumDicek > 0) ...[
+                  Text(
+                    l10n.cekPanelTahan(belumDicek),
+                    key: const ValueKey('input-cek-jumlah'),
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                  Text(
+                    l10n.cekPanelAlasan,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                ],
+                AppButton(
+                  label: l10n.calibKirimApproval,
+                  isLoading: _mengirim,
+                  // Mati selama ada angka kamera yang belum dicek.
+                  onPressed: (_mengirim || belumDicek > 0)
+                      ? null
+                      : () => _submit(draft: false),
+                ),
+              ],
+            );
+          },
         ),
         const SizedBox(height: AppSpacing.sm),
         AppButton(
@@ -782,9 +906,13 @@ class _TitikCard extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: AppTextField.measurement(
-                    label: l10n.calibNilaiTarget,
-                    controller: titik.nilaiTarget,
+                  child: _KotakDenganCek(
+                    titik: titik,
+                    kunci: _Titik.kunciTarget,
+                    kotak: AppTextField.measurement(
+                      label: l10n.calibNilaiTarget,
+                      controller: titik.nilaiTarget,
+                    ),
                   ),
                 ),
                 const SizedBox(width: AppSpacing.md),
@@ -801,9 +929,13 @@ class _TitikCard extends StatelessWidget {
             for (var i = 0; i < titik.pembacaan.length; i++) ...[
               Padding(
                 padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                child: AppTextField.measurement(
-                  label: l10n.calibPembacaan(i + 1),
-                  controller: titik.pembacaan[i],
+                child: _KotakDenganCek(
+                  titik: titik,
+                  kunci: '$i',
+                  kotak: AppTextField.measurement(
+                    label: l10n.calibPembacaan(i + 1),
+                    controller: titik.pembacaan[i],
+                  ),
                 ),
               ),
             ],
@@ -814,6 +946,38 @@ class _TitikCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Satu kotak angka di kartu titik. Kalau isinya datang dari foto: lencana
+/// ikon + kata "Perlu dicek" dan tombol 48 dp untuk mengonfirmasi kotak INI
+/// saja (mengubah angkanya juga dihitung dicek). Kotak biasa lewat apa adanya.
+class _KotakDenganCek extends StatelessWidget {
+  const _KotakDenganCek({
+    required this.titik,
+    required this.kunci,
+    required this.kotak,
+  });
+
+  final _Titik titik;
+  final String kunci;
+  final Widget kotak;
+
+  @override
+  Widget build(BuildContext context) {
+    final pemantau = titik.pemantau(kunci);
+    if (pemantau == null) return kotak;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        LapisCekSel(cek: pemantau, bangun: (context, status) => kotak),
+        BarisCekIsian(
+          cek: pemantau,
+          onKonfirmasi: () => titik.cek.konfirmasi(kunci),
+        ),
+      ],
     );
   }
 }
