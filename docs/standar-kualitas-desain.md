@@ -246,10 +246,90 @@ perbarui lewat jalur `golden-baru.yml`, jangan `--update-goldens` di Windows.
 ## 8. Status migrasi
 
 - Paket 0 (gerbang): ada. Paket 1 (fondasi token, nilai baru di bawah nama lama): ada.
-- Berikutnya: komponen bersama (stempel status satu sumber, baris daftar, bilah
-  aksi, panel bacaan angka), rangka dan navigasi, layar daftar satu per satu,
-  lembar kerja.
+- Paket 2 (komponen bersama, bagian 9): ada, belum dipakai layar mana pun.
+- Berikutnya: rangka dan navigasi, layar daftar satu per satu, lembar kerja.
 - Yang masih memakai nilai lama sampai paketnya tiba: label HURUF BESAR
   (`toUpperCase`) di layar, ukuran huruf literal < 12 dan radius literal di
   layar (tercatat di baseline), dua sistem status (`StatusBadge` dan
   `StatusSidik`), skala huruf tablet yang lebih besar.
+
+## 9. Komponen bersama (Paket 2)
+
+Berkas baru di `lib/widgets/sidik/`, belum dipakai layar mana pun: Paket 3 sampai
+5 menyambungkannya per layar. Semuanya dari token (`lib/core/theme/`:
+`ukuran_komponen.dart` untuk ukuran, `warna_lajur.dart` untuk warna Lajur), tanpa
+paket atau font baru.
+
+| Berkas | Komponen | Menggantikan |
+|---|---|---|
+| `status_tampil.dart`, `stempel.dart` | `StatusTampil` (SATU pemetaan kode atau jadwal ke kata, nada, ikon) dan `Stempel` (persegi sudut 4, ikon + kata; draf bergaris tepi tanpa isi; `tenang` tanpa latar) | `StatusBadge` dan `StatusSidik`/`SidikLencana` |
+| `baris_daftar.dart` | `BarisDaftar`: baris tanpa kartu, min 64 dp, pemisah garis halus, stempel di kanan (di bawah teks bila < 360 dp atau huruf > 1,15x) | kartu seragam di daftar |
+| `tombol_utama.dart`, `bilah_aksi.dart` | `TombolUtama` (56 dp, alasan di atasnya saat mati) dan `BilahAksi` (utama 56 + sekunder 48; berdampingan 88 dp bila satu sekunder, >= 360 dp, huruf <= 1,15x, selain itu bertumpuk 144 dp; maks 560 dp) | tombol penuh lebar bertumpuk |
+| `skala_tempo.dart` | `SkalaTempo`: batang berpenggaris (tik per 30 hari), tik jadwal, penanda hari ini, kata; batang HANYA untuk Segera (<= 30 hari), Lewat jadwal, dan detail alat | baris "Lewat 4 hari" |
+| `skala_sel.dart` | `SkalaSel`: satu tik per sel (dikelompokkan di atas 60 sel), terisi penuh dan kosong bergaris tepi | teks "N dari M" |
+| `navigasi_adaptif.dart` | `NavigasiAdaptif`, `BarNavigasi`, `RailNavigasi`, `TujuanLab`: 5 tab admin (Beranda, Persetujuan dengan lencana, Kalibrasi, Arsip, Lainnya), 2 tab teknisi, rail 80 dp mulai 900 dp, tanpa navigasi tetap untuk < 3 tujuan di layar lebar | `FloatingNavBar`, rail lama |
+| `keadaan_kosong_galat_offline.dart` | `KeadaanKosongGalatOffline` (tiga ragam, satu tindakan, tanpa ilustrasi) dan `BannerOffline` | teks kosong buatan tiap layar |
+| `lajur_bacaan.dart` | `LajurBacaan`: panel gelap untuk sel yang sedang diisi (angka Plex Mono 40/56 sp, keypad 52/64 dp, "Berikutnya" merentang 3 baris) | papan ketik sistem di sel |
+
+Aturan yang dikunci tes (`test/komponen_sidik/`, `test/tema/kontras_komponen_test.dart`,
+`test/tampilan/render_komponen_lab_test.dart`):
+
+- Status = ikon + kata; "Lewat jadwal" dan "Masa berlaku berakhir", tidak ada
+  "Kedaluwarsa"; kapital hanya PASS dan FAIL. Kata status dari ARB (`stempel*`,
+  Indonesia dan English); `StatusTampil.dariKode` memetakan SEMUA kode yang
+  dipakai app (enum sesi, alat, akun, label dokumen sertifikat, dan kode dua
+  sistem lama), dan tesnya menurunkan daftar kode dari enum dan sumber itu:
+  kode baru yang tak dipetakan membuat tes gagal.
+- Komponen yang bisa diketuk memasang `onTap` pada `Semantics` pembungkusnya:
+  `excludeSemantics` tanpa itu membuang aksi ketuk milik `InkWell`.
+- **Lajur Bacaan tidak menghitung, tidak memvonis, tidak mewarnai hijau atau
+  merah, dan tidak menampilkan selisih** (selisih mana yang bermakna per alat
+  masih pertanyaan untuk lab). Ia memakai ulang `terapkanTombolKeypad` dan
+  `bolehKeypadLayar` dari `lib/screens/calibration/widgets/keypad_angka.dart`
+  apa adanya (aturan koma desimal tidak ditulis ulang); "Berikutnya" di sel
+  kosong tidak mengisi apa pun; papan ketik sistem tetap bisa dipakai
+  (`ModeLajur.ringkas`, `onPakaiPapanKetik`).
+- Tab kedua admin bernama "Antrean" di SEMUA lebar (keputusan pemilik): tab
+  tidak berganti nama menurut perangkat. Judul layarnya "Antrean persetujuan"
+  (Paket 4) dan nama semantiknya "Antrean persetujuan, N menunggu" memuat kata
+  yang terlihat (Voice Access, WCAG 2.5.3). Label navigasi tidak dipotong
+  "Bera...": skala huruf label diturunkan dari skala sistem sampai kata muat,
+  tetapi tidak pernah di bawah 12 sp. Konsekuensi yang disengaja: navigasi tidak
+  sepenuhnya mengikuti pembesaran huruf pengguna (seperti NavigationBar Material
+  yang membatasi skala labelnya); di bawah ±280 dp label bisa terpotong sebagai
+  pilihan terakhir. Pantau di uji perangkat.
+- Urutan baca keypad Lajur per baris (7 8 9 hapus, 4 5 6 Berikutnya, 1 2 3,
+  minus 0 koma), bukan per kolom pohon widget.
+- Pemeriksa berkas yatim (`tool/cek-berkas-yatim.sh`) menghitung berkas yang
+  diimpor dari `test/` sebagai terpakai. Pengimpor sah komponen belum-terpakai
+  adalah galeri render (`test/support/galeri_komponen.dart`, mengimpor semuanya)
+  dan tes widget masing-masing; `test/komponen_sidik/pendaftaran_komponen_test.dart`
+  memastikan berkas komponen baru tercatat di `test/support/daftar_komponen.dart`,
+  diimpor galeri, dan punya tes. Pemeriksanya tidak diubah.
+
+Render ke PNG:
+
+```bash
+SIDIK_PNG_DIR=/folder/di/luar/repo flutter test test/tampilan/render_komponen_lab_test.dart
+SIDIK_HALAMAN=lajur,skala SIDIK_PNG_DIR=... flutter test test/tampilan/render_komponen_lab_test.dart
+```
+
+### Utang komponen (Paket 2, dicatat peninjau independen)
+
+- Kalimat bawaan `SkalaTempo.kataTempo` dan `LabelLajur` hanya Indonesia
+  (keduanya bisa disuntik: `kata`, `LabelLajur`); layar yang memakainya di Paket 3
+  sampai 5 harus menyuntik terjemahan, atau kuncinya ditambah ke ARB saat itu.
+  Kata status, label tab, dan hint tab sudah di ARB (`stempel*`, `navLab*`).
+- Papan ketik sistem sebagai cadangan di mode keypad hanya tersedia bila layar
+  mengirim `onPakaiPapanKetik` (opsional). Paket 5 WAJIB mengirimnya.
+- `lajur_bacaan.dart` mengimpor `lib/screens/calibration/widgets/keypad_angka.dart`
+  (arah impor terbalik, hanya dibaca). Pindahkan `terapkanTombolKeypad` dan
+  `bolehKeypadLayar` ke `lib/widgets/sidik/` setelah PR kamera merge.
+- Stempel sesi tampil "Menunggu"; brief 5.7 menulis "Menunggu persetujuan".
+  Usul: teks "Menunggu", nama semantik "Menunggu persetujuan". Belum diputuskan.
+- Peta lembar (kolom tablet) dan gerak 160/200 ms belum ada.
+- Catatan desain mata: tik pengulangan Lajur (12 x 4 dp) kecil; baris daftar di
+  320 dp x 1,3 bisa melebihi 150 dp (stempel pindah ke baris sendiri) sehingga
+  kepadatan daftar hilang; baris "Lewat jadwal" mengulang sinyal yang sama
+  (stempel, ekor merah, penanda, kalimat) tanpa hierarki; lencana merah di bar
+  berwarna sama dengan "gagal". Nilai ulang di Paket 3 dengan data nyata.

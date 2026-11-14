@@ -6367,6 +6367,109 @@ class AppLocalizationsId extends AppLocalizations {
   String get statusDitarik => 'Ditarik';
 
   @override
+  String get stempelDraf => 'Draf';
+
+  @override
+  String get stempelMenunggu => 'Menunggu';
+
+  @override
+  String get stempelPerluRevisi => 'Perlu revisi';
+
+  @override
+  String get stempelDisetujui => 'Disetujui';
+
+  @override
+  String get stempelPass => 'PASS';
+
+  @override
+  String get stempelFail => 'FAIL';
+
+  @override
+  String get stempelDitarik => 'Ditarik';
+
+  @override
+  String get stempelAktif => 'Aktif';
+
+  @override
+  String get stempelNonaktif => 'Nonaktif';
+
+  @override
+  String get stempelLewatJadwal => 'Lewat jadwal';
+
+  @override
+  String get stempelBerlaku => 'Berlaku';
+
+  @override
+  String get stempelSegera => 'Segera';
+
+  @override
+  String get stempelMasaBerlakuBerakhir => 'Masa berlaku berakhir';
+
+  @override
+  String get stempelTerbit => 'Terbit';
+
+  @override
+  String get stempelSedangDibuat => 'Sedang dibuat';
+
+  @override
+  String get stempelGagalDibuat => 'Gagal dibuat';
+
+  @override
+  String get stempelMenungguPersetujuan => 'Menunggu persetujuan';
+
+  @override
+  String get stempelBaru => 'Baru';
+
+  @override
+  String get stempelDiproses => 'Diproses';
+
+  @override
+  String get stempelSelesai => 'Selesai';
+
+  @override
+  String get stempelDibatalkan => 'Dibatalkan';
+
+  @override
+  String get stempelDigantikanRevisi => 'Digantikan revisi';
+
+  @override
+  String get stempelBelumTerbit => 'Belum terbit';
+
+  @override
+  String stempelSemantik(String kata) {
+    return 'Status: $kata';
+  }
+
+  @override
+  String get navLabBeranda => 'Beranda';
+
+  @override
+  String get navLabAntrean => 'Antrean';
+
+  @override
+  String get navLabAntreanSemantik => 'Antrean persetujuan';
+
+  @override
+  String get navLabKalibrasi => 'Kalibrasi';
+
+  @override
+  String get navLabArsip => 'Arsip';
+
+  @override
+  String get navLabLainnya => 'Lainnya';
+
+  @override
+  String get navLabProfil => 'Profil';
+
+  @override
+  String get navLabLencana => 'menunggu';
+
+  @override
+  String navLabTabHint(int nomor, int jumlah) {
+    return 'Tab $nomor dari $jumlah';
+  }
+
+  @override
   String get bandingkanJudul => 'Bandingkan dengan isian asli';
 
   @override

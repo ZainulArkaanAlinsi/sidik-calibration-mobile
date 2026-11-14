@@ -6444,6 +6444,109 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statusDitarik => 'Withdrawn';
 
   @override
+  String get stempelDraf => 'Draft';
+
+  @override
+  String get stempelMenunggu => 'Waiting';
+
+  @override
+  String get stempelPerluRevisi => 'Needs revision';
+
+  @override
+  String get stempelDisetujui => 'Approved';
+
+  @override
+  String get stempelPass => 'PASS';
+
+  @override
+  String get stempelFail => 'FAIL';
+
+  @override
+  String get stempelDitarik => 'Withdrawn';
+
+  @override
+  String get stempelAktif => 'Active';
+
+  @override
+  String get stempelNonaktif => 'Inactive';
+
+  @override
+  String get stempelLewatJadwal => 'Overdue';
+
+  @override
+  String get stempelBerlaku => 'Valid';
+
+  @override
+  String get stempelSegera => 'Due soon';
+
+  @override
+  String get stempelMasaBerlakuBerakhir => 'Validity ended';
+
+  @override
+  String get stempelTerbit => 'Issued';
+
+  @override
+  String get stempelSedangDibuat => 'Being generated';
+
+  @override
+  String get stempelGagalDibuat => 'Generation failed';
+
+  @override
+  String get stempelMenungguPersetujuan => 'Awaiting approval';
+
+  @override
+  String get stempelBaru => 'New';
+
+  @override
+  String get stempelDiproses => 'In progress';
+
+  @override
+  String get stempelSelesai => 'Done';
+
+  @override
+  String get stempelDibatalkan => 'Cancelled';
+
+  @override
+  String get stempelDigantikanRevisi => 'Superseded by revision';
+
+  @override
+  String get stempelBelumTerbit => 'Not yet issued';
+
+  @override
+  String stempelSemantik(String kata) {
+    return 'Status: $kata';
+  }
+
+  @override
+  String get navLabBeranda => 'Home';
+
+  @override
+  String get navLabAntrean => 'Queue';
+
+  @override
+  String get navLabAntreanSemantik => 'Approval queue';
+
+  @override
+  String get navLabKalibrasi => 'Calibrate';
+
+  @override
+  String get navLabArsip => 'Archive';
+
+  @override
+  String get navLabLainnya => 'More';
+
+  @override
+  String get navLabProfil => 'Profile';
+
+  @override
+  String get navLabLencana => 'waiting';
+
+  @override
+  String navLabTabHint(int nomor, int jumlah) {
+    return 'Tab $nomor of $jumlah';
+  }
+
+  @override
   String get bandingkanJudul => 'Compare with original entries';
 
   @override
