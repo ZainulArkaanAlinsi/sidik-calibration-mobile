@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Buat akun teknisi</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600;700&display=swap">
+<style>
+body{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:#0F4F94}a:hover{color:#0B2545}
+@keyframes naik{from{opacity:0;translate:0 12px}to{opacity:1;translate:0 0}}
+@keyframes muncul{from{opacity:0;scale:.92}to{opacity:1;scale:1}}
+@keyframes tumbuh{from{scale:1 0}to{scale:1 1}}
+@keyframes isi{from{scale:0 1}to{scale:1 1}}
+a,button{transition:scale 120ms cubic-bezier(.33,1,.68,1),background-color 120ms}a:active,button:active{scale:.97}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width: 390px; height: 1060px; box-sizing: border-box; padding: 16px; display: flex; flex-direction: column; background: #F3F7FB; color: #0B2545; font-family: 'Inter', system-ui, sans-serif; overflow: hidden; position: relative">
+<header style="display: flex; align-items: center; gap: 12px; min-height: 48px">
+  <a href="KelolaLab.dc.html" aria-label="Kembali" style="width: 48px; height: 48px; border-radius: 24px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0B2545" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></a>
+  <div style="display: flex; flex-direction: column; flex-grow: 1; min-width: 0">
+    <h1 style="margin: 0; font-size: 20px; line-height: 26px; font-weight: 800">Buat akun teknisi</h1>
+  </div>
+</header>
+<p style="margin: 12px 0 0; font-size: 14px; line-height: 20px; color: #4A5D78">Akun login baru untuk teknisi, langsung aktif. Sandi sementara diganti saat login pertama.</p>
+<div style="margin-top: 18px; padding: 18px; border-radius: 28px; background: #FFFFFF; display: flex; flex-direction: column; gap: 18px; animation: naik 240ms cubic-bezier(0.33,1,0.68,1) 0ms both">
+  <label style="display: flex; flex-direction: column; gap: 8px">
+  <span style="font-size: 14px; font-weight: 700">Nama lengkap</span>
+  <span style="height: 56px; box-sizing: border-box; padding: 0 18px; display: flex; align-items: center; gap: 8px; border: 1px solid #C5D5E6; border-radius: 16px; background: #FFFFFF">
+    <input value="Rekan Teknisi" placeholder="" style="flex-grow: 1; min-width: 0; border: 0; outline: 0; background: none; font-size: 16px">
+  </span>
+</label>
+  <label style="display: flex; flex-direction: column; gap: 8px">
+  <span style="font-size: 14px; font-weight: 700">Email</span>
+  <span style="height: 56px; box-sizing: border-box; padding: 0 18px; display: flex; align-items: center; gap: 8px; border: 2px solid #E0684A; border-radius: 16px; background: #FFFFFF">
+    <input value="rekan@sidik" placeholder="" style="flex-grow: 1; min-width: 0; border: 0; outline: 0; background: none; font-size: 16px">
+  </span><span style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #A3261A"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 20h20zM12 10v4M12 17v.01"/></svg>Format email belum lengkap</span>
+</label>
+  <label style="display: flex; flex-direction: column; gap: 8px">
+  <span style="font-size: 14px; font-weight: 700">Kode teknisi</span>
+  <span style="height: 56px; box-sizing: border-box; padding: 0 18px; display: flex; align-items: center; gap: 8px; border: 2px solid #1C6FC4; border-radius: 16px; background: #FFFFFF">
+    <input value="TK-07" placeholder="" style="flex-grow: 1; min-width: 0; border: 0; outline: 0; background: none; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 16px">
+  </span><span style="font-size: 13px; line-height: 18px; color: #4A5D78">Kecetak di sertifikat yang ditandatangani</span>
+</label>
+  <div style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 14px; font-weight: 700">Peran</span><div role="group" aria-label="Peran" style="height: 56px; box-sizing: border-box; padding: 6px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; border-radius: 28px; background: #F3F7FB"><button type="button" aria-pressed="true" style="border: 0; border-radius: 22px; background: #0B2545; color: #FFFFFF; font-size: 14px; font-weight: 700; cursor: pointer">Teknisi</button><button type="button" aria-pressed="false" style="border: 0; border-radius: 22px; background: transparent; color: #0B2545; font-size: 14px; font-weight: 700; cursor: pointer">Admin</button><button type="button" aria-pressed="false" style="border: 0; border-radius: 22px; background: transparent; color: #0B2545; font-size: 14px; font-weight: 700; cursor: pointer">Viewer</button></div></div>
+  <label style="display: flex; flex-direction: column; gap: 8px">
+  <span style="font-size: 14px; font-weight: 700">Organisasi</span>
+  <span style="height: 56px; box-sizing: border-box; padding: 0 18px; display: flex; align-items: center; gap: 8px; border: 1px solid #E8EEF5; border-radius: 16px; background: #F3F7FB">
+    <input value="PT Sistem Dirgantara Inovasi Teknologi" placeholder="" disabled style="flex-grow: 1; min-width: 0; border: 0; outline: 0; background: none; font-size: 16px">
+  </span>
+</label>
+</div>
+<div style="margin-top: auto; display: flex; gap: 10px; padding-top: 14px"><button type="button" style="flex: 1 1 0; height: 56px; padding: 0 18px; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid #C5D5E6; border-radius: 28px; background: #FFFFFF; color: #0B2545; font-size: 15px; font-weight: 700; cursor: pointer; white-space: nowrap">Batal</button><button type="button" style="flex: 2 1 0; height: 56px; border: 0; border-radius: 28px; background: #1C6FC4; color: #FFFFFF; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM3 21a7 7 0 0 1 12-5M19 14v6M16 17h6"/></svg>Buat akun</button></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1060}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

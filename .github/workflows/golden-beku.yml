@@ -1,0 +1,199 @@
+# Bikin golden LEMBAR KERJA BEKU di macOS (desain ulang Lab, langkah L0).
+#
+# ## Apa yang dia jaga
+#
+# `docs/desain-ulang/BEKU.md`: UI lembar kerja sudah paten dan tampilannya tidak
+# boleh berubah walau token tema diganti ke Biru Awan. Penjaganya dua:
+#
+#   - `test/beku/berkas_beku_test.dart`        — hash isi berkas beku;
+#   - `test/beku/lembar_kerja_golden_test.dart` — GAMBAR yang dirender berkas
+#     itu (20 PNG di `test/beku/goldens/`: lima adegan x terang/gelap x 390/1024).
+#
+# Berkas ini yang melahirkan PNG-nya. Platform acuan golden repo ini macOS
+# (`test/flutter_test_config.dart`: ambang 0,1% di sana, 15% di tempat lain),
+# jadi PNG dari laptop Windows atau runner Linux TIDAK BOLEH di-commit —
+# rasterisasi fontnya beda 2,5%-4,3%. Alasan lengkapnya ada di kepala
+# `golden-baru.yml`, yang jadi model berkas ini.
+#
+# ## Kenapa bukan `golden-baru.yml`
+#
+# `golden-baru.yml` hanya terpicu oleh `test/screenshot_test.dart`, dan menjalankan
+# `--update-goldens` untuk SEMUA test bertag `screenshot`. Berkas ini memotong
+# kedua hal itu ke satu berkas tes dan satu folder (`test/beku/goldens/`), dan
+# punya satu pemicu sendiri.
+#
+# ## Kapan dia jalan
+#
+# Otomatis, tiap push ke branch selain `main` yang MENYENTUH
+# `test/beku/lembar_kerja_golden_test.dart` atau berkas ini. Pemicunya `push`,
+# bukan hanya `workflow_dispatch`, karena `workflow_dispatch` baru bisa dipanggil
+# kalau berkas workflow-nya SUDAH ada di branch default — ayam-telur untuk PR
+# pertama yang memperkenalkan berkas ini (penjelasan di `golden-baru.yml`).
+# `workflow_dispatch` tetap dipasang untuk menjalankannya manual dari tab Actions.
+#
+# ## Resep kalau PNG beku sendiri HARUS dibuat ulang
+#
+# Hanya dengan persetujuan pemilik (lihat pesan gagal `berkas_beku_test.dart`).
+# Karena golden lama dikembalikan di bawah, `--update-goldens` di sini TIDAK
+# menimpanya. Jalannya: di branch kerja `git rm` PNG yang mau diganti, commit,
+# lalu push — berkasnya sudah tidak ada, jadi dihitung "baru" dan dibuat ulang
+# di macOS (sama seperti resep di `golden-baru.yml`). Jangan lakukan ini di PR
+# desain yang mengaku "tanpa perubahan tampilan".
+#
+# ## Kenapa nggak boleh di `main`
+#
+# `--update-goldens` menulis ulang APA PUN yang beda tanpa bertanya. Di `main`,
+# dia bukan membuat baseline — dia MENGHAPUS baseline yang sedang menjaga `main`,
+# dan hasilnya tetap hijau karena acuannya gambar yang barusan dia tulis sendiri.
+# Langkah pertama menolak `main`.
+#
+# ## Golden LAMA tidak pernah diperbarui di sini
+#
+# Berbeda dari golden biasa, golden beku TIDAK BOLEH diperbarui oleh PR desain
+# mana pun: dia justru yang membuktikan tampilan lembar kerja tidak berubah.
+# Jadi tiap golden lama yang tertimpa DIKEMBALIKAN ke isi tersimpan dan yang
+# di-commit cuma berkas BARU. Langkah verifikasi sesudahnya menjalankan
+# pemeriksaan golden BIASA dan selalu jalan (bukan hanya bila ada PNG baru):
+# di situlah golden lama yang dikembalikan diadu lagi dengan hasil render
+# terbaru. Kalau tampilan beku memang bergeser, dia gagal di langkah itu
+# dengan angka dan PNG bedanya — bukan disembunyikan oleh pengembalian.
+#
+# ## Setelah PNG-nya mendarat
+#
+# Push dari `GITHUB_TOKEN` SENGAJA tidak memicu workflow lain (kalau tidak,
+# commit dari workflow ini memicu dirinya sendiri tanpa henti). Jadi sesudah PNG
+# ter-commit, job `Golden (macOS)` dan `Analyze & test` di `periksa-pr.yml` yang
+# sebelumnya merah ("non-existent file") TIDAK jalan sendiri: jalankan ulang
+# `Periksa PR` dari tab Actions (dia punya `workflow_dispatch`).
+#
+# ## Bukti kegagalan
+#
+# Golden beku yang gagal menulis `*_testImage.png` dan diff-nya ke
+# `test/beku/failures/` (folder di sebelah berkas tes), BUKAN `test/failures/`
+# yang diunggah `periksa-pr.yml`. Karena itu langkah terakhir berkas ini
+# mengunggah folder itu sendiri bila verifikasi gagal.
+name: Golden beku (macOS)
+
+on:
+  push:
+    branches-ignore:
+      - main
+    paths:
+      - test/beku/lembar_kerja_golden_test.dart
+      - .github/workflows/golden-beku.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# Push beruntun ke branch yang sama: yang lama dibatalkan, yang terakhir yang
+# menentukan PNG-nya.
+concurrency:
+  group: golden-beku-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Samakan persis dengan `periksa-pr.yml`, `golden-baru.yml`, dan workflow
+  # lain: Flutter beda minor bisa menggeser rasterisasi, dan golden beku yang
+  # dibuat di versi lain bukan lagi yang diadu di PR.
+  FLUTTER_VERSION: 3.44.6
+
+jobs:
+  bikin:
+    name: Bikin golden beku
+    runs-on: macos-latest
+
+    steps:
+      - name: Tolak kalau dijalanin di main
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "::error::Workflow ini nggak boleh jalan di main — dia bakal"
+          echo "::error::menimpa baseline yang justru lagi menjaga main."
+          exit 1
+
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      - run: flutter gen-l10n
+        continue-on-error: true
+
+      - name: flutter test --tags screenshot --update-goldens (golden beku saja)
+        run: >
+          flutter test --tags screenshot
+          test/beku/lembar_kerja_golden_test.dart --update-goldens
+
+      # Golden lama yang ikut tertimpa dikembalikan; yang baru disimpan.
+      # Alasan lengkapnya di kepala berkas.
+      - name: Kembalikan golden lama, simpan yang baru
+        run: |
+          git ls-files --others --exclude-standard -- test/beku/goldens/ \
+            > /tmp/golden-beku.txt
+          berubah=$(git diff --name-only -- test/beku/goldens/)
+
+          if [ -n "$berubah" ]; then
+            echo "Golden lama ikut ditulis ulang — dikembalikan ke isi tersimpan:"
+            echo "$berubah" | sed 's/^/  /'
+            git checkout -- test/beku/goldens/
+          fi
+
+          if [ ! -s /tmp/golden-beku.txt ]; then
+            echo "Nol golden baru — tiap adegan udah punya PNG-nya."
+            echo "ADA_BARU=tidak" >> "$GITHUB_ENV"
+            exit 0
+          fi
+
+          echo "ADA_BARU=ya" >> "$GITHUB_ENV"
+          echo "Golden baru:"
+          sed 's/^/  /' /tmp/golden-beku.txt
+
+      # Dijalanin ULANG tanpa --update-goldens, dan SELALU (beda dari
+      # `golden-baru.yml`): ini yang menanggung dua hal.
+      #
+      #   1. Golden yang barusan lahir mesti lolos pemeriksaan yang sama dengan
+      #      yang dihadapinya di PR. Tanpa ini workflow cuma menjamin berkasnya
+      #      ADA, bukan bahwa dia benar.
+      #   2. Golden lama yang barusan DIKEMBALIKAN mesti tetap lolos. Di sinilah
+      #      bedanya "derau yang wajar dikembalikan" dan "perubahan tampilan
+      #      beku yang disembunyikan": yang kedua gagal di langkah ini.
+      - name: Buktiin golden beku lolos pemeriksaan biasa
+        run: flutter test --tags screenshot test/beku/lembar_kerja_golden_test.dart
+
+      - name: Simpan bukti golden beku yang gagal
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-beku-yang-gagal
+          path: test/beku/failures/
+          if-no-files-found: warn
+          retention-days: 14
+
+      # Nama branch dan SHA lewat `env`, bukan disisipkan langsung ke skrip:
+      # nama branch bebas diketik siapa pun yang bisa push, dan menyisipkannya
+      # ke `run:` membuka injeksi perintah shell.
+      - name: Commit
+        if: env.ADA_BARU == 'ya'
+        env:
+          RAMBU: ${{ github.ref_name }}
+          NAMA_WORKFLOW: ${{ github.workflow }}
+          SHA: ${{ github.sha }}
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          tr '\n' '\0' < /tmp/golden-beku.txt | xargs -0 git add
+          printf '%s\n' \
+            "test(golden): baseline lembar kerja beku, dirasterisasi di macOS" \
+            "" \
+            "Dibikin workflow \"$NAMA_WORKFLOW\" dari $SHA" \
+            "pakai Flutter $FLUTTER_VERSION — platform acuan yang sama" \
+            "dengan job Golden (macOS), jadi pikselnya memang yang bakal diadu" \
+            "di PR. Golden beku tidak boleh diperbarui oleh PR desain mana pun." \
+            > /tmp/pesan.txt
+          git commit -F /tmp/pesan.txt
+          git push origin "HEAD:refs/heads/$RAMBU"

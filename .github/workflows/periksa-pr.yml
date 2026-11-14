@@ -163,7 +163,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: golden-yang-gagal
-          path: test/failures/
+          # `test/beku/failures/`: bukti golden lembar kerja beku (test/beku/).
+          path: |
+            test/failures/
+            test/beku/failures/
           if-no-files-found: warn
           retention-days: 14
 

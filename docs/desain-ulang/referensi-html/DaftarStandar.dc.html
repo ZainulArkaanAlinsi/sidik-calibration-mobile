@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Standar acuan</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600;700&display=swap">
+<style>
+body{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:#0F4F94}a:hover{color:#0B2545}
+@keyframes naik{from{opacity:0;translate:0 12px}to{opacity:1;translate:0 0}}
+@keyframes muncul{from{opacity:0;scale:.92}to{opacity:1;scale:1}}
+@keyframes tumbuh{from{scale:1 0}to{scale:1 1}}
+@keyframes isi{from{scale:0 1}to{scale:1 1}}
+a,button{transition:scale 120ms cubic-bezier(.33,1,.68,1),background-color 120ms}a:active,button:active{scale:.97}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width: 390px; height: 1000px; box-sizing: border-box; padding: 16px; display: flex; flex-direction: column; background: #F3F7FB; color: #0B2545; font-family: 'Inter', system-ui, sans-serif; overflow: hidden; position: relative">
+<header style="display: flex; align-items: center; gap: 12px; min-height: 48px">
+  <a href="KelolaLab.dc.html" aria-label="Kembali" style="width: 48px; height: 48px; border-radius: 24px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0B2545" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></a>
+  <div style="display: flex; flex-direction: column; flex-grow: 1; min-width: 0">
+    <h1 style="margin: 0; font-size: 20px; line-height: 26px; font-weight: 800">Standar acuan</h1>
+  </div><button type="button" aria-label="Tambah standar" style="width: 48px; height: 48px; border: 0; border-radius: 24px; background: #1C6FC4; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></button>
+</header>
+<div style="margin-top: 14px; height: 56px; box-sizing: border-box; padding: 0 6px 0 20px; display: flex; align-items: center; gap: 10px; border-radius: 28px; background: #FFFFFF; flex-shrink: 0">
+  <input type="search" aria-label="Cari nama, nomor seri, atau besaran" placeholder="Cari nama, nomor seri, atau besaran" style="flex-grow: 1; min-width: 0; height: 44px; border: 0; outline: 0; background: none; font-size: 14px">
+  <button type="button" aria-label="Cari" style="width: 44px; height: 44px; border-radius: 22px; border: 0; background: #1C6FC4; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM20 20l-4-4"/></svg></button>
+</div>
+<div role="group" aria-label="Saring" style="margin: 12px -16px 0 0; display: flex; gap: 8px; overflow-x: auto; flex-shrink: 0"><button type="button" aria-pressed="true" style="flex-shrink: 0; height: 44px; padding: 0 6px 0 16px; display: flex; align-items: center; gap: 8px; border: 0; border-radius: 22px; background: #0B2545; color: #FFFFFF; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap">Semua<span style="min-width: 32px; height: 32px; padding: 0 6px; box-sizing: border-box; border-radius: 16px; background: #F6D36B; color: #0B2545; display: flex; align-items: center; justify-content: center">18</span></button><button type="button" aria-pressed="false" style="flex-shrink: 0; height: 44px; padding: 0 6px 0 16px; display: flex; align-items: center; gap: 8px; border: 0; border-radius: 22px; background: #FFFFFF; color: #0B2545; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap">Segera habis<span style="min-width: 32px; height: 32px; padding: 0 6px; box-sizing: border-box; border-radius: 16px; background: #F6D36B; color: #0B2545; display: flex; align-items: center; justify-content: center">1</span></button><button type="button" aria-pressed="false" style="flex-shrink: 0; height: 44px; padding: 0 6px 0 16px; display: flex; align-items: center; gap: 8px; border: 0; border-radius: 22px; background: #FFFFFF; color: #0B2545; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap">Berakhir<span style="min-width: 32px; height: 32px; padding: 0 6px; box-sizing: border-box; border-radius: 16px; background: #EEF2F6; color: #0B2545; display: flex; align-items: center; justify-content: center">0</span></button></div>
+<div role="status" style="margin-top: 12px; padding: 14px 16px; border-radius: 20px; background: #FFF4D1; display: flex; gap: 12px; align-items: flex-start; font-size: 14px; line-height: 20px"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8C5C0A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 20h20zM12 10v4M12 17v.01"/></svg><span><b>1 standar</b> habis masa berlaku sertifikatnya dalam 30 hari. Sesi yang memakainya akan ditahan saat approval.</span></div>
+<div style="margin-top: 12px; display: flex; flex-direction: column; gap: 10px">
+  <a href="#" style="position: relative; min-height: 104px; box-sizing: border-box; padding: 14px 16px; border-radius: 24px; background: #FFFFFF; color: #0B2545; text-decoration: none; display: flex; gap: 14px; align-items: center; animation: naik 240ms cubic-bezier(0.33,1,0.68,1) 35ms both">
+  <span style="width: 56px; height: 56px; border-radius: 18px; background: #E4F2FD; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><img src="/_blob/2a5cf405f41c14fb8fc490759a9fa808" alt="" style="width: 54px; height: 54px"></span>
+  <span style="display: flex; flex-direction: column; gap: 4px; flex-grow: 1; min-width: 0">
+    <span style="font-size: 16px; line-height: 20px; font-weight: 800">Buffer pH 10,01</span>
+    <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; font-weight: 600; color: #4A5D78">BUF-1001-23</span>
+    <span style="font-size: 13px; color: #4A5D78">Sertifikat sampai 26 Nov 2026</span>
+  </span>
+  <span style="flex-shrink: 0; height: 30px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; border-radius: 15px; background: #F6D36B; color: #0B2545; font-size: 12px; font-weight: 700; white-space: nowrap"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 20h20zM12 10v4M12 17v.01"/></svg>12 hari</span>
+</a>
+  <a href="#" style="position: relative; min-height: 104px; box-sizing: border-box; padding: 14px 16px; border-radius: 24px; background: #FFFFFF; color: #0B2545; text-decoration: none; display: flex; gap: 14px; align-items: center; animation: naik 240ms cubic-bezier(0.33,1,0.68,1) 70ms both">
+  <span style="width: 56px; height: 56px; border-radius: 18px; background: #E4F2FD; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><img src="/_blob/6571460da7c35d3aba4b8ec0324a454c" alt="" style="width: 54px; height: 54px"></span>
+  <span style="display: flex; flex-direction: column; gap: 4px; flex-grow: 1; min-width: 0">
+    <span style="font-size: 16px; line-height: 20px; font-weight: 800">Thermocouple tipe K referensi</span>
+    <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; font-weight: 600; color: #4A5D78">TC-K-0007</span>
+    <span style="font-size: 13px; color: #4A5D78">Sertifikat sampai 3 Jun 2027</span>
+  </span>
+  <span style="flex-shrink: 0; height: 30px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; border-radius: 15px; background: #BFE6C4; color: #0B2545; font-size: 12px; font-weight: 700; white-space: nowrap"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>Berlaku</span>
+</a>
+  <a href="#" style="position: relative; min-height: 104px; box-sizing: border-box; padding: 14px 16px; border-radius: 24px; background: #FFFFFF; color: #0B2545; text-decoration: none; display: flex; gap: 14px; align-items: center; animation: naik 240ms cubic-bezier(0.33,1,0.68,1) 105ms both">
+  <span style="width: 56px; height: 56px; border-radius: 18px; background: #E4F2FD; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><img src="/_blob/2b796f88cf2569bd5141caee70df1451" alt="" style="width: 54px; height: 54px"></span>
+  <span style="display: flex; flex-direction: column; gap: 4px; flex-grow: 1; min-width: 0">
+    <span style="font-size: 16px; line-height: 20px; font-weight: 800">Anak timbangan kelas E2</span>
+    <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; font-weight: 600; color: #4A5D78">E2-SET-02</span>
+    <span style="font-size: 13px; color: #4A5D78">Sertifikat sampai 11 Feb 2027</span>
+  </span>
+  <span style="flex-shrink: 0; height: 30px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; border-radius: 15px; background: #BFE6C4; color: #0B2545; font-size: 12px; font-weight: 700; white-space: nowrap"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>Berlaku</span>
+</a>
+  <a href="#" style="position: relative; min-height: 104px; box-sizing: border-box; padding: 14px 16px; border-radius: 24px; background: #FFFFFF; color: #0B2545; text-decoration: none; display: flex; gap: 14px; align-items: center; animation: naik 240ms cubic-bezier(0.33,1,0.68,1) 140ms both">
+  <span style="width: 56px; height: 56px; border-radius: 18px; background: #E4F2FD; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><img src="/_blob/6f16cbf2e553c217f355f22cb2a24803" alt="" style="width: 54px; height: 54px"></span>
+  <span style="display: flex; flex-direction: column; gap: 4px; flex-grow: 1; min-width: 0">
+    <span style="font-size: 16px; line-height: 20px; font-weight: 800">Gauge block set</span>
+    <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; font-weight: 600; color: #4A5D78">GB-112-01</span>
+    <span style="font-size: 13px; color: #4A5D78">Sertifikat sampai 20 Agu 2027</span>
+  </span>
+  <span style="flex-shrink: 0; height: 30px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; border-radius: 15px; background: #BFE6C4; color: #0B2545; font-size: 12px; font-weight: 700; white-space: nowrap"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>Berlaku</span>
+</a>
+  <a href="#" style="position: relative; min-height: 104px; box-sizing: border-box; padding: 14px 16px; border-radius: 24px; background: #FFFFFF; color: #0B2545; text-decoration: none; display: flex; gap: 14px; align-items: center; animation: naik 240ms cubic-bezier(0.33,1,0.68,1) 175ms both">
+  <span style="width: 56px; height: 56px; border-radius: 18px; background: #E4F2FD; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><img src="/_blob/b850e9727d7c5e0f1b5e0ec6de2cfe14" alt="" style="width: 54px; height: 54px"></span>
+  <span style="display: flex; flex-direction: column; gap: 4px; flex-grow: 1; min-width: 0">
+    <span style="font-size: 16px; line-height: 20px; font-weight: 800">Pressure calibrator</span>
+    <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; font-weight: 600; color: #4A5D78">PC-600-03</span>
+    <span style="font-size: 13px; color: #4A5D78">Sertifikat sampai 9 Jan 2027</span>
+  </span>
+  <span style="flex-shrink: 0; height: 30px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; border-radius: 15px; background: #BFE6C4; color: #0B2545; font-size: 12px; font-weight: 700; white-space: nowrap"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>Berlaku</span>
+</a>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

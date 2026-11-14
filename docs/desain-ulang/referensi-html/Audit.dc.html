@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Riwayat perubahan</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600;700&display=swap">
+<style>
+body{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:#0F4F94}a:hover{color:#0B2545}
+@keyframes naik{from{opacity:0;translate:0 12px}to{opacity:1;translate:0 0}}
+@keyframes muncul{from{opacity:0;scale:.92}to{opacity:1;scale:1}}
+@keyframes tumbuh{from{scale:1 0}to{scale:1 1}}
+@keyframes isi{from{scale:0 1}to{scale:1 1}}
+a,button{transition:scale 120ms cubic-bezier(.33,1,.68,1),background-color 120ms}a:active,button:active{scale:.97}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width: 390px; height: 1000px; box-sizing: border-box; padding: 16px; display: flex; flex-direction: column; background: #F3F7FB; color: #0B2545; font-family: 'Inter', system-ui, sans-serif; overflow: hidden; position: relative">
+<header style="display: flex; align-items: center; gap: 12px; min-height: 48px">
+  <a href="KelolaLab.dc.html" aria-label="Kembali" style="width: 48px; height: 48px; border-radius: 24px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0B2545" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></a>
+  <div style="display: flex; flex-direction: column; flex-grow: 1; min-width: 0">
+    <h1 style="margin: 0; font-size: 20px; line-height: 26px; font-weight: 800">Riwayat perubahan</h1>
+  </div><button type="button" aria-label="Saring riwayat" style="width: 48px; height: 48px; border: 0; border-radius: 24px; background: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0B2545" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8M14 4v6M8 14v6"/></svg></button>
+</header>
+<div role="group" aria-label="Saring" style="margin: 12px -16px 0 0; display: flex; gap: 8px; overflow-x: auto; flex-shrink: 0"><button type="button" aria-pressed="true" style="flex-shrink: 0; height: 44px; padding: 0 18px; display: flex; align-items: center; gap: 8px; border: 0; border-radius: 22px; background: #0B2545; color: #FFFFFF; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap">Semua</button><button type="button" aria-pressed="false" style="flex-shrink: 0; height: 44px; padding: 0 18px; display: flex; align-items: center; gap: 8px; border: 0; border-radius: 22px; background: #FFFFFF; color: #0B2545; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap">Standar</button><button type="button" aria-pressed="false" style="flex-shrink: 0; height: 44px; padding: 0 18px; display: flex; align-items: center; gap: 8px; border: 0; border-radius: 22px; background: #FFFFFF; color: #0B2545; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap">Rumus</button><button type="button" aria-pressed="false" style="flex-shrink: 0; height: 44px; padding: 0 18px; display: flex; align-items: center; gap: 8px; border: 0; border-radius: 22px; background: #FFFFFF; color: #0B2545; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap">Akun</button><button type="button" aria-pressed="false" style="flex-shrink: 0; height: 44px; padding: 0 18px; display: flex; align-items: center; gap: 8px; border: 0; border-radius: 22px; background: #FFFFFF; color: #0B2545; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap">Sertifikat</button></div>
+<div style="margin-top: 16px; padding: 18px 16px 2px; border-radius: 24px; background: #FFFFFF; display: flex; flex-direction: column">
+  <div style="display: flex; gap: 12px; animation: naik 240ms cubic-bezier(0.33,1,0.68,1) 0ms both"><div style="display: flex; flex-direction: column; align-items: center; width: 12px; padding-top: 6px"><span style="width: 12px; height: 12px; border-radius: 6px; background: #1C6FC4"></span><span style="flex-grow: 1; width: 2px; background: #E8EEF5"></span></div><div style="padding-bottom: 18px; display: flex; flex-direction: column; gap: 6px; flex-grow: 1"><span style="font-size: 12px; color: #4A5D78">Hari ini, 08.42</span><span style="font-size: 15px; line-height: 21px"><b>[Admin]</b> mengubah U standar Buffer pH 10,01</span><span style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 14px; font-weight: 600; padding: 4px 10px; border-radius: 10px; background: #FDE3DA; text-decoration: line-through">0,02</span><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4A5D78" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 14px; font-weight: 700; padding: 4px 10px; border-radius: 10px; background: #BFE6C4">0,03</span></span></div></div>
+  <div style="display: flex; gap: 12px; animation: naik 240ms cubic-bezier(0.33,1,0.68,1) 35ms both"><div style="display: flex; flex-direction: column; align-items: center; width: 12px; padding-top: 6px"><span style="width: 12px; height: 12px; border-radius: 6px; background: #1C6FC4"></span><span style="flex-grow: 1; width: 2px; background: #E8EEF5"></span></div><div style="padding-bottom: 18px; display: flex; flex-direction: column; gap: 6px; flex-grow: 1"><span style="font-size: 12px; color: #4A5D78">Kemarin, 16.10</span><span style="font-size: 15px; line-height: 21px"><b>[Admin]</b> membuat akun teknisi TK-07</span></div></div>
+  <div style="display: flex; gap: 12px; animation: naik 240ms cubic-bezier(0.33,1,0.68,1) 70ms both"><div style="display: flex; flex-direction: column; align-items: center; width: 12px; padding-top: 6px"><span style="width: 12px; height: 12px; border-radius: 6px; background: #1C6FC4"></span><span style="flex-grow: 1; width: 2px; background: #E8EEF5"></span></div><div style="padding-bottom: 18px; display: flex; flex-direction: column; gap: 6px; flex-grow: 1"><span style="font-size: 12px; color: #4A5D78">2 Okt, 10.05</span><span style="font-size: 15px; line-height: 21px"><b>[Super Admin]</b> mengesahkan versi data acuan pH v12</span><span style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 14px; font-weight: 600; padding: 4px 10px; border-radius: 10px; background: #FDE3DA; text-decoration: line-through">v11</span><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4A5D78" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 14px; font-weight: 700; padding: 4px 10px; border-radius: 10px; background: #BFE6C4">v12</span></span></div></div>
+  <div style="display: flex; gap: 12px; animation: naik 240ms cubic-bezier(0.33,1,0.68,1) 105ms both"><div style="display: flex; flex-direction: column; align-items: center; width: 12px; padding-top: 6px"><span style="width: 12px; height: 12px; border-radius: 6px; background: #1C6FC4"></span></div><div style="padding-bottom: 18px; display: flex; flex-direction: column; gap: 6px; flex-grow: 1"><span style="font-size: 12px; color: #4A5D78">28 Sep, 09.30</span><span style="font-size: 15px; line-height: 21px"><b>[Admin]</b> mengubah masa berlaku sertifikat</span><span style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 14px; font-weight: 600; padding: 4px 10px; border-radius: 10px; background: #FDE3DA; text-decoration: line-through">12 bln</span><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4A5D78" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 14px; font-weight: 700; padding: 4px 10px; border-radius: 10px; background: #BFE6C4">24 bln</span></span></div></div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

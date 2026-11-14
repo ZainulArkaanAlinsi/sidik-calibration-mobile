@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Kelola lab</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600;700&display=swap">
+<style>
+body{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:#0F4F94}a:hover{color:#0B2545}
+@keyframes naik{from{opacity:0;translate:0 12px}to{opacity:1;translate:0 0}}
+@keyframes muncul{from{opacity:0;scale:.92}to{opacity:1;scale:1}}
+@keyframes tumbuh{from{scale:1 0}to{scale:1 1}}
+@keyframes isi{from{scale:0 1}to{scale:1 1}}
+a,button{transition:scale 120ms cubic-bezier(.33,1,.68,1),background-color 120ms}a:active,button:active{scale:.97}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width: 390px; height: 1400px; box-sizing: border-box; padding: 16px; display: flex; flex-direction: column; background: #F3F7FB; color: #0B2545; font-family: 'Inter', system-ui, sans-serif; overflow: hidden; position: relative">
+<header style="display: flex; align-items: center; gap: 12px; min-height: 48px">
+  <a href="Menu.dc.html" aria-label="Kembali" style="width: 48px; height: 48px; border-radius: 24px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0B2545" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></a>
+  <div style="display: flex; flex-direction: column; flex-grow: 1; min-width: 0">
+    <h1 style="margin: 0; font-size: 20px; line-height: 26px; font-weight: 800">Kelola lab</h1>
+  </div>
+</header>
+<section style="margin-top: 14px; position: relative; min-height: 120px; box-sizing: border-box; padding: 18px; border-radius: 28px; background: #0B2545; color: #FFFFFF; display: flex; flex-direction: column; justify-content: flex-end; overflow: hidden; animation: naik 240ms cubic-bezier(0.33,1,0.68,1) 0ms both">
+  <img src="/_blob/3f6baaf387e7b446a98dbf09ad6c77ef" alt="" style="position: absolute; right: 18px; top: 16px; width: 36px; height: 50px; object-fit: contain; background: #FFFFFF; border-radius: 10px; padding: 4px">
+  <span style="font-size: 13px; color: #C3D6EC">Master Data</span>
+  <span style="font-size: 20px; line-height: 26px; font-weight: 800; max-width: 260px">PT Sistem Dirgantara Inovasi Teknologi</span>
+</section>
+<h2 style="margin: 22px 6px 10px; font-size: 13px; font-weight: 700; color: #4A5D78">Data master</h2><div style="border-radius: 24px; background: #FFFFFF; padding: 6px; display: flex; flex-direction: column; animation: naik 240ms cubic-bezier(0.33,1,0.68,1) 35ms both"><a href="#" style="min-height: 64px; padding: 10px 10px; display: flex; align-items: center; gap: 14px; border: 0; border-bottom: 1px solid #E8EEF5; background: none; text-align: left; color: #0B2545; text-decoration: none; cursor: pointer">
+  <span aria-hidden="true" style="width: 44px; height: 44px; border-radius: 22px; background: #E4F2FD; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0B2545" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 6.5M18 14a6.5 6.5 0 0 1 3.5 6"/></svg></span>
+  <span style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0"><span style="font-size: 16px; font-weight: 700">Pelanggan</span><span style="font-size: 13px; line-height: 18px; color: #4A5D78">Kelola daftar pelanggan lab</span></span>
+  <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4A5D78" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+</a><a href="DaftarStandar.dc.html" style="min-height: 64px; padding: 10px 10px; display: flex; align-items: center; gap: 14px; border: 0; border-bottom: 1px solid #E8EEF5; background: none; text-align: left; color: #0B2545; text-decoration: none; cursor: pointer">
+  <span aria-hidden="true" style="width: 44px; height: 44px; border-radius: 22px; background: #BFE6C4; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0B2545" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6L5 18a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3L14 9V3M7.5 15h9"/></svg></span>
+  <span style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0"><span style="font-size: 16px; font-weight: 700">Standar acuan</span><span style="font-size: 13px; line-height: 18px; color: #4A5D78">Kelola alat standar/acuan lab</span></span>
+  <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4A5D78" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+</a><a href="#" style="min-height: 64px; padding: 10px 10px; display: flex; align-items: center; gap: 14px; border: 0; border-bottom: 1px solid #E8EEF5; background: none; text-align: left; color: #0B2545; text-decoration: none; cursor: pointer">
+  <span aria-hidden="true" style="width: 44px; height: 44px; border-radius: 22px; background: #A9D8FB; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0B2545" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v13H4zM9 10a2 2 0 1 0 0 .01M6.5 16a3 3 0 0 1 5 0M14 10h3M14 13h3"/></svg></span>
+  <span style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0"><span style="font-size: 16px; font-weight: 700">Data teknisi</span><span style="font-size: 13px; line-height: 18px; color: #4A5D78">Akun teknisi, peran, dan kode</span></span>
+  <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4A5D78" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+</a><a href="Formulir.dc.html" style="min-height: 64px; padding: 10px 10px; display: flex; align-items: center; gap: 14px; border: 0; border-bottom: none; background: none; text-align: left; color: #0B2545; text-decoration: none; cursor: pointer">
+  <span aria-hidden="true" style="width: 44px; height: 44px; border-radius: 22px; background: #F6D36B; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0B2545" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM3 21a7 7 0 0 1 12-5M19 14v6M16 17h6"/></svg></span>
+  <span style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0"><span style="font-size: 16px; font-weight: 700">Buat akun teknisi</span><span style="font-size: 13px; line-height: 18px; color: #4A5D78">Akun login baru, langsung aktif</span></span>
+  <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4A5D78" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+</a></div>
+<h2 style="margin: 22px 6px 10px; font-size: 13px; font-weight: 700; color: #4A5D78">Metode &amp; ruangan</h2><div style="border-radius: 24px; background: #FFFFFF; padding: 6px; display: flex; flex-direction: column; animation: naik 240ms cubic-bezier(0.33,1,0.68,1) 70ms both"><a href="#" style="min-height: 64px; padding: 10px 10px; display: flex; align-items: center; gap: 14px; border: 0; border-bottom: 1px solid #E8EEF5; background: none; text-align: left; color: #0B2545; text-decoration: none; cursor: pointer">
+  <span aria-hidden="true" style="width: 44px; height: 44px; border-radius: 22px; background: #E4F2FD; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0B2545" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 19V5M9 7h6"/></svg></span>
+  <span style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0"><span style="font-size: 16px; font-weight: 700">Metode kalibrasi</span><span style="font-size: 13px; line-height: 18px; color: #4A5D78">Instruksi Kerja (IK) dan revisinya</span></span>
+  <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4A5D78" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+</a><a href="#" style="min-height: 64px; padding: 10px 10px; display: flex; align-items: center; gap: 14px; border: 0; border-bottom: 1px solid #E8EEF5; background: none; text-align: left; color: #0B2545; text-decoration: none; cursor: pointer">
+  <span aria-hidden="true" style="width: 44px; height: 44px; border-radius: 22px; background: #FDE3DA; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0B2545" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4c-3 0-3 4-3 8s0 8-3 8M4 10h6M14 9l6 8M20 9l-6 8"/></svg></span>
+  <span style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0"><span style="font-size: 16px; font-weight: 700">Rumus kalibrasi</span><span style="font-size: 13px; line-height: 18px; color: #4A5D78">Parameter dan riwayat versi perhitungan</span></span>
+  <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4A5D78" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+</a><a href="#" style="min-height: 64px; padding: 10px 10px; display: flex; align-items: center; gap: 14px; border: 0; border-bottom: none; background: none; text-align: left; color: #0B2545; text-decoration: none; cursor: pointer">
+  <span aria-hidden="true" style="width: 44px; height: 44px; border-radius: 22px; background: #BFE6C4; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0B2545" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V4h12v17M16 8h4v13M2 21h20M12 12v2"/></svg></span>
+  <span style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0"><span style="font-size: 16px; font-weight: 700">Ruangan lab</span><span style="font-size: 13px; line-height: 18px; color: #4A5D78">Daftar ruangan dan syarat kondisi lingkungan</span></span>
+  <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4A5D78" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+</a></div>
+<h2 style="margin: 22px 6px 10px; font-size: 13px; font-weight: 700; color: #4A5D78">Dokumen &amp; sistem</h2><div style="border-radius: 24px; background: #FFFFFF; padding: 6px; display: flex; flex-direction: column; animation: naik 240ms cubic-bezier(0.33,1,0.68,1) 105ms both"><a href="#" style="min-height: 64px; padding: 10px 10px; display: flex; align-items: center; gap: 14px; border: 0; border-bottom: 1px solid #E8EEF5; background: none; text-align: left; color: #0B2545; text-decoration: none; cursor: pointer">
+  <span aria-hidden="true" style="width: 44px; height: 44px; border-radius: 22px; background: #E4F2FD; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0B2545" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17c3-1 4-6 6-6s1 5 3 5 3-4 5-4 2 2 4 2M3 21h18"/></svg></span>
+  <span style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0"><span style="font-size: 16px; font-weight: 700">Tanda tangan sertifikat</span><span style="font-size: 13px; line-height: 18px; color: #4A5D78">Dicetak di sertifikat terbit</span></span>
+  <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4A5D78" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+</a><a href="#" style="min-height: 64px; padding: 10px 10px; display: flex; align-items: center; gap: 14px; border: 0; border-bottom: 1px solid #E8EEF5; background: none; text-align: left; color: #0B2545; text-decoration: none; cursor: pointer">
+  <span aria-hidden="true" style="width: 44px; height: 44px; border-radius: 22px; background: #A9D8FB; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0B2545" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4h9v17M14 9h5v12M3 21h18M8 8h3M8 12h3M8 16h3"/></svg></span>
+  <span style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0"><span style="font-size: 16px; font-weight: 700">Data organisasi</span><span style="font-size: 13px; line-height: 18px; color: #4A5D78">Nama, alamat, no. akreditasi untuk kop</span></span>
+  <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4A5D78" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+</a><a href="#" style="min-height: 64px; padding: 10px 10px; display: flex; align-items: center; gap: 14px; border: 0; border-bottom: 1px solid #E8EEF5; background: none; text-align: left; color: #0B2545; text-decoration: none; cursor: pointer">
+  <span aria-hidden="true" style="width: 44px; height: 44px; border-radius: 22px; background: #F6D36B; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0B2545" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v14H4zM8 10a1.5 1.5 0 1 0 0 .01M4 17l5-5 4 4 3-3 4 4"/></svg></span>
+  <span style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0"><span style="font-size: 16px; font-weight: 700">Logo organisasi</span><span style="font-size: 13px; line-height: 18px; color: #4A5D78">Dicetak di kop sertifikat (PNG/JPG)</span></span>
+  <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4A5D78" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+</a><a href="#" style="min-height: 64px; padding: 10px 10px; display: flex; align-items: center; gap: 14px; border: 0; border-bottom: 1px solid #E8EEF5; background: none; text-align: left; color: #0B2545; text-decoration: none; cursor: pointer">
+  <span aria-hidden="true" style="width: 44px; height: 44px; border-radius: 22px; background: #BFE6C4; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0B2545" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"/></svg></span>
+  <span style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0"><span style="font-size: 16px; font-weight: 700">Impor Excel</span><span style="font-size: 13px; line-height: 18px; color: #4A5D78">Masukkan data lama dari workbook</span></span>
+  <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4A5D78" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+</a><a href="DataAcuan.dc.html" style="min-height: 64px; padding: 10px 10px; display: flex; align-items: center; gap: 14px; border: 0; border-bottom: none; background: none; text-align: left; color: #0B2545; text-decoration: none; cursor: pointer">
+  <span aria-hidden="true" style="width: 44px; height: 44px; border-radius: 22px; background: #FDE3DA; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0B2545" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg></span>
+  <span style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0"><span style="font-size: 16px; font-weight: 700">Versi data acuan</span><span style="font-size: 13px; line-height: 18px; color: #4A5D78">Ajukan, simulasikan, aktifkan</span></span>
+  <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4A5D78" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+</a></div>
+<h2 style="margin: 22px 6px 10px; font-size: 13px; font-weight: 700; color: #4A5D78">Pengawasan</h2><div style="border-radius: 24px; background: #FFFFFF; padding: 6px; display: flex; flex-direction: column; animation: naik 240ms cubic-bezier(0.33,1,0.68,1) 140ms both"><a href="Audit.dc.html" style="min-height: 64px; padding: 10px 10px; display: flex; align-items: center; gap: 14px; border: 0; border-bottom: none; background: none; text-align: left; color: #0B2545; text-decoration: none; cursor: pointer">
+  <span aria-hidden="true" style="width: 44px; height: 44px; border-radius: 22px; background: #E4F2FD; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0B2545" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4M8 11h6M11 8v6"/></svg></span>
+  <span style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0"><span style="font-size: 16px; font-weight: 700">Riwayat perubahan</span><span style="font-size: 13px; line-height: 18px; color: #4A5D78">Siapa mengubah apa, kapan, dari berapa ke berapa</span></span>
+  <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4A5D78" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+</a></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1400}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

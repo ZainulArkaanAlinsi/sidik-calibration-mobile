@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Alur kerja</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600;700&display=swap">
+<style>
+body{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:#0F4F94}a:hover{color:#0B2545}
+@keyframes naik{from{opacity:0;translate:0 12px}to{opacity:1;translate:0 0}}
+@keyframes muncul{from{opacity:0;scale:.92}to{opacity:1;scale:1}}
+@keyframes tumbuh{from{scale:1 0}to{scale:1 1}}
+@keyframes isi{from{scale:0 1}to{scale:1 1}}
+a,button{transition:scale 120ms cubic-bezier(.33,1,.68,1),background-color 120ms}a:active,button:active{scale:.97}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width: 390px; height: 960px; box-sizing: border-box; padding: 16px; display: flex; flex-direction: column; background: #F3F7FB; color: #0B2545; font-family: 'Inter', system-ui, sans-serif; overflow: hidden; position: relative">
+<header style="display: flex; align-items: center; gap: 12px; min-height: 48px">
+  <a href="Menu.dc.html" aria-label="Kembali" style="width: 48px; height: 48px; border-radius: 24px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0B2545" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></a>
+  <div style="display: flex; flex-direction: column; flex-grow: 1; min-width: 0">
+    <h1 style="margin: 0; font-size: 20px; line-height: 26px; font-weight: 800">Alur kerja</h1>
+  </div>
+</header>
+<p style="margin: 12px 0 0; font-size: 14px; line-height: 20px; color: #4A5D78">Pilih sesi, lihat posisinya, tekan satu tombol untuk langkah berikutnya.</p>
+<div style="margin-top: 14px; height: 56px; box-sizing: border-box; padding: 0 6px 0 20px; display: flex; align-items: center; gap: 10px; border-radius: 28px; background: #FFFFFF; flex-shrink: 0">
+  <input type="search" aria-label="Cari nomor KAL, alat, atau PT" placeholder="Cari nomor KAL, alat, atau PT" style="flex-grow: 1; min-width: 0; height: 44px; border: 0; outline: 0; background: none; font-size: 14px">
+  <button type="button" aria-label="Cari" style="width: 44px; height: 44px; border-radius: 22px; border: 0; background: #1C6FC4; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM20 20l-4-4"/></svg></button>
+</div>
+<section style="margin-top: 14px; position: relative; padding: 18px; border-radius: 28px; background: #FFFFFF; overflow: hidden; display: flex; flex-direction: column; animation: naik 240ms cubic-bezier(0.33,1,0.68,1) 0ms both">
+  <img src="/_blob/2a5cf405f41c14fb8fc490759a9fa808" alt="" style="position: absolute; right: -6px; top: -6px; width: 104px; height: 104px; animation: muncul 240ms cubic-bezier(0.33,1,0.68,1) 240ms both">
+  <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; font-weight: 600; color: #4A5D78">KAL/2026/11/0001</span>
+  <span style="margin-top: 4px; font-size: 20px; font-weight: 800">pH Meter</span>
+  <span style="font-size: 14px; color: #4A5D78; max-width: 220px">PT Tirta Contoh Makmur</span>
+  <div style="margin-top: 20px; display: flex; flex-direction: column"><div style="display: flex; gap: 14px"><div style="display: flex; flex-direction: column; align-items: center; width: 32px"><span style="width: 32px; height: 32px; border-radius: 16px; background: #1C6FC4; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span><span style="flex-grow: 1; width: 2px; min-height: 28px; background: #1C6FC4"></span></div><div style="padding: 4px 0 18px; display: flex; flex-direction: column; gap: 6px"><span style="font-size: 16px; font-weight: 600; color: #0B2545">Lembar kerja</span><span style="font-size: 13px; color: #4A5D78">Beres</span></div></div><div style="display: flex; gap: 14px"><div style="display: flex; flex-direction: column; align-items: center; width: 32px"><span style="width: 32px; height: 32px; box-sizing: border-box; border-radius: 16px; border: 4px solid #A9D8FB; background: #1C6FC4"></span><span style="flex-grow: 1; width: 2px; min-height: 28px; background: #C5D5E6"></span></div><div style="padding: 4px 0 18px; display: flex; flex-direction: column; gap: 6px"><span style="font-size: 16px; font-weight: 800; color: #0B2545">Perhitungan &amp; approval</span><span style="flex-shrink: 0; height: 30px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; border-radius: 15px; background: #E4F2FD; color: #0F4F94; font-size: 12px; font-weight: 700; white-space: nowrap">Lagi di sini</span></div></div><div style="display: flex; gap: 14px"><div style="display: flex; flex-direction: column; align-items: center; width: 32px"><span style="width: 32px; height: 32px; box-sizing: border-box; border-radius: 16px; border: 2px solid #C5D5E6; background: #FFFFFF"></span><span style="flex-grow: 1; width: 2px; min-height: 28px; background: #C5D5E6"></span></div><div style="padding: 4px 0 18px; display: flex; flex-direction: column; gap: 6px"><span style="font-size: 16px; font-weight: 600; color: #4A5D78">Sertifikat terbit</span></div></div><div style="display: flex; gap: 14px"><div style="display: flex; flex-direction: column; align-items: center; width: 32px"><span style="width: 32px; height: 32px; box-sizing: border-box; border-radius: 16px; border: 2px solid #C5D5E6; background: #FFFFFF"></span></div><div style="padding: 4px 0 18px; display: flex; flex-direction: column; gap: 6px"><span style="font-size: 16px; font-weight: 600; color: #4A5D78">Kekirim ke pelanggan</span></div></div></div>
+</section>
+<a href="Periksa.dc.html" style="margin-top: auto; height: 56px; display: flex; align-items: center; justify-content: center; gap: 10px; border: 0; border-radius: 28px; background: #1C6FC4; color: #FFFFFF; font-size: 16px; font-weight: 700; text-decoration: none; cursor: pointer; flex-shrink: 0"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>Buka perhitungan</a>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":960}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

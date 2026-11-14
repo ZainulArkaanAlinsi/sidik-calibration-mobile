@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Pilih alat</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+body{margin:0}
+button,input{font:inherit;color:inherit}
+a{color:#0F4F94}a:hover{color:#0B2545}
+@keyframes naik{from{opacity:0;translate:0 12px}to{opacity:1;translate:0 0}}
+a,button{transition:scale 120ms cubic-bezier(.33,1,.68,1),background-color 120ms}a:active,button:active{scale:.97}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width: 390px; height: 960px; box-sizing: border-box; padding: 16px; display: flex; flex-direction: column; background: #F3F7FB; color: #0B2545; font-family: 'Inter', system-ui, sans-serif; overflow: hidden">
+
+  <header style="display: flex; align-items: center; gap: 12px; height: 48px">
+    <a href="Main.dc.html" aria-label="Kembali" style="width: 48px; height: 48px; border-radius: 24px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0B2545" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+    </a>
+    <h1 style="margin: 0; font-size: 20px; line-height: 26px; font-weight: 800; flex-grow: 1">Kalibrasi baru</h1>
+  </header>
+
+  <ol aria-label="Langkah" style="margin: 18px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px">
+    <li style="display: flex; flex-direction: column; gap: 6px"><span style="height: 6px; border-radius: 3px; background: #1C6FC4"></span><span style="font-size: 12px; font-weight: 800; color: #0F4F94">1 Alat</span></li>
+    <li style="display: flex; flex-direction: column; gap: 6px"><span style="height: 6px; border-radius: 3px; background: #D6E2EE"></span><span style="font-size: 12px; color: #4A5D78">2 Data</span></li>
+    <li style="display: flex; flex-direction: column; gap: 6px"><span style="height: 6px; border-radius: 3px; background: #D6E2EE"></span><span style="font-size: 12px; color: #4A5D78">3 Lembar</span></li>
+    <li style="display: flex; flex-direction: column; gap: 6px"><span style="height: 6px; border-radius: 3px; background: #D6E2EE"></span><span style="font-size: 12px; color: #4A5D78">4 Kirim</span></li>
+  </ol>
+
+  <h2 style="margin: 20px 0 0; font-size: 28px; line-height: 34px; font-weight: 800; letter-spacing: -0.025em">Alat apa yang dikalibrasi?</h2>
+
+  <div style="margin-top: 14px; height: 56px; box-sizing: border-box; padding: 0 6px 0 20px; display: flex; align-items: center; gap: 10px; border-radius: 28px; background: #FFFFFF">
+    <label for="cari-alat" style="position: absolute; width: 1px; height: 1px; overflow: hidden">Cari alat</label>
+    <input id="cari-alat" type="search" placeholder="Cari nama alat atau besaran" style="flex-grow: 1; min-width: 0; height: 44px; border: 0; outline: 0; background: none; font-size: 14px">
+    <button type="button" aria-label="Cari" style="width: 44px; height: 44px; border-radius: 22px; border: 0; background: #1C6FC4; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0">
+      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4-4"/></svg>
+    </button>
+  </div>
+
+  <div role="group" aria-label="Kelompok besaran" style="margin: 12px -16px 0 0; display: flex; gap: 8px; overflow-x: auto">
+    <sc-for list="{{groups}}" as="g" hint-placeholder-count="5">
+      <button type="button" aria-pressed="{{g.pressed}}" onClick="{{g.pick}}" style="flex-shrink: 0; height: 44px; padding: 0 18px; border: 0; border-radius: 22px; background: {{g.bg}}; color: {{g.fg}}; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap">{{g.label}}</button>
+    </sc-for>
+  </div>
+
+  <div style="margin-top: 16px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+    <sc-for list="{{tools}}" as="t" hint-placeholder-count="6">
+      <button type="button" aria-pressed="{{t.pressed}}" onClick="{{t.pick}}" style="position: relative; height: 164px; box-sizing: border-box; padding: 14px; border-radius: 24px; border: 2px solid {{t.border}}; background: {{t.bg}}; text-align: left; display: flex; flex-direction: column; overflow: hidden; cursor: pointer; animation: naik 240ms cubic-bezier(0.33,1,0.68,1) {{t.delay}} both">
+        <span style="font-size: 12px; font-weight: 600; color: #4A5D78">{{t.group}}</span>
+        <span style="margin-top: 2px; font-size: 16px; line-height: 20px; font-weight: 800; max-width: 120px">{{t.name}}</span>
+        <img src="{{t.img}}" alt="" style="position: absolute; right: -8px; bottom: -10px; width: 104px; height: 104px">
+        <sc-if value="{{t.selected}}" hint-placeholder-val="{{ false }}">
+          <span aria-hidden="true" style="position: absolute; left: 14px; bottom: 14px; width: 32px; height: 32px; border-radius: 16px; background: #1C6FC4; display: flex; align-items: center; justify-content: center">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
+          </span>
+        </sc-if>
+      </button>
+    </sc-for>
+  </div>
+
+  <a href="LembarKerja.dc.html" style="margin-top: auto; height: 56px; padding: 0 8px 0 22px; display: flex; align-items: center; justify-content: space-between; border-radius: 28px; background: #1C6FC4; color: #FFFFFF; font-size: 16px; font-weight: 700; text-decoration: none">
+    Lanjut dengan {{chosen}}
+    <span aria-hidden="true" style="width: 40px; height: 40px; border-radius: 20px; background: #FFFFFF; display: flex; align-items: center; justify-content: center">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1C6FC4" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </span>
+  </a>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":960}}'>
+class Component extends DCLogic {
+  state = { group: 'Semua', tool: 'pH Meter' };
+  renderVals() {
+    const I = {
+      ph: '/_blob/2a5cf405f41c14fb8fc490759a9fa808',
+      ac: '/_blob/8e54ee781f81a79f6b985dfaf006601b',
+      th: '/_blob/7faeffbe5b1225279adf68f844a06077',
+      fm: '/_blob/c6e002f3c82244b59ef1ffdc9a626e6f',
+      pp: '/_blob/0d9c1bb373a8c00e1d8f2343f7753c74',
+      ib: '/_blob/b8481eb65409429ddf95c135f476b96d',
+    };
+    const all = [
+      { name: 'pH Meter', group: 'Kimia', img: I.ph },
+      { name: 'Autoclave', group: 'Suhu', img: I.ac },
+      { name: 'Thermohygrometer', group: 'Suhu', img: I.th },
+      { name: 'Flow Meter Cairan', group: 'Aliran', img: I.fm },
+      { name: 'Pipet Ukur', group: 'Volume', img: I.pp },
+      { name: 'Inkubator', group: 'Suhu', img: I.ib },
+    ];
+    const g = this.state.group;
+    const groups = ['Semua', 'Suhu', 'Kimia', 'Volume', 'Aliran'].map((label) => ({
+      label,
+      pressed: label === g ? 'true' : 'false',
+      bg: label === g ? '#0B2545' : '#FFFFFF',
+      fg: label === g ? '#FFFFFF' : '#0B2545',
+      pick: () => this.setState({ group: label }),
+    }));
+    const tools = all
+      .filter((t) => g === 'Semua' || t.group === g)
+      .map((t, i) => {
+        const sel = t.name === this.state.tool;
+        return {
+          ...t,
+          selected: sel,
+          pressed: sel ? 'true' : 'false',
+          bg: sel ? '#E4F2FD' : '#FFFFFF',
+          border: sel ? '#1C6FC4' : '#FFFFFF',
+          delay: Math.min(i * 35, 210) + 'ms',
+          pick: () => this.setState({ tool: t.name }),
+        };
+      });
+    return { groups, tools, chosen: this.state.tool };
+  }
+}
+</script>
+</body>
+</html>

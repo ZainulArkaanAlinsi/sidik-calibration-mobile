@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Komponen SIDIK Lab</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600;700&display=swap">
+<style>
+body{margin:0}
+button,input{font:inherit;color:inherit}
+</style>
+</helmet>
+<div style="width: 1280px; height: 1500px; box-sizing: border-box; padding: 56px; display: flex; flex-direction: column; gap: 28px; background: #F3F7FB; color: #0B2545; font-family: 'Inter', system-ui, sans-serif">
+
+  <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 40px">
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <h1 style="margin: 0; font-size: 56px; line-height: 60px; font-weight: 800; letter-spacing: -0.035em">Biru Awan</h1>
+      <p style="margin: 0; font-size: 17px; line-height: 26px; color: #4A5D78; max-width: 720px">App Lab: biru langit untuk aksi dan permukaan sorot, navy untuk tinta, putih untuk kerja. Satu keluarga dengan app Pelanggan (ubin, pil, dock), lebih tenang karena dipakai seharian di meja lab. Angka ukur selalu IBM Plex Mono.</p>
+    </div>
+    <img src="/_blob/3f6baaf387e7b446a98dbf09ad6c77ef" alt="Logo PT Sidik" style="width: 60px; height: 84px; object-fit: contain">
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1.25fr 1fr; gap: 24px">
+    <section style="padding: 24px; border-radius: 28px; background: #FFFFFF; display: flex; flex-direction: column; gap: 16px">
+      <h2 style="margin: 0; font-size: 20px; font-weight: 800">Warna dan kontras</h2>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px">
+        <sc-for list="{{sw}}" as="s" hint-placeholder-count="12">
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <div style="height: 64px; border-radius: 18px; background: {{s.hex}}; border: 1px solid #D6E2EE; display: flex; align-items: flex-end; padding: 8px; box-sizing: border-box"><span style="font-size: 12px; font-weight: 800; color: {{s.on}}">{{s.ratio}}</span></div>
+            <span style="font-size: 13px; font-weight: 800">{{s.name}}</span>
+            <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: #4A5D78">{{s.hex}}</span>
+            <span style="font-size: 12px; line-height: 16px; color: #4A5D78">{{s.use}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <p style="margin: 0; font-size: 13px; line-height: 19px; color: #4A5D78">Angka di petak = kontras teks di atasnya. Teks putih DILARANG di atas Langit (2,3:1). Teks biru di atas Kabut memakai Primer tua, bukan Primer (4,47:1, gagal tipis).</p>
+    </section>
+
+    <section style="padding: 24px; border-radius: 28px; background: #FFFFFF; display: flex; flex-direction: column; gap: 14px">
+      <h2 style="margin: 0; font-size: 20px; font-weight: 800">Huruf</h2>
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; border-bottom: 1px solid #E8EEF5; padding-bottom: 10px"><span style="font-size: 28px; line-height: 34px; font-weight: 800; letter-spacing: -0.025em">Judul layar</span><span style="font-size: 12px; color: #4A5D78">Inter 28/34 · 800</span></div>
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; border-bottom: 1px solid #E8EEF5; padding-bottom: 10px"><span style="font-size: 20px; line-height: 26px; font-weight: 800">Judul anak, nama alat</span><span style="font-size: 12px; color: #4A5D78">20/26 · 800</span></div>
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; border-bottom: 1px solid #E8EEF5; padding-bottom: 10px"><span style="font-size: 17px; line-height: 24px; font-weight: 800">Judul bagian</span><span style="font-size: 12px; color: #4A5D78">17/24 · 800</span></div>
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; border-bottom: 1px solid #E8EEF5; padding-bottom: 10px"><span style="font-size: 16px; line-height: 24px; font-weight: 700">Label tombol dan baris</span><span style="font-size: 12px; color: #4A5D78">16/24 · 700</span></div>
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; border-bottom: 1px solid #E8EEF5; padding-bottom: 10px"><span style="font-size: 14px; line-height: 20px; color: #4A5D78">Keterangan, nama PT</span><span style="font-size: 12px; color: #4A5D78">14/20 · 400</span></div>
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; border-bottom: 1px solid #E8EEF5; padding-bottom: 10px"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 22px; font-weight: 700">7,013  −0,013</span><span style="font-size: 12px; color: #4A5D78">Plex Mono 22 · 700 (hasil)</span></div>
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; font-weight: 600">KAL/2026/11/0001</span><span style="font-size: 12px; color: #4A5D78">Plex Mono 12 · 600 (nomor)</span></div>
+    </section>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px">
+    <section style="padding: 24px; border-radius: 28px; background: #FFFFFF; display: flex; flex-direction: column; gap: 14px">
+      <h2 style="margin: 0; font-size: 20px; font-weight: 800">Tombol</h2>
+      <button type="button" style="height: 56px; border: 0; border-radius: 28px; background: #1C6FC4; color: #FFFFFF; font-size: 16px; font-weight: 700">Kirim untuk approval</button>
+      <span style="font-size: 12px; color: #4A5D78">Utama: penuh × 56 · pil · Primer · putih 16/700 · satu per layar</span>
+      <button type="button" style="height: 48px; border: 0; border-radius: 24px; background: #0B2545; color: #FFFFFF; font-size: 15px; font-weight: 700">Ringkasan</button>
+      <span style="font-size: 12px; color: #4A5D78">Tegas: 48 · navy (aksi kedua yang tetap penting)</span>
+      <button type="button" style="height: 48px; border: 1px solid #C5D5E6; border-radius: 24px; background: #FFFFFF; font-size: 15px; font-weight: 700">Simpan draf</button>
+      <span style="font-size: 12px; color: #4A5D78">Sekunder: 48 · putih + garis #C5D5E6</span>
+      <div style="display: flex; gap: 10px; align-items: center">
+        <span style="width: 44px; height: 44px; border-radius: 22px; background: #1C6FC4"></span>
+        <span style="width: 48px; height: 48px; border-radius: 24px; background: #FFFFFF; border: 1px solid #D6E2EE"></span>
+        <span style="width: 60px; height: 60px; border-radius: 30px; background: #1C6FC4; box-shadow: 0 8px 18px rgba(28,111,196,0.4)"></span>
+      </div>
+      <span style="font-size: 12px; color: #4A5D78">Bulat 44 (cari) · 48 (kembali) · 60 (Mulai di dock)</span>
+    </section>
+
+    <section style="padding: 24px; border-radius: 28px; background: #FFFFFF; display: flex; flex-direction: column; gap: 14px">
+      <h2 style="margin: 0; font-size: 20px; font-weight: 800">Stempel status</h2>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px">
+        <span style="height: 30px; padding: 0 12px; display: flex; align-items: center; border-radius: 15px; background: #EEF2F6; font-size: 12px; font-weight: 700">Draf</span>
+        <span style="height: 30px; padding: 0 12px; display: flex; align-items: center; border-radius: 15px; background: #A9D8FB; font-size: 12px; font-weight: 700">Menunggu approval</span>
+        <span style="height: 30px; padding: 0 12px; display: flex; align-items: center; border-radius: 15px; background: #BFE6C4; font-size: 12px; font-weight: 700">Disetujui</span>
+        <span style="height: 30px; padding: 0 12px; display: flex; align-items: center; border-radius: 15px; background: #F6D36B; font-size: 12px; font-weight: 700">Perlu revisi</span>
+        <span style="height: 30px; padding: 0 12px; display: flex; align-items: center; border-radius: 15px; background: #F2957A; font-size: 12px; font-weight: 700">Ditolak</span>
+        <span style="height: 30px; padding: 0 12px; display: flex; align-items: center; border-radius: 15px; background: #BFE6C4; font-size: 12px; font-weight: 700">Memenuhi toleransi</span>
+        <span style="height: 30px; padding: 0 12px; display: flex; align-items: center; border-radius: 15px; background: #0B2545; color: #FFFFFF; font-size: 12px; font-weight: 700">Tidak memenuhi toleransi</span>
+      </div>
+      <span style="font-size: 12px; line-height: 17px; color: #4A5D78">30 tinggi · radius 15 · padding 12 · ikon 14 + kata · 12/700. FAIL tidak dilunakkan: navy pekat, kata lengkap.</span>
+      <h2 style="margin: 8px 0 0; font-size: 20px; font-weight: 800">Chip saring</h2><div role="group" aria-label="Saring" style="margin: 0; display: flex; gap: 8px; overflow-x: auto; flex-shrink: 0"><button type="button" aria-pressed="true" style="flex-shrink: 0; height: 44px; padding: 0 6px 0 16px; display: flex; align-items: center; gap: 8px; border: 0; border-radius: 22px; background: #0B2545; color: #FFFFFF; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap">Semua<span style="min-width: 32px; height: 32px; padding: 0 6px; box-sizing: border-box; border-radius: 16px; background: #F6D36B; color: #0B2545; display: flex; align-items: center; justify-content: center">4</span></button><button type="button" aria-pressed="false" style="flex-shrink: 0; height: 44px; padding: 0 6px 0 16px; display: flex; align-items: center; gap: 8px; border: 0; border-radius: 22px; background: #FFFFFF; color: #0B2545; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap">Ada FAIL<span style="min-width: 32px; height: 32px; padding: 0 6px; box-sizing: border-box; border-radius: 16px; background: #F2957A; color: #0B2545; display: flex; align-items: center; justify-content: center">1</span></button></div><span style="font-size: 12px; color: #4A5D78">44 tinggi · radius 22 · jumlah di bulatan 32 · aktif navy</span>
+    </section>
+
+    <section style="padding: 24px; border-radius: 28px; background: #FFFFFF; display: flex; flex-direction: column; gap: 14px">
+      <h2 style="margin: 0; font-size: 20px; font-weight: 800">Isian</h2><label style="display: flex; flex-direction: column; gap: 8px">
+  <span style="font-size: 14px; font-weight: 700">Kode teknisi</span>
+  <span style="height: 56px; box-sizing: border-box; padding: 0 18px; display: flex; align-items: center; gap: 8px; border: 2px solid #1C6FC4; border-radius: 16px; background: #FFFFFF">
+    <input value="TK-07" placeholder="" style="flex-grow: 1; min-width: 0; border: 0; outline: 0; background: none; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 16px">
+  </span>
+</label><span style="font-size: 12px; line-height: 17px; color: #4A5D78">56 tinggi · radius 16 · label di atas 14/700 · fokus primer 2 · galat #E0684A. Lembar kerja (sel, keypad) BEKU, tidak memakai komponen ini.</span>
+      <h2 style="margin: 8px 0 0; font-size: 20px; font-weight: 800">Dock</h2>
+      <div style="align-self: flex-start; display: flex; align-items: center; gap: 10px; padding: 8px; background: #FFFFFF; border-radius: 40px; box-shadow: 0 14px 34px rgba(11,37,69,0.16); border: 1px solid #EEF2F6">
+        <span style="height: 52px; padding: 0 18px; display: flex; align-items: center; border-radius: 26px; background: #E4F2FD; color: #0F4F94; font-size: 14px; font-weight: 800">Kalibrasi</span>
+        <span style="width: 60px; height: 60px; border-radius: 30px; background: #1C6FC4"></span>
+        <span style="width: 52px; height: 52px; border-radius: 26px; background: #F3F7FB"></span>
+      </div>
+      <span style="font-size: 12px; line-height: 17px; color: #4A5D78">Teknisi: 2 tujuan + Mulai di tengah. Admin: 5 butir 48. Putih, radius 40, bayangan 0 14 34 navy 16%.</span>
+    </section>
+  </div>
+
+  <section style="padding: 24px; border-radius: 28px; background: #FFFFFF; display: flex; flex-direction: column; gap: 14px">
+    <h2 style="margin: 0; font-size: 20px; font-weight: 800">Visual alat</h2>
+    <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px">
+      <sc-for list="{{vis}}" as="v" hint-placeholder-count="6">
+        <div style="height: 168px; border-radius: 24px; background: #E4F2FD; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 12px; box-sizing: border-box; gap: 4px">
+          <img src="{{v.img}}" alt="{{v.n}}" style="width: 120px; height: 120px">
+          <span style="font-size: 13px; font-weight: 700">{{v.n}}</span>
+        </div>
+      </sc-for>
+    </div>
+    <span style="font-size: 12px; color: #4A5D78">Kanvas 240 × 240, cahaya kiri atas, bayangan lantai, tanpa merek. Ukuran pakai: 188 (hero), 104 (ubin pilih alat), 92 (kartu draf), 44–50 (baris). Jenis tanpa visual: ikon garis di ubin Kabut.</span>
+  </section>
+
+  <section style="padding: 24px; border-radius: 28px; background: #0B2545; color: #FFFFFF; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px">
+    <div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 20px; font-weight: 800">Gerak</span><span style="font-size: 13px; line-height: 19px; color: #C3D6EC">Sama dengan app Pelanggan: AppMotion 120 / 240 / 280 ms, easeOutCubic. Tanpa gerak berulang.</span></div>
+    <div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 14px; font-weight: 800">Masuk</span><span style="font-size: 13px; line-height: 19px; color: #C3D6EC">Ubin dan kartu: pudar + naik 12, berurutan 35 ms (maks 210). Visual: skala 0,92 → 1 setelah ubinnya.</span></div>
+    <div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 14px; font-weight: 800">Tekan</span><span style="font-size: 13px; line-height: 19px; color: #C3D6EC">Tombol, kartu, chip: skala 0,97 selama ditekan, 120 ms.</span></div>
+    <div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 14px; font-weight: 800">Hasil</span><span style="font-size: 13px; line-height: 19px; color: #C3D6EC">Batang |kor| + U tumbuh dari kiri 240 ms. Rata-rata dan koreksi berganti tanpa animasi: angka ukur tidak boleh "berkedip".</span></div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1500}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const sw = [
+      ['Primer', '#1C6FC4', 'tombol utama, fokus', '#FFFFFF', '5,1'],
+      ['Primer tua', '#0F4F94', 'teks biru, aktif dock', '#FFFFFF', '8,2'],
+      ['Langit', '#5BB4F5', 'hero, sorot (teks navy)', '#0B2545', '6,8'],
+      ['Awan', '#A9D8FB', 'stempel tunggu', '#0B2545', '10,2'],
+      ['Kabut', '#E4F2FD', 'ubin terpilih, sel', '#0B2545', '13,5'],
+      ['Latar', '#F3F7FB', 'halaman', '#0B2545', '14,3'],
+      ['Navy', '#0B2545', 'tinta, aksi tegas', '#FFFFFF', '15,4'],
+      ['Tinta kedua', '#4A5D78', 'keterangan', '#FFFFFF', '6,7'],
+      ['Hijau', '#BFE6C4', 'lulus, disetujui', '#0B2545', '11,2'],
+      ['Kuning', '#F6D36B', 'perlu dicek, revisi', '#0B2545', '10,6'],
+      ['Koral', '#F2957A', 'ditolak, tak terbaca', '#0B2545', '6,9'],
+      ['Garis', '#D6E2EE', 'pemisah, tepi', '#0B2545', '11,7'],
+    ].map(([name, hex, use, on, ratio]) => ({ name, hex, use, on, ratio: ratio + ':1' }));
+        const vis = [
+      ['pH Meter', '/_blob/2a5cf405f41c14fb8fc490759a9fa808'],
+      ['Autoclave', '/_blob/8e54ee781f81a79f6b985dfaf006601b'],
+      ['Thermohygrometer', '/_blob/7faeffbe5b1225279adf68f844a06077'],
+      ['Flow meter', '/_blob/c6e002f3c82244b59ef1ffdc9a626e6f'],
+      ['Pipet ukur', '/_blob/0d9c1bb373a8c00e1d8f2343f7753c74'],
+      ['Inkubator', '/_blob/b8481eb65409429ddf95c135f476b96d'],
+    ].map(([n, img]) => ({ n, img }));
+    return { sw, vis };
+  }
+}
+</script>
+</body>
+</html>

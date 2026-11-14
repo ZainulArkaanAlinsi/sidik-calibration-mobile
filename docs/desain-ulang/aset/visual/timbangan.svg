@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="480" height="480">
+<defs>
+<linearGradient id="b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FDFDFB"/><stop offset=".6" stop-color="#E6E7E3"/><stop offset="1" stop-color="#C2C4BF"/></linearGradient>
+<linearGradient id="c" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7E817C"/><stop offset=".28" stop-color="#FFFFFF"/><stop offset=".6" stop-color="#B4B7B2"/><stop offset="1" stop-color="#6F726D"/></linearGradient>
+<linearGradient id="p" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#9DA09B"/><stop offset=".4" stop-color="#FAFAF8"/><stop offset="1" stop-color="#8A8D88"/></linearGradient>
+<linearGradient id="gl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#EAF6FA" stop-opacity=".75"/><stop offset="1" stop-color="#BFDCE6" stop-opacity=".35"/></linearGradient>
+<radialGradient id="sh" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#000" stop-opacity=".3"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+</defs>
+<ellipse cx="120" cy="214" rx="94" ry="12" fill="url(#sh)"/>
+<rect x="56" y="34" width="128" height="122" rx="4" fill="url(#gl)"/>
+<rect x="117" y="126" width="6" height="26" fill="url(#c)"/>
+<ellipse cx="120" cy="129" rx="38" ry="8.500" fill="#7F827D"/>
+<ellipse cx="120" cy="126" rx="38" ry="8.500" fill="url(#p)"/>
+<ellipse cx="120" cy="125.500" rx="33" ry="6.500" fill="#EEEFEC"/>
+<ellipse cx="120" cy="124" rx="15" ry="4.500" fill="#6F726D"/>
+<rect x="105" y="92" width="30" height="32" fill="url(#c)"/>
+<ellipse cx="120" cy="92" rx="15" ry="4.500" fill="#F6F6F4"/>
+<rect x="113" y="78" width="14" height="13" fill="url(#c)"/>
+<ellipse cx="120" cy="78" rx="7" ry="2.400" fill="#FAFAF8"/>
+<rect x="56" y="34" width="128" height="122" rx="4" fill="none" stroke="#A9AFAE" stroke-width="3.500"/>
+<path d="M152 36v118" stroke="#B9BFBE" stroke-width="2"/>
+<polygon points="66,40 90,40 70,150 60,150 60,58" fill="#FFFFFF" opacity=".55"/>
+<polygon points="98,40 104,40 84,150 78,150" fill="#FFFFFF" opacity=".3"/>
+<rect x="50" y="26" width="140" height="14" rx="5" fill="url(#b)" stroke="#B3B5B0" stroke-width="1"/>
+<rect x="30" y="152" width="180" height="56" rx="16" fill="url(#b)"/>
+<rect x="30.500" y="152.500" width="179" height="55" rx="16" fill="none" stroke="#A7A9A4" stroke-width="1"/>
+<rect x="60" y="168" width="120" height="28" rx="7" fill="#141617"/>
+<text x="76" y="187" font-family="monospace" font-size="14" font-weight="700" fill="#9FE8FF">200.0000 g</text>
+<circle cx="45" cy="182" r="6" fill="#C7C9C4" stroke="#9EA09B" stroke-width="1"/><circle cx="195" cy="182" r="6" fill="#F2957A" stroke="#C06A52" stroke-width="1"/>
+</svg>
