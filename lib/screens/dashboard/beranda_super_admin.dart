@@ -16,6 +16,7 @@ import '../../widgets/app_button.dart';
 import '../../widgets/sidik/sidik_lembar.dart';
 import '../../widgets/sidik/sidik_permukaan.dart';
 import '../../widgets/skeleton.dart';
+import '../../widgets/tombol_pindai_lembar.dart';
 import '../admin/antrean_approval_screen.dart';
 import '../calibration/category_picker_screen.dart';
 import '../jatuh_tempo/layar_jatuh_tempo.dart';
@@ -57,6 +58,8 @@ class BerandaSuperAdmin extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return ListView(
+      // Selalu bisa ditarik walau isinya pendek (tarik-segarkan = jalan pulih).
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(AppSpacing.md),
       children: [
         const _Sapaan(),
@@ -397,6 +400,8 @@ class _PanelAksi extends StatelessWidget {
           variant: AppButtonVariant.secondary,
           onPressed: () => buka(const CategoryPickerScreen()),
         ),
+        // Hanya bila server menyatakan ada jenis lembar yang boleh dipindai.
+        const TombolPindaiLembar(),
         const SizedBox(height: AppSpacing.sm),
         AppButton(
           label: l10n.berandaSaTugaskan,

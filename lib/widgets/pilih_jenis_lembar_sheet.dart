@@ -16,9 +16,10 @@ import '../services/jenis_lembar.dart';
 ///  - Tidak ada navigasi atau pengisian otomatis: hasilnya hanya keluar saat
 ///    teknisi menekan "Pakai jenis lembar ini".
 ///
-/// Belum dipasang di layar mana pun: tombol pindai lembar masih mati
-/// (`siap_pindai: false`), jadi alur memanggil [tampilkanPilihJenisLembar]
-/// baru ketika pindai dinyalakan.
+/// Dipanggil alur "Pindai lembar kerja" (`lib/screens/pindai/pindai_lembar_flow.dart`)
+/// dari tombol di beranda teknisi, Master Data, dan super admin. Tombolnya
+/// tersembunyi selama server belum menyatakan ada jenis lembar yang boleh
+/// dipindai.
 Future<FormulirDikenal?> tampilkanPilihJenisLembar(
   BuildContext context, {
   required HasilJenisLembar? petunjuk,

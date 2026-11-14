@@ -287,7 +287,16 @@ class MockWorksheetScanService implements WorksheetScanService {
     this.crop,
     this.templateLengkap,
     this.formulirAsli,
+    this.daftar,
   });
+
+  /// Jawaban [daftarTemplate]. `null` = satu entri bawaan TANPA kunci `asli`
+  /// (tidak ada jenis yang boleh dipindai dari beranda), sama dengan server
+  /// produksi sekarang.
+  final List<WorksheetTemplate>? daftar;
+
+  /// Berapa kali [daftarTemplate] dipanggil — bukti daftar di-cache.
+  int jumlahDaftarDiminta = 0;
 
   /// Template berikut geometrinya. Dititipin test yang mau menjalankan JALUR
   /// PINDAI PENUH — tanpa geometri, `JalankanPindai` berhenti di
@@ -323,9 +332,15 @@ class MockWorksheetScanService implements WorksheetScanService {
   };
 
   @override
-  Future<List<WorksheetTemplate>> daftarTemplate(String token) async => [
-    templateLengkap ?? WorksheetTemplate.fromJson(_template('spectrophotometer')),
-  ];
+  Future<List<WorksheetTemplate>> daftarTemplate(String token) async {
+    jumlahDaftarDiminta++;
+
+    return daftar ??
+        [
+          templateLengkap ??
+              WorksheetTemplate.fromJson(_template('spectrophotometer')),
+        ];
+  }
 
   @override
   Future<WorksheetTemplate?> templateAsli(

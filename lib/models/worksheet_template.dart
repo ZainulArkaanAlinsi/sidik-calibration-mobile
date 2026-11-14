@@ -30,7 +30,16 @@ class WorksheetTemplate {
     this.centang = const [],
     this.perluKonfirmasiLab = false,
     this.revisiTercetak = true,
+    this.asli = AsliDiDaftar.tidakAda,
   });
+
+  /// Ringkasan formulir ASLI untuk entri ini di `GET /worksheet-templates`
+  /// (kunci `asli`). Hanya terisi dari DAFTAR; template satuan (`cetak` maupun
+  /// `?kertas=asli`) tidak membawanya, jadi bawaannya [AsliDiDaftar.tidakAda].
+  ///
+  /// BUKAN [siapPindai]/[modeUji] di atas: yang di tingkat atas itu lembar
+  /// CETAK bermarker, yang di dalam [asli] itu formulir ASLI lab.
+  final AsliDiDaftar asli;
 
   /// `cetak` = lembar bermarker + QR buatan sistem (kontrak lama, semua field
   /// di atas). `asli` = formulir SIDIK-FM-CAL asli lab tanpa marker & QR —
@@ -191,6 +200,8 @@ class WorksheetTemplate {
       // `jangkar` ada di level atas respons, bukan di dalam `geometri`.
       jangkar: parseListAman(data['jangkar'], JangkarTemplate.fromJson),
       qrIsi: (geometri?['qr'] as Map<String, dynamic>?)?['isi'] as String?,
+      // Hanya ada di entri daftar. Kunci hilang (server/APK lama) = tidak ada.
+      asli: AsliDiDaftar.dari(data['asli']),
     );
   }
 
@@ -237,6 +248,89 @@ class WorksheetTemplate {
       ],
       isian: parseListAman(data['isian'], IsianTemplate.fromJson),
       centang: parseListAman(data['centang'], CentangTemplate.fromJson),
+    );
+  }
+}
+
+/// Kunci `asli` pada satu entri `GET /worksheet-templates`: kesiapan formulir
+/// ASLI lab untuk jenis lembar itu (kontrak API `perintah-frontend-templat-asli`).
+///
+/// Semua bendera datang dari server; HP tidak menghitung kesiapan sendiri.
+/// [boleh] hanya MENGGABUNGKAN bendera itu persis seperti penolakan di server
+/// (`PemrosesScanLembarKerja`), supaya tombol beranda tidak pernah lebih longgar
+/// dari server.
+///
+/// Tahan kunci hilang: `asli` tidak ada atau bukan peta = [tidakAda], dan
+/// bendera yang kurang = `false`/`null` (APK ini boleh bertemu server yang
+/// belum mengirimnya). Satu pengecualian, ke arah aman: `perlu_konfirmasi_lab`
+/// yang hilang atau bukan bool dibaca `true` (pintu tertutup).
+class AsliDiDaftar {
+  const AsliDiDaftar({
+    this.ada = false,
+    this.kodeDokumen,
+    this.revisi,
+    this.siapPindai = false,
+    this.modeUji = false,
+    this.perluKonfirmasiLab = false,
+  });
+
+  /// Tidak ada formulir asli yang bisa dipilih tanpa kode FM dari kertas.
+  static const tidakAda = AsliDiDaftar();
+
+  /// Server punya formulir asli yang bisa dipilih untuk jenis ini. `false`
+  /// bukan berarti "tidak punya formulir": template ber-banyak formulir
+  /// (Micrometer 0522.A-D) juga `false`, dan jalur pindai dari kertas tetap
+  /// menemukannya lewat kode FM yang terbaca.
+  final bool ada;
+
+  /// Kode FM tercetak TANPA `_Rev.n` (`SIDIK-FM-CAL-0509`).
+  final String? kodeDokumen;
+
+  /// Nomor revisi saja (`"4"`); `null` = tidak tercatat.
+  final String? revisi;
+
+  /// Geometri formulir terbukti di foto nyata (>= 20 foto).
+  final bool siapPindai;
+
+  /// Saklar server `OCR_FORMULIR_ASLI_UJI`: boleh dicoba, semua sel maksimal
+  /// kuning.
+  final bool modeUji;
+
+  /// Pemetaan kolom ke titik masih asumsi: server MENOLAK pindai formulir ini
+  /// apa pun bendera lainnya.
+  final bool perluKonfirmasiLab;
+
+  /// Aturan "boleh dipindai" persis seperti kontrak:
+  /// `ada && !perluKonfirmasiLab && (siapPindai || modeUji) && revisi != null`.
+  bool get boleh =>
+      ada && !perluKonfirmasiLab && (siapPindai || modeUji) && revisi != null;
+
+  factory AsliDiDaftar.dari(Object? json) {
+    if (json is! Map<String, dynamic>) return tidakAda;
+
+    // Revisi hanya teks atau angka (`"4"` / `4`); peta, daftar, dsb. = tidak
+    // tercatat (server menolak pindai tanpa revisi angka).
+    final revisiMentah = json['revisi'];
+    final revisi = revisiMentah is String || revisiMentah is num
+        ? '$revisiMentah'.trim()
+        : null;
+
+    // Hanya `true` sungguhan yang menyalakan bendera. Pengecualian: nilai
+    // `perlu_konfirmasi_lab` yang HILANG atau bukan bool dibaca TRUE (menutup
+    // pintu). Server selalu mengirim keenam kunci, jadi kunci ini hilang hanya
+    // pada bentuk yang tidak dikenal; salah baca ke arah itu cuma
+    // menyembunyikan tombol, tidak pernah melonggarkan server.
+    final konfirmasi = json['perlu_konfirmasi_lab'];
+
+    return AsliDiDaftar(
+      ada: json['ada'] == true,
+      kodeDokumen: json['kode_dokumen'] is String
+          ? json['kode_dokumen'] as String
+          : null,
+      revisi: revisi == null || revisi.isEmpty ? null : revisi,
+      siapPindai: json['siap_pindai'] == true,
+      modeUji: json['mode_uji'] == true,
+      perluKonfirmasiLab: konfirmasi is bool ? konfirmasi : true,
     );
   }
 }

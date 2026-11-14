@@ -10,12 +10,14 @@ import '../../models/user.dart';
 import '../../providers/auth_provider.dart';
 import '../shell/main_shell.dart' show bukaMenuUtama;
 import '../../providers/dashboard_provider.dart';
+import '../../providers/kesiapan_pindai_lembar_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/glass_surface.dart';
 import '../../widgets/readable_width.dart';
 import '../../widgets/skeleton.dart';
 import '../../widgets/stat_card.dart';
 import '../../widgets/tampil_masuk.dart';
+import '../../widgets/tombol_pindai_lembar.dart';
 import '../../widgets/work_chart.dart';
 import '../../widgets/status_badge.dart';
 import '../../widgets/technician_pulse_panel.dart';
@@ -99,9 +101,16 @@ class DashboardScreen extends ConsumerWidget {
       body: Container(
         decoration: BoxDecoration(color: AppColors.warnaLatar(context)),
         child: RefreshIndicator(
-          onRefresh: () => superAdmin
-              ? segarkanBerandaSuperAdmin(ref)
-              : ref.read(dashboardProvider.notifier).muatUlang(),
+          onRefresh: () {
+            // Daftar jenis lembar di-cache sepanjang sesi; tarik-segarkan
+            // satu-satunya jalan memintanya lagi (tombol "Pindai lembar
+            // kerja", admin maupun super admin).
+            ref.invalidate(kesiapanPindaiLembarProvider);
+
+            return superAdmin
+                ? segarkanBerandaSuperAdmin(ref)
+                : ref.read(dashboardProvider.notifier).muatUlang();
+          },
           // Di DALAM Container, biar gradasi latarnya tetap penuh selebar
           // jendela — yang dibatasi cuma isinya.
           //
@@ -128,6 +137,8 @@ class _Isi extends ConsumerWidget {
     final teknisi = !admin && (user?.role.bisaInput ?? false);
 
     return ListView(
+      // Selalu bisa ditarik walau isinya pendek (tarik-segarkan = jalan pulih).
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(AppSpacing.md),
       // Kartunya datang berurutan, bukan serempak. Susunannya nggak dipindah
       // sama sekali — `berurutan` cuma membungkus tiap anak di tempatnya, dan
@@ -273,6 +284,10 @@ class _Isi extends ConsumerWidget {
                       ),
                     ),
                   ),
+                  // Hanya bila server menyatakan ada jenis lembar yang boleh
+                  // dipindai. Blok ini sendiri sudah tidak dirender untuk
+                  // viewer (`bisaInput` di atas).
+                  const TombolPindaiLembar(),
                   const SizedBox(height: AppSpacing.sm),
                 ],
                 AppButton(
