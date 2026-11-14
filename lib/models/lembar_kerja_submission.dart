@@ -236,6 +236,7 @@ class LembarKerjaSubmission {
     this.inputMethod = MetodeInput.manual,
     this.alasanKoreksi,
     this.titikSesi,
+    this.cekBacaan,
   });
 
   /// Badan `titik_sesi` (`{revisi, titik[], pengulangan}`) — seluruh set titik
@@ -408,11 +409,20 @@ class LembarKerjaSubmission {
   /// (ISO/IEC 17025 7.5.2). Kuncinya cuma dikirim kalau diisi.
   final String? alasanKoreksi;
 
+  /// Status gerbang "wajib dicek" per sel hasil kamera:
+  /// `{perlu_cek: [kunci…], sudah_dicek: [kunci…]}`. `null` = tidak ada sel
+  /// hasil kamera, dan kuncinya tidak dikirim sama sekali.
+  ///
+  /// Catatan keadaan di sisi HP (ikut antrean offline), bukan input hitung:
+  /// server belum membacanya dan mengabaikan kunci yang tidak dikenal.
+  final Map<String, dynamic>? cekBacaan;
+
   Map<String, dynamic> toJson() => {
     'equipment_id': equipmentId,
     'client_request_id': clientRequestId,
     if (alasanKoreksi != null) 'alasan_koreksi': alasanKoreksi,
     'input_method': inputMethod.api,
+    if (cekBacaan != null && cekBacaan!.isNotEmpty) 'cek_bacaan': cekBacaan,
     'lokasi': lokasi.toApi(),
     // Nama tempat buat sesi Insitu — yang tercetak `Insitu (PT. Niaga Contoh)` di
     // sertifikat. Dikirim eksplisit (termasuk null) biar `PUT` bisa

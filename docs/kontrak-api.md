@@ -870,6 +870,46 @@ Response `201` — balikin sesi yang udah kehitung (lihat bentuknya di bawah).
 >
 > Konsekuensi buat HP: sesi yang mengirim tebakan **wajib** melewati
 > `POST /calibrations/{id}/measurements/verify` sebelum bisa disetujui admin.
+>
+> ### Gerbang "wajib dicek" di HP (13 Nov 2026) — dan batas server
+>
+> - **Kirim final ditahan** di HP selama ada sel hasil kamera yang belum dicek
+>   teknisi satu per satu (tabel, matriks, grid, kolom isian, dan layar isian
+>   generik). Penjaganya murni di klien; server tidak tahu sel mana yang dicek.
+> - **Konfirmasi pasca-kirim memakai id eksplisit**: `verify` dengan
+>   `measurement_ids` (id baris `is_verified=false` dari `GET /calibrations/{id}`
+>   → `pembacaan_mentah`), bukan badan kosong. Badan kosong = "semua" di server;
+>   HP tidak mengirimnya dari lembar kerja. Server menandai SEMUA baris sesi
+>   `input_method: ocr` belum terverifikasi (`|| $sesiKamera`), termasuk yang
+>   diketik tangan, jadi himpunan id eksplisit itu sama dengan "semua belum
+>   terverifikasi" — bedanya gerbang klien sudah memastikan tiap sel kamera dicek.
+> - **`cek_bacaan` di payload diabaikan server** (catatan keadaan HP:
+>   `{perlu_cek:[…], sudah_dicek:[…]}`, ikut antrean offline). Tidak ada
+>   validasi, tidak disimpan.
+> - **Muat draf dari server memulihkan tanda** tanpa perubahan API: baris
+>   `pembacaan_mentah[]` berstatus `is_verified=false` DAN `ocr_raw_text` terisi
+>   ditandai "perlu dicek" lagi (tebakannya dipasang ulang, jadi simpan
+>   berikutnya tetap membawa `ocr[]`). Konfirmasi yang sudah pernah diberikan
+>   tidak tersimpan di server, jadi sel dicek ulang (arah aman).
+> - **Tombol "Saya sudah cek angkanya" di layar detail sesi adalah JALUR
+>   PEMULIHAN, bukan jalur normal**: ia mengonfirmasi massal (`verify` tanpa
+>   daftar id). Di status `draft` tombolnya disembunyikan (melewati gerbang); di
+>   `menunggu_approval` / `perlu_revisi` tetap ada, dan server hanya menerima
+>   teknisi sesi itu atau admin. Pengonfirmasi tercatat (`verified_by`) pada
+>   SEMUA baris, jadi admin yang menekannya tidak bisa menyetujui sesi itu
+>   (`422 pemisahan_wewenang`).
+>   **Keputusan (13 Nov 2026): dibiarkan seperti sekarang.** Membatasi tombol
+>   ke teknisi pemilik sesi butuh `teknisi_id` di respons detail
+>   (`GET /calibrations/{id}`; model Dart baru memuat `namaTeknisi` saja) —
+>   tindak lanjut API yang additive, BUKAN syarat merge. Sesi yang dikirim APK
+>   ini lahir dengan semua sel sudah dicek dan konfirmasi pasca-kirim memakai id
+>   eksplisit, jadi tombol hanya muncul bila konfirmasi gagal atau sesinya lama.
+> - **Tindak lanjut (additive, belum dikerjakan)**: di `verifyMeasurements`
+>   catat rincian `dari_kamera` (baris ber-`ocr_raw_text`) lawan `ketik_tangan`
+>   di audit, lalu simpan `cek_bacaan.sudah_dicek` per baris (siapa/kapan).
+>   **Jangan** menghapus `|| $sesiKamera` begitu saja: klien lama yang menandai
+>   sesi `ocr` tanpa `ocr[]` per sel akan jadi otomatis terverifikasi dan gerbang
+>   approve melemah.
 
 ### 4a. `POST /api/calibrations/preview` — hitung sambil ngetik
 

@@ -11,7 +11,9 @@ import '../../../providers/contoh_sel_provider.dart';
 import '../../../services/potong_sel_foto.dart';
 import '../../../services/ambil_foto_tabel.dart';
 import '../../../services/peta_tabel_foto.dart';
+import '../cek_bacaan_kamera.dart';
 import '../lembar_kerja_state.dart';
+import 'tanda_cek_sel.dart';
 
 /// Tabel MATRIKS: satu baris = satu besaran, satu kolom = satu titik waktu.
 ///
@@ -217,9 +219,7 @@ class LembarKerjaMatriks extends StatelessWidget {
                         key: Key('matriks_${b.kodeData}_$t'),
                         controller: isian.kotakMatriks(b.kodeData, t),
                         onBerubah: onBerubah,
-                        dariFoto: isian.matriksDariFoto.contains(
-                          LembarKerjaState.kunciMatriks(b.kodeData, t),
-                        ),
+                        cek: isian.pemantauCekMatriks(b.kodeData, t),
                       ),
               ),
             ),
@@ -507,18 +507,21 @@ class _KotakAngka extends StatelessWidget {
     super.key,
     required this.controller,
     required this.onBerubah,
-    this.dariFoto = false,
+    this.cek,
   });
 
   final TextEditingController? controller;
   final VoidCallback onBerubah;
 
-  /// Isinya datang dari FOTO, belum diadu ke kertas. Kuningnya sama dengan
-  /// `TandaSel.keyakinanRendah` di jalur tabel, dan artinya sama: saran mesin.
-  final bool dariFoto;
+  /// Ada kalau isinya datang dari FOTO: tandanya ikut gerbang "wajib dicek"
+  /// (perlu / sudah dicek), bukan kuning statis.
+  final PemantauCek? cek;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) =>
+      LapisCekSel(cek: cek, bangun: (context, status) => _kotak(status));
+
+  Widget _kotak(StatusCekSel? status) {
     return TextField(
       controller: controller,
       textAlign: TextAlign.center,
@@ -531,11 +534,7 @@ class _KotakAngka extends StatelessWidget {
         isDense: true,
         contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
         border: const OutlineInputBorder(),
-        enabledBorder: dariFoto
-            ? const OutlineInputBorder(
-                borderSide: BorderSide(color: kuningPerluDicek, width: 2),
-              )
-            : null,
+        enabledBorder: borderCek(status),
       ),
       onChanged: (_) => onBerubah(),
     );

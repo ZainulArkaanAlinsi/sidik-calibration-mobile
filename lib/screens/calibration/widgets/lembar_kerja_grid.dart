@@ -9,8 +9,10 @@ import '../../../providers/contoh_sel_provider.dart';
 import '../../../services/potong_sel_foto.dart';
 import '../../../services/ambil_foto_tabel.dart';
 import '../../../services/peta_tabel_foto.dart';
+import '../cek_bacaan_kamera.dart';
 import '../grid_sensor_state.dart';
-import '../lembar_kerja_state.dart' show kuningPerluDicek;
+import '../lembar_kerja_state.dart' show LembarKerjaState;
+import 'tanda_cek_sel.dart';
 
 /// Layar isian GRID SENSOR: satu set point = banyak termokopel × banyak
 /// pembacaan, plus baris Indikator & Suhu Ruang.
@@ -270,6 +272,7 @@ class _KartuSetPoint extends StatelessWidget {
                       'Indikator',
                       sp.indikator,
                       kunci: 'grid_indikator_$nomor',
+                      jenisKode: 'i',
                     ),
                   if (sp.bentuk.barisSuhuRuang)
                     _barisDeret(
@@ -277,6 +280,7 @@ class _KartuSetPoint extends StatelessWidget {
                       'Suhu Ruang',
                       sp.suhuRuang,
                       kunci: 'grid_suhu_ruang_$nomor',
+                      jenisKode: 'r',
                       redup: true,
                     ),
                 ],
@@ -376,7 +380,19 @@ class _KartuSetPoint extends StatelessWidget {
                 // Nomor yang dibaca dari foto ditandai sama seperti
                 // pembacaannya. Ini kotak yang paling penting diadu ke kertas:
                 // salah baca di sini memindahkan SELURUH barisnya.
-                dariFoto: s.noDariFoto,
+                cek: s.noDariFoto
+                    ? PemantauCek(
+                        controller: s.noCtl,
+                        catatan: s.cek,
+                        kunci: BarisSensorState.kunciNoCek,
+                        sasaranLompat: LembarKerjaState.kodeLompatGrid(
+                          nomor - 1,
+                          't',
+                          index,
+                          BarisSensorState.kunciNoCek,
+                        ),
+                      )
+                    : null,
               ),
             ),
           ),
@@ -406,7 +422,19 @@ class _KartuSetPoint extends StatelessWidget {
                   key: Key('grid_baca_${nomor}_${index}_$k'),
                   controller: s.pembacaanCtl[k],
                   onBerubah: onBerubah,
-                  dariFoto: s.dariFoto.contains(k),
+                  cek: s.dariFoto.contains(k)
+                      ? PemantauCek(
+                          controller: s.pembacaanCtl[k],
+                          catatan: s.cek,
+                          kunci: '$k',
+                          sasaranLompat: LembarKerjaState.kodeLompatGrid(
+                            nomor - 1,
+                            't',
+                            index,
+                            k,
+                          ),
+                        )
+                      : null,
                 ),
               ),
             ),
@@ -461,6 +489,7 @@ class _KartuSetPoint extends StatelessWidget {
     String label,
     BarisDeretState b, {
     required String kunci,
+    required String jenisKode,
     bool redup = false,
   }) {
     final lebarKiri = lebarNo + (pakaiKanal ? lebarKanal : 0);
@@ -491,7 +520,19 @@ class _KartuSetPoint extends StatelessWidget {
                   key: Key('${kunci}_$k'),
                   controller: b.ctl[k],
                   onBerubah: onBerubah,
-                  dariFoto: b.dariFoto.contains(k),
+                  cek: b.dariFoto.contains(k)
+                      ? PemantauCek(
+                          controller: b.ctl[k],
+                          catatan: b.cek,
+                          kunci: '$k',
+                          sasaranLompat: LembarKerjaState.kodeLompatGrid(
+                            nomor - 1,
+                            jenisKode,
+                            0,
+                            k,
+                          ),
+                        )
+                      : null,
                 ),
               ),
             ),
@@ -714,7 +755,7 @@ class _KotakAngka extends StatelessWidget {
     required this.onBerubah,
     this.bulat = false,
     this.galat = false,
-    this.dariFoto = false,
+    this.cek,
     this.hint,
   });
 
@@ -726,15 +767,20 @@ class _KotakAngka extends StatelessWidget {
 
   final bool galat;
 
-  /// Isinya datang dari FOTO, belum diadu ke kertas. Ditandai kuning — warna
-  /// yang sama dipakai `TandaSel.keyakinanRendah` di jalur tabel, dan artinya
-  /// sama: saran mesin, bukan keputusan orang.
-  final bool dariFoto;
+  /// Ada kalau isinya datang dari FOTO: tanda "perlu dicek" / "sudah dicek"
+  /// mengikuti gerbang (ikon + kata, bukan cuma warna), dan berubah begitu
+  /// teknisi mengubah isinya atau mengonfirmasi.
+  final PemantauCek? cek;
 
   final String? hint;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => LapisCekSel(
+    cek: cek,
+    bangun: (context, status) => _kotak(context, status),
+  );
+
+  Widget _kotak(BuildContext context, StatusCekSel? status) {
     final theme = Theme.of(context);
 
     return TextField(
@@ -761,11 +807,7 @@ class _KotakAngka extends StatelessWidget {
             ? OutlineInputBorder(
                 borderSide: BorderSide(color: theme.colorScheme.error),
               )
-            : dariFoto
-            ? const OutlineInputBorder(
-                borderSide: BorderSide(color: kuningPerluDicek, width: 2),
-              )
-            : null,
+            : borderCek(status),
       ),
       onChanged: (_) => onBerubah(),
     );

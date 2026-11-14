@@ -3987,7 +3987,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get lkKonfirmasiDariFoto =>
-      'Sebagian angka di tabel ini datang dari foto. Dengan mengirim, kamu menyatakan sudah mencocokkannya dengan yang tertera di alat.';
+      'Sebagian angka di tabel ini datang dari foto dan sudah kamu cek satu per satu. Dengan mengirim, kamu menyatakan angkanya cocok dengan yang tertera di alat.';
 
   @override
   String lkKonfirmasiGagalTandai(String pesan) {
@@ -7644,8 +7644,8 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String rskOcrPerluDicek(int jumlah, String titik) {
-    return '$jumlah sel hasil foto bertanda kuning/merah (titik $titik). Cocokkan dulu dengan alatnya.';
+  String rskOcrPerluDicek(int jumlah) {
+    return '$jumlah isian bacaan kamera belum dicek. Cek satu per satu dengan alatnya; kirim final ditahan sampai semuanya dicek.';
   }
 
   @override
@@ -8081,4 +8081,90 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get gwMemuat => 'Memuat';
+
+  @override
+  String get cekTandaPerlu => 'Perlu dicek';
+
+  @override
+  String get cekTandaSudah => 'Sudah dicek';
+
+  @override
+  String get cekSudahSaya => 'Sudah saya cek';
+
+  @override
+  String get cekSudahSayaLanjut => 'Sudah saya cek, berikutnya';
+
+  @override
+  String get cekLompat => 'Lompat ke isian';
+
+  @override
+  String get cekLewati => 'Lewati dulu';
+
+  @override
+  String cekPanelTahan(int jumlah) {
+    return '$jumlah isian bacaan kamera belum dicek';
+  }
+
+  @override
+  String get cekPanelAlasan =>
+      'Kirim final ditahan sampai semuanya dicek satu per satu. Simpan draf tetap bisa.';
+
+  @override
+  String cekPanelSel(String judul, String nilai) {
+    return '$judul: $nilai';
+  }
+
+  @override
+  String cekPanelSelNomor(String judul, int nomor, String nilai) {
+    return '$judul, pengulangan $nomor: $nilai';
+  }
+
+  @override
+  String cekPanelSelesai(int jumlah) {
+    return 'Semua isian bacaan kamera sudah dicek ($jumlah).';
+  }
+
+  @override
+  String cekKirimDitahan(int jumlah) {
+    return 'Kirim final ditahan: $jumlah isian bacaan kamera belum dicek.';
+  }
+
+  @override
+  String get cekBukaPemeriksa => 'Cek berikutnya';
+
+  @override
+  String get cekSheetJudul => 'Cek isian bacaan kamera';
+
+  @override
+  String get cekTutup => 'Tutup';
+
+  @override
+  String cekGridSetPoint(int nomor) {
+    return 'Set point $nomor';
+  }
+
+  @override
+  String cekGridSetPointTitik(String titik) {
+    return 'Set point $titik';
+  }
+
+  @override
+  String cekGridTermokopel(int nomor) {
+    return 'Termokopel $nomor';
+  }
+
+  @override
+  String cekGridNomorTermokopel(int nomor) {
+    return 'nomor termokopel $nomor';
+  }
+
+  @override
+  String get cekGridIndikator => 'Indikator';
+
+  @override
+  String get cekGridSuhuRuang => 'Suhu ruang';
+
+  @override
+  String get detailVerifikasiLewatLembar =>
+      'Ini masih draf. Buka lembar kerjanya, cek tiap angka kamera satu per satu, lalu kirim. Tombol konfirmasi massal sengaja disembunyikan di sini.';
 }

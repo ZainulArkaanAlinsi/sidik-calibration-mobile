@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import '../../models/lembar_kerja.dart';
 import '../../models/lembar_kerja_submission.dart';
 import '../../services/peta_tabel_foto.dart';
+import 'cek_bacaan_kamera.dart';
 
 /// Identitas tabel grid di respons peta formulir asli (`tabel_id` = `grup` grid
 /// Enclosure di server: `TemplateLembarKerja::gridJadiTabel`).
@@ -92,6 +93,14 @@ class BarisSensorState {
   /// bahan buat mengukur akurasi kamera. Lihat [BacaanMesin].
   final Map<int, BacaanMesin> bacaanMesin = {};
 
+  /// Catatan gerbang "wajib dicek" untuk sel-sel [dariFoto] baris ini. Kunci
+  /// pembacaan = index pengulangan (`'3'`); kunci nomor termokopel = [kunciNoCek].
+  /// Lihat [CatatanCek].
+  final CatatanCek cek = CatatanCek();
+
+  /// Kunci catatan [cek] untuk kotak nomor termokopel ([noDariFoto]).
+  static const kunciNoCek = 'no';
+
   /// Nomor termokopelnya sendiri datang dari FOTO.
   ///
   /// Ini yang paling penting ditandai di seluruh baris. Nomor yang salah baca
@@ -125,6 +134,7 @@ class BarisSensorState {
   }
 
   void dispose() {
+    cek.dispose();
     noCtl.dispose();
     channelCtl.dispose();
     for (final c in pembacaanCtl) {
@@ -155,6 +165,9 @@ class BarisDeretState {
   /// Tebakan mesin per index — lihat [BarisSensorState.bacaanMesin].
   final Map<int, BacaanMesin> bacaanMesin = {};
 
+  /// Catatan gerbang "wajib dicek" — lihat [BarisSensorState.cek].
+  final CatatanCek cek = CatatanCek();
+
   int get jumlahTerisi => nilai.where((n) => n != null).length;
   bool get kosongSemua => jumlahTerisi == 0;
 
@@ -166,6 +179,7 @@ class BarisDeretState {
   }
 
   void dispose() {
+    cek.dispose();
     for (final c in ctl) {
       c.dispose();
     }
@@ -253,6 +267,7 @@ class SetPointGridState {
       final TextEditingController ctl;
       final Set<int> dariFoto;
       final Map<int, BacaanMesin> mesin;
+      final CatatanCek cek;
 
       switch (posisi.jenis) {
         case JenisBarisKertas.termokopel:
@@ -263,20 +278,24 @@ class SetPointGridState {
           ctl = b.pembacaanCtl[index];
           dariFoto = b.dariFoto;
           mesin = b.bacaanMesin;
+          cek = b.cek;
         case JenisBarisKertas.indikator:
           ctl = indikator.ctl[index];
           dariFoto = indikator.dariFoto;
           mesin = indikator.bacaanMesin;
+          cek = indikator.cek;
         case JenisBarisKertas.suhuRuang:
           ctl = suhuRuang.ctl[index];
           dariFoto = suhuRuang.dariFoto;
           mesin = suhuRuang.bacaanMesin;
+          cek = suhuRuang.cek;
       }
 
       if (ctl.text.trim().isNotEmpty) continue;
 
       ctl.text = s.teks.trim();
       dariFoto.add(index);
+      cek.tandai('$index', ctl.text);
       mesin[index] = BacaanMesin(teksMentah: s.teks, keyakinan: s.keyakinan);
       terisi++;
     }
@@ -551,6 +570,7 @@ class SetPointGridState {
       if (s.kosongSemua) {
         s.noCtl.text = '$no';
         s.noDariFoto = true;
+        s.cek.tandai(BarisSensorState.kunciNoCek, s.noCtl.text);
 
         return s;
       }
@@ -559,6 +579,7 @@ class SetPointGridState {
     tambahSensor();
     sensor.last.noCtl.text = '$no';
     sensor.last.noDariFoto = true;
+    sensor.last.cek.tandai(BarisSensorState.kunciNoCek, sensor.last.noCtl.text);
 
     return sensor.last;
   }
@@ -567,6 +588,7 @@ class SetPointGridState {
     if (penanda == kunciIndikator) {
       indikator.dariFoto.add(index);
       indikator.bacaanMesin[index] = bacaan;
+      indikator.cek.tandai('$index', indikator.ctl[index].text);
 
       return;
     }
@@ -574,6 +596,7 @@ class SetPointGridState {
     if (penanda == kunciSuhuRuang) {
       suhuRuang.dariFoto.add(index);
       suhuRuang.bacaanMesin[index] = bacaan;
+      suhuRuang.cek.tandai('$index', suhuRuang.ctl[index].text);
 
       return;
     }
@@ -581,6 +604,7 @@ class SetPointGridState {
     final baris = _barisNomor(penanda);
     baris.dariFoto.add(index);
     baris.bacaanMesin[index] = bacaan;
+    baris.cek.tandai('$index', baris.pembacaanCtl[index].text);
   }
 
   void bacaUlang() {

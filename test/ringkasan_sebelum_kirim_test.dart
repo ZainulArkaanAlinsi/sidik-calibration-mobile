@@ -252,27 +252,27 @@ void main() {
       );
     });
 
-    test('sel pindai kuning/merah yang masih terisi = peringatan', () {
+    test('sel hasil kamera yang belum dicek = gerbang yang MENAHAN', () {
       final s = isianBaru(alat: alatLengkap);
       s.titik[4.0]!
         ..kotak('sesudah_adjustment', 'pembacaan', 1).text = '4.02'
         ..kotak('sesudah_adjustment', 'suhu', 1).text = '25';
-      s.selRendahKeyakinan.add(
+      s.selKamera.add(
         LembarKerjaState.kunciSel(4.0, 'sesudah_adjustment', 'pembacaan', 1),
       );
 
       final r = susunRingkasanSebelumKirim(s);
 
-      expect(r.menahan, isFalse);
-      final ocr = r.peringatan.single;
+      expect(r.menahan, isTrue);
+      expect(r.peringatan, isEmpty);
+      final ocr = r.wajib.single;
       expect(ocr.jenis, JenisButirRingkasan.ocrPerluDicek);
       expect(ocr.jumlah, 1);
-      expect(ocr.label, '4,00');
     });
 
     test('sel pindai yang sudah dikosongkan teknisi tidak diperingatkan', () {
       final s = isianBaru(alat: alatLengkap);
-      s.selRendahKeyakinan.add(
+      s.selKamera.add(
         LembarKerjaState.kunciSel(4.0, 'sesudah_adjustment', 'pembacaan', 2),
       );
 
@@ -675,8 +675,9 @@ void main() {
         expect(find.byIcon(Icons.warning_amber_rounded), findsWidgets);
         expect(find.byIcon(Icons.chevron_right), findsNWidgets(2));
         expect(
-          find.textContaining('2 sel hasil foto bertanda kuning/merah'),
+          find.textContaining('2 isian bacaan kamera belum dicek'),
           findsOneWidget,
+          reason: 'butir kamera sekarang MENAHAN, jumlahnya tertulis',
         );
       },
     );

@@ -4,8 +4,9 @@ import 'lembar_kerja_state.dart';
 /// Jenis satu butir di dialog "Ringkasan sebelum kirim".
 ///
 /// [menahan] `true` = gerbang yang SUDAH ADA di `LembarKerjaScreen._submit`
-/// (alat belum dipilih, suhu, standar belum dicentang, setpoint, jam): kirim
-/// tetap ditahan. `false` = peringatan: teknisi boleh "Tetap kirim".
+/// (alat belum dipilih, suhu, standar belum dicentang, setpoint, jam, dan sel
+/// hasil kamera yang belum dicek): kirim tetap ditahan. `false` = peringatan:
+/// teknisi boleh "Tetap kirim".
 enum JenisButirRingkasan {
   alatBelumDipilih(menahan: true),
   suhuBelumLengkap(menahan: true),
@@ -13,7 +14,10 @@ enum JenisButirRingkasan {
   setPointKosong(menahan: true),
   jamTidakTerbaca(menahan: true),
   identitasKosong(menahan: false),
-  ocrPerluDicek(menahan: false);
+
+  /// Sel hasil kamera yang belum dicek teknisi. MENAHAN: dulu hanya saran
+  /// ("bertanda kuning/merah"), dan tombol Kirim tetap jalan.
+  ocrPerluDicek(menahan: true);
 
   const JenisButirRingkasan({required this.menahan});
 
@@ -35,7 +39,8 @@ class ButirRingkasan {
   /// yang bermasalah (`4,00, 7,00`) — persis yang disebut gerbang aslinya.
   final String label;
 
-  /// Hanya dipakai [JenisButirRingkasan.ocrPerluDicek]: jumlah sel.
+  /// Hanya dipakai [JenisButirRingkasan.ocrPerluDicek]: jumlah sel yang belum
+  /// dicek.
   final int jumlah;
 
   /// Kode sasaran lompat (kode kolom, atau [kodeLompatBagian]); `null` = tidak
@@ -186,16 +191,19 @@ RingkasanSebelumKirim susunRingkasanSebelumKirim(LembarKerjaState s) {
     );
   }
 
-  // --- (c) Sel hasil pindai dengan vonis kuning/merah ---------------------
+  // --- (c) Sel hasil kamera yang belum dicek: MENAHAN ---------------------
 
-  final ocr = _selPindaiPerluDicek(s);
-  if (ocr.isNotEmpty) {
+  final belumDicek = s.jumlahPerluCek;
+  if (belumDicek > 0) {
+    final berikut = s.selCekBerikutnya();
+    final bagianSel = bentuk.bagian
+        .where((b) => b.kode == berikut?.bagianKode)
+        .firstOrNull;
     butir.add(
       ButirRingkasan(
         jenis: JenisButirRingkasan.ocrPerluDicek,
-        label: daftar(ocr.keys),
-        jumlah: ocr.values.fold(0, (a, b) => a + b),
-        lompat: lompatTabel,
+        jumlah: belumDicek,
+        lompat: bagianSel == null ? lompatTabel : kodeLompatBagian(bagianSel),
       ),
     );
   }
@@ -258,36 +266,6 @@ bool? _identitasTerisi(LembarKerjaState s, FieldLembarKerja f) {
   }
 
   return nilai.isNotEmpty;
-}
-
-/// Titik -> jumlah sel terisi yang ditandai pindai kuning/merah
-/// (`LembarKerjaState.selRendahKeyakinan`). Sel yang sudah dikosongkan teknisi
-/// tidak dihitung: tidak ada angka yang perlu dicek.
-Map<TitikState, int> _selPindaiPerluDicek(LembarKerjaState s) {
-  final hasil = <TitikState, int>{};
-
-  for (final kunci in s.selRendahKeyakinan) {
-    final bagian = kunci.split('|');
-    if (bagian.length != 4) continue;
-
-    final titikUkur = double.tryParse(bagian[0]);
-    final index = int.tryParse(bagian[3]);
-    if (titikUkur == null || index == null) continue;
-
-    final state = s.titik[titikUkur];
-    if (state == null) continue;
-
-    final isi = state.teksKotakJikaAda(bagian[1], bagian[2], index);
-    if (isi == null || isi.trim().isEmpty) continue;
-
-    hasil[state] = (hasil[state] ?? 0) + 1;
-  }
-
-  // Urut menurut titik, bukan urutan masuk set.
-  final urut = hasil.keys.toList()
-    ..sort((a, b) => a.titikUkur.compareTo(b.titikUkur));
-
-  return {for (final t in urut) t: hasil[t]!};
 }
 
 /// Titik terisi vs total. Blok spesifikasi (bukan titik ukur) dan titik

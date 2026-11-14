@@ -38,6 +38,7 @@ Future<HasilRingkasanKirim?> tampilkanRingkasanSebelumKirim(
 ///    kirim NONAKTIF dan alasannya tertulis di atas daftar. Butir yang punya
 ///    tempat tujuan bisa diketuk untuk melompat.
 ///  - Butir PERINGATAN: amber ([kuningPerluDicek]); teknisi boleh "Tetap kirim".
+///    (Sel hasil kamera yang belum dicek BUKAN peringatan: itu butir wajib.)
 ///
 /// Warna tidak pernah satu-satunya penanda: tiap butir membawa ikon dan judul
 /// kelompok.
@@ -73,10 +74,7 @@ class _DialogRingkasanSebelumKirimState
     JenisButirRingkasan.setPointKosong => l10n.lkSetPointKosong(b.label),
     JenisButirRingkasan.jamTidakTerbaca => l10n.lkJamTidakTerbaca(b.label),
     JenisButirRingkasan.identitasKosong => l10n.rskIdentitasKosong(b.label),
-    JenisButirRingkasan.ocrPerluDicek => l10n.rskOcrPerluDicek(
-      b.jumlah,
-      b.label,
-    ),
+    JenisButirRingkasan.ocrPerluDicek => l10n.rskOcrPerluDicek(b.jumlah),
   };
 
   @override

@@ -4024,7 +4024,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lkKonfirmasiDariFoto =>
-      'Some numbers in this table came from a photo. By sending, you confirm you\'ve checked them against the instrument.';
+      'Some numbers in this table came from a photo and you checked each one. By sending, you confirm they match the instrument.';
 
   @override
   String lkKonfirmasiGagalTandai(String pesan) {
@@ -7730,8 +7730,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String rskOcrPerluDicek(int jumlah, String titik) {
-    return '$jumlah cells read from a photo are marked yellow/red (point $titik). Check them against the instrument.';
+  String rskOcrPerluDicek(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other:
+          '$jumlah camera readings are not checked yet. Check each one against the instrument; final send is held until all are checked.',
+      one:
+          '1 camera reading is not checked yet. Check each one against the instrument; final send is held until all are checked.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -8190,4 +8198,102 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gwMemuat => 'Loading';
+
+  @override
+  String get cekTandaPerlu => 'Needs checking';
+
+  @override
+  String get cekTandaSudah => 'Checked';
+
+  @override
+  String get cekSudahSaya => 'I\'ve checked it';
+
+  @override
+  String get cekSudahSayaLanjut => 'I\'ve checked it, next';
+
+  @override
+  String get cekLompat => 'Go to the entry';
+
+  @override
+  String get cekLewati => 'Skip for now';
+
+  @override
+  String cekPanelTahan(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: '$jumlah camera readings still need checking',
+      one: '1 camera reading still needs checking',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cekPanelAlasan =>
+      'Final send is held until each one is checked, one by one. Saving a draft still works.';
+
+  @override
+  String cekPanelSel(String judul, String nilai) {
+    return '$judul: $nilai';
+  }
+
+  @override
+  String cekPanelSelNomor(String judul, int nomor, String nilai) {
+    return '$judul, repeat $nomor: $nilai';
+  }
+
+  @override
+  String cekPanelSelesai(int jumlah) {
+    return 'All camera readings are checked ($jumlah).';
+  }
+
+  @override
+  String cekKirimDitahan(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: 'Final send is held: $jumlah camera readings are not checked yet.',
+      one: 'Final send is held: 1 camera reading is not checked yet.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cekBukaPemeriksa => 'Check next';
+
+  @override
+  String get cekSheetJudul => 'Check camera readings';
+
+  @override
+  String get cekTutup => 'Close';
+
+  @override
+  String cekGridSetPoint(int nomor) {
+    return 'Set point $nomor';
+  }
+
+  @override
+  String cekGridSetPointTitik(String titik) {
+    return 'Set point $titik';
+  }
+
+  @override
+  String cekGridTermokopel(int nomor) {
+    return 'Thermocouple $nomor';
+  }
+
+  @override
+  String cekGridNomorTermokopel(int nomor) {
+    return 'thermocouple $nomor number';
+  }
+
+  @override
+  String get cekGridIndikator => 'Indicator';
+
+  @override
+  String get cekGridSuhuRuang => 'Room temperature';
+
+  @override
+  String get detailVerifikasiLewatLembar =>
+      'This is a draft. Open the worksheet, check each camera reading one by one, then send. The confirm-all button is hidden here on purpose.';
 }

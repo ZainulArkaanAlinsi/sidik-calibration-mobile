@@ -226,7 +226,20 @@ class _Isi extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
-          _TombolVerifikasi(calibrationId: calibrationId),
+          // Tombol massal ini JALUR PEMULIHAN, bukan jalur normal: ia menandai
+          // semua baris sekaligus tanpa cek per sel. Di status DRAFT ia
+          // melewati gerbang "wajib dicek" (sel kamera dicek di lembar, satu per
+          // satu, lalu Kirim), jadi di sana diganti petunjuk. Di status lain
+          // (menunggu approval / perlu revisi) tetap ada; server hanya menerima
+          // teknisi sesi itu atau admin.
+          if (detail.status == CalibrationStatus.draft)
+            Text(
+              l10n.detailVerifikasiLewatLembar,
+              key: const ValueKey('detail-verifikasi-lewat-lembar'),
+              style: Theme.of(context).textTheme.bodySmall,
+            )
+          else
+            _TombolVerifikasi(calibrationId: calibrationId),
         ],
 
         // Admin boleh mbenerin lembar yang MASIH nunggu approval.

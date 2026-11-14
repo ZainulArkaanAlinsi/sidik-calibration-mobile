@@ -7174,7 +7174,7 @@ abstract class AppLocalizations {
   /// No description provided for @lkKonfirmasiDariFoto.
   ///
   /// In en, this message translates to:
-  /// **'Some numbers in this table came from a photo. By sending, you confirm you\'ve checked them against the instrument.'**
+  /// **'Some numbers in this table came from a photo and you checked each one. By sending, you confirm they match the instrument.'**
   String get lkKonfirmasiDariFoto;
 
   /// No description provided for @lkKonfirmasiGagalTandai.
@@ -13355,8 +13355,8 @@ abstract class AppLocalizations {
   /// No description provided for @rskOcrPerluDicek.
   ///
   /// In en, this message translates to:
-  /// **'{jumlah} cells read from a photo are marked yellow/red (point {titik}). Check them against the instrument.'**
-  String rskOcrPerluDicek(int jumlah, String titik);
+  /// **'{jumlah, plural, =1{1 camera reading is not checked yet. Check each one against the instrument; final send is held until all are checked.} other{{jumlah} camera readings are not checked yet. Check each one against the instrument; final send is held until all are checked.}}'**
+  String rskOcrPerluDicek(int jumlah);
 
   /// No description provided for @rskTitikTerisi.
   ///
@@ -14119,6 +14119,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Loading'**
   String get gwMemuat;
+
+  /// No description provided for @cekTandaPerlu.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs checking'**
+  String get cekTandaPerlu;
+
+  /// No description provided for @cekTandaSudah.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked'**
+  String get cekTandaSudah;
+
+  /// No description provided for @cekSudahSaya.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'ve checked it'**
+  String get cekSudahSaya;
+
+  /// No description provided for @cekSudahSayaLanjut.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'ve checked it, next'**
+  String get cekSudahSayaLanjut;
+
+  /// No description provided for @cekLompat.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to the entry'**
+  String get cekLompat;
+
+  /// No description provided for @cekLewati.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip for now'**
+  String get cekLewati;
+
+  /// No description provided for @cekPanelTahan.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah, plural, =1{1 camera reading still needs checking} other{{jumlah} camera readings still need checking}}'**
+  String cekPanelTahan(int jumlah);
+
+  /// No description provided for @cekPanelAlasan.
+  ///
+  /// In en, this message translates to:
+  /// **'Final send is held until each one is checked, one by one. Saving a draft still works.'**
+  String get cekPanelAlasan;
+
+  /// No description provided for @cekPanelSel.
+  ///
+  /// In en, this message translates to:
+  /// **'{judul}: {nilai}'**
+  String cekPanelSel(String judul, String nilai);
+
+  /// No description provided for @cekPanelSelNomor.
+  ///
+  /// In en, this message translates to:
+  /// **'{judul}, repeat {nomor}: {nilai}'**
+  String cekPanelSelNomor(String judul, int nomor, String nilai);
+
+  /// No description provided for @cekPanelSelesai.
+  ///
+  /// In en, this message translates to:
+  /// **'All camera readings are checked ({jumlah}).'**
+  String cekPanelSelesai(int jumlah);
+
+  /// No description provided for @cekKirimDitahan.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah, plural, =1{Final send is held: 1 camera reading is not checked yet.} other{Final send is held: {jumlah} camera readings are not checked yet.}}'**
+  String cekKirimDitahan(int jumlah);
+
+  /// No description provided for @cekBukaPemeriksa.
+  ///
+  /// In en, this message translates to:
+  /// **'Check next'**
+  String get cekBukaPemeriksa;
+
+  /// No description provided for @cekSheetJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Check camera readings'**
+  String get cekSheetJudul;
+
+  /// No description provided for @cekTutup.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get cekTutup;
+
+  /// No description provided for @cekGridSetPoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Set point {nomor}'**
+  String cekGridSetPoint(int nomor);
+
+  /// No description provided for @cekGridSetPointTitik.
+  ///
+  /// In en, this message translates to:
+  /// **'Set point {titik}'**
+  String cekGridSetPointTitik(String titik);
+
+  /// No description provided for @cekGridTermokopel.
+  ///
+  /// In en, this message translates to:
+  /// **'Thermocouple {nomor}'**
+  String cekGridTermokopel(int nomor);
+
+  /// No description provided for @cekGridNomorTermokopel.
+  ///
+  /// In en, this message translates to:
+  /// **'thermocouple {nomor} number'**
+  String cekGridNomorTermokopel(int nomor);
+
+  /// No description provided for @cekGridIndikator.
+  ///
+  /// In en, this message translates to:
+  /// **'Indicator'**
+  String get cekGridIndikator;
+
+  /// No description provided for @cekGridSuhuRuang.
+  ///
+  /// In en, this message translates to:
+  /// **'Room temperature'**
+  String get cekGridSuhuRuang;
+
+  /// No description provided for @detailVerifikasiLewatLembar.
+  ///
+  /// In en, this message translates to:
+  /// **'This is a draft. Open the worksheet, check each camera reading one by one, then send. The confirm-all button is hidden here on purpose.'**
+  String get detailVerifikasiLewatLembar;
 }
 
 class _AppLocalizationsDelegate

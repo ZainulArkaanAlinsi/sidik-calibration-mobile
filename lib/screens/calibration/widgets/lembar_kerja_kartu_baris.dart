@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../models/lembar_kerja.dart';
+import '../cek_bacaan_kamera.dart';
 import '../lembar_kerja_state.dart';
+import 'tanda_cek_sel.dart';
 
 /// Tabel-tabel sebaris digambar SATU KARTU PER BARIS — susunan kertas.
 ///
@@ -159,19 +161,29 @@ class _Kartu extends StatelessWidget {
     final alasanNonaktif = isian.alasanNonaktifUntuk(tsAcuan);
     final bolehIsi = alasanNonaktif == null;
 
-    Widget kotakAngka(TextEditingController ctl, {Key? key}) => TextField(
-      key: key,
-      controller: ctl,
-      enabled: bolehIsi,
-      keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
-      textAlign: TextAlign.center,
-      style: theme.textTheme.bodyMedium,
-      decoration: const InputDecoration(
-        isDense: true,
-        border: OutlineInputBorder(),
-        contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+    // [cek] ada kalau selnya hasil kamera: tandanya ikut gerbang "wajib dicek"
+    // (ikon + kata, bukan cuma warna) dan selnya bisa jadi sasaran lompat.
+    Widget kotakAngka(
+      TextEditingController ctl, {
+      Key? key,
+      PemantauCek? cek,
+    }) => LapisCekSel(
+      cek: cek,
+      bangun: (context, status) => TextField(
+        key: key,
+        controller: ctl,
+        enabled: bolehIsi,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+        textAlign: TextAlign.center,
+        style: theme.textTheme.bodyMedium,
+        decoration: InputDecoration(
+          isDense: true,
+          border: const OutlineInputBorder(),
+          enabledBorder: borderCek(status),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+        ),
+        onChanged: (_) => isian.onIsianDiketik?.call(),
       ),
-      onChanged: (_) => isian.onIsianDiketik?.call(),
     );
 
     final judulNominal = () {
@@ -193,6 +205,12 @@ class _Kartu extends StatelessWidget {
                   child: kotakAngka(
                     ts.kotak(t.kunciTabel, t.kolom.first.kode, r),
                     key: ValueKey('kartu-t$k-$nomor-$r'),
+                    cek: isian.pemantauCekState(
+                      ts,
+                      t.kunciTabel,
+                      t.kolom.first.kode,
+                      r,
+                    ),
                   ),
                 ),
               ),
@@ -235,6 +253,12 @@ class _Kartu extends StatelessWidget {
                         child: kotakAngka(
                           ts.kotak(t.kunciTabel, t.kolom[c].kode, r),
                           key: ValueKey('kartu-t$k-$nomor-$r-$c'),
+                          cek: isian.pemantauCekState(
+                            ts,
+                            t.kunciTabel,
+                            t.kolom[c].kode,
+                            r,
+                          ),
                         ),
                       ),
                     ),
@@ -322,6 +346,12 @@ class _Kartu extends StatelessWidget {
                           child: kotakAngka(
                             ts.kotak(t.kunciTabel, t.kolom.first.kode, r),
                             key: ValueKey('kartu-t$k-$nomor-$r'),
+                            cek: isian.pemantauCekState(
+                              ts,
+                              t.kunciTabel,
+                              t.kolom.first.kode,
+                              r,
+                            ),
                           ),
                         ),
                       ],
