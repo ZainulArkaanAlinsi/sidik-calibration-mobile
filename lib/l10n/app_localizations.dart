@@ -11215,6 +11215,204 @@ abstract class AppLocalizations {
   /// **'Withdrawn'**
   String get statusDitarik;
 
+  /// No description provided for @stempelDraf.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft'**
+  String get stempelDraf;
+
+  /// No description provided for @stempelMenunggu.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting'**
+  String get stempelMenunggu;
+
+  /// No description provided for @stempelPerluRevisi.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs revision'**
+  String get stempelPerluRevisi;
+
+  /// No description provided for @stempelDisetujui.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get stempelDisetujui;
+
+  /// No description provided for @stempelPass.
+  ///
+  /// In en, this message translates to:
+  /// **'PASS'**
+  String get stempelPass;
+
+  /// No description provided for @stempelFail.
+  ///
+  /// In en, this message translates to:
+  /// **'FAIL'**
+  String get stempelFail;
+
+  /// No description provided for @stempelDitarik.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdrawn'**
+  String get stempelDitarik;
+
+  /// No description provided for @stempelAktif.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get stempelAktif;
+
+  /// No description provided for @stempelNonaktif.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get stempelNonaktif;
+
+  /// No description provided for @stempelLewatJadwal.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get stempelLewatJadwal;
+
+  /// No description provided for @stempelBerlaku.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid'**
+  String get stempelBerlaku;
+
+  /// No description provided for @stempelSegera.
+  ///
+  /// In en, this message translates to:
+  /// **'Due soon'**
+  String get stempelSegera;
+
+  /// No description provided for @stempelMasaBerlakuBerakhir.
+  ///
+  /// In en, this message translates to:
+  /// **'Validity ended'**
+  String get stempelMasaBerlakuBerakhir;
+
+  /// No description provided for @stempelTerbit.
+  ///
+  /// In en, this message translates to:
+  /// **'Issued'**
+  String get stempelTerbit;
+
+  /// No description provided for @stempelSedangDibuat.
+  ///
+  /// In en, this message translates to:
+  /// **'Being generated'**
+  String get stempelSedangDibuat;
+
+  /// No description provided for @stempelGagalDibuat.
+  ///
+  /// In en, this message translates to:
+  /// **'Generation failed'**
+  String get stempelGagalDibuat;
+
+  /// No description provided for @stempelMenungguPersetujuan.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting approval'**
+  String get stempelMenungguPersetujuan;
+
+  /// No description provided for @stempelBaru.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get stempelBaru;
+
+  /// No description provided for @stempelDiproses.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get stempelDiproses;
+
+  /// No description provided for @stempelSelesai.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get stempelSelesai;
+
+  /// No description provided for @stempelDibatalkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get stempelDibatalkan;
+
+  /// No description provided for @stempelDigantikanRevisi.
+  ///
+  /// In en, this message translates to:
+  /// **'Superseded by revision'**
+  String get stempelDigantikanRevisi;
+
+  /// No description provided for @stempelBelumTerbit.
+  ///
+  /// In en, this message translates to:
+  /// **'Not yet issued'**
+  String get stempelBelumTerbit;
+
+  /// No description provided for @stempelSemantik.
+  ///
+  /// In en, this message translates to:
+  /// **'Status: {kata}'**
+  String stempelSemantik(String kata);
+
+  /// No description provided for @navLabBeranda.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get navLabBeranda;
+
+  /// No description provided for @navLabAntrean.
+  ///
+  /// In en, this message translates to:
+  /// **'Queue'**
+  String get navLabAntrean;
+
+  /// No description provided for @navLabAntreanSemantik.
+  ///
+  /// In en, this message translates to:
+  /// **'Approval queue'**
+  String get navLabAntreanSemantik;
+
+  /// No description provided for @navLabKalibrasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibrate'**
+  String get navLabKalibrasi;
+
+  /// No description provided for @navLabArsip.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive'**
+  String get navLabArsip;
+
+  /// No description provided for @navLabLainnya.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get navLabLainnya;
+
+  /// No description provided for @navLabProfil.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get navLabProfil;
+
+  /// No description provided for @navLabLencana.
+  ///
+  /// In en, this message translates to:
+  /// **'waiting'**
+  String get navLabLencana;
+
+  /// No description provided for @navLabTabHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tab {nomor} of {jumlah}'**
+  String navLabTabHint(int nomor, int jumlah);
+
   /// No description provided for @bandingkanJudul.
   ///
   /// In en, this message translates to:
