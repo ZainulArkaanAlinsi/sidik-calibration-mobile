@@ -14347,6 +14347,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Close menu'**
   String get shellTutupMenu;
+
+  /// No description provided for @masukJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to your lab account'**
+  String get masukJudul;
+
+  /// No description provided for @masukAkreditasi.
+  ///
+  /// In en, this message translates to:
+  /// **'KAN accreditation {nomor}, ISO/IEC 17025'**
+  String masukAkreditasi(String nomor);
+
+  /// No description provided for @masukTampilkanSandi.
+  ///
+  /// In en, this message translates to:
+  /// **'Show'**
+  String get masukTampilkanSandi;
+
+  /// No description provided for @masukSembunyikanSandi.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get masukSembunyikanSandi;
+
+  /// No description provided for @splashTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'KAN-accredited calibration'**
+  String get splashTagline;
 }
 
 class _AppLocalizationsDelegate

@@ -8225,4 +8225,21 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get shellTutupMenu => 'Tutup menu';
+
+  @override
+  String get masukJudul => 'Masuk ke akun lab';
+
+  @override
+  String masukAkreditasi(String nomor) {
+    return 'Akreditasi KAN $nomor, ISO/IEC 17025';
+  }
+
+  @override
+  String get masukTampilkanSandi => 'Tampilkan';
+
+  @override
+  String get masukSembunyikanSandi => 'Sembunyikan';
+
+  @override
+  String get splashTagline => 'Kalibrasi terakreditasi KAN';
 }

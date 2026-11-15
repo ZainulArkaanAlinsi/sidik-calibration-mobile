@@ -2,12 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/app_config.dart';
+import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_ukuran.dart';
+import '../../core/theme/sidik_material.dart';
+import '../../core/theme/token_komponen_biru_awan.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/auth_service.dart';
+import '../../widgets/biru_awan/isian_sidik.dart';
+import '../../widgets/biru_awan/kartu_sidik24.dart';
+import '../../widgets/biru_awan/tombol_sidik.dart';
 import 'forgot_password_screen.dart';
-import 'widgets/auth_brand_header.dart';
-import 'widgets/isian_neu_lama.dart';
-import 'widgets/neu.dart';
+import 'widgets/kerangka_masuk.dart';
 
 /// Pesan buat kegagalan login yang BUKAN [AuthException].
 ///
@@ -41,10 +47,11 @@ String _pesanGagalLogin(Object error) {
   return 'Login gagal di perangkat ini: $teknis';
 }
 
-/// Layar Login — gaya soft UI / neumorphism (lihat `widgets/neu.dart`).
+/// Layar Login — desain Biru Awan (artboard E0): hero langit dengan plat logo
+/// dan kartu putih berisi isian serta tombol Masuk.
 /// Isinya sama persis kayak sebelumnya: login pakai ID pegawai **atau** email,
 /// validasi lokal dulu, error dari server ditampilin apa adanya, plus panel
-/// bantuan buat mode dev/mock. Cuma kulitnya yang berubah.
+/// bantuan buat mode dev/mock. Cuma susunan dan gayanya yang berubah.
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -58,6 +65,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   String? _identifierError;
   String? _passwordError;
+  bool _sandiTampak = false;
 
   @override
   void dispose() {
@@ -92,7 +100,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final c = NeuColors.of(context);
+    final m = SidikMaterial.of(context);
+    final l10n = AppLocalizations.of(context);
     final auth = ref.watch(authProvider);
     final loading = auth.isLoading;
 
@@ -105,115 +114,96 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       _ => null,
     };
 
-    return Scaffold(
-      backgroundColor: c.base,
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 16),
-                  const Center(child: NeuBrandLogo(tinggi: 96)),
-                  const SizedBox(height: 18),
-                  Center(
-                    child: Text(
-                      'SIDIK',
-                      style: TextStyle(
-                        fontSize: 30,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1,
-                        color: c.text,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Center(
-                    child: Text(
-                      'Manajemen Kalibrasi Presisi',
-                      style: TextStyle(fontSize: 14, color: c.textMuted),
-                    ),
-                  ),
-                  const SizedBox(height: 30),
+    return KerangkaMasuk(
+      isiKartu: [
+        Semantics(
+          header: true,
+          child: Text(
+            l10n.masukJudul,
+            style: HurufMasuk.judulKartu.copyWith(color: m.tinta),
+          ),
+        ),
+        if (errorLogin != null) PesanGalatMasuk(pesan: errorLogin),
+        IsianSidik(
+          label: l10n.loginIdentifierLabel,
+          controller: _identifier,
+          galat: _identifierError,
+          enabled: !loading,
+          textInputAction: TextInputAction.next,
+          autofillHints: const [AutofillHints.username],
+        ),
+        IsianSidik(
+          label: l10n.passwordLabel,
+          controller: _password,
+          obscureText: !_sandiTampak,
+          galat: _passwordError,
+          enabled: !loading,
+          textInputAction: TextInputAction.done,
+          autofillHints: const [AutofillHints.password],
+          onSubmitted: (_) => _submit(),
+          akhir: _TombolTampilkanSandi(
+            tampak: _sandiTampak,
+            onTap: () => setState(() => _sandiTampak = !_sandiTampak),
+          ),
+        ),
+        // Tanpa link "Daftar": akun dibuat admin, bukan didaftarkan sendiri.
+        // Backend menjawab 404 buat `POST /register`, jadi tombolnya cuma bakal
+        // nganterin orang ke jalan buntu.
+        Align(
+          alignment: Alignment.centerRight,
+          child: TombolSidik(
+            label: l10n.forgotPasswordLink,
+            ragam: RagamTombolSidik.teks,
+            onPressed: loading ? null : _bukaLupaPassword,
+          ),
+        ),
+        TombolSidik(
+          label: 'MASUK',
+          ikon: Icons.arrow_forward,
+          sibuk: loading,
+          onPressed: _submit,
+        ),
+      ],
+      bawahKartu: const _DevHint(),
+    );
+  }
+}
 
-                  NeuRaised(
-                    radius: 30,
-                    distance: 8,
-                    blur: 20,
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        if (errorLogin != null) ...[
-                          NeuErrorBanner(message: errorLogin),
-                          const SizedBox(height: 18),
-                        ],
+/// "Tampilkan" / "Sembunyikan" sandi di ujung isian. Teks 14 tinta kedua
+/// (artboard E0), area ketuk >= 48 dp, dibaca pembaca layar sebagai tombol
+/// dengan kata yang sama dengan yang tampak.
+class _TombolTampilkanSandi extends StatelessWidget {
+  const _TombolTampilkanSandi({required this.tampak, required this.onTap});
 
-                        IsianNeuLama(
-                          child: NeuTextField(
-                            icon: Icons.person_outline,
-                            controller: _identifier,
-                            hint: 'ID Pegawai / Email',
-                            errorText: _identifierError,
-                            enabled: !loading,
-                            textInputAction: TextInputAction.next,
-                            autofillHints: const [AutofillHints.username],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
+  final bool tampak;
+  final VoidCallback onTap;
 
-                        IsianNeuLama(
-                          child: NeuTextField(
-                            icon: Icons.lock_outline,
-                            controller: _password,
-                            hint: 'Password',
-                            obscure: true,
-                            errorText: _passwordError,
-                            enabled: !loading,
-                            textInputAction: TextInputAction.done,
-                            autofillHints: const [AutofillHints.password],
-                            onSubmitted: (_) => _submit(),
-                          ),
-                        ),
-                        const SizedBox(height: 26),
+  @override
+  Widget build(BuildContext context) {
+    final m = SidikMaterial.of(context);
+    final l10n = AppLocalizations.of(context);
+    final label = tampak
+        ? l10n.masukSembunyikanSandi
+        : l10n.masukTampilkanSandi;
 
-                        NeuButton(
-                          label: 'MASUK',
-                          loading: loading,
-                          onPressed: _submit,
-                        ),
-                        const SizedBox(height: 18),
-
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              // Tanpa link "Daftar": akun dibuat admin, bukan
-                              // didaftarkan sendiri. Backend menjawab 404 buat
-                              // `POST /register`, jadi tombolnya cuma bakal
-                              // nganterin orang ke jalan buntu.
-                              NeuTextLink(
-                                label: 'Lupa Password?',
-                                onTap: loading ? null : _bukaLupaPassword,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 22),
-                  const _DevHint(),
-                  const SizedBox(height: 26),
-                  const AuthPoweredBy(),
-                  const SizedBox(height: 16),
-                ],
-              ),
+    return Semantics(
+      button: true,
+      label: label,
+      onTap: onTap,
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            minWidth: UkuranBiruAwan.tombolKembali,
+            minHeight: UkuranBiruAwan.tombolKembali,
+          ),
+          child: Center(
+            widthFactor: 1,
+            child: Text(
+              label,
+              style: HurufBiruAwan.keterangan.copyWith(color: m.tinta2),
             ),
           ),
         ),
@@ -223,7 +213,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 }
 
 /// Panel bantuan dev/mock — dipendem di prod. Isinya sama kayak sebelumnya,
-/// cuma dikasih kulit soft.
+/// cuma dikasih kulit Biru Awan (kartu kabut).
 class _DevHint extends StatelessWidget {
   const _DevHint();
 
@@ -231,25 +221,19 @@ class _DevHint extends StatelessWidget {
   Widget build(BuildContext context) {
     if (AppConfig.isProd) return const SizedBox.shrink();
 
-    final c = NeuColors.of(context);
+    final m = SidikMaterial.of(context);
     final mock = AppConfig.useMock;
 
-    return NeuInset(
-      radius: 16,
-      padding: const EdgeInsets.all(16),
+    return KartuSidik24(
+      latar: LatarKartu.kabut,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: AppSpacing.sm,
         children: [
           Text(
             mock ? 'MODE MOCK — TANPA SERVER' : 'MODE DEV — NEMBAK API ASLI',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.5,
-              color: c.textMuted,
-            ),
+            style: HurufBiruAwan.stempel.copyWith(color: m.tinta),
           ),
-          const SizedBox(height: 6),
           Text(
             // Mock & API asli sekarang pakai kredensial SAMA: SDK-000x /
             // rahasia123. Dulu mock masih `ASM-` + `password123` (sisa nama
@@ -263,7 +247,7 @@ class _DevHint extends StatelessWidget {
                       'SDK-0099 (pending, buat nyoba akun ditolak)\n'
                       'Password: rahasia123\n'
                       'Server: ${AppConfig.apiBaseUrl}',
-            style: TextStyle(fontSize: 13, height: 1.4, color: c.text),
+            style: HurufBiruAwan.keteranganKecil.copyWith(color: m.tinta),
           ),
         ],
       ),

@@ -3428,5 +3428,10 @@
   "biruAwanLangkahSekarang": "langkah sekarang",
   "biruAwanLangkahBelum": "belum",
   "biruAwanCari": "Cari",
-  "shellTutupMenu": "Tutup menu"
+  "shellTutupMenu": "Tutup menu",
+  "masukJudul": "Masuk ke akun lab",
+  "masukAkreditasi": "Akreditasi KAN {nomor}, ISO/IEC 17025",
+  "masukTampilkanSandi": "Tampilkan",
+  "masukSembunyikanSandi": "Sembunyikan",
+  "splashTagline": "Kalibrasi terakreditasi KAN"
 }
