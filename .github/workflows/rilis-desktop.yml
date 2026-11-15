@@ -28,10 +28,42 @@ name: Rilis desktop & web (nyambung server)
 # Yang dibeli dengan itu: halaman unduhnya nggak pernah lebih tua dari kodenya.
 # Waktu masih manual, `public/` isinya zip yang di-copy tangan dan ketinggalan
 # enam hari — dan nggak ada yang tahu sampai ada yang ngeluh versinya beda.
+#
+# ## Filter path (15 Nov 2026)
+#
+# Tiap deploy mengunggah SELURUH situs (zip Windows + macOS + Studio + bundel
+# web, rata-rata ±73 MB per versi) ke Firebase Hosting, dan versi lama menumpuk.
+# Pada 15 Nov 2026 kuota penyimpanan Hosting penuh (`HTTP 429
+# RESOURCE_EXHAUSTED`) dan langkah `terbitkan halaman unduh` gagal. Merge yang
+# TIDAK mengubah apa pun yang masuk ke situs (dokumen, CI, tes, skrip `tool/`)
+# membangun dan men-deploy ulang isi yang sama dan hanya menambah tumpukan.
+#
+# Daftarnya ditulis EKSPLISIT, sejalan dengan `apk-rilis-cloud.yml` (berkas baru
+# yang belum terpikir lebih baik TIDAK memicu deploy sampai ada yang
+# menambahkannya, daripada diam-diam memicu deploy yang tak diniatkan). Prinsip
+# "halaman unduh tidak pernah lebih tua dari kodenya" tetap utuh: yang
+# disaring hanya push yang tidak mengubah kode atau aset situs. Dispatch manual
+# tetap ada untuk kasus yang berubah di luar repo.
+#
+# Ini hanya mengurangi laju penumpukan. Penyelesaiannya tetap retensi rilis di
+# Firebase Console (jumlah rilis yang disimpan per channel).
 on:
   push:
     branches:
       - main
+    paths:
+      - 'lib/**'
+      - 'assets/**'
+      - 'web/**'
+      - 'windows/**'
+      - 'macos/**'
+      - 'studio/**'
+      - 'public/**'
+      - 'firebase.json'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+      - 'l10n.yaml'
+      - '.github/workflows/rilis-desktop.yml'
   workflow_dispatch:
 
   # Jalur APK punya DUA pemicu (kepala `apk-rilis-cloud.yml`): otomatis tiap
