@@ -20,7 +20,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sidik_calibration/app.dart';
 import 'package:sidik_calibration/core/theme/sidik_material.dart';
 import 'package:sidik_calibration/core/theme/warna_biru_awan.dart';
-import 'package:sidik_calibration/l10n/app_localizations.dart';
 import 'package:sidik_calibration/models/dashboard_summary.dart';
 import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/dashboard_provider.dart';
