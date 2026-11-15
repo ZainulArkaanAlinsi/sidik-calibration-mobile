@@ -8351,4 +8351,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get biruAwanCari => 'Search';
+
+  @override
+  String get shellTutupMenu => 'Close menu';
 }

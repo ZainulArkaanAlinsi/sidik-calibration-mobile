@@ -8222,4 +8222,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get biruAwanCari => 'Cari';
+
+  @override
+  String get shellTutupMenu => 'Tutup menu';
 }

@@ -4379,5 +4379,6 @@
   "biruAwanLangkahSelesai": "done",
   "biruAwanLangkahSekarang": "current step",
   "biruAwanLangkahBelum": "not yet",
-  "biruAwanCari": "Search"
+  "biruAwanCari": "Search",
+  "shellTutupMenu": "Close menu"
 }

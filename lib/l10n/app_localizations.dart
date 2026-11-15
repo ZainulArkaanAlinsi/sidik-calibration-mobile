@@ -14341,6 +14341,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Search'**
   String get biruAwanCari;
+
+  /// No description provided for @shellTutupMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Close menu'**
+  String get shellTutupMenu;
 }
 
 class _AppLocalizationsDelegate

@@ -3427,5 +3427,6 @@
   "biruAwanLangkahSelesai": "selesai",
   "biruAwanLangkahSekarang": "langkah sekarang",
   "biruAwanLangkahBelum": "belum",
-  "biruAwanCari": "Cari"
+  "biruAwanCari": "Cari",
+  "shellTutupMenu": "Tutup menu"
 }
