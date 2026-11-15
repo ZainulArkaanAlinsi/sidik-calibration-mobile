@@ -73,7 +73,16 @@ Hasil pelaksanaan L1a menyimpang dari langkah 5 di atas, dan yang berlaku adalah
 
 - `BekuLembarKerja` dipasang di **setiap pemanggil route** yang membuka layar/area beku (`Navigator.push`, `MaterialPageRoute`, `showDialog`, `showModalBottomSheet`), BUKAN di akar `build` layar beku. Alasannya: pembungkus di dalam `build` tidak menjangkau `Theme.of(context)` dan `showDialog(context:)` yang dipanggil dari State (context di atas pembungkus), dan memaksa tema produksi pada 6 tes lama yang memasang layar langsung di bawah tema bawaan.
 - Penjaganya `test/beku/tema_beku_terpasang_test.dart` (pemindai sumber + pemeriksaan `PenandaBeku`). Pemanggil baru yang membuka layar beku harus ikut dibungkus; jangan menambah pembungkus akar.
-- Belum dibungkus (dikerjakan sebelum token berubah di L1b): area pratinjau di `history/certificate_screen.dart` (`_IdentitasSesi`, `_TabelLaporan`, `_StandarDipakai`).
+- Area pratinjau di `history/certificate_screen.dart` (`_IdentitasSesi`, `_TabelLaporan`, `_StandarDipakai`): dibungkus di L1b, SEBELUM token diganti (lihat bawah).
+
+## Catatan implementasi L1b (15 Nov 2026)
+
+Token tema app diganti ke Biru Awan; yang berubah untuk area beku hanya pembungkus:
+
+- **"02 Pilih alat"** (`category_picker_screen.dart`, `instrument_picker_screen.dart`): keputusan pemilik 15 Nov, tampilannya tidak boleh berubah. Dibungkus `BekuLembarKerja` di semua pemanggil route (`kalibrasi_teknisi_screen`, `dashboard_screen` x2, `beranda_super_admin`, dan `category_picker_screen` ke `InstrumentPickerScreen`). Berkasnya TIDAK di-hash (bukan beku resmi) dan isinya tidak diubah kecuali satu pembungkus. Penjaga: `test/beku/picker_dan_sertifikat_beku_test.dart` (gambar sama piksel dengan tema beku langsung, warna kunci = `PaletBeku`) dan pemindai di `tema_beku_terpasang_test.dart`.
+- **Pratinjau sertifikat** di `history/certificate_screen.dart`: tiga bagian di atas dibungkus dari luar di `_IsiState.build`. Ringkasan dan tombol di sekitarnya mengikuti tema app.
+- `AppColors` tetap `PaletBeku` (nilai kobalt lama), jadi layar non-beku TAMPIL CAMPURAN sampai didesain ulang: `colorScheme`/`SidikMaterial` Biru Awan, `AppColors.*` lama. Disengaja dan diterima pemilik; daftar dan akibatnya di `docs/standar-kualitas-desain.md` bagian 8.
+- Nilai tema beku dikunci literal di `test/tema/tema_beku_test.dart`.
 
 ## Addendum — buka-kunci `lembar_kerja_screen.dart` untuk foto awal (15 Nov 2026)
 

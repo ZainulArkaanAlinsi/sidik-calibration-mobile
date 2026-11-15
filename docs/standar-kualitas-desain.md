@@ -4,6 +4,9 @@ Berlaku untuk setiap perubahan tampilan di app Lab (`lib/screens`, `lib/widgets`
 `lib/core/theme`). Ringkasan standar kualitas desain Sidik, disesuaikan untuk Lab.
 Gerbang otomatis ada di bagian "Cara menjalankan gerbang".
 
+Arah visual sejak L1b (15 Nov 2026): **Biru Awan** (`docs/desain-ulang/`). Lembar
+kerja dan "02 Pilih alat" TIDAK memakainya: lihat bagian 10 "Area beku".
+
 ## 1. Untuk siapa dan dalam kondisi apa
 
 Lab dipakai teknisi dan admin di bengkel dan lab: HP dan tablet, tangan sibuk,
@@ -19,19 +22,26 @@ dalam keluarga yang sama; Lab lebih padat dan berorientasi tugas.
 
 ## 2. Arah visual
 
-- **Satu warna merek**: kobalt `#043EA1` (logo PT SIDIK) dengan empat jenjang,
-  di atas netral dingin. Sistem krem dan abu hangat ("Meja Kerja Lab") dan
-  kobalt `#1D4292` sudah diganti.
+- **Biru Awan**: satu keluarga biru (primer `#1C6FC4`, primerTua `#0F4F94`, langit
+  `#5BB4F5`, awan `#A9D8FB`, kabut `#E4F2FD`) di atas latar `#F3F7FB` dan tinta
+  navy `#0B2545`. "Biru Awan" hanya nama palet: TIDAK ada gambar awan. Kobalt
+  `#043EA1` tinggal untuk logo PT SIDIK (`kobaltLogo`) dan area beku.
 - **Datar**: baris dan panel dipisah garis halus, bukan bayangan. Tanpa gradien,
   tanpa bayangan dalam, tanpa tekstur logam. Bayangan hanya untuk lembar bawah
   dan dialog.
+- **Status = isi berwarna + tinta navy**: hijau (lulus, disetujui), kuning (perlu
+  dicek, revisi), koral (ditolak, tak terbaca), awan (menunggu approval).
+  Rancangan (`flutter/palet_lab_biru_awan.dart`): FAIL "Tidak memenuhi toleransi"
+  = stempel navy pekat + teks putih, tidak dilunakkan. **Kode L1b BELUM
+  mengikutinya**: stempel lama `NadaStempel.gagal` (`status_tampil.dart`) masih
+  `m.gagal` `#A81B33` di atas `kabutGagal`; stempel FAIL baru dibangun di L3
+  (bagian 11, butir 12).
 - **Dua keluarga huruf**: Inter untuk seluruh antarmuka; IBM Plex Mono hanya
   untuk nilai ukur dan nomor (sertifikat, order, serial). Kedua font sudah ada
   di `assets/fonts`; tidak ada font atau paket baru.
 - **Identitas dari dunia ukur**, bukan dari hiasan: angka ukur berlebar tetap,
-  stempel status, skala (tik penggaris) hanya di tempat yang memang mengukur
-  sesuatu. Satu momen khas yang fungsional (panel bacaan angka) menyusul di
-  paket komponen; selebihnya tenang.
+  stempel status, dan motif skala (busur dengan tik dan jarum, `aset/motif_skala.svg`)
+  satu per hero, diam. Itu satu-satunya hiasan.
 - **Tanda yang dihindari** (bawaan generik): gradien ungu-biru, semua kartu
   satu radius dan satu bayangan, semua rata tengah, teks abu di atas latar
   berwarna, emoji sebagai ikon, ilustrasi stok, lima warna aksen bersaing,
@@ -39,49 +49,93 @@ dalam keluarga yang sama; Lab lebih padat dan berorientasi tugas.
 
 ## 3. Token (satu sumber)
 
-Nilai mentah hanya ditulis di `lib/core/theme/palet_lab.dart`. Layar membaca
-lewat `SidikMaterial.of(context)`, `Theme.of(context).colorScheme`, `AppColors`
-(nama lama, nilai baru), `BentukLab`, `UkuranLab`, dan `textTheme`.
+Nilai mentah hanya ditulis di `lib/core/theme/palet_lab.dart` (nama sama dengan
+`docs/desain-ulang/tokens.json`); area beku punya salinannya di `palet_beku.dart`.
+Layar membaca lewat `SidikMaterial.of(context)`, `Theme.of(context).colorScheme`,
+`AppColors` (nama lama; nilainya LAMA, lihat bagian 10), `BentukBiruAwan`,
+`UkuranBiruAwan`, dan `textTheme`.
 
 ### Warna
 
-| Peran | Terang | Gelap |
-|---|---|---|
-| Kobalt (aksi, fokus, tautan) | `#043EA1` | `#8CB0FF` |
-| Kobalt tipis (sel aktif, baris terpilih) | `#DCE6FA` | `#14306F` |
-| Latar layar | `#F2F4F8` | `#0E1320` |
-| Kertas (baris, lembar, sel) | `#FFFFFF` | `#171D2B` |
-| Tinta | `#111827` | `#E6EAF2` |
-| Tinta kedua | `#475467` | `#A9B2C3` |
-| Garis tegas (tepi isian, sel, tombol sekunder, ikon penting) | `#6B7588` | `#7C879B` |
-| Garis halus (pemisah, dekoratif) | `#DDE2EB` | `#2C3548` |
+| Peran | Nama | Terang | Gelap |
+|---|---|---|---|
+| Aksi, fokus, sel aktif | `primer` | `#1C6FC4` | `#7CC4F6` |
+| Teks dan ikon biru | `primerTua` | `#0F4F94` | `#A9D8FB` |
+| Permukaan sorot (hero, ubin) | `langit` | `#5BB4F5` | `#28649B` |
+| Stempel "menunggu approval" | `awan` | `#A9D8FB` | (tidak ada) |
+| Sel terisi, ubin terpilih | `kabut` | `#E4F2FD` | `#173452` |
+| Latar halaman | `latar` | `#F3F7FB` | `#0B1626` |
+| Kartu, panel, dock | `kertas` | `#FFFFFF` | `#13243A` |
+| Tinta (juga "navy") | `tinta` | `#0B2545` | `#E6EEF7` |
+| Keterangan | `tinta2` | `#4A5D78` | `#A9B9CC` |
+| Pemisah, tepi kartu (hiasan) | `garisHalus` | `#E8EEF5` | `#2A4260` |
+| Garis dekoratif (bidang tanda tangan) | `garisTegas` | `#C5D5E6` | (tidak ada) |
+| **Tepi kontrol** (isian, tombol sekunder, chip, sakelar, centang) | `garisKontrol` | `#7C8FA8` | `#7C8FA8` (`garisTegasGelap`) |
+| Teks di atas `primer` gelap | `teksDiAtasPrimerGelap` | | `#0B1626` |
 
-Status (tinta di atas latar tipis; sama dengan Pelanggan KECUALI amber, lihat bagian 7):
+Status terang (isi; tinta di atasnya SELALU navy `#0B2545`):
 
-| Status | Terang | Gelap |
+| Status | Isi | Kontras navy |
 |---|---|---|
-| Berlaku, PASS | `#125739` / `#E1F0E8` | `#6FD3A0` / `#12301F` |
-| Segera, Perlu revisi | `#8C5C0A` / `#FBF0DA` | `#DB9A2B` / `#33260C` |
-| Gagal, Lewat jadwal, FAIL | `#A81B33` / `#FBE4E8` | `#FF8FA0` / `#3A1720` |
-| Menunggu | `#344054` / `#E6EAF2` | `#C3CAD8` / `#262E40` |
+| Lulus, disetujui | `hijau` `#BFE6C4` | 11,23 |
+| Perlu dicek, revisi | `kuning` `#F6D36B` | 10,59 |
+| Ditolak, tak terbaca | `koral` `#F2957A` | 6,85 |
+| Menunggu approval | `awan` `#A9D8FB` | 10,19 |
+| Netral (draf) | `netralStempel` `#EEF2F6` | |
+| Batang |kor|+U lewat toleransi, tepi isian galat | `koralBatang` `#E0684A` | |
+| Latar tipis galat | `kabutGagal` `#FDE3DA` | |
+
+Status tema gelap dan teks galat BELUM ada di `tokens.json`: lihat "Utang desain"
+di bagian 11.
+
+Pemetaan ke `SidikMaterial` (nama lama, isi Biru Awan): `meja` = `latar`,
+`meja2` = `kabut`, `kertas` = `kertas`, `kertas2` = `latar` (isian dan baki
+cekung), `kertasTepi` dan `garis` = `garisHalus`, `logamTepi` (= getter
+`garisTegas`) = `garisKontrol`, `biru` = `primer`, `biruTipis` = `kabut`,
+`biruTinta` = `primerTua`, `biruAtas` = `primerGelap` (biru di atas permukaan
+gelap, Lajur Bacaan), `lulusTipis`/`awasTipis`/`tungguTipis` = `hijau`/`kuning`/
+`awan` dengan `lulus`/`awas`/`tunggu` = navy.
+
+Peta `ColorScheme` yang TIDAK disebut `tokens.json` (dipilih L1b, token terdekat):
+`inverseSurface` = `tinta` navy (terang) / `kabutGelap` (gelap), `onInverseSurface`
+= `latar` / `tintaGelap`, `inversePrimary` = `primerGelap` (dua tema; snack dan
+tooltip), `outline` terang = `tinta2`, `onPrimaryContainer`/`secondary` = `primerTua`.
+
+Teks biru di atas kabut memakai `primerTua` (7,18:1). `primer` di atas kabut
+cuma 4,47:1 dan DILARANG sebagai teks, begitu pula teks putih di atas `langit`
+(2,26:1). Keduanya dijaga tes negatif di `test/tema/kontras_sidik_test.dart`.
 
 Nama lama dipertahankan sementara: `AppColors.*` dan `SidikMaterial.*` (`meja`,
-`kertas`, `logam`, `kaca`, ...) kini memegang nilai di atas. Layar baru
+`kertas`, `logam`, `kaca`, ...) dan alias `PaletLab.kobalt*`/`*Terang`. Layar baru
 sebaiknya memakai `colorScheme` dan `SidikMaterial.of(context)`.
 
-### Bentuk (`BentukLab`)
+### Bentuk (`BentukBiruAwan`; `BentukLab` tetap untuk komponen lama)
 
-Sel 4, stempel 4, panel data 8, kontrol 10 (tombol sekunder, isian, chip), tombol
-utama 16, lembar bawah dan dialog 20, pil 999 hanya untuk lencana angka. Baris
-daftar tanpa radius. `AppSpacing.radius{Sm,Md,Lg}` dipetakan ke set ini.
+| Token | dp | Dipakai |
+|---|---|---|
+| `isian` / `ikonUbin` | 16 | kotak isian; ikon ubin |
+| `kartu` | 24 | kartu draf, baris-panel, antrean (layar yang didesain ulang) |
+| `hero` / `dialog` | 28 | hero, panel besar, segmen; dialog |
+| `lembarBawah` | 32 | sudut ATAS lembar bawah |
+| `dock` | 40 | dock |
+| `pil` | 999 | tombol, chip, stempel, kolom cari |
 
-### Ukuran sentuh (`UkuranLab`)
+Tema app: tombol (utama, sekunder, teks), chip, dan FAB berbentuk pil; isian
+kotak 16; dialog 28; lembar bawah 32. Kartu di tema TETAP `BentukLab.panel` (8):
+kartu 24 dibawa layar yang didesain ulang, karena widget lama memotong riak
+ketukan dengan radius 8 (`AppSpacing.radiusLg`). `BentukLab` (sel 4, panel 8,
+kontrol 10, utama 16, lembar 20) tidak diubah; `AppSpacing.radius*` dan
+`SidikMaterial.sudut*` masih membacanya.
 
-- **Aksi utama 56 dp**: `FilledButton` (tema), `RagamTombol.utama`, FAB. Satu per
-  layar.
-- **Semua aksi lain 48 dp**: tombol sekunder, tombol teks, tombol ikon, baris yang
-  diketuk.
-- Desktop Windows 44 dp (alat tunjuk tetikus).
+### Ukuran sentuh (`UkuranBiruAwan`, `UkuranLab`)
+
+- **Aksi utama 56 dp** (`UkuranBiruAwan.tombolUtama`): `FilledButton` (tema),
+  `RagamTombol.utama`, FAB. Satu per layar.
+- **Semua aksi lain 48 dp** (`tombolTegas`): tombol sekunder, tombol teks, tombol
+  ikon, baris yang diketuk. Kolom cari 56, chip 44, stempel 30, baris daftar 72,
+  baris menu 64 (angka lengkap di `UkuranBiruAwan`).
+- Desktop Windows 44 dp (alat tunjuk tetikus; `UkuranLab.aksiMeja`, belum ada
+  padanan di `UkuranBiruAwan`: keputusan L1b, minta konfirmasi desain).
 - Pengecualian terdokumentasi: tombol toolbar di app bar tetap 48 dp.
 - **Aturan ini berlaku pada DEFAULT token.** Beberapa layar menimpanya, dan itu
   utang yang dicatat di baseline kategori `tinggi_tombol_kecil`:
@@ -90,7 +144,17 @@ daftar tanpa radius. `AppSpacing.radius{Sm,Md,Lg}` dipetakan ke set ini.
   `AppButton(ringkas: true)` 48 (`app_button.dart:65`), `SidikTombol(kecil: true)`
   42 untuk baris padat (di dalam widget, tidak terdeteksi pemindai).
 
+Tinggi isian: `ELEMEN.md` §Isian menulis "kotak 56", sedangkan isian tema ±48 dp
+(`isDense` dengan padding vertikal 14, sengaja tidak diubah di L1b agar tidak ada
+layar lama yang meluap). `tokens.json` punya `segmenTitik` 56, belum ada di
+`UkuranBiruAwan` (komponen segmen L3). Keduanya di bagian 11.
+
 ### Tipografi (Inter; skala di `SidikTheme`)
+
+Skala di bawah masih skala LAMA. Skala Biru Awan (`DESIGN.md` §Huruf: judul layar
+28/34·800, judul anak 20/26·800, label 16/24·700, dst.) BELUM dipasang di tema:
+mengganti berat dan ukuran di tema menggeser tata letak semua layar yang belum
+didesain ulang. Dipasang per layar bersama komponennya (L3 dst.).
 
 | Tingkat | Ukuran/baris | Berat | Slot |
 |---|---|---|---|
@@ -117,10 +181,16 @@ Grid 4/8: 4, 8, 12, 16, 24, 32 (`AppSpacing`). Margin halaman 16 (24 di tablet).
 - Teks dan ikon yang membawa makna: **>= 4,5:1** terhadap latarnya.
 - Komponen UI (tepi isian dan sel, isi tombol terhadap latar, ikon penting,
   sakelar, kotak centang): **>= 3:1**.
-- Garis halus (`kertasTepi`, `garis`) hanya pemisah dekoratif (sekitar 1,3:1).
-  Jangan dipakai sebagai satu-satunya penanda sebuah kontrol.
+- **Tepi kontrol terang = `garisKontrol` `#7C8FA8`** (3,31:1 di putih, 3,07:1 di
+  `latar`), BUKAN `garisTegas` `#C5D5E6`. `DESIGN.md` menulis tepi tombol sekunder
+  `#C5D5E6`, tetapi itu cuma ±1,5:1 di putih. `#C5D5E6` tinggal untuk garis
+  dekoratif. Gelap memakai `garisTegasGelap` `#7C8FA8` (tidak ada konflik).
+- Garis halus (`kertasTepi`, `garis`) hanya pemisah dekoratif. Jangan dipakai
+  sebagai satu-satunya penanda sebuah kontrol.
 - `colorScheme.outline` dipakai sebagai warna TEKS redup di banyak layar, jadi
-  nilainya dijaga 4,5:1 di kertas dan baki (terang: `#5F6B7E`).
+  nilainya dijaga 4,5:1 di kertas dan baki (terang: `tinta2`, gelap: garis tegas).
+- Teks biru di atas kabut = `primerTua`; `primer` di atas kabut dilarang (4,47:1).
+  Teks putih di atas `langit` dilarang (2,26:1).
 - Warna tidak boleh jadi satu-satunya pembawa makna: status selalu ikon + kata.
 
 ## 5. Aturan menulis tampilan
@@ -198,8 +268,11 @@ Nama berkas: `<layar>.<ukuran>[-gelap].png`. Layar kunci ada di
 tes gagal bila utangnya sudah lunas supaya daftarnya dibersihkan.
 
 **Golden macOS** (`test/screenshot_test.dart`, `test/screenshots/`) tetap dijaga CI
-macOS (`periksa-pr.yml`). Perubahan token mengubah tampilan semua golden:
-perbarui lewat jalur `golden-baru.yml`, jangan `--update-goldens` di Windows.
+macOS (`periksa-pr.yml`). Perubahan token mengubah tampilan golden layar yang
+memakai tema app: perbarui lewat jalur `golden-baru.yml`, jangan
+`--update-goldens` di Windows. Golden area beku (`test/beku/goldens/` dan enam
+`lembar-kerja-*`/`lembar-chlorine-alat-kepilih` di `test/screenshots/`) TIDAK
+boleh ikut berubah oleh perubahan token (bagian 10).
 
 ## 7. Keputusan dan penyimpangan dari brief
 
@@ -208,24 +281,42 @@ perbarui lewat jalur `golden-baru.yml`, jangan `--update-goldens` di Windows.
   fossui, atau library komponen lain. Alasan: hampir semua layar sudah memakai
   widget Material, dan tujuan paket ini mengganti nilai di bawah nama lama tanpa
   menyunting layar.
-- **Isian tetap garis bawah**, bukan kotak (brief 5.5 meminta kotak). Alasan:
-  `NeuTextField` (login) dibangun di atas bentuk ini dan kotak menggandakan
-  tepinya (terlihat di render pertama), dan ~100 isian lain ikut bergeser. Gaya
-  isian tunggal (kotak) = paket lembar kerja 5b. Garisnya sudah garis tegas 3:1.
-- **`colorScheme.outline` terang = `#5F6B7E`** (bukan garis tegas `#6B7588`).
-  `outline` dipakai 22 tempat sebagai warna TEKS dan ikon redup, jadi harus 4,5:1
-  di kertas dan baki; `#6B7588` hanya 4,41:1 di baki (`#F8F9FC`). Garis tegas
-  komponen tetap `#6B7588`. Gelap memakai garis tegas apa adanya (4,65:1).
-- **`AppSpacing.radiusLg` = 8** (dulu 16), `radiusMd` = 10, `radiusSm` = 8. Pemakai
-  `radiusLg` semuanya kartu atau panel (19 tempat); tidak ada tombol atau lembar
-  bawah yang memakainya.
-- **Amber status berbeda dari Pelanggan**: terang `#8C5C0A` (Pelanggan
-  `#7A4F08`), gelap `#DB9A2B` (Pelanggan `#F2B655`). Nilai Pelanggan hampir sama
+- **Isian = kotak radius 16** sejak L1b (Biru Awan; sebelumnya garis bawah, karena
+  kotak menggandakan tepi `NeuTextField` di login). Tepi 1 dp `garisKontrol`,
+  fokus primer 2 dp, galat `koralBatang` 2 dp. Layar yang didesain ulang memakai
+  komponen isian baru; layar lama ikut bentuk ini (campuran sementara).
+- **`colorScheme.outline` terang = `tinta2`** (`#4A5D78`), bukan tepi kontrol
+  (`#7C8FA8`, 3,3:1). `outline` dipakai 22 tempat sebagai warna TEKS dan ikon
+  redup, jadi harus 4,5:1 di kertas dan baki. Gelap memakai garis tegas apa adanya.
+- **`AppSpacing.radiusLg` = 8** (dulu 16), `radiusMd` = 10, `radiusSm` = 8; tidak
+  diubah di L1b (`app_spacing.dart` beku).
+- **Amber status berbeda dari Pelanggan** (kini berlaku untuk tema GELAP saja;
+  status terang memakai `tokens.json`): gelap `#DB9A2B` (Pelanggan `#F2B655`). Nilai Pelanggan hampir sama
   terangnya dengan merah (terang, beda 0,004) dan hijau (gelap, beda 0,005),
   sehingga gagal aturan "lulus, gagal, awas beda luminans >= 0,02" yang menjaga
   fotokopi hitam-putih dan mata buta warna. Nilai baru tetap >= 4,9:1 di semua
   permukaan teks dan 5,1:1 (terang) / 6,1:1 (gelap) di latar tipisnya. Kandidat
   untuk disamakan balik ke Pelanggan (pindah nilai itu ke sana).
+
+### Keputusan L1b "Token Biru Awan" (15 Nov 2026)
+
+- **Tepi kontrol `garisKontrol`**, menyimpang dari `DESIGN.md` (bagian 4).
+- **Tinta status terang = navy.** `SidikMaterial.lulus/awas/tunggu` = `tinta`,
+  `*Tipis` = isi hijau/kuning/awan. Nilai amber lama `#8C5C0A` cuma 3,96:1 di atas
+  `kuning`, jadi tidak bisa dipertahankan. Stempel lama (`SidikLencana`,
+  `StatusTampil`) otomatis berpenampilan Biru Awan.
+- **`SidikMaterial.gagal` terang tetap `#A81B33`** (teks galat, utang): koral
+  `#F2957A` cuma 2,2:1 sebagai teks di atas putih, sedangkan `colorScheme.error`
+  dipakai sebagai TEKS galat di banyak layar. `gagalTipis` = `kabutGagal`.
+- **`pensil` (saran OCR) terang = `tinta2`**, bukan nilai lama `#5F6B7E`: nilai lama
+  cuma 3,7:1 di atas `kuning` (dasar sel "dari foto, perlu dicek", 4,61:1 dengan
+  `tinta2`).
+- **Tombol mati terang** berisi `netralStempel`, bukan `tungguTipis` (sekarang
+  `awan`, terbaca sebagai stempel "menunggu").
+- **Desktop tetap 44 dp** untuk tombol (tetikus); `UkuranBiruAwan` tidak punya
+  ukuran meja.
+- **Kartu tema tetap 8**, skala huruf tema tetap lama, `AppSpacing`/`BentukLab`/
+  `UkuranLab` tidak diubah.
 
 ### Utang yang tercatat (bukan lingkup paket ini)
 
@@ -247,7 +338,13 @@ perbarui lewat jalur `golden-baru.yml`, jangan `--update-goldens` di Windows.
 
 - Paket 0 (gerbang): ada. Paket 1 (fondasi token, nilai baru di bawah nama lama): ada.
 - Paket 2 (komponen bersama, bagian 9): ada, belum dipakai layar mana pun.
-- Berikutnya: rangka dan navigasi, layar daftar satu per satu, lembar kerja.
+- Desain ulang Biru Awan: L0 (golden lembar kerja) dan L1a (tema beku) ada;
+  **L1b (token Biru Awan di tema app) ada**. Berikutnya: elemen dan komponen
+  Biru Awan (L2, L3), lalu layar satu per satu (L5 dst.).
+- **Layar campuran sementara** (sampai layar itu didesain ulang): layar non-beku
+  membaca `colorScheme`/`SidikMaterial` yang SUDAH Biru Awan, tetapi `AppColors.*`
+  (141 pemakaian di 37 berkas) masih nilai kobalt lama, jadi satu layar bisa
+  memadukan keduanya (mis. teks `AppColors.ink` di kartu `kertas` Biru Awan).
 - Yang masih memakai nilai lama sampai paketnya tiba: label HURUF BESAR
   (`toUpperCase`) di layar, ukuran huruf literal < 12 dan radius literal di
   layar (tercatat di baseline), dua sistem status (`StatusBadge` dan
@@ -333,3 +430,92 @@ SIDIK_HALAMAN=lajur,skala SIDIK_PNG_DIR=... flutter test test/tampilan/render_ko
   kepadatan daftar hilang; baris "Lewat jadwal" mengulang sinyal yang sama
   (stempel, ekor merah, penanda, kalimat) tanpa hierarki; lencana merah di bar
   berwarna sama dengan "gagal". Nilai ulang di Paket 3 dengan data nyata.
+
+## 10. Area beku (jangan berubah saat token berganti)
+
+Keputusan pemilik (14-15 Nov 2026): tampilan lembar kerja, pratinjau sertifikat,
+dan "02 Pilih alat" TIDAK berubah walau token tema diganti. Daftar dan alasannya
+di `docs/desain-ulang/BEKU.md`; ringkasnya:
+
+| Area | Cara dibekukan | Penjaga |
+|---|---|---|
+| Lembar kerja (17 berkas), `tabel_perhitungan`, `sertifikat_pdf_view`, onboarding, `app_button`, `app_text_field`, `sidik_loader`, `status_badge`, `app_spacing` | hash SHA-256 | `test/beku/berkas_beku_test.dart` |
+| Tampilan semua layar beku | golden | `test/beku/lembar_kerja_golden_test.dart` (20 PNG) + 6 golden `lembar-kerja-*`/`lembar-chlorine-alat-kepilih` di `test/screenshots/` |
+| Tema dan palet beku | `lib/core/theme/palet_beku.dart`, `tema_beku.dart` (salinan nilai 14 Nov 2026, di-hash) | `test/tema/tema_beku_test.dart` (nilai literal) |
+| Pemasangan tema beku | `BekuLembarKerja(child: ...)` di SETIAP pemanggil route | `test/beku/tema_beku_terpasang_test.dart` (memindai `lib/`) |
+| "02 Pilih alat" (`category_picker_screen`, `instrument_picker_screen`) | sama, TANPA hash (bukan beku resmi) | `test/beku/picker_dan_sertifikat_beku_test.dart` (piksel sama dengan tema beku, warna kunci = `PaletBeku`) |
+| Pratinjau sertifikat di `history/certificate_screen.dart` (`_IdentitasSesi`, `_TabelLaporan`, `_StandarDipakai`) | sama | `picker_dan_sertifikat_beku_test.dart` |
+
+Aturan:
+
+- Pemanggil BARU layar atau area di atas wajib membungkusnya
+  `BekuLembarKerja(child: ...)` dari LUAR (di `MaterialPageRoute`, `showDialog`,
+  dan sejenisnya), bukan di dalam `build`; pemindai gagal bila lupa.
+- `AppColors` membaca `PaletBeku`, bukan `PaletLab`. Layar yang didesain ulang
+  berhenti memakai `AppColors` dan membaca `SidikMaterial.of(context)`.
+- `SidikMaterial.teksDiBiru`/`teksDiGagal` membaca `PaletLab`, bukan `TemaBeku`:
+  layar beku dan "02 Pilih alat" tidak boleh memakainya (peringatan di getter).
+- Komponen Biru Awan untuk tombol, isian, loader, dan stempel dibuat BARU
+  (`lib/widgets/biru_awan/`); widget beku bersama tidak disentuh.
+- Tema yang berlaku di area beku dan tema app sengaja berbeda: tes
+  `token_tema_lab_test.dart` ("tema app BUKAN tema beku") gagal bila keduanya
+  kebetulan sama, supaya tes pembungkus tidak hampa.
+- Berkas beku butuh persetujuan pemilik untuk diubah; golden beku harus lolos
+  TANPA diperbarui di setiap PR.
+
+## 11. Utang desain Biru Awan (jawaban desain yang masih dibutuhkan)
+
+Dibuat L1b (15 Nov 2026). Tiap butir memakai nilai LAMA atau pengganti sementara
+sampai desain menjawab; semuanya di `lib/core/theme/palet_lab.dart` dan
+`sidik_material.dart`.
+
+1. **Status tema gelap** (`lulusGelap`, `awasGelap`, `gagalGelap`, `tungguGelap`
+   dan latar tipisnya, `gagalDiAtasGelap`): `tokens.json` hanya punya warna gelap
+   untuk merek dan netral. Nilai lama kobalt-era dipertahankan.
+2. **Teks galat terang** (`gagalTerang` `#A81B33`): `ELEMEN.md` §Isian menyebut
+   kalimat galat `#A3261A`, `tokens.json` tidak punya. Keputusan: L1b TIDAK
+   menggeser warna teks galat; `#A3261A` dipakai di L2 saat elemen isian/galat baru
+   dibangun, lalu masukkan ke `tokens.json`.
+3. **Pensil OCR gelap** (`pensilGelap`): belum ada di `tokens.json`; terang
+   memakai `tinta2` (lihat bagian 7).
+4. **Warna di atas `awan`, `hijau`, `kuning` untuk teks non-navy**: tidak ada.
+   Semua tinta status = navy; ikon/teks status berwarna (hijau, amber) di luar
+   stempel belum didefinisikan.
+5. **Tepi kontrol** `garisKontrol` `#7C8FA8` menyimpang dari `DESIGN.md`
+   ("OutlinedButton tepi #C5D5E6"): minta `DESIGN.md` dan `tokens.json`
+   disesuaikan (tambah `garisKontrol`, jadikan `garisTegas` dekoratif).
+6. **Isian mati** (`ELEMEN.md`: latar `#F3F7FB`) belum dipasang di tema: tema memberi
+   tepi `garisHalus`, isi tetap putih.
+7. **Sakelar 56 x 36** dan ukuran meja (desktop 44) belum punya token.
+8. **Skala huruf Biru Awan** belum dipasang (bagian 3, Tipografi).
+9. **Kartu 24** belum dipasang di tema (bagian 3, Bentuk).
+10. **Isian login dan lupa sandi**: `NeuTextField` (collapsed) tetap ikut
+    `enabledBorder` tema, jadi login dan lupa sandi dibungkus `IsianNeuLama`
+    (`lib/screens/auth/widgets/isian_neu_lama.dart`) yang mengembalikan
+    `inputDecorationTheme` lama. Hapus bersama `NeuTextField` saat login
+    didesain ulang (L5). Pengguna `NeuTextField` hanya dua layar itu.
+11. **Alias sementara** `PaletLab.kobalt*`/`*Terang` dan nama lama `SidikMaterial`
+    (`meja`, `logam`, ...): dihapus di PR terakhir (L13).
+12. **Stempel FAIL** belum mengikuti rancangan (navy pekat + teks putih): kode
+    memakai `m.gagal` `#A81B33` di atas `kabutGagal` (detail-sesi tampil merah di
+    atas merah muda). Warna tidak diubah di L1b; dikerjakan bersama stempel baru L3.
+13. **Tepi kontrol di atas kabut dan kabutGagal < 3:1** (hasil hitung, tes
+    pendokumentasi di `kontras_sidik_test.dart`, ambang 3:1 tidak dilonggarkan):
+    `garisKontrol` `#7C8FA8` di atas `kabut` 2,90:1 dan `kabutGagal` 2,70:1
+    (di atas putih 3,31, `latar` 3,07). Pemakai nyata: tepi segmen terpilih
+    `SegmentedButton` (isi kabut; `sidik_theme.dart`; dipakai `kirim_email_screen`,
+    `profile_screen`, `ukur_ocr_screen`, `undang_anggota_dialog`; terpilih juga
+    ditandai isi dan centang). Mungkin: tepi stempel netral (`stempel.dart`) bila
+    ditaruh di baris berisi kabut, mis. baris terpilih. Tidak ditemukan kontrol
+    bertepi di atas `kabutGagal` (hanya banner tanpa tepi). Perlu keputusan desain:
+    tepi lain (mis. `primerTua`) untuk kontrol di atas kabut.
+14. **Peta `ColorScheme`, tinggi isian, `segmenTitik`**: lihat bagian 3 (dipilih L1b,
+    belum disetujui desain).
+15. **`SidikMaterial.lulus/awas/tunggu` terang = navy** (tinta status selalu navy):
+    isyarat warna hilang di tema terang pada layar yang memakai tinta status di latar
+    polos (`simulasi_versi_acuan_screen`, `studio_acuan_screen`); tema gelap tetap
+    hijau/amber. Tetap ikon + kata. Ditangani saat layar itu didesain ulang.
+16. **Hex `PaletLab` tidak dikunci ke `tokens.json`**: `kontras_sidik_test` hanya
+    menghitung rasio pasangan (`closeTo(dokumen, 0.02)`); mengubah `garisDekor`,
+    `navyTeks`, atau menggeser satu digit `kuning` tidak ketahuan. Tes literal
+    seperti `tema_beku_test` dijadwalkan bersama tes token L2.

@@ -6,6 +6,7 @@ import '../../providers/auth_provider.dart';
 import '../../services/auth_service.dart';
 import 'forgot_password_screen.dart';
 import 'widgets/auth_brand_header.dart';
+import 'widgets/isian_neu_lama.dart';
 import 'widgets/neu.dart';
 
 /// Pesan buat kegagalan login yang BUKAN [AuthException].
@@ -85,9 +86,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         .login(identifier: _identifier.text, password: _password.text);
   }
 
-  void _bukaLupaPassword() => Navigator.of(context).push(
-    MaterialPageRoute<void>(builder: (_) => const ForgotPasswordScreen()),
-  );
+  void _bukaLupaPassword() => Navigator.of(
+    context,
+  ).push(MaterialPageRoute<void>(builder: (_) => const ForgotPasswordScreen()));
 
   @override
   Widget build(BuildContext context) {
@@ -151,27 +152,31 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           const SizedBox(height: 18),
                         ],
 
-                        NeuTextField(
-                          icon: Icons.person_outline,
-                          controller: _identifier,
-                          hint: 'ID Pegawai / Email',
-                          errorText: _identifierError,
-                          enabled: !loading,
-                          textInputAction: TextInputAction.next,
-                          autofillHints: const [AutofillHints.username],
+                        IsianNeuLama(
+                          child: NeuTextField(
+                            icon: Icons.person_outline,
+                            controller: _identifier,
+                            hint: 'ID Pegawai / Email',
+                            errorText: _identifierError,
+                            enabled: !loading,
+                            textInputAction: TextInputAction.next,
+                            autofillHints: const [AutofillHints.username],
+                          ),
                         ),
                         const SizedBox(height: 16),
 
-                        NeuTextField(
-                          icon: Icons.lock_outline,
-                          controller: _password,
-                          hint: 'Password',
-                          obscure: true,
-                          errorText: _passwordError,
-                          enabled: !loading,
-                          textInputAction: TextInputAction.done,
-                          autofillHints: const [AutofillHints.password],
-                          onSubmitted: (_) => _submit(),
+                        IsianNeuLama(
+                          child: NeuTextField(
+                            icon: Icons.lock_outline,
+                            controller: _password,
+                            hint: 'Password',
+                            obscure: true,
+                            errorText: _passwordError,
+                            enabled: !loading,
+                            textInputAction: TextInputAction.done,
+                            autofillHints: const [AutofillHints.password],
+                            onSubmitted: (_) => _submit(),
+                          ),
                         ),
                         const SizedBox(height: 26),
 

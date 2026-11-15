@@ -13,9 +13,7 @@ void main() {
   setUpAll(muatFontUji);
 
   group('TombolUtama', () {
-    testWidgets('tinggi 56 dp, sudut 16, kobalt, selebar induk', (
-      tester,
-    ) async {
+    testWidgets('tinggi 56 dp, pil, primer, selebar induk', (tester) async {
       layarUji(tester, lebar: 360, tinggi: 640);
       await tester.pumpWidget(
         aplikasiUji(
@@ -42,7 +40,7 @@ void main() {
       expect(bahan.color, skema.primary);
       expect(
         (bahan.shape! as RoundedRectangleBorder).borderRadius,
-        BorderRadius.circular(BentukLab.utama),
+        BorderRadius.circular(BentukBiruAwan.pil),
       );
     });
 

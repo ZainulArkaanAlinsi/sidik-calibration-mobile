@@ -93,8 +93,11 @@ class KalibrasiTeknisiScreen extends ConsumerWidget {
                 key: const ValueKey('tombol-mulai-kalibrasi'),
                 label: l10n.dashStartCalibration,
                 icon: Icons.add_task,
-                onPressed: () =>
-                    buka(context, ref, const CategoryPickerScreen()),
+                onPressed: () => buka(
+                  context,
+                  ref,
+                  const BekuLembarKerja(child: CategoryPickerScreen()),
+                ),
               ),
               // Tampil hanya bila server menyatakan ada jenis lembar yang
               // boleh dipindai; selain itu tidak memakan ruang.

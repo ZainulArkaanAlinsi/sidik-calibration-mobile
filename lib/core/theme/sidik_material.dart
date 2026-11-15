@@ -3,25 +3,32 @@ import 'package:flutter/material.dart';
 import 'bentuk_lab.dart';
 import 'palet_lab.dart';
 
-/// Token & resep permukaan untuk tema Lab (kobalt + netral dingin).
+/// Token & resep permukaan untuk tema Lab ("Biru Awan", L1b 15 Nov 2026).
 ///
 /// Ini SATU-SATUNYA tempat peran warna dan bentuk permukaan ditentukan; nilai
-/// mentahnya ada di `PaletLab`. Tidak boleh ada `Color(0x...)` yang ditulis
+/// mentahnya ada di `PaletLab`. Lembar kerja TIDAK membaca nilai di bawah:
+/// `TemaBeku` membawa salinannya sendiri (`PaletBeku`). Tidak boleh ada `Color(0x...)` yang ditulis
 /// langsung di widget (dijaga `test/tema/token_only_test.dart`). Token ikut
 /// tema lewat [ThemeExtension], jadi mode gelap tidak perlu `if (isDark)`
 /// bertebaran di layar.
 ///
-/// ## Nama lama, isi baru (13 Nov 2026)
+/// ## Nama lama, isi baru (13 Nov 2026, Biru Awan 15 Nov 2026)
 ///
 /// Nama-nama di sini (`meja`, `kertas`, `logam`, `kaca`, `etsa`, ...) berasal
 /// dari sistem "Meja Kerja Lab" yang meniru material fisik. Layar-layar masih
 /// memakainya, jadi namanya dipertahankan dan yang berganti isinya:
 ///
-/// - [meja] latar layar (`#F2F4F8`), [kertas] baris/kartu/sel (putih),
-///   [kertas2] permukaan cekung.
-/// - [logam] permukaan app bar dan navigasi: sekarang putih, bukan aluminium
-///   disikat. [logamTepi] adalah GARIS TEGAS (tepi tombol sekunder dan isian,
-///   >= 3:1); garis pemisah halus ada di [kertasTepi] dan [garis].
+/// - [meja] latar layar (`latar` #F3F7FB), [kertas] baris/kartu/sel (putih),
+///   [kertas2] permukaan cekung (isian, baki).
+/// - [logam] permukaan app bar dan navigasi: putih, bukan aluminium disikat.
+///   [logamTepi] adalah TEPI KONTROL (tombol sekunder, isian, centang; >= 3:1,
+///   `PaletLab.garisKontrol`); garis pemisah halus ada di [kertasTepi] dan
+///   [garis].
+/// - Status: ubin/stempel berisi hijau/kuning/awan (`*Tipis`) dengan tinta
+///   NAVY di atasnya ([lulus], [awas], [tunggu] = tinta). [gagal] tetap
+///   merah tua karena `colorScheme.error` memakainya sebagai TEKS galat
+///   (koral gagal sebagai teks di atas putih); itu utang desain di
+///   `docs/standar-kualitas-desain.md`.
 /// - [kaca] dan `lcd*` permukaan alat ukur yang selalu gelap.
 /// - Resep di bawah ([kertasLembar], [logamTimbul], ...) menghasilkan
 ///   permukaan DATAR: tanpa gradien, tanpa bayangan, tanpa bayangan dalam.
@@ -150,11 +157,20 @@ class SidikMaterial extends ThemeExtension<SidikMaterial> {
   Color get garisTegas => logamTepi;
 
   /// Warna label/ikon DI ATAS isi [biru] (tombol utama). Putih di tema terang,
-  /// kobalt tua di tema gelap (isi [biru]-nya kobalt terang).
-  Color get teksDiBiru => terang ? PaletLab.putih : PaletLab.kobaltDiAtas300;
+  /// navy gelap di tema gelap (isi [biru]-nya biru muda, 9,58:1).
+  ///
+  /// PERINGATAN (area beku): getter ini membaca `PaletLab` (Biru Awan), BUKAN
+  /// `SidikMaterial` milik `TemaBeku`. Di dalam `BekuLembarKerja` ia tetap
+  /// mengembalikan nilai Biru Awan (gelap: `#0B1626`, bukan `#04265F` lama),
+  /// jadi layar beku dan "02 Pilih alat" tidak boleh memakainya; `TemaBeku`
+  /// menulis `onPrimary` langsung dari `PaletBeku`. Hari ini pemakainya hanya
+  /// `sidik_tombol.dart`, `navigasi_adaptif.dart`, dan `SidikTheme`. Hal yang
+  /// sama berlaku untuk [teksDiGagal].
+  Color get teksDiBiru =>
+      terang ? PaletLab.kertas : PaletLab.teksDiAtasPrimerGelap;
 
   /// Warna label/ikon DI ATAS isi [gagal] (tombol bahaya).
-  Color get teksDiGagal => terang ? PaletLab.putih : PaletLab.gagalDiAtasGelap;
+  Color get teksDiGagal => terang ? PaletLab.kertas : PaletLab.gagalDiAtasGelap;
 
   // ══════════════════════════════════════════════════════════════════════
   // RESEP PERMUKAAN (datar)
@@ -383,34 +399,35 @@ class SidikMaterial extends ThemeExtension<SidikMaterial> {
 
   static const SidikMaterial terangDefault = SidikMaterial(
     terang: true,
-    meja: PaletLab.latarTerang,
-    meja2: PaletLab.latar2Terang,
-    kertas: PaletLab.kertasTerang,
-    kertas2: PaletLab.kertas2Terang,
-    kertasTepi: PaletLab.garisHalusTerang,
-    garis: PaletLab.garisHalusTerang,
-    tinta: PaletLab.tintaTerang, // 17,7:1 di kertas
-    tinta2: PaletLab.tinta2Terang, // 7,7:1 di kertas, 7,0:1 di latar
-    pensil: PaletLab.pensilTerang, // saran OCR, 5,4:1 di kertas
-    logam: PaletLab.kertasTerang,
-    logamAtas: PaletLab.kertasTerang,
-    logamBawah: PaletLab.latar2Terang,
-    logamTepi: PaletLab.garisTegasTerang, // garis tegas, 4,6:1 di kertas
-    etsa: PaletLab.tintaTerang,
+    meja: PaletLab.latar,
+    meja2: PaletLab.kabut, // rel progres, wadah terangkat
+    kertas: PaletLab.kertas,
+    kertas2: PaletLab.latar, // permukaan cekung: isian dan baki
+    kertasTepi: PaletLab.garisHalus,
+    garis: PaletLab.garisHalus,
+    tinta: PaletLab.tinta, // 15,39:1 di kertas
+    tinta2: PaletLab.tinta2, // 6,71:1 di kertas, 5,89:1 di kabut
+    pensil: PaletLab.tinta2, // saran OCR; 4,6:1 di atas kuning, lihat PaletLab
+    logam: PaletLab.kertas,
+    logamAtas: PaletLab.kertas,
+    logamBawah: PaletLab.kabut,
+    logamTepi:
+        PaletLab.garisKontrol, // tepi kontrol, >= 3:1 di kertas dan latar
+    etsa: PaletLab.tinta,
     kilau: PaletLab.tembus,
     lekuk: PaletLab.tembus,
-    biru: PaletLab.kobalt700, // 9,5:1 di kertas; putih di atasnya 9,5:1
-    biruAtas: PaletLab.kobalt300,
-    biruTipis: PaletLab.kobalt100,
-    biruTinta: PaletLab.kobalt700,
-    lulus: PaletLab.lulusTerang, // 7,3:1 di latar tipisnya
-    lulusTipis: PaletLab.lulusLatarTerang,
-    gagal: PaletLab.gagalTerang, // 6,1:1
-    gagalTipis: PaletLab.gagalLatarTerang,
-    awas: PaletLab.awasTerang, // 6,3:1
-    awasTipis: PaletLab.awasLatarTerang,
-    tunggu: PaletLab.tungguTerang, // 8,7:1
-    tungguTipis: PaletLab.tungguLatarTerang,
+    biru: PaletLab.primer, // 5,10:1 di kertas; putih di atasnya 5,10:1
+    biruAtas: PaletLab.primerGelap, // biru di atas permukaan GELAP (Lajur)
+    biruTipis: PaletLab.kabut,
+    biruTinta: PaletLab.primerTua, // teks biru di atas kabut: 7,18:1
+    lulus: PaletLab.tinta, // navy di atas hijau: 11,23:1
+    lulusTipis: PaletLab.hijau,
+    gagal: PaletLab.gagalTerang, // teks galat (utang desain), 7,3:1 di kertas
+    gagalTipis: PaletLab.kabutGagal,
+    awas: PaletLab.tinta, // navy di atas kuning: 10,59:1
+    awasTipis: PaletLab.kuning,
+    tunggu: PaletLab.tinta, // navy di atas awan: 10,19:1
+    tungguTipis: PaletLab.awan,
     kaca: PaletLab.latarGelap,
     kaca2: PaletLab.kertasGelap,
     lcdHijau: PaletLab.lulusGelap,
@@ -418,29 +435,30 @@ class SidikMaterial extends ThemeExtension<SidikMaterial> {
     lcdTeks: PaletLab.tintaGelap,
   );
 
-  /// Tema gelap: latar `#0E1320`, permukaan `#171D2B`, kobalt jenjang 300.
+  /// Tema gelap: latar `#0B1626`, permukaan `#13243A`, primer `#7CC4F6`.
+  /// Status gelap memakai nilai lama (`tokens.json` belum punya; utang desain).
   static const SidikMaterial gelapDefault = SidikMaterial(
     terang: false,
     meja: PaletLab.latarGelap,
-    meja2: PaletLab.latar2Gelap,
+    meja2: PaletLab.kabutGelap,
     kertas: PaletLab.kertasGelap,
-    kertas2: PaletLab.kertas2Gelap,
+    kertas2: PaletLab.latarGelap,
     kertasTepi: PaletLab.garisHalusGelap,
     garis: PaletLab.garisHalusGelap,
-    tinta: PaletLab.tintaGelap, // 14,0:1 di kertas
-    tinta2: PaletLab.tinta2Gelap, // 7,9:1
-    pensil: PaletLab.pensilGelap, // 5,8:1
+    tinta: PaletLab.tintaGelap,
+    tinta2: PaletLab.tinta2Gelap,
+    pensil: PaletLab.pensilGelap, // utang desain: nilai lama
     logam: PaletLab.kertasGelap,
     logamAtas: PaletLab.kertasGelap,
-    logamBawah: PaletLab.latar2Gelap,
-    logamTepi: PaletLab.garisTegasGelap, // garis tegas, 4,7:1 di kertas
+    logamBawah: PaletLab.kabutGelap,
+    logamTepi: PaletLab.garisTegasGelap, // tepi kontrol
     etsa: PaletLab.tintaGelap,
     kilau: PaletLab.tembus,
     lekuk: PaletLab.tembus,
-    biru: PaletLab.kobalt300, // isi tombol & teks aksen: 7,8:1 di kertas
-    biruAtas: PaletLab.kobalt300,
-    biruTipis: PaletLab.kobaltGelapTipis,
-    biruTinta: PaletLab.kobalt300,
+    biru: PaletLab.primerGelap, // isi tombol & teks aksen
+    biruAtas: PaletLab.primerGelap,
+    biruTipis: PaletLab.kabutGelap,
+    biruTinta: PaletLab.primerTuaGelap,
     lulus: PaletLab.lulusGelap,
     lulusTipis: PaletLab.lulusLatarGelap,
     gagal: PaletLab.gagalGelap,

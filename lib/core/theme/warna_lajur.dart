@@ -8,12 +8,13 @@ import 'sidik_material.dart';
 /// Tidak menulis nilai mentah: semuanya dibaca dari [PaletLab] dan
 /// [SidikMaterial]. Peran:
 ///
-/// - [panel]: terang = `#0E1320` (permukaan alat ukur, gelap di atas terang);
-///   gelap = `#171D2B` (permukaan), diberi [garisAtas] supaya tidak melebur
-///   dengan latar `#0E1320`.
+/// - [panel]: terang = `latarGelap` `#0B1626` (permukaan alat ukur, gelap di
+///   atas terang); gelap = `kertasGelap` `#13243A` (permukaan), diberi
+///   [garisAtas] supaya tidak melebur dengan latar `#0B1626`.
 /// - [angka], [redup], [aksen], [peringatan]: teks angka, keterangan, kursor dan
 ///   tik aktif, catatan.
-/// - [tombol], [teksTombol]: tombol "Berikutnya" (kobalt 300, label kobalt tua).
+/// - [tombol], [teksTombol]: tombol "Berikutnya" (primer gelap `#7CC4F6`, label
+///   navy gelap).
 /// - [kunci], [tepiKunci]: tombol keypad dan garis tegas tepinya (3:1).
 ///
 /// Sengaja TIDAK ada warna hijau, merah, atau "lulus/gagal": Lajur tidak
@@ -58,8 +59,8 @@ class WarnaLajur {
     redup: PaletLab.tinta2Gelap,
     aksen: m.biruAtas,
     tombol: m.biruAtas,
-    teksTombol: PaletLab.kobaltDiAtas300,
-    kunci: m.terang ? m.kaca2 : PaletLab.latar2Gelap,
+    teksTombol: PaletLab.teksDiAtasPrimerGelap,
+    kunci: m.terang ? m.kaca2 : PaletLab.kabutGelap,
     tepiKunci: PaletLab.garisTegasGelap,
     peringatan: m.lcdAmber,
   );

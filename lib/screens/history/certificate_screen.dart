@@ -7,6 +7,7 @@ import '../../core/config/lab_profile.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
+import '../../core/theme/beku_lembar_kerja.dart';
 import '../../core/utils/angka.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/izin.dart';
@@ -158,11 +159,17 @@ class _IsiState extends ConsumerState<_Isi> {
         // (`SIDIK-FM-CAL-2403`). Gunanya buat DICOCOKIN sebelum di-approve —
         // begitu sertifikat terbit dan dipegang pelanggan, angkanya nggak bisa
         // diubah lagi (`docs/kontrak-api.md` §4: sesi `disetujui` ditolak 422).
-        _IdentitasSesi(detail: detail),
+        //
+        // Ketiga bagian ini BEKU (cermin PDF, `docs/desain-ulang/BEKU.md`):
+        // dibungkus tema beku dari luar, jadi tidak ikut berganti saat token
+        // tema app diganti. Ringkasan di atas dan tombol di bawahnya tidak.
+        BekuLembarKerja(child: _IdentitasSesi(detail: detail)),
         const SizedBox(height: AppSpacing.lg),
-        _TabelLaporan(titik: detail.titik, desimal: detail.desimal),
+        BekuLembarKerja(
+          child: _TabelLaporan(titik: detail.titik, desimal: detail.desimal),
+        ),
         const SizedBox(height: AppSpacing.lg),
-        _StandarDipakai(titik: detail.titik),
+        BekuLembarKerja(child: _StandarDipakai(titik: detail.titik)),
         const SizedBox(height: AppSpacing.lg),
 
         if (sertifikat == null) ...[

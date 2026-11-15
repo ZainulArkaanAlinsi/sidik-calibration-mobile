@@ -71,9 +71,7 @@ void main() {
   /// Element `Scaffold` pertama di bawah layar [T] (konteks DI BAWAH pembungkus
   /// akar layar itu).
   Element scaffoldDi<T extends Widget>(WidgetTester tester) => tester.element(
-    find
-        .descendant(of: find.byType(T), matching: find.byType(Scaffold))
-        .first,
+    find.descendant(of: find.byType(T), matching: find.byType(Scaffold)).first,
   );
 
   void layarPanjang(WidgetTester tester) {
@@ -96,7 +94,9 @@ void main() {
     ),
     historyServiceProvider.overrideWithValue(MockHistoryService()),
     worksheetScanServiceProvider.overrideWithValue(MockWorksheetScanService()),
-    categoryServiceProvider.overrideWithValue(kategori ?? MockCategoryService()),
+    categoryServiceProvider.overrideWithValue(
+      kategori ?? MockCategoryService(),
+    ),
     calibrationServiceProvider.overrideWithValue(MockCalibrationService()),
     jamProvider.overrideWithValue(() => DateTime(2026, 8, 9, 10, 30)),
     pindaiLembarAktifProvider.overrideWithValue(true),
@@ -227,7 +227,9 @@ void main() {
         ),
       );
       // Prasyarat: tema app memang beda dari tema beku (jadi tes tak hampa).
-      final temaApp = Theme.of(tester.element(find.byType(InstrumentPickerScreen)));
+      final temaApp = Theme.of(
+        tester.element(find.byType(InstrumentPickerScreen)),
+      );
       expect(temaApp.extension<PenandaBeku>(), isNull);
       expect(
         temaApp.colorScheme.primary,
@@ -237,7 +239,11 @@ void main() {
 
     void pastikanBeku<T extends Widget>(WidgetTester tester) {
       final layar = tester.element(find.byType(T));
-      expect(bekuDi(layar), isTrue, reason: '$T membaca tema app, bukan tema beku');
+      expect(
+        bekuDi(layar),
+        isTrue,
+        reason: '$T membaca tema app, bukan tema beku',
+      );
       expect(
         Theme.of(layar).colorScheme.primary,
         TemaBeku.terang.colorScheme.primary,
@@ -277,17 +283,18 @@ void main() {
       pastikanBeku<LembarKerjaScreen>(tester);
     });
 
-    testWidgets('form input umum dari kartu alat tanpa profil (instrument_picker)', (
-      tester,
-    ) async {
-      await bukaPicker(tester, const [
-        CalibrationCapability(namaAlat: 'Alat Fiktif Uji'),
-      ]);
+    testWidgets(
+      'form input umum dari kartu alat tanpa profil (instrument_picker)',
+      (tester) async {
+        await bukaPicker(tester, const [
+          CalibrationCapability(namaAlat: 'Alat Fiktif Uji'),
+        ]);
 
-      await tester.tap(find.text('Alat Fiktif Uji'));
-      await tester.pumpAndSettle(const Duration(seconds: 2));
-      pastikanBeku<CalibrationInputScreen>(tester);
-    });
+        await tester.tap(find.text('Alat Fiktif Uji'));
+        await tester.pumpAndSettle(const Duration(seconds: 2));
+        pastikanBeku<CalibrationInputScreen>(tester);
+      },
+    );
 
     testWidgets(
       'gaya yang ditulis di State lembar kerja (subjudul app bar) dan dialog '
@@ -305,10 +312,7 @@ void main() {
         // `Theme.of(context).textTheme.labelSmall` di `State.build` (judulTambahan).
         final subjudul = tester.widget<Text>(
           find
-              .descendant(
-                of: find.byType(AppBar),
-                matching: find.text('Oven'),
-              )
+              .descendant(of: find.byType(AppBar), matching: find.text('Oven'))
               .first,
         );
         expect(subjudul.style?.color, m.tinta2, reason: 'subjudul app bar');
@@ -321,15 +325,13 @@ void main() {
         await tester.pumpAndSettle();
 
         final dialog = tester.element(find.byType(AlertDialog));
-        expect(bekuDi(dialog), isTrue, reason: 'dialog dari State lembar kerja');
         expect(
-          Theme.of(dialog).colorScheme.primary,
-          beku.colorScheme.primary,
+          bekuDi(dialog),
+          isTrue,
+          reason: 'dialog dari State lembar kerja',
         );
-        expect(
-          SidikMaterial.of(dialog).kertas,
-          m.kertas,
-        );
+        expect(Theme.of(dialog).colorScheme.primary, beku.colorScheme.primary);
+        expect(SidikMaterial.of(dialog).kertas, m.kertas);
       },
     );
   });
@@ -348,12 +350,22 @@ void main() {
       'SertifikatPdfView',
       'TabelPerhitunganWidget',
       'KeypadAngka',
+      // "02 Pilih alat": keputusan pemilik 15 Nov 2026, tampilannya tidak boleh
+      // berubah saat token diganti (L1b). Dua layar ini BELUM berhash (bukan
+      // beku resmi), jadi penjaganya pembungkus ini dan
+      // `picker_dan_sertifikat_beku_test.dart`.
+      'CategoryPickerScreen',
+      'InstrumentPickerScreen',
+      // Tiga bagian pratinjau sertifikat di `history/certificate_screen.dart`
+      // (cermin PDF). Privat, jadi hanya pemindai ini yang melihatnya.
+      '_IdentitasSesi',
+      '_TabelLaporan',
+      '_StandarDipakai',
     ];
 
     /// Buang komentar `//` dan `///`. Cukup untuk pemindaian ini: kode yang
     /// dipindai tidak menaruh `//` di dalam string yang berisi nama-nama di atas.
-    String tanpaKomentar(String s) =>
-        s.replaceAll(RegExp(r'//[^\n]*'), '');
+    String tanpaKomentar(String s) => s.replaceAll(RegExp(r'//[^\n]*'), '');
 
     test('tiap pembuatan dibungkus BekuLembarKerja', () {
       final pembungkus = RegExp(r'BekuLembarKerja\(\s*child:\s*(?:const\s+)?$');
@@ -382,11 +394,13 @@ void main() {
 
       // Penjaga pemindai: 13 pembuatan empat layar beku (10 pemanggil di luar
       // + 3 di dalam berkas beku) ditambah 4 area lain (onboarding, pratinjau
-      // PDF, tabel PERHITUNGAN, keypad) = 17 saat L1a. Angka lebih kecil berarti
-      // polanya rusak, bukan pemanggilnya hilang.
+      // PDF, tabel PERHITUNGAN, keypad) = 17 saat L1a. L1b menambah 4 pembuatan
+      // `CategoryPickerScreen`, 1 `InstrumentPickerScreen`, dan 3 bagian
+      // pratinjau sertifikat = 25. Angka lebih kecil berarti polanya rusak,
+      // bukan pemanggilnya hilang.
       expect(
         dipindai,
-        greaterThanOrEqualTo(17),
+        greaterThanOrEqualTo(25),
         reason: 'pemindai tak menemukan pemanggil',
       );
       expect(
@@ -419,7 +433,11 @@ class _KategoriSuhu implements CategoryService {
 
   @override
   Future<CategoryDetail> detail(String token, String kode) async =>
-      CategoryDetail(kode: kode, nama: 'Suhu & Kelembapan', kemampuan: kemampuan);
+      CategoryDetail(
+        kode: kode,
+        nama: 'Suhu & Kelembapan',
+        kemampuan: kemampuan,
+      );
 
   @override
   Future<CalibrationCapability> tambahKemampuan(

@@ -2,11 +2,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../motion/transisi_halaman.dart';
+import 'app_ukuran.dart';
 import 'bentuk_lab.dart';
 import 'palet_lab.dart';
 import 'sidik_material.dart';
 
-/// Tema Lab: Material 3 datar, kobalt + netral dingin, terang dan gelap.
+/// Tema Lab: Material 3 datar, "Biru Awan" (L1b, 15 Nov 2026), terang dan gelap.
 ///
 /// Kenapa file ini penting: hampir semua layar di `lib/screens/` memakai widget
 /// Material bawaan (`Card`, `FilledButton`, `TextFormField`, `ListTile`).
@@ -15,14 +16,21 @@ import 'sidik_material.dart';
 /// provider, service, dan test alur tetap utuh.
 ///
 /// Nilai warna datang dari [SidikMaterial] (yang membaca `PaletLab`); bentuk
-/// dan ukuran sentuh dari [BentukLab] dan [UkuranLab]:
+/// dan ukuran sentuh dari [BentukBiruAwan], [UkuranBiruAwan], dan [UkuranLab]:
 ///
-/// - Aksi utama (`FilledButton`) 56 dp, radius 16. Semua aksi lain 48 dp,
-///   radius 10 (desktop Windows 44, alat tunjuk tetikus).
-/// - Isian = kolom bergaris bawah tegas (3:1); fokus = garis kobalt 2 dp.
+/// - Aksi utama (`FilledButton`) 56 dp, pil, primer. Semua aksi lain 48 dp,
+///   pil (desktop Windows 44, alat tunjuk tetikus).
+/// - Isian = kotak radius 16 bertepi kontrol (3:1, `PaletLab.garisKontrol`);
+///   fokus = primer 2 dp; galat = koral batang 2 dp. Dialog radius 28, lembar
+///   bawah radius atas 32.
+/// - Kartu tetap radius 8 ([BentukLab.panel]): kartu 24 dibawa layar yang
+///   didesain ulang (L5 dst.), bukan tema, karena widget lama memotong ripple
+///   dengan radius 8.
 /// - Tanpa gradien dan tanpa bayangan di layar; hanya lembar bawah dan dialog
 ///   yang punya bayangan lembut.
 /// - Huruf minimum 12 sp, termasuk di desktop (skala 0,9 tidak boleh menembus).
+///   Skala huruf Biru Awan (`DESIGN.md` §Huruf) BELUM dipasang di tema ini.
+/// - Lembar kerja tidak memakai tema ini: `TemaBeku` (`BEKU.md`).
 ///
 /// Dipasang lewat `AppTheme.light` / `AppTheme.dark` (`lib/app.dart`).
 class SidikTheme {
@@ -76,18 +84,18 @@ class SidikTheme {
       primary: m.biru,
       onPrimary: m.teksDiBiru,
       primaryContainer: m.biruTipis,
-      onPrimaryContainer: terang
-          ? PaletLab.kobalt900
-          : PaletLab.kobaltGelapTeks,
-      // Kobalt juga untuk `secondary`: satu warna merek. Dulu hijau (warna
+      // Teks biru di atas kabut = primerTua (7,18:1). Primer di atas kabut
+      // cuma 4,47:1 (`DESIGN.md`: DILARANG sebagai teks).
+      onPrimaryContainer: terang ? PaletLab.primerTua : PaletLab.primerTuaGelap,
+      // Biru juga untuk `secondary`: satu warna merek. Dulu hijau (warna
       // "lulus"), dan layar yang memakai `secondaryContainer` (pil aktif rail,
       // baris terpilih) jadi hijau yang bertabrakan dengan arti PASS.
       secondary: m.biruTinta,
       onSecondary: m.teksDiBiru,
       secondaryContainer: m.biruTipis,
       onSecondaryContainer: terang
-          ? PaletLab.kobalt900
-          : PaletLab.kobaltGelapTeks,
+          ? PaletLab.primerTua
+          : PaletLab.primerTuaGelap,
       error: m.gagal,
       onError: m.teksDiGagal,
       errorContainer: m.gagalTipis,
@@ -102,27 +110,32 @@ class SidikTheme {
       surfaceContainerHighest: m.meja2,
       // `outline` dipakai 22 tempat sebagai TEKS dan ikon redup (keterangan,
       // ikon keadaan kosong), bukan hanya garis. Jadi nilainya harus >= 4,5:1
-      // di kertas dan baki: di tema terang sedikit lebih tua dari garis tegas
-      // (`m.garisTegas`, 4,6:1 di kertas tetapi 4,4:1 di baki); di tema gelap
-      // garis tegas sudah cukup.
-      outline: terang ? PaletLab.garisTeksTerang : m.garisTegas,
+      // di kertas dan baki. Tepi kontrol terang (`PaletLab.garisKontrol`) cuma
+      // ±3,3:1, jadi di tema terang `outline` = tinta kedua; di tema gelap garis
+      // tegas (`#7C8FA8`) sudah >= 4,5:1.
+      outline: terang ? PaletLab.tinta2 : m.garisTegas,
       outlineVariant: m.garis,
       shadow: Colors.black,
       scrim: Colors.black,
-      inverseSurface: terang ? PaletLab.tintaTerang : PaletLab.terangkatGelap,
-      onInverseSurface: terang ? PaletLab.latarTerang : PaletLab.tintaGelap,
-      inversePrimary: PaletLab.kobalt300,
+      // Toast/snack/tooltip navy (`ELEMEN.md`). Tema gelap: kabut gelap, sedikit
+      // lebih terang dari kertas.
+      inverseSurface: terang ? PaletLab.tinta : PaletLab.kabutGelap,
+      onInverseSurface: terang ? PaletLab.latar : PaletLab.tintaGelap,
+      inversePrimary: PaletLab.primerGelap,
       surfaceTint: Colors.transparent,
     );
 
     final teks = _teks(m).apply(fontFamily: keluarga);
     final teksSkala = _meja ? _skalaMeja(teks) : teks;
 
-    final tinggiUtama = _meja ? UkuranLab.aksiMeja : UkuranLab.aksiUtama;
-    final tinggiAksi = _meja ? UkuranLab.aksiMeja : UkuranLab.aksi;
-    final sudutUtama = _meja ? BentukLab.kontrol : BentukLab.utama;
-    final bentukUtama = RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(sudutUtama),
+    // Desktop (tetikus) tetap 44: keputusan L1b, tidak ada ukuran meja di
+    // `UkuranBiruAwan`.
+    final tinggiUtama = _meja ? UkuranLab.aksiMeja : UkuranBiruAwan.tombolUtama;
+    final tinggiAksi = _meja ? UkuranLab.aksiMeja : UkuranBiruAwan.tombolTegas;
+    // Tombol = pil (`DESIGN.md` §Sudut). Kontrol kecil lain (snack) tetap
+    // sudut lama.
+    final bentukPil = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(BentukBiruAwan.pil),
     );
     final bentukKontrol = RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(BentukLab.kontrol),
@@ -183,22 +196,28 @@ class SidikTheme {
         ),
       ),
 
-      // ── Aksi utama: kobalt, 56 dp, radius 16 ─────────────────────────
+      // ── Aksi utama: primer, 56 dp, pil ───────────────────────────────
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: Size.fromHeight(tinggiUtama),
           backgroundColor: skema.primary,
           foregroundColor: skema.onPrimary,
-          disabledBackgroundColor: m.tungguTipis,
+          // Mati = netral. `tungguTipis` terang sekarang awan (biru langit),
+          // yang terbaca sebagai stempel "menunggu", bukan tombol mati.
+          disabledBackgroundColor: terang
+              ? PaletLab.netralStempel
+              : m.tungguTipis,
           disabledForegroundColor: m.tinta2.withValues(alpha: 0.7),
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 20),
-          shape: bentukUtama,
+          shape: bentukPil,
           textStyle: tengahTebal,
         ),
       ),
 
-      // ── Aksi sekunder: garis tegas, 48 dp, radius 10 ─────────────────
+      // ── Aksi sekunder: tepi kontrol (3:1), 48 dp, pil ────────────────
+      // `DESIGN.md` menulis tepi #C5D5E6, tetapi itu cuma ±1,5:1 di putih;
+      // tepi tombol memakai `garisKontrol` (keputusan L1b).
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           minimumSize: Size.fromHeight(tinggiAksi),
@@ -206,7 +225,7 @@ class SidikTheme {
           backgroundColor: m.kertas,
           padding: const EdgeInsets.symmetric(horizontal: 18),
           side: BorderSide(color: m.garisTegas),
-          shape: bentukKontrol,
+          shape: bentukPil,
           textStyle: tengahTebal,
         ),
       ),
@@ -215,7 +234,7 @@ class SidikTheme {
         style: TextButton.styleFrom(
           minimumSize: Size(48, tinggiAksi),
           foregroundColor: m.biruTinta,
-          shape: bentukKontrol,
+          shape: bentukPil,
           textStyle: tengahTebal,
         ),
       ),
@@ -234,17 +253,17 @@ class SidikTheme {
         focusElevation: 2,
         hoverElevation: 3,
         highlightElevation: 2,
-        shape: bentukUtama,
+        shape: bentukPil,
       ),
 
-      // ── Isian: kolom dengan garis bawah tegas ────────────────────────
-      // Tetap garis bawah (bukan kotak): ~100 isian di layar dan `NeuTextField`
-      // (login) dibangun di atas bentuk ini, dan menggantinya jadi kotak
-      // menggandakan tepi. Gaya isian tunggal (kotak) = paket lembar kerja.
-      // Warna garisnya sekarang garis tegas 3:1, bukan `tinta2` yang pudar.
+      // ── Isian: kotak radius 16, tepi kontrol (3:1) ───────────────────
+      // Isi putih (`ELEMEN.md` §Isian). Fokus = primer 2 dp; galat = koral
+      // batang 2 dp (3,36:1 di putih); kalimat galat tetap `m.gagal` (merah
+      // tua: koral gagal sebagai teks). `NeuTextField` (login) dan ~100 isian
+      // lama ikut bentuk ini; layar yang didesain ulang memakai komponen baru.
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: m.kertas2,
+        fillColor: m.kertas,
         isDense: true,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 12,
@@ -259,15 +278,15 @@ class SidikTheme {
         errorStyle: teksSkala.bodySmall?.copyWith(color: m.gagal),
         prefixIconColor: m.tinta2,
         suffixIconColor: m.tinta2,
-        border: _garisIsian(m.garisTegas),
-        enabledBorder: _garisIsian(m.garisTegas),
-        focusedBorder: _garisIsian(m.biru),
-        errorBorder: _garisIsian(m.gagal),
-        focusedErrorBorder: _garisIsian(m.gagal),
-        disabledBorder: _garisIsian(m.kertasTepi),
+        border: _kotakIsian(m.garisTegas, 1),
+        enabledBorder: _kotakIsian(m.garisTegas, 1),
+        focusedBorder: _kotakIsian(m.biru, 2),
+        errorBorder: _kotakIsian(PaletLab.koralBatang, 2),
+        focusedErrorBorder: _kotakIsian(PaletLab.koralBatang, 2),
+        disabledBorder: _kotakIsian(m.kertasTepi, 1),
       ),
 
-      // ── Navigasi: putih, keadaan aktif = kapsul kobalt tipis ─────────
+      // ── Navigasi: putih, keadaan aktif = kapsul kabut ─────────────────
       navigationBarTheme: NavigationBarThemeData(
         height: 74,
         backgroundColor: m.logam,
@@ -329,7 +348,7 @@ class SidikTheme {
         shadowColor: Colors.black.withValues(alpha: 0.25),
         shape: RoundedRectangleBorder(
           borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(BentukLab.lembar),
+            top: Radius.circular(BentukBiruAwan.lembarBawah),
           ),
           side: garisHalus,
         ),
@@ -344,7 +363,7 @@ class SidikTheme {
         elevation: 3,
         shadowColor: Colors.black.withValues(alpha: 0.25),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(BentukLab.lembar),
+          borderRadius: BorderRadius.circular(BentukBiruAwan.dialog),
           side: garisHalus,
         ),
         titleTextStyle: teksSkala.titleLarge,
@@ -368,7 +387,7 @@ class SidikTheme {
         selectedColor: m.biru,
         checkmarkColor: skema.onPrimary,
         side: BorderSide(color: m.garisTegas),
-        // Warna label ikut keadaan: kobalt terpilih = label di atas kobalt.
+        // Warna label ikut keadaan: primer terpilih = label di atas primer.
         labelStyle: teksSkala.bodyMedium?.copyWith(
           color: WidgetStateColor.resolveWith(
             (s) => s.contains(WidgetState.selected) ? skema.onPrimary : m.tinta,
@@ -379,7 +398,8 @@ class SidikTheme {
           color: skema.onPrimary,
           fontWeight: FontWeight.w600,
         ),
-        shape: bentukKontrol,
+        // Chip = pil (`DESIGN.md` §Sudut).
+        shape: bentukPil,
       ),
 
       listTileTheme: ListTileThemeData(
@@ -436,12 +456,11 @@ class SidikTheme {
     );
   }
 
-  static InputBorder _garisIsian(Color bawah) => UnderlineInputBorder(
-    borderRadius: const BorderRadius.vertical(
-      top: Radius.circular(BentukLab.sel),
-    ),
-    borderSide: BorderSide(color: bawah, width: 2),
-  );
+  static InputBorder _kotakIsian(Color tepi, double tebal) =>
+      OutlineInputBorder(
+        borderRadius: BorderRadius.circular(BentukBiruAwan.isian),
+        borderSide: BorderSide(color: tepi, width: tebal),
+      );
 
   /// Skala huruf desktop: 0,9x, tetapi tidak pernah di bawah 12 sp.
   static TextTheme _skalaMeja(TextTheme t) {

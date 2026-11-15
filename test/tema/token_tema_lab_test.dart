@@ -1,18 +1,24 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sidik_calibration/core/theme/app_ukuran.dart';
 import 'package:sidik_calibration/core/theme/bentuk_lab.dart';
 import 'package:sidik_calibration/core/theme/sidik_material.dart';
 import 'package:sidik_calibration/core/theme/sidik_theme.dart';
+import 'package:sidik_calibration/core/theme/tema_beku.dart';
 import 'package:sidik_calibration/widgets/sidik/sidik_status.dart';
 
 /// Gerbang desain Lab, pelengkap: aturan token yang bukan kontras.
 ///
 /// - Huruf: minimum 12 sp di semua slot, di HP maupun desktop (skala 0,9x).
 /// - Ukuran sentuh: aksi utama 56 dp, semua aksi lain 48 dp (desktop 44).
-/// - Bentuk: radius tema hanya dari set `BentukLab` (4, 8, 10, 16, 20, 999).
+/// - Bentuk (Biru Awan, L1b): tombol dan chip pil, isian 16, dialog 28, lembar
+///   bawah 32 (`BentukBiruAwan`); kartu, snack, centang, tooltip masih
+///   `BentukLab` (4, 8, 10). Nilai LAMA tema (tombol utama 16, dialog 20, isian
+///   garis bawah) kini dijaga untuk tema beku di `tema_beku_test.dart`.
 /// - Datar: resep permukaan tidak punya gradien dan tidak punya bayangan.
 /// - Status: tiap lencana membawa ikon DAN kata, tidak hanya warna.
+/// - Tema app BUKAN tema beku (lembar kerja memakai `TemaBeku`).
 void main() {
   final tema = <(String, ThemeData Function())>[
     ('terang', () => SidikTheme.terang),
@@ -70,12 +76,13 @@ void main() {
       test('tema $nama di HP', () {
         final t = bangun();
         double tinggi(ButtonStyle? s) => s!.minimumSize!.resolve({})!.height;
-        expect(tinggi(t.filledButtonTheme.style), UkuranLab.aksiUtama);
-        expect(UkuranLab.aksiUtama, 56);
-        expect(tinggi(t.outlinedButtonTheme.style), UkuranLab.aksi);
-        expect(tinggi(t.textButtonTheme.style), UkuranLab.aksi);
+        expect(tinggi(t.filledButtonTheme.style), UkuranBiruAwan.tombolUtama);
+        expect(UkuranBiruAwan.tombolUtama, 56);
+        expect(tinggi(t.outlinedButtonTheme.style), UkuranBiruAwan.tombolTegas);
+        expect(tinggi(t.textButtonTheme.style), UkuranBiruAwan.tombolTegas);
         expect(tinggi(t.iconButtonTheme.style), UkuranLab.aksi);
         expect(tinggi(t.segmentedButtonTheme.style), UkuranLab.aksi);
+        expect(UkuranBiruAwan.tombolTegas, 48);
         expect(UkuranLab.aksi, 48);
         expect(
           t.textButtonTheme.style!.minimumSize!.resolve({})!.width,
@@ -83,7 +90,7 @@ void main() {
         );
       });
 
-      test('tema $nama di desktop: 44 dp (tetikus)', () {
+      test('tema $nama di desktop: 44 dp (tetikus, keputusan L1b)', () {
         debugDefaultTargetPlatformOverride = TargetPlatform.windows;
         addTearDown(() => debugDefaultTargetPlatformOverride = null);
         final t = bangun();
@@ -95,14 +102,23 @@ void main() {
     }
   });
 
-  group('bentuk: radius hanya dari set BentukLab', () {
+  group('bentuk: radius hanya dari set Biru Awan + sudut kecil lama', () {
+    // Biru Awan (`BentukBiruAwan`) ditambah sudut kecil `BentukLab` yang MASIH
+    // dipakai tema: kartu 8 (kartu 24 dibawa layar yang didesain ulang), snack
+    // 10, centang dan tooltip 4. Tombol utama 16 dan dialog/lembar 20 milik
+    // `BentukLab` sudah tidak dipakai tema app.
+    // `ikonUbin` (16) dan `hero` (28) tidak ditulis: nilainya sama dengan
+    // `isian` dan `dialog`, dan set literal tidak boleh memuat nilai ganda.
     final set = <double>{
       BentukLab.sel,
       BentukLab.panel,
       BentukLab.kontrol,
-      BentukLab.utama,
-      BentukLab.lembar,
-      BentukLab.pil,
+      BentukBiruAwan.isian,
+      BentukBiruAwan.kartu,
+      BentukBiruAwan.dialog,
+      BentukBiruAwan.lembarBawah,
+      BentukBiruAwan.dock,
+      BentukBiruAwan.pil,
     };
 
     double radius(ShapeBorder? b, String apa) {
@@ -144,21 +160,83 @@ void main() {
               .resolve(TextDirection.ltr)
               .topLeft
               .x,
+          'Isian (enabled)': _radiusIsian(t.inputDecorationTheme.enabledBorder),
+          'Isian (fokus)': _radiusIsian(t.inputDecorationTheme.focusedBorder),
+          'Isian (galat)': _radiusIsian(t.inputDecorationTheme.errorBorder),
         };
         for (final e in dipakai.entries) {
           expect(
             set,
             contains(e.value),
-            reason: '${e.key} memakai radius ${e.value}, di luar set BentukLab',
+            reason: '${e.key} memakai radius ${e.value}, di luar set Biru Awan',
           );
         }
-        expect(dipakai['FilledButton'], BentukLab.utama);
-        expect(dipakai['OutlinedButton'], BentukLab.kontrol);
+        expect(dipakai['FilledButton'], BentukBiruAwan.pil);
+        expect(dipakai['OutlinedButton'], BentukBiruAwan.pil);
+        expect(dipakai['TextButton'], BentukBiruAwan.pil);
+        expect(dipakai['Chip'], BentukBiruAwan.pil);
         expect(dipakai['Card'], BentukLab.panel);
-        expect(dipakai['Dialog'], BentukLab.lembar);
-        expect(dipakai['BottomSheet'], BentukLab.lembar);
+        expect(dipakai['Dialog'], BentukBiruAwan.dialog);
+        expect(dipakai['BottomSheet'], BentukBiruAwan.lembarBawah);
+        expect(dipakai['Isian (enabled)'], BentukBiruAwan.isian);
+        expect(BentukBiruAwan.dialog, 28);
+        expect(BentukBiruAwan.lembarBawah, 32);
+        expect(BentukBiruAwan.isian, 16);
       });
     }
+  });
+
+  group('isian: kotak, fokus 2 dp, galat 2 dp (Biru Awan)', () {
+    for (final (nama, bangun) in tema) {
+      test('tema $nama', () {
+        final d = bangun().inputDecorationTheme;
+        for (final b in [
+          d.border,
+          d.enabledBorder,
+          d.focusedBorder,
+          d.errorBorder,
+          d.focusedErrorBorder,
+          d.disabledBorder,
+        ]) {
+          expect(b, isA<OutlineInputBorder>(), reason: 'isian harus kotak');
+        }
+        double tebal(InputBorder? b) =>
+            (b! as OutlineInputBorder).borderSide.width;
+        expect(tebal(d.enabledBorder), 1);
+        expect(tebal(d.focusedBorder), 2);
+        expect(tebal(d.errorBorder), 2);
+        expect(tebal(d.focusedErrorBorder), 2);
+      });
+    }
+  });
+
+  group('tema app BUKAN tema beku', () {
+    // Lembar kerja memakai `TemaBeku`. Kalau tema app kebetulan sama dengan
+    // tema beku, pembungkus `BekuLembarKerja` tidak terbukti apa-apa.
+    test('warna kunci dan bentuk berbeda, terang dan gelap', () {
+      for (final (app, beku) in [
+        (SidikTheme.terang, TemaBeku.terang),
+        (SidikTheme.gelap, TemaBeku.gelap),
+      ]) {
+        expect(app.colorScheme.primary, isNot(beku.colorScheme.primary));
+        expect(
+          app.scaffoldBackgroundColor,
+          isNot(beku.scaffoldBackgroundColor),
+        );
+        expect(
+          app.extension<SidikMaterial>()!.kertasTepi,
+          isNot(beku.extension<SidikMaterial>()!.kertasTepi),
+        );
+        expect(
+          app.inputDecorationTheme.enabledBorder,
+          isNot(isA<UnderlineInputBorder>()),
+        );
+        expect(
+          beku.inputDecorationTheme.enabledBorder,
+          isA<UnderlineInputBorder>(),
+        );
+      }
+    });
   });
 
   group('datar: tanpa gradien dan tanpa bayangan', () {
@@ -240,4 +318,10 @@ void main() {
       });
     }
   });
+}
+
+double _radiusIsian(InputBorder? b) {
+  expect(b, isA<OutlineInputBorder>(), reason: 'isian harus kotak');
+
+  return (b! as OutlineInputBorder).borderRadius.topLeft.x;
 }

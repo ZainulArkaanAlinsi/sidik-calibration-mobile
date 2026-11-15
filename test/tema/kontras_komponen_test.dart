@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart' show IconData;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sidik_calibration/core/theme/palet_lab.dart';
 import 'package:sidik_calibration/core/theme/sidik_material.dart';
 import 'package:sidik_calibration/core/theme/warna_lajur.dart';
 import 'package:sidik_calibration/widgets/sidik/status_tampil.dart';
@@ -86,6 +87,24 @@ void main() {
           final dasar = n == NadaStempel.netral ? m.kertas : latar;
           cek('${n.name}/latar', rasioKontras(tinta, dasar), teks);
           cek('${n.name}/meja', rasioKontras(tinta, m.meja), teks);
+        }
+      });
+
+      test('Biru Awan (terang): isi hijau/kuning/awan, tinta navy 4,5:1', () {
+        if (!m.terang) return;
+        for (final (nada, isi) in [
+          (NadaStempel.lulus, PaletLab.hijau),
+          (NadaStempel.awas, PaletLab.kuning),
+          (NadaStempel.tunggu, PaletLab.awan),
+        ]) {
+          final (tinta, latar) = StatusTampil(
+            KataStatus.draf,
+            nada,
+            _ikon,
+          ).warna(m);
+          expect(latar, isi, reason: nada.name);
+          expect(tinta, PaletLab.tinta, reason: nada.name);
+          cek('${nada.name}/isi', rasioKontras(tinta, latar), teks);
         }
       });
 
