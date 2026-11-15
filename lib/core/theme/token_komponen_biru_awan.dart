@@ -121,6 +121,24 @@ abstract final class HurufBiruAwan {
   /// Plex Mono 16 · 400: isian berisi kode atau angka.
   static TextStyle get isianMono =>
       SidikTheme.gayaAngka(ukuran: 16, berat: FontWeight.w400);
+
+  /// Inter 28/34 · 800: kalimat judul layar tab (`tokens.json` `huruf.judulLayar`;
+  /// beranda teknisi "3 draf belum dikirim.").
+  static const TextStyle judulLayar = TextStyle(
+    fontFamily: _inter,
+    fontSize: 28,
+    height: 34 / 28,
+    fontWeight: FontWeight.w800,
+  );
+
+  /// Inter 24/28 · 800: judul di dalam hero langit ("Mulai dari alat yang
+  /// datang hari ini", `LAYAR.md` 01).
+  static const TextStyle judulHero = TextStyle(
+    fontFamily: _inter,
+    fontSize: 24,
+    height: 28 / 24,
+    fontWeight: FontWeight.w800,
+  );
 }
 
 /// Jarak di dalam komponen (dp). Melengkapi `AppSpacing` (4/8/16/24/32), yang

@@ -14377,6 +14377,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'KAN-accredited calibration'**
   String get splashTagline;
+
+  /// No description provided for @tekBerandaMerek.
+  ///
+  /// In en, this message translates to:
+  /// **'SIDIK Lab'**
+  String get tekBerandaMerek;
+
+  /// No description provided for @tekBerandaKeteranganMerek.
+  ///
+  /// In en, this message translates to:
+  /// **'KAN-accredited calibration'**
+  String get tekBerandaKeteranganMerek;
+
+  /// No description provided for @tekBerandaNotifikasiBelumDibaca.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications, {n, plural, =1{1 unread} other{{n} unread}}'**
+  String tekBerandaNotifikasiBelumDibaca(int n);
+
+  /// No description provided for @tekBerandaDrafBelumDikirim.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 draft not sent yet.} other{{n} drafts not sent yet.}}'**
+  String tekBerandaDrafBelumDikirim(int n);
+
+  /// No description provided for @tekBerandaMenungguApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} awaiting approval.'**
+  String tekBerandaMenungguApproval(int n);
+
+  /// No description provided for @tekBerandaBersih.
+  ///
+  /// In en, this message translates to:
+  /// **'All worksheets have been sent.'**
+  String get tekBerandaBersih;
+
+  /// No description provided for @tekBerandaJudulNetral.
+  ///
+  /// In en, this message translates to:
+  /// **'Your worksheets'**
+  String get tekBerandaJudulNetral;
+
+  /// No description provided for @tekHeroLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'New calibration'**
+  String get tekHeroLabel;
+
+  /// No description provided for @tekHeroJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Start with the instrument that arrived today'**
+  String get tekHeroJudul;
+
+  /// No description provided for @tekTanpaKoneksi.
+  ///
+  /// In en, this message translates to:
+  /// **'No connection. This list could not be loaded.'**
+  String get tekTanpaKoneksi;
+
+  /// No description provided for @tekMemuatDaftar.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading list'**
+  String get tekMemuatDaftar;
 }
 
 class _AppLocalizationsDelegate
