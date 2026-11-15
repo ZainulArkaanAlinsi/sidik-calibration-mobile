@@ -256,6 +256,8 @@ void main() {
     ) async {
       final pembaca = _PembacaPutaran([_kakiPh]);
       final uji = _Uji(daftar: _daftar(), pembaca: pembaca);
+      // Byte foto kamera, dibaca sebelum alur menghapus berkasnya.
+      final bitaKamera = uji.berkas.readAsBytesSync();
       await _pasang(tester, uji);
       expect(_tombol, findsOneWidget);
 
@@ -297,6 +299,10 @@ void main() {
       expect(lembar.profil, 'ph_meter');
       expect(lembar.judulTambahan, 'pH Meter');
       expect(lembar.sesiId, isNull);
+      // Foto yang sama ikut ke lembar kerja (Opsi B): byte JPEG kamera apa
+      // adanya, bukan citra hasil decode, supaya teknisi memotret SEKALI.
+      expect(lembar.fotoAwal, isNotNull);
+      expect(lembar.fotoAwal, orderedEquals(bitaKamera));
       // Dibungkus BekuLembarKerja (kontrak L1a): tema beku, bukan tema app.
       expect(
         find.ancestor(
@@ -305,8 +311,10 @@ void main() {
         ),
         findsOneWidget,
       );
-      // Nol sel terisi: tidak ada isian kotor, foto tidak diteruskan ke mana
-      // pun (kamera dibuka SEKALI, oleh alur ini), tidak ada kiriman pindai.
+      // Nol sel terisi: tidak ada isian kotor, tidak ada pindai yang jalan
+      // sendiri (pembaca hanya dibuat SEKALI, untuk mengenali jenis), kamera
+      // dibuka SEKALI (oleh alur ini), tidak ada kiriman pindai.
+      expect(uji.pembacaDibuat, 1);
       expect(
         ProviderScope.containerOf(
           tester.element(find.byType(LembarKerjaScreen)),
