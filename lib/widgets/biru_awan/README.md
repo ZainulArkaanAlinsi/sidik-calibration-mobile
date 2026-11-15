@@ -5,12 +5,13 @@ lama (`app_button`, `app_text_field`, `sidik_loader`, `status_badge`, dan
 `lib/widgets/sidik/*`) tidak diubah dan tetap dipakai area beku serta layar yang
 belum didesain ulang. Layar pindah ke komponen ini satu per satu (L5 dst.).
 
-**Status L3a (15 Nov 2026): semua komponen di bawah SUDAH ADA dan diuji, belum ada
-layar yang memakainya.** Satu-satunya pemakai di `lib/` adalah galeri
+**Status L3a + L3b (15 Nov 2026): semua komponen di bawah SUDAH ADA dan diuji, belum
+ada layar yang memakainya.** Satu-satunya pemakai di `lib/` adalah galeri
 pengembang `lib/screens/pengembang/galeri_biru_awan_screen.dart` (dibuka dari
-`design_system_screen.dart`, hanya di build debug). Komponen L3b (HeroLangit,
-UbinKpi, GrafikBatang, StepperTegak, GarisWaktu, AvatarInisial, Lencana,
-BilahLangkah, KolomCari) belum dibuat.
+`design_system_screen.dart`, hanya di build debug). L3b menambah HeroLangit,
+UbinKpi, GrafikBatang, StepperTegak, GarisWaktu, AvatarInisial, Lencana (dan
+`LoncengBerlencana`), BilahLangkah, KolomCari; token L3b ada di berkas terpisah
+`lib/core/theme/token_komponen_biru_awan_lanjut.dart`.
 
 ## Daftar
 
@@ -26,6 +27,15 @@ BilahLangkah, KolomCari) belum dibuat.
 | `PanelBaris` + `BarisMenu64` + `BarisDaftar72` | `panel_baris.dart` | Panel putih berisi baris menu (64, ubin bulat 44) atau baris daftar (72, ubin 48) dengan pemisah halus | `ListTile`, kartu per baris |
 | `UbinIkon` | `ubin_ikon.dart` | Ubin berwarna berisi ikon atau gambar kecil (bulat 44 atau persegi 48) | `CircleAvatar` hias |
 | `KepalaTab` + `KepalaAnak` | `kepala_layar.dart` | Kepala layar tab (logo, nama, peran, aksi bulat) dan layar anak (kembali, judul, nomor, aksi) | `AppBar` |
+| `HeroLangit` | `hero_langit.dart` | Bidang langit sudut 28 dengan motif skala (BUKAN awan; digambar `PelukisMotifSkala`), min 212; isi bebas, teks navy | `KartuGradien` hero lama |
+| `UbinKpi` | `ubin_kpi.dart` | Ubin angka 2 x 2 (min 112, sudut 24, angka 36/800); ragam putih, kabut, hijau, kuning, awan, koral, navy; bisa diketuk | `StatCard` |
+| `GrafikBatang` | `grafik_batang.dart` | 7 batang (`BatangGrafik`) sudut 10, hari ini primer, lainnya awan, tumbuh 240 ms sekali | `WorkChart` |
+| `StepperTegak` | `stepper_tegak.dart` | Alur tegak dari `LangkahStepper`: selesai (centang), sekarang (cincin awan), belum (tepi) | `Stepper` Material |
+| `GarisWaktu` | `garis_waktu.dart` | Riwayat dari `ButirGarisWaktu`: simpul 12, garis halus, pelaku tebal, detail bebas | daftar riwayat ad hoc |
+| `AvatarInisial` | `avatar_inisial.dart` | Bulatan inisial 36/48/52/84 (kabut, putih, langit) | `CircleAvatar` |
+| `Lencana` + `LoncengBerlencana` | `lencana.dart` | Jumlah koral 22, kuning 26, titik 10; lonceng 48 dengan lencana di pojok | `Badge` Material |
+| `BilahLangkah` | `bilah_langkah.dart` | 4 segmen tinggi 6 + label "1 Alat" (Pilih alat) | `LinearProgressIndicator` ad hoc |
+| `KolomCari` | `kolom_cari.dart` | Pil 56 + tombol bulat cari 44; cincin fokus di luar | `SearchBar`, `TextField` cari |
 
 Gerak bersama ada di `lib/core/motion/gerak_bersama.dart` (`MasukBerurutan`,
 `TekanSkala`); token di `lib/core/theme/token_komponen_biru_awan.dart` (huruf,
@@ -83,3 +93,31 @@ halaman, jadi kontrasnya diukur terhadap `meja` dan `kertas` (>= 3:1, terang dan
 gelap): `test/biru_awan/tombol_sidik_test.dart` dan
 `test/tema/kontras_biru_awan_test.dart`. Cincin tidak memengaruhi tata letak;
 beri ruang >= 4 dp di sekeliling tombol yang berada di tepi wadah yang memotong.
+
+## Catatan L3b
+
+- **Motif skala digambar dengan `CustomPainter`, bukan memuat SVG.** Repo tidak
+  punya `flutter_svg`/`vector_graphics` dan `docs/desain-ulang/aset/motif_skala.svg`
+  tidak terdaftar di `pubspec.yaml`; supaya paket dan daftar aset tidak berubah,
+  `MotifSkala` (`token_komponen_biru_awan_lanjut.dart`) membawa koordinat yang
+  sama dan `test/biru_awan/hero_langit_test.dart` membaca SVG aslinya lalu
+  mengadu 37 garisnya (tik busur, jarum, penggaris) dan kedua busurnya.
+- **Angka lencana 12/800, bukan 11/800 seperti artboard**: gerbang token-only
+  melarang huruf di bawah 12.
+- **Catatan `UbinKpi` memakai tinta penuh, bukan opasitas 0,8 artboard**, supaya
+  kontras di atas koral dan kuning tidak turun.
+- **Batang `awan` di `GrafikBatang` (1,6:1 terhadap kertas) di bawah 3:1** untuk
+  objek grafis. Itu warna artboard; informasinya tidak hilang karena tiap batang
+  membawa angka dan nama tertulis, dan batang sorot (primer) lolos 3:1. Tanyakan
+  ke desain bila batang awan perlu tepi atau warna lebih pekat.
+- **Penanda "belum" di `StepperTegak` (tepi `garisTegas`, 1,5:1)** juga warna
+  artboard; keadaannya juga dibawa kata ("belum") dan judul tinta kedua.
+- **`TombolBulat` (dipakai `KolomCari` dan `LoncengBerlencana`) belum bisa
+  difokuskan papan ketik** (L3a memakai `GestureDetector`). Aman di HP; untuk
+  Windows/Studio atau papan ketik fisik, bukan bagian L3b.
+- Cincin fokus `KolomCari` memakai pola `TombolSidik` (di luar, jarak 2 dp,
+  `tinta`, kontras >= 3:1 terhadap `meja` dan `kertas`, terang dan gelap).
+- Komponen statis (`HeroLangit`, `UbinKpi`, `GarisWaktu`, `StepperTegak`,
+  `BilahLangkah`, `Lencana`) tidak menganimasikan apa pun; masuk layar dibungkus
+  pemanggil dengan `MasukBerurutan`. Satu-satunya gerak L3b adalah `GrafikBatang`
+  (sekali, tanpa `repeat`).

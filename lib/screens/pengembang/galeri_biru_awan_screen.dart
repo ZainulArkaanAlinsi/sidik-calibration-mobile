@@ -3,21 +3,32 @@ import 'package:flutter/material.dart';
 import '../../core/motion/gerak_bersama.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/sidik_material.dart';
+import '../../core/theme/sidik_theme.dart';
 import '../../core/theme/token_komponen_biru_awan.dart';
+import '../../core/theme/token_komponen_biru_awan_lanjut.dart';
 import '../../core/theme/warna_biru_awan.dart';
+import '../../widgets/biru_awan/avatar_inisial.dart';
+import '../../widgets/biru_awan/bilah_langkah.dart';
 import '../../widgets/biru_awan/chip_saring.dart';
+import '../../widgets/biru_awan/garis_waktu.dart';
+import '../../widgets/biru_awan/grafik_batang.dart';
+import '../../widgets/biru_awan/hero_langit.dart';
 import '../../widgets/biru_awan/isian_sidik.dart';
 import '../../widgets/biru_awan/kartu_sidik24.dart';
 import '../../widgets/biru_awan/kepala_layar.dart';
+import '../../widgets/biru_awan/kolom_cari.dart';
+import '../../widgets/biru_awan/lencana.dart';
 import '../../widgets/biru_awan/panel_baris.dart';
 import '../../widgets/biru_awan/segmen_pil.dart';
 import '../../widgets/biru_awan/stempel_sidik.dart';
+import '../../widgets/biru_awan/stepper_tegak.dart';
 import '../../widgets/biru_awan/tombol_bulat.dart';
 import '../../widgets/biru_awan/tombol_sidik.dart';
 import '../../widgets/biru_awan/ubin_ikon.dart';
+import '../../widgets/biru_awan/ubin_kpi.dart';
 import '../../widgets/sidik/status_tampil.dart';
 
-/// Galeri komponen dasar Biru Awan (L3a), KHUSUS PENGEMBANG.
+/// Galeri komponen dasar Biru Awan (L3a dan L3b), KHUSUS PENGEMBANG.
 ///
 /// Tidak ada rute di navigasi pengguna. Satu-satunya pintu masuk adalah baris
 /// "Komponen Biru Awan" di `design_system_screen.dart` yang hanya dibuat di
@@ -40,6 +51,10 @@ class GaleriBiruAwanScreen extends StatelessWidget {
       const _BagianKartu(),
       const _BagianPanel(),
       const _BagianKepala(),
+      const _BagianHeroKpi(),
+      const _BagianGrafikRiwayat(),
+      const _BagianLangkah(),
+      const _BagianKontrolKecil(),
       const _BagianGerak(),
     ];
     return Scaffold(
@@ -47,7 +62,7 @@ class GaleriBiruAwanScreen extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.md),
           children: [
-            const KepalaAnak(judul: 'Galeri Biru Awan', nomor: 'L3a'),
+            const KepalaAnak(judul: 'Galeri Biru Awan', nomor: 'L3b'),
             for (var i = 0; i < bagian.length; i++)
               MasukBerurutan(
                 indeks: i,
@@ -519,6 +534,291 @@ class _BagianGerakState extends State<_BagianGerak> {
               ),
           ],
         ),
+      ],
+    );
+  }
+}
+
+/// L3b: HeroLangit dan UbinKpi (beranda admin).
+class _BagianHeroKpi extends StatelessWidget {
+  const _BagianHeroKpi();
+
+  @override
+  Widget build(BuildContext context) {
+    final m = SidikMaterial.of(context);
+    return _Bagian(
+      judul: 'HeroLangit dan UbinKpi',
+      keterangan:
+          'Hero langit 212 dengan motif skala (bukan awan); ubin KPI min 112, '
+          'angka 36/800. Angka dari pemanggil.',
+      anak: [
+        HeroLangit(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Antrean approval',
+                style: HurufLanjutBiruAwan.labelKpi.copyWith(color: m.tinta),
+              ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  const Text('4', style: HurufLanjutBiruAwan.angkaHero),
+                  const SizedBox(width: AppSpacing.sm),
+                  Flexible(
+                    child: Text(
+                      'menunggu, 1 ada FAIL',
+                      style: HurufBiruAwan.labelKecil,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.md),
+              TombolSidik(
+                label: 'Buka antrean',
+                ragam: RagamTombolSidik.tegas,
+                ikon: Icons.arrow_forward,
+                lebarPenuh: false,
+                onPressed: () {},
+              ),
+            ],
+          ),
+        ),
+        const Row(
+          children: [
+            Expanded(
+              child: UbinKpi(
+                label: 'Total alat',
+                nilai: '128',
+                catatan: 'se-lab',
+              ),
+            ),
+            SizedBox(width: JarakBiruAwan.blok),
+            Expanded(
+              child: UbinKpi(
+                label: 'Lewat jadwal',
+                nilai: '6',
+                ragam: RagamUbinKpi.koral,
+              ),
+            ),
+          ],
+        ),
+        Row(
+          children: [
+            const Expanded(
+              child: UbinKpi(
+                label: 'Draft kalibrasi',
+                nilai: '3',
+                ragam: RagamUbinKpi.kabut,
+              ),
+            ),
+            const SizedBox(width: JarakBiruAwan.blok),
+            Expanded(
+              child: UbinKpi(
+                label: 'Sertifikat bulan ini',
+                nilai: '21',
+                catatan: '+4',
+                ragam: RagamUbinKpi.hijau,
+                onTap: () {},
+              ),
+            ),
+          ],
+        ),
+        const UbinKpi(
+          label: 'Menunggu approval',
+          nilai: '4',
+          ragam: RagamUbinKpi.navy,
+        ),
+      ],
+    );
+  }
+}
+
+/// L3b: GrafikBatang dan GarisWaktu.
+class _BagianGrafikRiwayat extends StatelessWidget {
+  const _BagianGrafikRiwayat();
+
+  @override
+  Widget build(BuildContext context) {
+    final m = SidikMaterial.of(context);
+    return _Bagian(
+      judul: 'GrafikBatang dan GarisWaktu',
+      keterangan:
+          'Batang tumbuh 240 ms sekali; hari ini primer. Garis waktu: pelaku '
+          'tebal, detail bebas.',
+      anak: [
+        const KartuSidik24(
+          child: GrafikBatang(
+            semantik: 'Grafik pekerjaan, 7 hari',
+            sorot: 6,
+            penandaSorot: 'hari ini',
+            batang: [
+              BatangGrafik(label: 'Sen', nilai: 5, teksNilai: '5'),
+              BatangGrafik(label: 'Sel', nilai: 8, teksNilai: '8'),
+              BatangGrafik(label: 'Rab', nilai: 6, teksNilai: '6'),
+              BatangGrafik(label: 'Kam', nilai: 9, teksNilai: '9'),
+              BatangGrafik(label: 'Jum', nilai: 4, teksNilai: '4'),
+              BatangGrafik(label: 'Sab', nilai: 0, teksNilai: '0'),
+              BatangGrafik(label: 'Min', nilai: 7, teksNilai: '7'),
+            ],
+          ),
+        ),
+        KartuSidik24(
+          child: GarisWaktu(
+            butir: [
+              ButirGarisWaktu(
+                waktu: 'Hari ini, 08.42',
+                pelaku: 'Admin',
+                kalimat: 'mengubah U standar Buffer pH 10,01',
+                detail: Text(
+                  '0,02 menjadi 0,03',
+                  style: SidikTheme.gayaAngka(
+                    ukuran: 14,
+                    berat: FontWeight.w600,
+                  ).copyWith(color: m.tinta),
+                ),
+              ),
+              const ButirGarisWaktu(
+                waktu: 'Kemarin, 16.10',
+                kalimat: 'Sesi dikirim untuk approval',
+              ),
+              const ButirGarisWaktu(
+                waktu: '12 Nov, 09.00',
+                pelaku: 'Siti',
+                kalimat: 'membuat draf',
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// L3b: StepperTegak dan BilahLangkah.
+class _BagianLangkah extends StatelessWidget {
+  const _BagianLangkah();
+
+  @override
+  Widget build(BuildContext context) {
+    return _Bagian(
+      judul: 'StepperTegak dan BilahLangkah',
+      keterangan: 'Selesai, sekarang, belum: bukan hanya warna.',
+      anak: [
+        const BilahLangkah(
+          label: ['Alat', 'Data', 'Lembar', 'Kirim'],
+          aktif: 1,
+        ),
+        KartuSidik24(
+          child: StepperTegak(
+            langkah: [
+              const LangkahStepper(
+                judul: 'Lembar kerja',
+                keadaan: KeadaanLangkah.selesai,
+                keterangan: 'Beres',
+              ),
+              LangkahStepper(
+                judul: 'Perhitungan & approval',
+                keadaan: KeadaanLangkah.sekarang,
+                penanda: StempelSidik.teks(
+                  teks: 'Lagi di sini',
+                  nada: NadaStempel.tunggu,
+                  ikon: Icons.place_outlined,
+                ),
+              ),
+              const LangkahStepper(
+                judul: 'Sertifikat terbit',
+                keadaan: KeadaanLangkah.belum,
+              ),
+              const LangkahStepper(
+                judul: 'Kekirim ke pelanggan',
+                keadaan: KeadaanLangkah.belum,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// L3b: AvatarInisial, Lencana, LoncengBerlencana, KolomCari.
+class _BagianKontrolKecil extends StatefulWidget {
+  const _BagianKontrolKecil();
+
+  @override
+  State<_BagianKontrolKecil> createState() => _BagianKontrolKecilState();
+}
+
+class _BagianKontrolKecilState extends State<_BagianKontrolKecil> {
+  final _cari = TextEditingController();
+  String _dicari = '';
+
+  @override
+  void dispose() {
+    _cari.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _Bagian(
+      judul: 'AvatarInisial, Lencana, KolomCari',
+      keterangan:
+          'Avatar 36/48/52/84; lencana koral 22, kuning 26, titik 10; kolom '
+          'cari 56 (cincin fokus di luar).',
+      anak: [
+        Wrap(
+          spacing: AppSpacing.md,
+          runSpacing: AppSpacing.sm,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            AvatarInisial.dariNama(
+              'Siti Aminah',
+              ukuran: UkuranAvatarInisial.kecil,
+            ),
+            AvatarInisial.dariNama('Siti Aminah'),
+            AvatarInisial.dariNama(
+              'Siti Aminah',
+              ukuran: UkuranAvatarInisial.laci,
+              ragam: RagamAvatarInisial.langit,
+            ),
+            AvatarInisial.dariNama(
+              'Budi Santoso',
+              ukuran: UkuranAvatarInisial.besar,
+              ragam: RagamAvatarInisial.putih,
+            ),
+          ],
+        ),
+        Wrap(
+          spacing: AppSpacing.md,
+          runSpacing: AppSpacing.sm,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            const Lencana(jumlah: 7),
+            const Lencana(jumlah: 120),
+            const Lencana(jumlah: 3, ragam: RagamLencana.kuning),
+            const Lencana.titik(),
+            LoncengBerlencana(
+              label: 'Notifikasi, 12 belum dibaca',
+              jumlah: 12,
+              onPressed: () {},
+            ),
+          ],
+        ),
+        KolomCari(
+          petunjuk: 'Cari nama, nomor seri, atau besaran',
+          controller: _cari,
+          onCari: (v) => setState(() => _dicari = v),
+        ),
+        Text(
+          _dicari.isEmpty ? 'Belum ada pencarian' : 'Dicari: $_dicari',
+          style: HurufBiruAwan.keteranganKecil.copyWith(
+            color: SidikMaterial.of(context).tinta2,
+          ),
+        ),
+        const KolomCari(petunjuk: 'Cari (mati)', enabled: false),
       ],
     );
   }

@@ -4373,5 +4373,11 @@
   "@biruAwanIsianGalat": {"placeholders": {"pesan": {"type": "String"}}},
   "biruAwanChipJumlah": "{label}, {jumlah}",
   "@biruAwanChipJumlah": {"placeholders": {"label": {"type": "String"}, "jumlah": {"type": "int"}}},
-  "biruAwanTanpaKeputusan": "No PASS/FAIL"
+  "biruAwanTanpaKeputusan": "No PASS/FAIL",
+  "biruAwanLangkahKe": "Step {n} of {total}",
+  "@biruAwanLangkahKe": {"placeholders": {"n": {"type": "int"}, "total": {"type": "int"}}},
+  "biruAwanLangkahSelesai": "done",
+  "biruAwanLangkahSekarang": "current step",
+  "biruAwanLangkahBelum": "not yet",
+  "biruAwanCari": "Search"
 }

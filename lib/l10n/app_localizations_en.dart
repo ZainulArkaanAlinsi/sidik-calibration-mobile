@@ -8334,4 +8334,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get biruAwanTanpaKeputusan => 'No PASS/FAIL';
+
+  @override
+  String biruAwanLangkahKe(int n, int total) {
+    return 'Step $n of $total';
+  }
+
+  @override
+  String get biruAwanLangkahSelesai => 'done';
+
+  @override
+  String get biruAwanLangkahSekarang => 'current step';
+
+  @override
+  String get biruAwanLangkahBelum => 'not yet';
+
+  @override
+  String get biruAwanCari => 'Search';
 }

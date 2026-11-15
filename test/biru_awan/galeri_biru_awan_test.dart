@@ -6,15 +6,24 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sidik_calibration/core/motion/gerak_bersama.dart';
 import 'package:sidik_calibration/screens/design_system/design_system_screen.dart';
 import 'package:sidik_calibration/screens/pengembang/galeri_biru_awan_screen.dart';
+import 'package:sidik_calibration/widgets/biru_awan/avatar_inisial.dart';
+import 'package:sidik_calibration/widgets/biru_awan/bilah_langkah.dart';
 import 'package:sidik_calibration/widgets/biru_awan/chip_saring.dart';
+import 'package:sidik_calibration/widgets/biru_awan/garis_waktu.dart';
+import 'package:sidik_calibration/widgets/biru_awan/grafik_batang.dart';
+import 'package:sidik_calibration/widgets/biru_awan/hero_langit.dart';
 import 'package:sidik_calibration/widgets/biru_awan/isian_sidik.dart';
 import 'package:sidik_calibration/widgets/biru_awan/kartu_sidik24.dart';
 import 'package:sidik_calibration/widgets/biru_awan/kepala_layar.dart';
+import 'package:sidik_calibration/widgets/biru_awan/kolom_cari.dart';
+import 'package:sidik_calibration/widgets/biru_awan/lencana.dart';
 import 'package:sidik_calibration/widgets/biru_awan/panel_baris.dart';
 import 'package:sidik_calibration/widgets/biru_awan/stempel_sidik.dart';
+import 'package:sidik_calibration/widgets/biru_awan/stepper_tegak.dart';
 import 'package:sidik_calibration/widgets/biru_awan/tombol_bulat.dart';
 import 'package:sidik_calibration/widgets/biru_awan/tombol_sidik.dart';
 import 'package:sidik_calibration/widgets/biru_awan/ubin_ikon.dart';
+import 'package:sidik_calibration/widgets/biru_awan/ubin_kpi.dart';
 
 import '../support/uji_biru_awan.dart';
 
@@ -29,7 +38,7 @@ Future<void> _masuk(WidgetTester tester) =>
 void main() {
   setUpAll(muatFontUji);
 
-  testWidgets('memuat SEMUA komponen L3a dan gerak bersama', (tester) async {
+  testWidgets('memuat SEMUA komponen L3a, L3b dan gerak bersama', (tester) async {
     layarUji(tester, lebar: 390, tinggi: 9000);
     await tester.pumpWidget(
       aplikasiUji(const GaleriBiruAwanScreen(), bergulir: false),
@@ -50,6 +59,17 @@ void main() {
       KepalaTab,
       KepalaAnak,
       MasukBerurutan,
+      // L3b.
+      HeroLangit,
+      UbinKpi,
+      GrafikBatang,
+      StepperTegak,
+      GarisWaktu,
+      AvatarInisial,
+      Lencana,
+      LoncengBerlencana,
+      BilahLangkah,
+      KolomCari,
     ]) {
       expect(find.byType(t), findsWidgets, reason: '$t tidak ada di galeri');
     }

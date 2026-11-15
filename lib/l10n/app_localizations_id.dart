@@ -8205,4 +8205,21 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get biruAwanTanpaKeputusan => 'Tanpa PASS/FAIL';
+
+  @override
+  String biruAwanLangkahKe(int n, int total) {
+    return 'Langkah $n dari $total';
+  }
+
+  @override
+  String get biruAwanLangkahSelesai => 'selesai';
+
+  @override
+  String get biruAwanLangkahSekarang => 'langkah sekarang';
+
+  @override
+  String get biruAwanLangkahBelum => 'belum';
+
+  @override
+  String get biruAwanCari => 'Cari';
 }

@@ -1,4 +1,4 @@
-// Pendaftaran komponen Biru Awan (L3a).
+// Pendaftaran komponen Biru Awan (L3a dan L3b).
 //
 // `tool/cek-berkas-yatim.sh` menghitung berkas yang diimpor dari `test/` sebagai
 // terpakai, dan komponen ini belum dipakai layar mana pun. Tes ini menjaga agar
@@ -37,16 +37,25 @@ void main() {
     'panel_baris': ['PanelBaris', 'BarisMenu64', 'BarisDaftar72'],
     'ubin_ikon': ['UbinIkon'],
     'kepala_layar': ['KepalaTab', 'KepalaAnak'],
+    // L3b.
+    'hero_langit': ['HeroLangit', 'PelukisMotifSkala'],
+    'ubin_kpi': ['UbinKpi'],
+    'grafik_batang': ['GrafikBatang', 'BatangGrafik'],
+    'stepper_tegak': ['StepperTegak', 'LangkahStepper'],
+    'garis_waktu': ['GarisWaktu', 'ButirGarisWaktu'],
+    'avatar_inisial': ['AvatarInisial'],
+    'lencana': ['Lencana', 'LoncengBerlencana'],
+    'bilah_langkah': ['BilahLangkah'],
+    'kolom_cari': ['KolomCari'],
   };
 
   test(
-    'berkas komponen = daftar L3a (tidak ada yang lebih, tidak ada yang kurang)',
+    'berkas komponen = daftar L3a + L3b (tidak ada yang lebih, tidak ada yang kurang)',
     () {
       expect(
         berkas.toSet(),
         harapan.keys.toSet(),
         reason:
-            'komponen L3b (HeroLangit, UbinKpi, ...) bukan bagian paket ini; '
             'berkas baru wajib ditambahkan ke daftar ini, galeri, README, dan tes',
       );
     },
@@ -119,6 +128,7 @@ void main() {
       for (final n in berkas) 'lib/widgets/biru_awan/$n.dart',
       'lib/core/theme/warna_biru_awan.dart',
       'lib/core/theme/token_komponen_biru_awan.dart',
+      'lib/core/theme/token_komponen_biru_awan_lanjut.dart',
       'lib/core/motion/gerak_bersama.dart',
     ];
 
