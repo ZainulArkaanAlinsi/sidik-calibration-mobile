@@ -14275,6 +14275,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This is a draft. Open the worksheet, check each camera reading one by one, then send. The confirm-all button is hidden here on purpose.'**
   String get detailVerifikasiLewatLembar;
+
+  /// No description provided for @biruAwanKembali.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get biruAwanKembali;
+
+  /// No description provided for @biruAwanSedangDiproses.
+  ///
+  /// In en, this message translates to:
+  /// **'in progress'**
+  String get biruAwanSedangDiproses;
+
+  /// No description provided for @biruAwanLabelWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} (required)'**
+  String biruAwanLabelWajib(String label);
+
+  /// No description provided for @biruAwanIsianGalat.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {pesan}'**
+  String biruAwanIsianGalat(String pesan);
+
+  /// No description provided for @biruAwanChipJumlah.
+  ///
+  /// In en, this message translates to:
+  /// **'{label}, {jumlah}'**
+  String biruAwanChipJumlah(String label, int jumlah);
+
+  /// No description provided for @biruAwanTanpaKeputusan.
+  ///
+  /// In en, this message translates to:
+  /// **'No PASS/FAIL'**
+  String get biruAwanTanpaKeputusan;
 }
 
 class _AppLocalizationsDelegate

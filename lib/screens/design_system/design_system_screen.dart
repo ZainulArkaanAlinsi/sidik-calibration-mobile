@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
@@ -5,6 +6,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_text_field.dart';
 import '../../widgets/status_badge.dart';
+import '../pengembang/galeri_biru_awan_screen.dart';
 
 /// Katalog design system — semua warna & komponen dasar dikumpulin di satu
 /// layar biar gampang direview (dan gampang ditunjukin ke atasan).
@@ -22,6 +24,22 @@ class DesignSystemScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [
+          // Satu-satunya pintu ke galeri komponen Biru Awan (L3a): hanya di
+          // build debug, jadi tidak pernah ada di APK rilis.
+          if (kDebugMode)
+            _Section(
+              title: 'Komponen Biru Awan',
+              subtitle: 'Hanya di build debug. Belum dipakai layar mana pun.',
+              child: OutlinedButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const GaleriBiruAwanScreen(),
+                  ),
+                ),
+                child: const Text('Buka galeri Biru Awan'),
+              ),
+            ),
+
           _Section(
             title: 'Palet inti',
             child: Wrap(

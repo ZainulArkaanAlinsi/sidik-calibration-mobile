@@ -8181,4 +8181,28 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get detailVerifikasiLewatLembar =>
       'Ini masih draf. Buka lembar kerjanya, cek tiap angka kamera satu per satu, lalu kirim. Tombol konfirmasi massal sengaja disembunyikan di sini.';
+
+  @override
+  String get biruAwanKembali => 'Kembali';
+
+  @override
+  String get biruAwanSedangDiproses => 'sedang diproses';
+
+  @override
+  String biruAwanLabelWajib(String label) {
+    return '$label (wajib)';
+  }
+
+  @override
+  String biruAwanIsianGalat(String pesan) {
+    return 'Galat: $pesan';
+  }
+
+  @override
+  String biruAwanChipJumlah(String label, int jumlah) {
+    return '$label, $jumlah';
+  }
+
+  @override
+  String get biruAwanTanpaKeputusan => 'Tanpa PASS/FAIL';
 }
