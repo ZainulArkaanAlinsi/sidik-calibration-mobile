@@ -3422,5 +3422,10 @@
   "biruAwanLabelWajib": "{label} (wajib)",
   "biruAwanIsianGalat": "Galat: {pesan}",
   "biruAwanChipJumlah": "{label}, {jumlah}",
-  "biruAwanTanpaKeputusan": "Tanpa PASS/FAIL"
+  "biruAwanTanpaKeputusan": "Tanpa PASS/FAIL",
+  "biruAwanLangkahKe": "Langkah {n} dari {total}",
+  "biruAwanLangkahSelesai": "selesai",
+  "biruAwanLangkahSekarang": "langkah sekarang",
+  "biruAwanLangkahBelum": "belum",
+  "biruAwanCari": "Cari"
 }

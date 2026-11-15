@@ -14311,6 +14311,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No PASS/FAIL'**
   String get biruAwanTanpaKeputusan;
+
+  /// No description provided for @biruAwanLangkahKe.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {n} of {total}'**
+  String biruAwanLangkahKe(int n, int total);
+
+  /// No description provided for @biruAwanLangkahSelesai.
+  ///
+  /// In en, this message translates to:
+  /// **'done'**
+  String get biruAwanLangkahSelesai;
+
+  /// No description provided for @biruAwanLangkahSekarang.
+  ///
+  /// In en, this message translates to:
+  /// **'current step'**
+  String get biruAwanLangkahSekarang;
+
+  /// No description provided for @biruAwanLangkahBelum.
+  ///
+  /// In en, this message translates to:
+  /// **'not yet'**
+  String get biruAwanLangkahBelum;
+
+  /// No description provided for @biruAwanCari.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get biruAwanCari;
 }
 
 class _AppLocalizationsDelegate
