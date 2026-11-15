@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
+import '../../core/theme/beku_lembar_kerja.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/dashboard_summary.dart';
 import '../../models/user.dart';
@@ -169,7 +170,8 @@ class _Isi extends ConsumerWidget {
             ).push(MaterialPageRoute<void>(builder: (_) => const DrafScreen())),
             onStart: () => Navigator.of(context).push(
               MaterialPageRoute<void>(
-                builder: (_) => const CategoryPickerScreen(),
+                builder: (_) =>
+                    const BekuLembarKerja(child: CategoryPickerScreen()),
               ),
             ),
           )
@@ -280,7 +282,9 @@ class _Isi extends ConsumerWidget {
                     icon: Icons.add_task,
                     onPressed: () => Navigator.of(context).push(
                       MaterialPageRoute<void>(
-                        builder: (_) => const CategoryPickerScreen(),
+                        builder: (_) => const BekuLembarKerja(
+                          child: CategoryPickerScreen(),
+                        ),
                       ),
                     ),
                   ),

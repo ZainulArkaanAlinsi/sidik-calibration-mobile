@@ -9,6 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sidik_calibration/core/theme/app_theme.dart';
+import 'package:sidik_calibration/core/theme/beku_lembar_kerja.dart';
 import 'package:sidik_calibration/l10n/app_localizations.dart';
 import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/dashboard_provider.dart';
@@ -223,7 +224,6 @@ Widget _bungkus(
 /// dibuat ulang di macOS lewat `golden-baru.yml` (bukan --update-goldens di sini);
 /// dua test sertifikat di bawah di-skip sampai itu.
 
-
 void main() {
   setUpAll(_muatFont);
 
@@ -302,16 +302,18 @@ void main() {
     await _pumpLayar(
       tester,
       _bungkus(
-        OnboardingScreen(
-          user: User(
-            id: 2,
-            nama: 'Andi Pratama',
-            email: 'teknisi@pt-sidik.com',
-            employeeId: 'SDK-0002',
-            role: UserRole.teknisi,
-            status: UserStatus.aktif,
-            department: 'Kalibrasi',
-            organizationId: 1,
+        BekuLembarKerja(
+          child: OnboardingScreen(
+            user: User(
+              id: 2,
+              nama: 'Andi Pratama',
+              email: 'teknisi@pt-sidik.com',
+              employeeId: 'SDK-0002',
+              role: UserRole.teknisi,
+              status: UserStatus.aktif,
+              department: 'Kalibrasi',
+              organizationId: 1,
+            ),
           ),
         ),
         mode: Brightness.light,
@@ -381,6 +383,10 @@ void main() {
   /// Ada di sini bukan buat gaya-gayaan: bentuk lembarnya datang dari backend
   /// dan gampang "hijau di test tapi jelek di layar". PNG-nya bisa diadu sama
   /// PDF kertasnya tanpa perlu nyalain HP.
+  // Lembar kerja dan onboarding BEKU (`docs/desain-ulang/BEKU.md`): di app
+  // pemanggil routenya membungkusnya `BekuLembarKerja`, jadi adegan di sini
+  // ikut dibungkus. Tanpa itu golden-nya ikut berganti saat token tema
+  // diganti (L1b), padahal tampilan produksinya tidak.
   testWidgets('lembar kerja chlorine', (tester) async {
     // Lebih tinggi dari HP beneran: yang mau dilihat justru bagian tabel
     // hasilnya, bukan cuma kepala formulir. Sejak lembarnya dua halaman
@@ -396,7 +402,9 @@ void main() {
     // `_muat()` di `lembar_kerja_test.dart`.
     await tester.pumpWidget(
       _bungkus(
-        const LembarKerjaScreen(profil: 'chlorine_meter'),
+        const BekuLembarKerja(
+          child: LembarKerjaScreen(profil: 'chlorine_meter'),
+        ),
         mode: Brightness.light,
       ),
     );
@@ -429,7 +437,9 @@ void main() {
 
     await tester.pumpWidget(
       _bungkus(
-        const LembarKerjaScreen(profil: 'spectrophotometer'),
+        const BekuLembarKerja(
+          child: LembarKerjaScreen(profil: 'spectrophotometer'),
+        ),
         mode: Brightness.light,
       ),
     );
@@ -473,7 +483,7 @@ void main() {
 
     await tester.pumpWidget(
       _bungkus(
-        const LembarKerjaScreen(profil: 'thermocouple'),
+        const BekuLembarKerja(child: LembarKerjaScreen(profil: 'thermocouple')),
         mode: Brightness.light,
       ),
     );
@@ -503,7 +513,9 @@ void main() {
 
     await tester.pumpWidget(
       _bungkus(
-        const LembarKerjaScreen(profil: 'thermometer_glass'),
+        const BekuLembarKerja(
+          child: LembarKerjaScreen(profil: 'thermometer_glass'),
+        ),
         mode: Brightness.light,
       ),
     );
@@ -534,7 +546,7 @@ void main() {
 
     await tester.pumpWidget(
       _bungkus(
-        const LembarKerjaScreen(profil: 'thermohygro'),
+        const BekuLembarKerja(child: LembarKerjaScreen(profil: 'thermohygro')),
         mode: Brightness.light,
       ),
     );
@@ -641,7 +653,9 @@ void main() {
 
     await tester.pumpWidget(
       _bungkus(
-        const LembarKerjaScreen(profil: 'chlorine_meter'),
+        const BekuLembarKerja(
+          child: LembarKerjaScreen(profil: 'chlorine_meter'),
+        ),
         mode: Brightness.light,
       ),
     );

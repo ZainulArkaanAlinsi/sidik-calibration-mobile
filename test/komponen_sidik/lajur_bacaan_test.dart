@@ -414,7 +414,7 @@ void main() {
       },
     );
 
-    testWidgets('kursor kobalt terang dan satuan tampil; tanpa satuan tidak', (
+    testWidgets('kursor biru terang dan satuan tampil; tanpa satuan tidak', (
       tester,
     ) async {
       await _pasang(tester, const _Tuan(awal: '150,0'));
@@ -423,7 +423,7 @@ void main() {
         tester.widget<Container>(find.byKey(const Key('lajur-kursor'))).color,
         w.aksen,
       );
-      expect(w.aksen, PaletLab.kobalt300);
+      expect(w.aksen, PaletLab.primerGelap);
       expect(find.text('°C'), findsOneWidget);
       await _pasang(tester, const _Tuan(awal: '150,0', satuan: null));
       expect(find.byKey(const Key('lajur-satuan')), findsNothing);
@@ -706,7 +706,7 @@ void main() {
     });
 
     testWidgets(
-      'gelap: permukaan #171D2B + garis tegas agar tak melebur dengan latar',
+      'gelap: permukaan #13243A + garis tegas agar tak melebur dengan latar',
       (tester) async {
         await _pasang(tester, const _Tuan(awal: '1'), gelap: true);
         final dekor = _panel(tester);

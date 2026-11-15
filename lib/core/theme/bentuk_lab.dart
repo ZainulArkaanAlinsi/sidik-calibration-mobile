@@ -21,6 +21,36 @@ abstract final class BentukLab {
   static const double pil = 999;
 }
 
+/// Sudut Biru Awan (`docs/desain-ulang/DESIGN.md` §Sudut), tambahan di samping
+/// [BentukLab] yang TIDAK diubah: `AppSpacing.radius*`, `SidikMaterial.sudut*`
+/// dan komponen lama masih membacanya. Layar yang didesain ulang memakai set
+/// ini; nilai dari `docs/desain-ulang/flutter/bentuk_ukuran_lab.dart`.
+abstract final class BentukBiruAwan {
+  /// Ikon ubin.
+  static const double ikonUbin = 16;
+
+  /// Kotak isian (kotak 56, `ELEMEN.md` §Isian).
+  static const double isian = 16;
+
+  /// Kartu draf, baris-panel, antrean.
+  static const double kartu = 24;
+
+  /// Hero, panel besar, segmen.
+  static const double hero = 28;
+
+  /// Dialog.
+  static const double dialog = 28;
+
+  /// Sudut ATAS lembar bawah.
+  static const double lembarBawah = 32;
+
+  /// Dock.
+  static const double dock = 40;
+
+  /// Tombol, stempel, kolom cari, chip.
+  static const double pil = 999;
+}
+
 /// Ukuran area sentuh (dp). Aksi utama 56, sisanya 48 (WCAG 2.5.8 minimal 24;
 /// Material 48). Desktop Windows dipakai dengan tetikus, jadi lebih rapat.
 abstract final class UkuranLab {

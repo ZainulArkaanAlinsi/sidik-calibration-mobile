@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/beku_lembar_kerja.dart';
 import '../../core/theme/sidik_material.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/jatuh_tempo.dart';
@@ -398,7 +399,8 @@ class _PanelAksi extends StatelessWidget {
           label: l10n.dashStartCalibration,
           icon: Icons.add_task,
           variant: AppButtonVariant.secondary,
-          onPressed: () => buka(const CategoryPickerScreen()),
+          onPressed: () =>
+              buka(const BekuLembarKerja(child: CategoryPickerScreen())),
         ),
         // Hanya bila server menyatakan ada jenis lembar yang boleh dipindai.
         const TombolPindaiLembar(),

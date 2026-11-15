@@ -4,7 +4,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_ukuran.dart';
 import '../../core/theme/ukuran_komponen.dart';
 
-/// Aksi utama layar: tombol kobalt 56 dp, sudut 16, selebar induk. SATU per
+/// Aksi utama layar: tombol primer 56 dp, pil, selebar induk. SATU per
 /// layar; aksi lain memakai tombol sekunder 48 dp.
 ///
 /// Tinggi, sudut, dan warna datang dari `filledButtonTheme` di `SidikTheme`

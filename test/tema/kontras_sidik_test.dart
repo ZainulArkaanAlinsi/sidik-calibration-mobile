@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sidik_calibration/core/theme/app_colors.dart';
+import 'package:sidik_calibration/core/theme/palet_lab.dart';
 import 'package:sidik_calibration/core/theme/sidik_material.dart';
 import 'package:sidik_calibration/core/theme/sidik_theme.dart';
 import 'package:sidik_calibration/core/theme/tema_beku.dart';
@@ -21,6 +22,12 @@ import 'package:sidik_calibration/widgets/sidik/sidik_tombol.dart';
 /// Ambang: teks biasa 4,5:1; komponen UI (tepi isian, ikon penting, isi tombol
 /// terhadap latarnya) 3:1. Garis halus `kertasTepi`/`garis` sengaja TIDAK diuji:
 /// itu hiasan pemisah, tidak boleh membawa makna sendiri.
+///
+/// Biru Awan (L1b): lapis ketiga menghitung SETIAP pasangan di `DESIGN.md`
+/// (tabel Warna) dari nilai `PaletLab`, dan dua pasangan yang DILARANG di sana
+/// dijaga sebagai tes negatif (teks putih di atas langit 2,26:1; teks primer di
+/// atas kabut 4,47:1). Tepi kontrol memakai `garisKontrol` (#7C8FA8, >= 3:1),
+/// bukan #C5D5E6 milik `DESIGN.md` yang cuma ±1,5:1 di putih.
 ///
 /// Kalau ada warna digeser dan tes ini berteriak: betulkan warnanya. Jangan
 /// menurunkan ambang.
@@ -120,19 +127,28 @@ void main() {
         // Hijau, merah, dan amber semuanya duduk di sumbu merah-hijau, sumbu
         // yang hilang buat mata deuteranopia dan buat fotokopi hitam-putih.
         // Jadi ketiganya wajib beda TERANGNYA (luminans relatif >= 0,02),
-        // bukan cuma beda warnanya. `tunggu` dikecualikan: dia abu tanpa rona,
-        // kebeda lewat kejenuhan, dan memaksanya ikut aturan ini mendorongnya
+        // bukan cuma beda warnanya. `tunggu` dikecualikan: dia abu/biru tanpa
+        // kejenuhan merah-hijau, dan memaksanya ikut aturan ini mendorongnya
         // jadi nyaris putih ("menunggu" yang paling menyala itu salah arti).
+        //
+        // Tema terang (Biru Awan): tinta stempel SELALU navy, jadi yang
+        // berbeda antar status adalah ISI-nya (hijau, kuning, koral). Tema
+        // gelap masih memakai tinta lama (utang desain).
         //
         // Pengaman utamanya tetap bukan warna: tiap lencana SELALU membawa
         // ikon + kata (diuji di `token_tema_lab_test.dart`). Aturan ini lapis
-        // kedua. Amber sengaja berbeda dari milik Pelanggan (terang `#8C5C0A`,
-        // gelap `#DB9A2B`) karena nilai Pelanggan gagal aturan ini.
-        final berona = <String, double>{
-          'lulus': _luminansi(m.lulus),
-          'gagal': _luminansi(m.gagal),
-          'awas': _luminansi(m.awas),
-        };
+        // kedua.
+        final berona = m.terang
+            ? <String, double>{
+                'hijau': _luminansi(m.lulusTipis),
+                'kuning': _luminansi(m.awasTipis),
+                'koral': _luminansi(PaletLab.koral),
+              }
+            : <String, double>{
+                'lulus': _luminansi(m.lulus),
+                'gagal': _luminansi(m.gagal),
+                'awas': _luminansi(m.awas),
+              };
         final kunci = berona.keys.toList();
         for (var a = 0; a < kunci.length; a++) {
           for (var b = a + 1; b < kunci.length; b++) {
@@ -179,11 +195,27 @@ void main() {
 
       test('primary sebagai TEKS/ikon (judul bagian, tautan, ikon aksen)', () {
         // 47 tempat memakai `colorScheme.primary` sebagai warna teks atau ikon.
-        // Di tema gelap lama nilainya biru tombol (1,91:1 di kertas gelap).
+        // Di tema terang primer di atas KABUT cuma 4,47:1 (DILARANG di
+        // `DESIGN.md`; tes negatifnya di bawah), jadi permukaan kabut
+        // (`primaryContainer`, `surfaceContainerHighest`) dikecualikan: teks
+        // biru di sana memakai `onPrimaryContainer`/`secondary` (primerTua),
+        // diuji di bawah dan di 'pasangan on*'.
+        final kabut = m.terang ? <Color>{m.biruTipis, m.meja2} : <Color>{};
         for (final (apa, p) in permukaan) {
+          if (kabut.contains(p)) continue;
           cek('primary/$apa', s.primary, p);
         }
-        cek('primary/primaryContainer', s.primary, s.primaryContainer);
+        if (!m.terang) {
+          cek('primary/primaryContainer', s.primary, s.primaryContainer);
+        }
+        // Teks biru di atas kabut: primerTua / onPrimaryContainer / secondary.
+        for (final (apa, p) in [
+          ('primaryContainer', s.primaryContainer),
+          ('surfaceContainerHighest', s.surfaceContainerHighest),
+        ]) {
+          cek('onPrimaryContainer/$apa', s.onPrimaryContainer, p);
+          cek('secondary/$apa', s.secondary, p);
+        }
       });
 
       test('outline sebagai teks redup di kertas dan baki', () {
@@ -427,6 +459,214 @@ void main() {
       });
     });
   }
+
+  group('pasangan DESIGN.md (tabel Warna), dihitung dari PaletLab', () {
+    // Angka di kolom "Kontras" `DESIGN.md` / `tokens.json`. Dihitung ulang dari
+    // nilai warna: kalau salah satunya digeser (atau dokumennya salah ketik),
+    // tes ini yang berteriak.
+    final pasangan = <(String, Color, Color, double)>[
+      ('putih/primer', PaletLab.kertas, PaletLab.primer, 5.10),
+      ('putih/primerTua', PaletLab.kertas, PaletLab.primerTua, 8.18),
+      ('navy/langit', PaletLab.tinta, PaletLab.langit, 6.81),
+      ('navy/awan', PaletLab.tinta, PaletLab.awan, 10.19),
+      ('navy/kabut', PaletLab.tinta, PaletLab.kabut, 13.50),
+      ('primerTua/kabut', PaletLab.primerTua, PaletLab.kabut, 7.18),
+      ('navy/latar', PaletLab.tinta, PaletLab.latar, 14.29),
+      ('navy/putih', PaletLab.tinta, PaletLab.kertas, 15.39),
+      ('tinta2/kertas', PaletLab.tinta2, PaletLab.kertas, 6.71),
+      ('tinta2/kabut', PaletLab.tinta2, PaletLab.kabut, 5.89),
+      ('navy/hijau', PaletLab.tinta, PaletLab.hijau, 11.23),
+      ('navy/kuning', PaletLab.tinta, PaletLab.kuning, 10.59),
+      ('navy/koral', PaletLab.tinta, PaletLab.koral, 6.85),
+      (
+        'tema gelap: teks di atas primer',
+        PaletLab.teksDiAtasPrimerGelap,
+        PaletLab.primerGelap,
+        9.58,
+      ),
+    ];
+
+    for (final (apa, depan, belakang, dokumen) in pasangan) {
+      test(apa, () {
+        expect(
+          _rasio(depan, belakang),
+          closeTo(dokumen, 0.02),
+          reason: '$apa: DESIGN.md menulis $dokumen:1',
+        );
+      });
+    }
+
+    test('semua pasangan teks lolos 4,5:1; primer di atas putih juga', () {
+      for (final (apa, depan, belakang, dokumen) in pasangan) {
+        expect(
+          _rasio(depan, belakang),
+          greaterThanOrEqualTo(4.5),
+          reason: '$apa ($dokumen:1)',
+        );
+      }
+    });
+
+    test('tema memakai pasangan itu: tombol utama putih di atas primer', () {
+      final s = SidikTheme.terang.colorScheme;
+      expect(s.primary, PaletLab.primer);
+      expect(s.onPrimary, PaletLab.kertas);
+      expect(s.onPrimaryContainer, PaletLab.primerTua);
+      expect(s.primaryContainer, PaletLab.kabut);
+      expect(SidikMaterial.terangDefault.lulusTipis, PaletLab.hijau);
+      expect(SidikMaterial.terangDefault.awasTipis, PaletLab.kuning);
+      expect(SidikMaterial.terangDefault.tungguTipis, PaletLab.awan);
+      expect(SidikMaterial.terangDefault.lulus, PaletLab.tinta);
+      expect(SidikMaterial.terangDefault.awas, PaletLab.tinta);
+      expect(SidikMaterial.terangDefault.tunggu, PaletLab.tinta);
+    });
+  });
+
+  group('pasangan DILARANG di DESIGN.md (tes negatif)', () {
+    // Dua pasangan yang `DESIGN.md` larang. Tes ini TIDAK menguji bahwa tema
+    // menghindarinya lewat tampilan; ia mengunci bahwa angkanya memang di
+    // bawah ambang, jadi tidak ada yang "memperbaiki" larangan itu dengan
+    // menggeser warna diam-diam, dan teks yang butuh pasangan itu pakai
+    // pengganti yang sah.
+    test(
+      'teks PUTIH di atas langit: 2,26:1, jauh di bawah 4,5:1 (juga 3:1)',
+      () {
+        final r = _rasio(PaletLab.kertas, PaletLab.langit);
+        expect(r, closeTo(2.26, 0.02));
+        expect(r, lessThan(3.0));
+        // Pengganti yang sah: navy di atas langit.
+        expect(
+          _rasio(PaletLab.tinta, PaletLab.langit),
+          greaterThanOrEqualTo(4.5),
+        );
+      },
+    );
+
+    test('teks PRIMER di atas kabut: 4,47:1, gagal tipis; pakai primerTua', () {
+      final r = _rasio(PaletLab.primer, PaletLab.kabut);
+      expect(r, closeTo(4.47, 0.02));
+      expect(r, lessThan(4.5));
+      // Pengganti yang sah: primerTua (7,18:1), dan itu yang dipakai tema.
+      expect(
+        _rasio(PaletLab.primerTua, PaletLab.kabut),
+        greaterThanOrEqualTo(4.5),
+      );
+      final m = SidikMaterial.terangDefault;
+      expect(m.biruTinta, PaletLab.primerTua);
+      expect(
+        SidikTheme.terang.colorScheme.onPrimaryContainer,
+        PaletLab.primerTua,
+      );
+      expect(SidikTheme.terang.colorScheme.secondary, PaletLab.primerTua);
+    });
+  });
+
+  group('batas yang DIKETAHUI: garisKontrol di atas kabut dan kabutGagal', () {
+    // Dicatat peninjau L1b (standar §11). Ini MENDOKUMENTASIKAN rasio
+    // sebenarnya; ambang 3:1 di grup lain TIDAK dilonggarkan. Tes 3:1 hanya
+    // menjaga kertas, baki (latar), dan meja; di atas kabut/kabutGagal tepi
+    // kontrol terang jatuh di bawah 3:1 dan itu utang desain yang terdaftar.
+    test('rasio sebenarnya: 2,90:1 di kabut, 2,70:1 di kabutGagal', () {
+      final kabut = _rasio(PaletLab.garisKontrol, PaletLab.kabut);
+      final gagal = _rasio(PaletLab.garisKontrol, PaletLab.kabutGagal);
+      expect(kabut, closeTo(2.90, 0.01));
+      expect(gagal, closeTo(2.70, 0.01));
+      expect(kabut, lessThan(3.0));
+      expect(gagal, lessThan(3.0));
+      // Di atas putih tetap lolos; ini yang dijaga tes 3:1.
+      expect(
+        _rasio(PaletLab.garisKontrol, PaletLab.kertas),
+        greaterThanOrEqualTo(3.0),
+      );
+    });
+
+    test('pemakai nyata: tepi segmen SegmentedButton terpilih (isi kabut)', () {
+      // `sidik_theme.dart`: segmen terpilih berisi `biruTipis` (kabut) dan
+      // bertepi `garisTegas` (= garisKontrol). Terpilih TIDAK hanya dibawa
+      // tepi: isinya berubah dan Material memberi tanda centang.
+      final seg = SidikTheme.terang.segmentedButtonTheme.style!;
+      const terpilih = <WidgetState>{WidgetState.selected};
+      expect(seg.backgroundColor!.resolve(terpilih), PaletLab.kabut);
+      expect(seg.backgroundColor!.resolve(const {}), PaletLab.kertas);
+      expect(seg.side!.resolve(terpilih)!.color, PaletLab.garisKontrol);
+      expect(
+        _rasio(seg.side!.resolve(terpilih)!.color, PaletLab.kabut),
+        lessThan(3.0),
+      );
+    });
+
+    test('tema gelap tidak kena: tepi kontrol >= 3:1 di kabut gelap', () {
+      expect(
+        _rasio(PaletLab.garisTegasGelap, PaletLab.kabutGelap),
+        greaterThanOrEqualTo(3.0),
+      );
+      final seg = SidikTheme.gelap.segmentedButtonTheme.style!;
+      const terpilih = <WidgetState>{WidgetState.selected};
+      expect(seg.backgroundColor!.resolve(terpilih), PaletLab.kabutGelap);
+    });
+  });
+
+  group('tepi kontrol: garisKontrol (#7C8FA8), bukan garisTegas (#C5D5E6)', () {
+    // Keputusan L1b: `DESIGN.md` menulis tepi tombol/isian #C5D5E6, tetapi di
+    // atas putih itu cuma ±1,5:1 (WCAG 1.4.11 minta 3:1). #C5D5E6 tetap ada
+    // sebagai garis DEKORATIF; kontrol memakai #7C8FA8.
+    test('angkanya dihitung, bukan diasumsikan', () {
+      expect(_rasio(PaletLab.garisTegas, PaletLab.kertas), lessThan(3.0));
+      for (final (apa, latar) in [
+        ('kertas', PaletLab.kertas),
+        ('latar', PaletLab.latar),
+      ]) {
+        expect(
+          _rasio(PaletLab.garisKontrol, latar),
+          greaterThanOrEqualTo(3.0),
+          reason: 'garisKontrol/$apa',
+        );
+      }
+      for (final (apa, latar) in [
+        ('kertas gelap', PaletLab.kertasGelap),
+        ('latar gelap', PaletLab.latarGelap),
+        ('kabut gelap', PaletLab.kabutGelap),
+      ]) {
+        expect(
+          _rasio(PaletLab.garisTegasGelap, latar),
+          greaterThanOrEqualTo(3.0),
+          reason: 'garisTegasGelap/$apa',
+        );
+      }
+    });
+
+    test(
+      'tema memakainya di tombol sekunder, isian, chip, sakelar, centang',
+      () {
+        for (final (tema, kontrol) in [
+          (SidikTheme.terang, PaletLab.garisKontrol),
+          (SidikTheme.gelap, PaletLab.garisTegasGelap),
+        ]) {
+          BorderSide sisi(WidgetStateProperty<BorderSide?>? p) =>
+              p!.resolve(const <WidgetState>{})!;
+          expect(sisi(tema.outlinedButtonTheme.style!.side).color, kontrol);
+          expect(
+            tema.inputDecorationTheme.enabledBorder!.borderSide.color,
+            kontrol,
+          );
+          expect(tema.chipTheme.side!.color, kontrol);
+          expect(tema.checkboxTheme.side!.color, kontrol);
+          expect(
+            tema.switchTheme.trackOutlineColor!.resolve(const <WidgetState>{}),
+            kontrol,
+          );
+          expect(tema.extension<SidikMaterial>()!.garisTegas, kontrol);
+        }
+        // Dan #C5D5E6 tidak dipakai kontrol mana pun.
+        final t = SidikTheme.terang;
+        expect(
+          t.outlinedButtonTheme.style!.side!
+              .resolve(const <WidgetState>{})!
+              .color,
+          isNot(PaletLab.garisTegas),
+        );
+      },
+    );
+  });
 
   group('AppColors tetap selaras dengan SidikMaterial milik TemaBeku', () {
     // Sejak L1a `AppColors` membaca `PaletBeku` (salinan beku palet Lab), jadi

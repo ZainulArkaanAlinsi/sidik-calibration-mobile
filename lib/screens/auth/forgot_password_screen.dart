@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../services/auth_service.dart';
+import 'widgets/isian_neu_lama.dart';
 import 'widgets/neu.dart';
 
 /// Reset password — 3 state sesuai catatan harian 20 Jul:
@@ -151,15 +152,17 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               ),
               const SizedBox(height: 18),
 
-              NeuTextField(
-                icon: Icons.mail_outline,
-                controller: _email,
-                hint: 'Email (nama@pt-sidik.com)',
-                errorText: _emailError,
-                enabled: !_loading,
-                keyboardType: TextInputType.emailAddress,
-                textInputAction: TextInputAction.done,
-                onSubmitted: (_) => _submit(),
+              IsianNeuLama(
+                child: NeuTextField(
+                  icon: Icons.mail_outline,
+                  controller: _email,
+                  hint: 'Email (nama@pt-sidik.com)',
+                  errorText: _emailError,
+                  enabled: !_loading,
+                  keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => _submit(),
+                ),
               ),
               const SizedBox(height: 26),
 

@@ -1,100 +1,151 @@
 import 'package:flutter/painting.dart';
 
-/// Palet mentah SIDIK Lab (13 Nov 2026). SATU-SATUNYA tempat nilai warna Lab
-/// ditulis sebagai angka; `AppColors`, `SidikMaterial`, dan `SidikTheme`
-/// membacanya dari sini. Layar tidak menulis warna mentah (dijaga
+/// Palet mentah SIDIK Lab, "Biru Awan" (L1b, 15 Nov 2026). SATU-SATUNYA tempat
+/// nilai warna Lab ditulis sebagai angka; `SidikMaterial`, `SidikTheme`, dan
+/// `WarnaLajur` membacanya dari sini. Layar tidak menulis warna mentah (dijaga
 /// `test/tema/token_only_test.dart`) dan membaca warna lewat
 /// `SidikMaterial.of(context)` atau `Theme.of(context).colorScheme`.
 ///
-/// Keluarga yang sama dengan app Pelanggan: kobalt logo PT SIDIK, netral
-/// dingin, status berupa tinta + latar tipis. Beda dengan sistem "Meja Kerja
-/// Lab" sebelumnya (krem, abu hangat, `#1D4292`).
+/// Sumber nilainya `docs/desain-ulang/tokens.json` (nama sama dengan berkas itu).
+/// Lembar kerja TIDAK memakai palet ini: ia membaca `PaletBeku` lewat `TemaBeku`
+/// (`docs/desain-ulang/BEKU.md`), jadi mengubah nilai di sini tidak menggeser
+/// satu piksel pun di sana.
 ///
 /// Semua pasangan yang dipakai sudah dihitung ke WCAG 2.x dan dijaga
 /// `test/tema/kontras_sidik_test.dart`: teks 4,5:1, komponen UI 3:1. Ubah satu
 /// nilai di sini = jalankan tes itu lagi.
+///
+/// ## Dua kelompok di bawah "Biru Awan"
+///
+/// - **Utang desain**: nilai LAMA yang dipertahankan karena `tokens.json` belum
+///   punya padanannya (status tema gelap, teks galat, pensil OCR). Dicatat di
+///   `docs/standar-kualitas-desain.md`; hilang saat desain menjawabnya.
+/// - **Alias sementara**: nama lama (`kobalt*`, `*Terang`) menunjuk ke token
+///   baru supaya pemanggil lama tidak patah. Dihapus di PR terakhir (L13).
 abstract final class PaletLab {
-  // ── Kobalt: satu warna merek, empat jenjang ─────────────────────────────
-  /// Jenjang 100: sel aktif, baris terpilih, tombol tonal.
-  static const Color kobalt100 = Color(0xFFDCE6FA);
+  // ══════════════════════════════════════════════════════════════════════
+  // BIRU AWAN, TERANG (`tokens.json` → `warna.terang`)
+  // ══════════════════════════════════════════════════════════════════════
 
-  /// Jenjang 300: kobalt di atas permukaan gelap.
-  static const Color kobalt300 = Color(0xFF8CB0FF);
+  // ── Merek ───────────────────────────────────────────────────────────────
+  /// Aksi utama, fokus, sel aktif. Putih di atasnya 5,10:1.
+  static const Color primer = Color(0xFF1C6FC4);
 
-  /// Jenjang 700: aksi, fokus, tab aktif, tautan (logo PT SIDIK).
-  static const Color kobalt700 = Color(0xFF043EA1);
+  /// Teks dan ikon biru. Di atas kabut 7,18:1. Teks biru di atas kabut HARUS
+  /// memakai ini, bukan [primer] (4,47:1, gagal tipis).
+  static const Color primerTua = Color(0xFF0F4F94);
 
-  /// Jenjang 900: teks di atas kobalt tipis.
-  static const Color kobalt900 = Color(0xFF0A2A6B);
+  /// Permukaan sorot (hero, ubin). HANYA teks navy di atasnya (6,81:1); putih
+  /// DILARANG (2,26:1).
+  static const Color langit = Color(0xFF5BB4F5);
 
-  /// Label di atas kobalt 300 (tombol utama tema gelap).
-  static const Color kobaltDiAtas300 = Color(0xFF04265F);
+  /// Stempel "Menunggu approval". Navy di atasnya 10,19:1.
+  static const Color awan = Color(0xFFA9D8FB);
 
-  /// Isi tonal kobalt di tema gelap, dan teksnya.
-  static const Color kobaltGelapTipis = Color(0xFF14306F);
-  static const Color kobaltGelapTeks = Color(0xFFD6E3FF);
+  /// Sel terisi, ubin terpilih, butir dock aktif, latar ikon. Navy 13,50:1.
+  static const Color kabut = Color(0xFFE4F2FD);
 
-  // ── Netral dingin, tema terang ──────────────────────────────────────────
-  static const Color putih = Color(0xFFFFFFFF);
+  /// Logo PT SIDIK saja, bukan UI.
+  static const Color kobaltLogo = Color(0xFF043EA1);
 
-  /// Latar belakang layar.
-  static const Color latarTerang = Color(0xFFF2F4F8);
+  // ── Netral ──────────────────────────────────────────────────────────────
+  /// Latar halaman.
+  static const Color latar = Color(0xFFF3F7FB);
 
-  /// Permukaan baris, lembar, sel.
-  static const Color kertasTerang = Color(0xFFFFFFFF);
+  /// Kartu, panel, dock.
+  static const Color kertas = Color(0xFFFFFFFF);
 
-  /// Permukaan cekung (baki, isi isian).
-  static const Color kertas2Terang = Color(0xFFF8F9FC);
+  /// Teks, tombol tegas, ubin ringkasan admin. Juga disebut "navy". 15,39:1 di
+  /// atas putih.
+  static const Color tinta = Color(0xFF0B2545);
 
-  /// Permukaan terangkat (wadah sekunder).
-  static const Color latar2Terang = Color(0xFFE9EDF4);
+  /// Keterangan. 6,71:1 di kertas, 5,89:1 di kabut.
+  static const Color tinta2 = Color(0xFF4A5D78);
 
-  static const Color tintaTerang = Color(0xFF111827);
-  static const Color tinta2Terang = Color(0xFF475467);
+  /// Pemisah baris dan tepi kartu. Hiasan: tidak boleh membawa makna sendiri.
+  static const Color garisHalus = Color(0xFFE8EEF5);
 
-  /// Garis tegas: tepi isian, sel, tombol sekunder, ikon penting (3:1).
-  static const Color garisTegasTerang = Color(0xFF6B7588);
+  /// Garis DEKORATIF (bidang tanda tangan, pemisah kartu). TIDAK dipakai untuk
+  /// tepi kontrol: di atas putih cuma ±1,5:1, di bawah ambang 3:1 komponen UI.
+  /// Tepi isian, tombol sekunder, sakelar, centang memakai [garisKontrol].
+  static const Color garisTegas = Color(0xFFC5D5E6);
 
-  /// Abu yang masih 4,5:1 di latar dan baki, untuk keterangan redup yang
-  /// memakai `colorScheme.outline` sebagai TEKS.
-  static const Color garisTeksTerang = Color(0xFF5F6B7E);
+  /// Garis timeline dan hiasan sedang.
+  static const Color garisDekor = Color(0xFFD6E2EE);
 
-  /// Garis halus: pemisah baris. Hiasan, tidak boleh membawa makna sendiri.
-  static const Color garisHalusTerang = Color(0xFFDDE2EB);
+  /// Tepi KONTROL terang: isian, tombol sekunder, chip, sakelar, centang.
+  /// Di atas putih dan [latar] masing-masing >= 3:1 (dihitung di
+  /// `test/tema/kontras_sidik_test.dart`). Token TAMBAHAN keputusan L1b yang
+  /// menyimpang dari `DESIGN.md` ("OutlinedButton tepi #C5D5E6"): #C5D5E6 gagal
+  /// 3:1 (WCAG 1.4.11), jadi kontrol memakai warna "tepi mati" centang/radio
+  /// yang sudah ada di paket desain (`ELEMEN.md` §Kontrol kecil). Sama dengan
+  /// `garisTegas` tema gelap di `tokens.json`.
+  static const Color garisKontrol = Color(0xFF7C8FA8);
 
-  // ── Netral dingin, tema gelap ───────────────────────────────────────────
-  static const Color latarGelap = Color(0xFF0E1320);
-  static const Color kertasGelap = Color(0xFF171D2B);
-  static const Color kertas2Gelap = Color(0xFF131927);
-  static const Color latar2Gelap = Color(0xFF1E2535);
-  static const Color tintaGelap = Color(0xFFE6EAF2);
-  static const Color tinta2Gelap = Color(0xFFA9B2C3);
-  static const Color garisTegasGelap = Color(0xFF7C879B);
-  static const Color garisHalusGelap = Color(0xFF2C3548);
+  // ── Status: ubin dan stempel. Tinta di atasnya SELALU navy ([tinta]) ──────
+  /// Lulus, disetujui. Navy 11,23:1.
+  static const Color hijau = Color(0xFFBFE6C4);
 
-  /// Isi snack bar dan tooltip tema gelap.
-  static const Color terangkatGelap = Color(0xFF283044);
+  /// Perlu dicek, revisi. Navy 10,59:1.
+  static const Color kuning = Color(0xFFF6D36B);
 
-  // ── Status, tema terang: tinta + latar tipis ────────────────────────────
-  static const Color lulusTerang = Color(0xFF125739);
-  static const Color lulusLatarTerang = Color(0xFFE1F0E8);
+  /// Ditolak, tak terbaca. Navy 6,85:1.
+  static const Color koral = Color(0xFFF2957A);
 
-  /// Amber lebih terang dari milik Pelanggan (`#7A4F08`): jaraknya dari merah
-  /// dan hijau >= 0,02 luminans, supaya tetap beda di fotokopi hitam-putih dan
-  /// bagi mata buta warna. 5,1:1 di latar tipisnya, >= 4,9:1 di semua permukaan.
-  static const Color awasTerang = Color(0xFF8C5C0A);
-  static const Color awasLatarTerang = Color(0xFFFBF0DA);
+  /// Batang |kor|+U yang lewat toleransi, dan tepi isian galat. 3,36:1 di putih.
+  static const Color koralBatang = Color(0xFFE0684A);
+
+  /// Latar tipis baris/isian galat.
+  static const Color kabutGagal = Color(0xFFFDE3DA);
+
+  /// Stempel netral (draf).
+  static const Color netralStempel = Color(0xFFEEF2F6);
+
+  // ── Di atas ubin navy, dan foto ──────────────────────────────────────────
+  /// Keterangan di atas ubin navy.
+  static const Color navyTeks = Color(0xFFC3D6EC);
+  static const Color navyGaris = Color(0xFF2A4468);
+
+  /// Foto/kertas tulisan tangan di layar "Cek hasil pindai" (bukan warna UI).
+  static const Color kertasFoto = Color(0xFFF7F4EA);
+
+  // ══════════════════════════════════════════════════════════════════════
+  // BIRU AWAN, GELAP (`tokens.json` → `warna.gelap`)
+  // ══════════════════════════════════════════════════════════════════════
+  /// Aksi utama gelap. Teks di atasnya [teksDiAtasPrimerGelap] (9,58:1).
+  static const Color primerGelap = Color(0xFF7CC4F6);
+
+  /// Teks/ikon biru di tema gelap.
+  static const Color primerTuaGelap = Color(0xFFA9D8FB);
+  static const Color langitGelap = Color(0xFF28649B);
+  static const Color kabutGelap = Color(0xFF173452);
+  static const Color latarGelap = Color(0xFF0B1626);
+  static const Color kertasGelap = Color(0xFF13243A);
+  static const Color tintaGelap = Color(0xFFE6EEF7);
+  static const Color tinta2Gelap = Color(0xFFA9B9CC);
+  static const Color garisHalusGelap = Color(0xFF2A4260);
+
+  /// Tepi kontrol tema gelap (`garisTegas` gelap di `tokens.json`).
+  static const Color garisTegasGelap = Color(0xFF7C8FA8);
+
+  /// Label di atas isi [primerGelap].
+  static const Color teksDiAtasPrimerGelap = Color(0xFF0B1626);
+
+  // ══════════════════════════════════════════════════════════════════════
+  // UTANG DESAIN: nilai lama, `tokens.json` belum menjawabnya
+  // ══════════════════════════════════════════════════════════════════════
+
+  // ── Teks galat (terang). Koral [koral] gagal sebagai teks di atas putih ───
+  /// Teks dan ikon galat di atas kertas/latar: 7,3:1. `ELEMEN.md` §Isian menyebut
+  /// #A3261A untuk kalimat galat; belum diputuskan (lihat laporan L1b).
   static const Color gagalTerang = Color(0xFFA81B33);
-  static const Color gagalLatarTerang = Color(0xFFFBE4E8);
-  static const Color tungguTerang = Color(0xFF344054);
-  static const Color tungguLatarTerang = Color(0xFFE6EAF2);
 
-  // ── Status, tema gelap ──────────────────────────────────────────────────
+  // ── Status tema gelap: tinta + latar tipis ──────────────────────────────
   static const Color lulusGelap = Color(0xFF6FD3A0);
   static const Color lulusLatarGelap = Color(0xFF12301F);
 
   /// Beda dari milik Pelanggan (`#F2B655`, hampir sama terangnya dengan hijau
-  /// gelap): jarak luminans >= 0,05 dari hijau dan merah, 6,1:1 sampai 7,7:1.
+  /// gelap): jarak luminans >= 0,05 dari hijau dan merah.
   static const Color awasGelap = Color(0xFFDB9A2B);
   static const Color awasLatarGelap = Color(0xFF33260C);
   static const Color gagalGelap = Color(0xFFFF8FA0);
@@ -106,13 +157,35 @@ abstract final class PaletLab {
   static const Color gagalDiAtasGelap = Color(0xFF24070D);
 
   // ── Tinta pensil (angka saran OCR, belum dipastikan manusia) ────────────
-  static const Color pensilTerang = garisTeksTerang;
+  /// Tema gelap saja. Tema terang memakai [tinta2]: nilai lama `#5F6B7E` cuma
+  /// 3,7:1 di atas [kuning] (dasar sel "dari foto, perlu dicek"), di bawah 4,5:1.
   static const Color pensilGelap = Color(0xFF8E98AC);
 
   // ── Lain-lain ───────────────────────────────────────────────────────────
   /// Tembus pandang total: pengganti kilau/lekuk material lama.
   static const Color tembus = Color(0x00FFFFFF);
 
-  /// Merah tua untuk `AppColors.crimsonDeep` (tidak ada di keluarga Pelanggan).
-  static const Color gagalTua = Color(0xFF7E1426);
+  // ══════════════════════════════════════════════════════════════════════
+  // ALIAS SEMENTARA: nama lama → token Biru Awan (hapus di L13)
+  // ══════════════════════════════════════════════════════════════════════
+  static const Color kobalt100 = kabut;
+  static const Color kobalt300 = primerGelap;
+  static const Color kobalt700 = primer;
+  static const Color kobalt900 = primerTua;
+  static const Color kobaltDiAtas300 = teksDiAtasPrimerGelap;
+  static const Color kobaltGelapTipis = kabutGelap;
+  static const Color kobaltGelapTeks = primerTuaGelap;
+  static const Color putih = kertas;
+  static const Color latarTerang = latar;
+  static const Color kertasTerang = kertas;
+  static const Color tintaTerang = tinta;
+  static const Color tinta2Terang = tinta2;
+  static const Color garisHalusTerang = garisHalus;
+
+  /// Arti lama "garis tegas >= 3:1" = [garisKontrol] sekarang.
+  static const Color garisTegasTerang = garisKontrol;
+  static const Color kertas2Terang = latar;
+  static const Color latar2Terang = kabut;
+  static const Color kertas2Gelap = latarGelap;
+  static const Color latar2Gelap = kabutGelap;
 }

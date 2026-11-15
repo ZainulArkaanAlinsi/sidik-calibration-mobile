@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/beku_lembar_kerja.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/category.dart';
 import '../../providers/calibration_input_provider.dart';
@@ -109,7 +110,9 @@ class _KategoriCard extends ConsumerWidget {
         borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute<void>(
-            builder: (_) => InstrumentPickerScreen(kategori: kategori),
+            builder: (_) => BekuLembarKerja(
+              child: InstrumentPickerScreen(kategori: kategori),
+            ),
           ),
         ),
         child: Padding(
