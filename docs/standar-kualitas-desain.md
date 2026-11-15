@@ -489,11 +489,12 @@ sampai desain menjawab; semuanya di `lib/core/theme/palet_lab.dart` dan
 7. **Sakelar 56 x 36** dan ukuran meja (desktop 44) belum punya token.
 8. **Skala huruf Biru Awan** belum dipasang (bagian 3, Tipografi).
 9. **Kartu 24** belum dipasang di tema (bagian 3, Bentuk).
-10. **Isian login dan lupa sandi**: `NeuTextField` (collapsed) tetap ikut
-    `enabledBorder` tema, jadi login dan lupa sandi dibungkus `IsianNeuLama`
-    (`lib/screens/auth/widgets/isian_neu_lama.dart`) yang mengembalikan
-    `inputDecorationTheme` lama. Hapus bersama `NeuTextField` saat login
-    didesain ulang (L5). Pengguna `NeuTextField` hanya dua layar itu.
+10. **Isian login dan lupa sandi**: SELESAI di L5. Kedua layar kini memakai
+    `IsianSidik` dan `TombolSidik`; pembungkus sementara `IsianNeuLama`
+    (`isian_neu_lama.dart`) dihapus. `neu.dart` (termasuk `NeuTextField`) tetap
+    ada karena layar admin yang belum didesain ulang masih memakai bagian
+    lainnya (`NeuButton` dan kawan-kawan); `NeuTextField` sendiri tidak lagi
+    dipakai layar mana pun.
 11. **Alias sementara** `PaletLab.kobalt*`/`*Terang` dan nama lama `SidikMaterial`
     (`meja`, `logam`, ...): dihapus di PR terakhir (L13).
 12. **Stempel FAIL** belum mengikuti rancangan (navy pekat + teks putih): kode

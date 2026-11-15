@@ -8351,4 +8351,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get biruAwanCari => 'Search';
+
+  @override
+  String get shellTutupMenu => 'Close menu';
+
+  @override
+  String get masukJudul => 'Sign in to your lab account';
+
+  @override
+  String masukAkreditasi(String nomor) {
+    return 'KAN accreditation $nomor, ISO/IEC 17025';
+  }
+
+  @override
+  String get masukTampilkanSandi => 'Show';
+
+  @override
+  String get masukSembunyikanSandi => 'Hide';
+
+  @override
+  String get splashTagline => 'KAN-accredited calibration';
 }

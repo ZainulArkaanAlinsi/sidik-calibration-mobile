@@ -1,15 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/theme/sidik_material.dart';
+import '../../core/theme/token_komponen_biru_awan.dart';
+import '../../core/theme/warna_biru_awan.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/auth_service.dart';
-import 'widgets/isian_neu_lama.dart';
-import 'widgets/neu.dart';
+import '../../widgets/biru_awan/isian_sidik.dart';
+import '../../widgets/biru_awan/tombol_bulat.dart';
+import '../../widgets/biru_awan/tombol_sidik.dart';
+import '../../widgets/biru_awan/ubin_ikon.dart';
+import 'widgets/kerangka_masuk.dart';
 
 /// Reset password — 3 state sesuai catatan harian 20 Jul:
 /// `normal` (form) · `sukses` (email terkirim) · `error` (email nggak terdaftar).
 ///
-/// Gaya soft UI / neumorphism, senada Login & Register (lihat `widgets/neu.dart`).
+/// Desain Biru Awan, kepalanya sama dengan layar Login (artboard E0): hero
+/// langit + kartu putih (lihat `widgets/kerangka_masuk.dart`).
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
 
@@ -76,151 +84,95 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     });
   }
 
+  void _kembali() => Navigator.of(context).pop();
+
   @override
   Widget build(BuildContext context) {
-    final c = NeuColors.of(context);
+    return _terkirim ? _panelSukses() : _form();
+  }
 
-    return Scaffold(
-      backgroundColor: c.base,
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
-              child: _terkirim ? _panelSukses() : _form(),
-            ),
+  Widget _form() {
+    final m = SidikMaterial.of(context);
+    final l10n = AppLocalizations.of(context);
+
+    return KerangkaMasuk(
+      kiriAtas: TombolBulat(
+        ikon: Icons.arrow_back,
+        label: l10n.biruAwanKembali,
+        onPressed: _loading ? null : _kembali,
+      ),
+      isiKartu: [
+        Semantics(
+          header: true,
+          child: Text(
+            l10n.forgotTitle,
+            style: HurufMasuk.judulKartu.copyWith(color: m.tinta),
           ),
+        ),
+        Text(
+          'Kami kirim link reset ke email kamu',
+          style: HurufBiruAwan.keterangan.copyWith(color: m.tinta2),
+        ),
+        if (_errorKirim != null) PesanGalatMasuk(pesan: _errorKirim!),
+        Text(
+          'Masukin email yang kamu pakai waktu daftar. Reset password '
+          'lewat email, bukan lewat ID pegawai — biar yang bisa ganti '
+          'password cuma orang yang megang emailnya.',
+          style: HurufBiruAwan.keterangan.copyWith(color: m.tinta2),
+        ),
+        IsianSidik(
+          label: l10n.emailLabel,
+          petunjuk: l10n.emailHint,
+          controller: _email,
+          galat: _emailError,
+          enabled: !_loading,
+          keyboardType: TextInputType.emailAddress,
+          textInputAction: TextInputAction.done,
+          onSubmitted: (_) => _submit(),
+        ),
+        TombolSidik(
+          label: 'KIRIM LINK RESET',
+          sibuk: _loading,
+          onPressed: _submit,
+        ),
+      ],
+      bawahKartu: Center(
+        child: TombolSidik(
+          label: l10n.backToLogin,
+          ragam: RagamTombolSidik.teks,
+          onPressed: _loading ? null : _kembali,
         ),
       ),
     );
   }
 
-  Widget _form() {
-    final c = NeuColors.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: NeuBackButton(
-            onTap: _loading ? null : () => Navigator.of(context).pop(),
-          ),
-        ),
-        const SizedBox(height: 8),
-        const Center(child: NeuBrandBadge(icon: Icons.lock_reset_outlined)),
-        const SizedBox(height: 18),
-        Center(
-          child: Text(
-            'Lupa Password',
-            style: TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.w800,
-              color: c.text,
-            ),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Center(
-          child: Text(
-            'Kami kirim link reset ke email kamu',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: c.textMuted),
-          ),
-        ),
-        const SizedBox(height: 28),
-
-        NeuRaised(
-          radius: 30,
-          distance: 8,
-          blur: 20,
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (_errorKirim != null) ...[
-                NeuErrorBanner(message: _errorKirim!),
-                const SizedBox(height: 18),
-              ],
-
-              Text(
-                'Masukin email yang kamu pakai waktu daftar. Reset password '
-                'lewat email, bukan lewat ID pegawai — biar yang bisa ganti '
-                'password cuma orang yang megang emailnya.',
-                style: TextStyle(fontSize: 13, height: 1.4, color: c.textMuted),
-              ),
-              const SizedBox(height: 18),
-
-              IsianNeuLama(
-                child: NeuTextField(
-                  icon: Icons.mail_outline,
-                  controller: _email,
-                  hint: 'Email (nama@pt-sidik.com)',
-                  errorText: _emailError,
-                  enabled: !_loading,
-                  keyboardType: TextInputType.emailAddress,
-                  textInputAction: TextInputAction.done,
-                  onSubmitted: (_) => _submit(),
-                ),
-              ),
-              const SizedBox(height: 26),
-
-              NeuButton(
-                label: 'KIRIM LINK RESET',
-                loading: _loading,
-                onPressed: _submit,
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 18),
-
-        Center(
-          child: NeuTextLink(
-            label: 'Balik ke Login',
-            strong: true,
-            onTap: _loading ? null : () => Navigator.of(context).pop(),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _panelSukses() {
-    final c = NeuColors.of(context);
+    final m = SidikMaterial.of(context);
     final email = _email.text.trim();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const SizedBox(height: 24),
-        const Center(
-          child: NeuBrandBadge(icon: Icons.mark_email_read_outlined),
-        ),
-        const SizedBox(height: 24),
-        Text(
-          'Link reset terkirim',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w800,
-            color: c.text,
+    return KerangkaMasuk(
+      isiKartu: [
+        const Align(
+          alignment: Alignment.centerLeft,
+          child: UbinIkon.baris(
+            ikon: Icons.mark_email_read_outlined,
+            warna: IsiBiruAwan.kabut,
           ),
         ),
-        const SizedBox(height: 12),
+        Semantics(
+          header: true,
+          child: Text(
+            'Link reset terkirim',
+            style: HurufMasuk.judulKartu.copyWith(color: m.tinta),
+          ),
+        ),
         Text(
           'Kami udah kirim link reset password ke $email.\n\n'
           'Cek juga folder spam kalau nggak nemu. Link-nya berlaku terbatas, '
           'jadi jangan kelamaan.',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 14, height: 1.5, color: c.textMuted),
+          style: HurufBiruAwan.keterangan.copyWith(color: m.tinta2),
         ),
-        const SizedBox(height: 28),
-        NeuButton(
-          label: 'BALIK KE LOGIN',
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        TombolSidik(label: 'BALIK KE LOGIN', onPressed: _kembali),
       ],
     );
   }

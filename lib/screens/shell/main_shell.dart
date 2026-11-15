@@ -1,14 +1,28 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/motion/gerak_bersama.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_ukuran.dart';
+import '../../core/theme/bentuk_lab.dart';
+import '../../core/theme/beku_lembar_kerja.dart';
 import '../../core/theme/sidik_material.dart';
+import '../../core/theme/token_komponen_biru_awan.dart';
+import '../../core/theme/warna_biru_awan.dart';
+import '../../core/utils/inisial_nama.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/user.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/dashboard_provider.dart';
 import '../../providers/navigation_provider.dart';
+import '../../providers/notification_provider.dart';
 import '../../providers/realtime_provider.dart';
+import '../../widgets/biru_awan/tombol_bulat.dart';
+import '../../widgets/biru_awan/ubin_ikon.dart';
 import '../../widgets/floating_nav_bar.dart';
+import '../calibration/category_picker_screen.dart';
 import '../dashboard/dashboard_screen.dart';
 import '../draf/draf_screen.dart';
 import '../equipment/equipment_list_screen.dart';
@@ -33,6 +47,19 @@ final mainShellKey = GlobalKey<ScaffoldState>();
 
 /// Buka menu samping dari AppBar tab mana pun.
 void bukaMenuUtama() => mainShellKey.currentState?.openDrawer();
+
+// Ukuran laci (`LAYAR.md` A3, artboard `Menu.dc.html`). Yang sudah punya token
+// (sudut 32, stempel 30, ubin 44) dibaca dari token; sisanya diberi nama di sini.
+const double _lebarLaci = 320;
+const double _bantalanLaciSamping = 14;
+const double _bantalanLaciAtas = 20;
+const double _jarakSeksi = 18;
+const double _jarakButir = 2;
+const double _tinggiButir = 52;
+const double _ukuranAvatar = 52;
+const double _ukuranLencana = 26;
+const double _bantalanLencana = 7;
+const int _lencanaMaks = 99;
 
 /// Rangka utama app: navbar bawah 5 tab yang sama buat semua role.
 /// Yang beda antar role cuma isi tab Profil (lihat README, Prinsip Desain).
@@ -71,6 +98,9 @@ class MainShell extends ConsumerWidget {
   /// kebaca — bukan cuma ikon yang harus ditebak.
   static const _lebarRailPanjang = 1200.0;
 
+  /// Latar redup di belakang laci (artboard `Menu`: navy 42 %).
+  static const _alfaLatarLaci = 0.42;
+
   /// Teknisi: DUA tab saja — Kalibrasi & Profil (K-50-14). Tab lain tidak
   /// ikut dibangun sama sekali: `IndexedStack` membangun SEMUA anaknya, jadi
   /// dashboard (panel 3D, grafik), daftar alat, dan riwayat 20 halaman dulu
@@ -83,8 +113,7 @@ class MainShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final teknisi =
-        ref.watch(authProvider).value?.role == UserRole.teknisi;
+    final teknisi = ref.watch(authProvider).value?.role == UserRole.teknisi;
     final tabs = teknisi ? _tabsTeknisi : _tabs;
     // Indeks tab disimpan bersama; teknisi cuma punya dua.
     final selected = ref.watch(selectedTabProvider).clamp(0, tabs.length - 1);
@@ -108,38 +137,58 @@ class MainShell extends ConsumerWidget {
             ),
           ]
         : <FloatingNavItem>[
-      FloatingNavItem(
-        icon: Icons.space_dashboard_outlined,
-        activeIcon: Icons.space_dashboard,
-        label: l10n.navDashboard,
-      ),
-      FloatingNavItem(
-        icon: Icons.straighten_outlined,
-        activeIcon: Icons.straighten,
-        label: l10n.navEquipment,
-      ),
-      FloatingNavItem(
-        icon: Icons.history_outlined,
-        activeIcon: Icons.history,
-        label: l10n.navHistory,
-      ),
-      FloatingNavItem(
-        icon: Icons.folder_outlined,
-        activeIcon: Icons.folder,
-        label: l10n.profArsip,
-      ),
-      FloatingNavItem(
-        icon: Icons.person_outline,
-        activeIcon: Icons.person,
-        label: l10n.navProfile,
-      ),
-    ];
+            FloatingNavItem(
+              icon: Icons.space_dashboard_outlined,
+              activeIcon: Icons.space_dashboard,
+              label: l10n.navDashboard,
+            ),
+            FloatingNavItem(
+              icon: Icons.straighten_outlined,
+              activeIcon: Icons.straighten,
+              label: l10n.navEquipment,
+            ),
+            FloatingNavItem(
+              icon: Icons.history_outlined,
+              activeIcon: Icons.history,
+              label: l10n.navHistory,
+            ),
+            FloatingNavItem(
+              icon: Icons.folder_outlined,
+              activeIcon: Icons.folder,
+              label: l10n.profArsip,
+            ),
+            FloatingNavItem(
+              icon: Icons.person_outline,
+              activeIcon: Icons.person,
+              label: l10n.navProfile,
+            ),
+          ];
 
     final pilihTab = ref.read(selectedTabProvider.notifier).select;
+
+    // Mulai di tengah dock teknisi: alur Mulai kalibrasi yang SAMA dengan
+    // tombol di layar Kalibrasi (`KalibrasiTeknisiScreen.buka`): pilih alat,
+    // lalu ketiga daftar disegarkan sesudah kembali. Tidak ada rute baru.
+    final aksiMulai = teknisi
+        ? TombolBulat(
+            key: const ValueKey('dock-mulai'),
+            ikon: Icons.add,
+            label: l10n.dashStartCalibration,
+            ukuran: UkuranTombolBulat.mulai,
+            ragam: RagamTombolBulat.primer,
+            onPressed: () => KalibrasiTeknisiScreen.buka(
+              context,
+              ref,
+              const BekuLembarKerja(child: CategoryPickerScreen()),
+            ),
+          )
+        : null;
 
     // IndexedStack, bukan ganti-ganti widget: state tiap tab (posisi scroll,
     // isian form) nggak ilang waktu pindah tab.
     final isi = IndexedStack(index: selected, children: tabs);
+
+    final m = SidikMaterial.of(context);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -147,6 +196,10 @@ class MainShell extends ConsumerWidget {
 
         return Scaffold(
           key: mainShellKey,
+          // Latar redup laci: navy 42 % (artboard `Menu`); gelap memakai meja.
+          drawerScrimColor: (m.terang ? m.tinta : m.meja).withValues(
+            alpha: _alfaLatarLaci,
+          ),
           // Teknisi tidak punya menu samping: dua tab sudah semua tujuannya.
           drawer: teknisi ? null : const _MenuUtama(),
           // Lihat catatan di DesktopShell: pemantau antrean dibungkus di luar
@@ -182,6 +235,8 @@ class MainShell extends ConsumerWidget {
                   selectedIndex: selected,
                   onSelected: pilihTab,
                   items: items,
+                  ragam: teknisi ? RagamDock.teknisi : RagamDock.admin,
+                  aksiTengah: aksiMulai,
                 ),
         );
       },
@@ -251,14 +306,19 @@ class _RailSamping extends StatelessWidget {
 
 /// Satu baris menu samping. `tab` diisi kalau tujuannya tab navbar (supaya
 /// barisnya bisa ikut menyala saat tab itu aktif); selain itu `layar`.
+///
+/// [jumlah] > 0 menampilkan lencana koral di ujung baris (Antrean approval,
+/// Draf, Jadwal, Notifikasi). Angkanya dari provider yang sudah dimuat shell
+/// (`dashboardProvider`, `unreadCountProvider`); laci tidak memanggil layanan
+/// baru.
 class _Tujuan {
-  const _Tujuan(this.ikon, this.judul, {this.tab, this.layar});
+  const _Tujuan(this.ikon, this.judul, {this.tab, this.layar, this.jumlah = 0});
 
   final IconData ikon;
   final String judul;
   final int? tab;
   final Widget Function()? layar;
-
+  final int jumlah;
 }
 
 /// Menu samping — **isinya beda per peran**, karena pekerjaan hariannya beda.
@@ -285,69 +345,104 @@ class _MenuUtama extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
     final m = SidikMaterial.of(context);
     final user = ref.watch(authProvider).value;
     final peran = user?.role ?? UserRole.viewer;
+    final w = WarnaBiruAwan.of(context);
     final tabAktif = ref.watch(selectedTabProvider);
+    // Angka lencana: ringkasan yang sama dengan tab Beranda (sudah dimuat di
+    // IndexedStack) dan jumlah notifikasi belum dibaca yang sama dengan lonceng.
+    // Gagal/menunggu = tanpa lencana, bukan angka karangan.
+    final ringkasan = ref.watch(dashboardProvider).value;
+    final belumDibaca = ref.watch(unreadCountProvider).value ?? 0;
 
-    final beranda = _Tujuan(Icons.space_dashboard_outlined, l10n.navDashboard, tab: 0);
+    final beranda = _Tujuan(
+      Icons.space_dashboard_outlined,
+      l10n.navDashboard,
+      tab: 0,
+    );
     final alat = _Tujuan(Icons.straighten_outlined, l10n.navEquipment, tab: 1);
     final riwayat = _Tujuan(Icons.history_outlined, l10n.navHistory, tab: 2);
     final folder = _Tujuan(Icons.folder_outlined, l10n.profArsip, tab: 3);
     final profil = _Tujuan(Icons.person_outline, l10n.navProfile, tab: 4);
-    final notifikasi = _Tujuan(Icons.notifications_none, l10n.navNotifications,
-        layar: () => const NotificationScreen());
-    final pelacakan = _Tujuan(Icons.local_shipping_outlined, l10n.telusuriJudul,
-        layar: () => const TelusuriSertifikatScreen());
-    final penugasan = _Tujuan(Icons.assignment_ind_outlined, l10n.penugasanJudul,
-        layar: () => const PenugasanScreen());
-    final jadwal = _Tujuan(Icons.event_repeat_outlined, l10n.jadwalJudul,
-        layar: () => const JadwalKalibrasiScreen());
-    final alur = _Tujuan(Icons.account_tree_outlined, l10n.alurTitle,
-        layar: () => const AlurKerjaScreen());
-    final draf = _Tujuan(Icons.edit_note, l10n.drafTitle,
-        layar: () => const DrafScreen());
+    final notifikasi = _Tujuan(
+      Icons.notifications_none,
+      l10n.navNotifications,
+      layar: () => const NotificationScreen(),
+      jumlah: belumDibaca,
+    );
+    final pelacakan = _Tujuan(
+      Icons.local_shipping_outlined,
+      l10n.telusuriJudul,
+      layar: () => const TelusuriSertifikatScreen(),
+    );
+    final penugasan = _Tujuan(
+      Icons.assignment_ind_outlined,
+      l10n.penugasanJudul,
+      layar: () => const PenugasanScreen(),
+    );
+    final jadwal = _Tujuan(
+      Icons.event_repeat_outlined,
+      l10n.jadwalJudul,
+      layar: () => const JadwalKalibrasiScreen(),
+      jumlah: ringkasan?.alatOverdue ?? 0,
+    );
+    final alur = _Tujuan(
+      Icons.account_tree_outlined,
+      l10n.alurTitle,
+      layar: () => const AlurKerjaScreen(),
+    );
+    final draf = _Tujuan(
+      Icons.edit_note,
+      l10n.drafTitle,
+      layar: () => const DrafScreen(),
+      jumlah: ringkasan?.kalibrasiDraft ?? 0,
+    );
 
-    final antreanApproval = _Tujuan(Icons.inbox_outlined, l10n.antreanTitle,
-        layar: () => const AntreanApprovalScreen());
-    final kelolaLab = _Tujuan(Icons.tune, l10n.kelolaJudul,
-        layar: () => const KelolaLabScreen());
+    final antreanApproval = _Tujuan(
+      Icons.inbox_outlined,
+      l10n.antreanTitle,
+      layar: () => const AntreanApprovalScreen(),
+      jumlah: ringkasan?.menungguApproval ?? 0,
+    );
+    final kelolaLab = _Tujuan(
+      Icons.tune,
+      l10n.kelolaJudul,
+      layar: () => const KelolaLabScreen(),
+    );
 
     final List<(String?, List<_Tujuan>)> seksi = switch (peran) {
       // Gabungan menu admin + teknisi (Pengesahan dicabut 15 Okt, K-50-07).
       UserRole.superAdmin => [
-        (l10n.menuKerjaHarian, [
-          beranda,
-          antreanApproval,
-          alur,
-          penugasan,
-          pelacakan,
-          draf,
-        ]),
+        (
+          l10n.menuKerjaHarian,
+          [beranda, antreanApproval, alur, penugasan, pelacakan, draf],
+        ),
         (l10n.menuArsip, [riwayat, alat, jadwal, folder, notifikasi]),
         (l10n.menuPengaturan, [kelolaLab, profil]),
       ],
       UserRole.admin => [
-        (l10n.menuKerjaHarian, [
-          beranda,
-          antreanApproval,
-          alur,
-          penugasan,
-          pelacakan,
-          draf,
-        ]),
+        (
+          l10n.menuKerjaHarian,
+          [beranda, antreanApproval, alur, penugasan, pelacakan, draf],
+        ),
         (l10n.menuArsip, [riwayat, alat, jadwal, folder, notifikasi]),
         (l10n.menuPengaturan, [kelolaLab, profil]),
       ],
       UserRole.teknisi => [
-        (l10n.menuKerjaHarian, [
-          beranda,
-          _Tujuan(Icons.assignment_ind_outlined, l10n.penugasanTugasSaya,
-              layar: () => const PenugasanScreen()),
-          draf,
-          riwayat,
-        ]),
+        (
+          l10n.menuKerjaHarian,
+          [
+            beranda,
+            _Tujuan(
+              Icons.assignment_ind_outlined,
+              l10n.penugasanTugasSaya,
+              layar: () => const PenugasanScreen(),
+            ),
+            draf,
+            riwayat,
+          ],
+        ),
         (l10n.menuArsip, [alat, pelacakan, folder, notifikasi]),
         (null, [profil]),
       ],
@@ -362,56 +457,84 @@ class _MenuUtama extends ConsumerWidget {
       if (t.tab != null) {
         ref.read(selectedTabProvider.notifier).select(t.tab!);
       } else if (t.layar != null) {
-        Navigator.of(context).push(
-          MaterialPageRoute<void>(builder: (_) => t.layar!()),
-        );
+        Navigator.of(
+          context,
+        ).push(MaterialPageRoute<void>(builder: (_) => t.layar!()));
       }
     }
 
+    // Panel kiri: selebar 320 (artboard `Menu`), tetapi di layar sempit selalu
+    // menyisakan satu sasaran sentuh di kanan supaya latar redup bisa diketuk.
+    final lebarLaci = math.min(
+      _lebarLaci,
+      MediaQuery.sizeOf(context).width - AppUkuran.sasaranSentuh,
+    );
+
     return Drawer(
+      width: lebarLaci,
       backgroundColor: m.kertas,
-      shape: const RoundedRectangleBorder(),
+      shadowColor: m.terang ? m.tinta : m.meja,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.horizontal(
+          right: Radius.circular(BentukBiruAwan.lembarBawah),
+        ),
+      ),
       child: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+          padding: const EdgeInsets.symmetric(
+            horizontal: _bantalanLaciSamping,
+            vertical: _bantalanLaciAtas,
+          ),
           children: [
-            // Kepala menu: pelat LOGAM (bingkai), bukan petak berpendar —
-            // isinya siapa yang sedang masuk dan sebagai apa, supaya orang
-            // yang pinjam HP rekannya langsung sadar menunya milik siapa.
-            Container(
-              margin: const EdgeInsets.all(AppSpacing.md),
-              padding: const EdgeInsets.all(AppSpacing.md),
-              decoration: m.logamTimbul(radius: SidikMaterial.sudutLogam),
-              child: Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: m.logamTertekan(radius: 9),
-                    child: Icon(Icons.biotech_outlined, color: m.etsa, size: 21),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          user?.nama ?? l10n.menuUtama,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: m.tinta,
-                          ),
+            // Kepala menu: siapa yang sedang masuk dan sebagai apa, supaya
+            // orang yang pinjam HP rekannya langsung sadar menunya milik
+            // siapa. Avatar berisi inisial, stempel peran, tombol tutup 44.
+            Semantics(
+              container: true,
+              explicitChildNodes: true,
+              child: Padding(
+                padding: const EdgeInsets.all(JarakBiruAwan.sisipan),
+                child: Row(
+                  children: [
+                    UbinIkon(
+                      ukuran: _ukuranAvatar,
+                      warna: IsiBiruAwan.awan,
+                      child: Text(
+                        inisialNama(user?.nama ?? ''),
+                        style: HurufBiruAwan.judulBagian.copyWith(
+                          color: w.tinta(IsiBiruAwan.awan),
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          peran.label.toUpperCase(),
-                          style: m.gayaEtsa(ukuran: 11),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: JarakBiruAwan.blok),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            user?.nama ?? l10n.menuUtama,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: HurufBiruAwan.judulBaris.copyWith(
+                              color: m.tinta,
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.xs),
+                          _PilPeran(peran.label),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    TombolBulat(
+                      key: const ValueKey('laci-tutup'),
+                      ikon: Icons.close,
+                      label: l10n.shellTutupMenu,
+                      ukuran: UkuranTombolBulat.kecil,
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
+                ),
               ),
             ),
             // Super admin & viewer dapat satu kalimat yang bilang apa yang
@@ -421,34 +544,192 @@ class _MenuUtama extends ConsumerWidget {
             if (peran == UserRole.superAdmin || peran == UserRole.viewer)
               Padding(
                 padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.lg,
-                  0,
-                  AppSpacing.lg,
+                  JarakBiruAwan.sisipan,
                   AppSpacing.sm,
+                  JarakBiruAwan.sisipan,
+                  0,
                 ),
                 child: Text(
                   peran == UserRole.superAdmin
                       ? l10n.menuCatatanSuperAdmin
                       : l10n.menuCatatanViewer,
-                  style: theme.textTheme.bodySmall,
+                  style: HurufBiruAwan.keteranganKecil.copyWith(
+                    color: m.tinta2,
+                  ),
                 ),
               ),
             for (final (judul, isi) in seksi) ...[
-              if (judul != null) _LabelSeksi(judul) else const Divider(),
+              const SizedBox(height: _jarakSeksi),
+              if (judul != null)
+                _LabelSeksi(judul)
+              else
+                Divider(
+                  height: AppUkuran.garis,
+                  thickness: AppUkuran.garis,
+                  color: m.kertasTepi,
+                ),
               for (final t in isi)
-                ListTile(
-                  leading: Icon(t.ikon),
-                  title: Text(t.judul),
-                  selected: t.tab != null && t.tab == tabAktif,
-                  // Tinta, bukan `primary`: di tema gelap biru di atas
-                  // biru-tipis cuma 1,9:1 — baris aktif malah jadi yang
-                  // paling susah dibaca. Penandanya latar, bukan warna teks.
-                  selectedColor: m.tinta,
-                  selectedTileColor: m.biruTipis,
-                  onTap: () => buka(t),
+                Padding(
+                  padding: const EdgeInsets.only(top: _jarakButir),
+                  child: _ButirLaci(
+                    tujuan: t,
+                    terpilih: t.tab != null && t.tab == tabAktif,
+                    onTap: () => buka(t),
+                  ),
                 ),
             ],
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Stempel peran di kepala laci: pil kabut 30, kata 12/700 (`biruTinta` di atas
+/// kabut 7,18:1). Bukan tombol; nama peran dibaca sebagai teks biasa.
+class _PilPeran extends StatelessWidget {
+  const _PilPeran(this.teks);
+
+  final String teks;
+
+  @override
+  Widget build(BuildContext context) {
+    final m = SidikMaterial.of(context);
+    final w = WarnaBiruAwan.of(context);
+
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: UkuranBiruAwan.stempel),
+        child: DecoratedBox(
+          decoration: ShapeDecoration(
+            color: w.isi(IsiBiruAwan.kabut),
+            shape: const StadiumBorder(),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: JarakBiruAwan.blok),
+            child: Center(
+              widthFactor: 1,
+              child: Text(
+                teks,
+                style: HurufBiruAwan.stempel.copyWith(color: m.biruTinta),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Satu butir laci (`LAYAR.md` A3): tinggi minimum 52, sudut pil, ikon 22 + label
+/// 15/600. TERPILIH = kabut + `biruTinta` 800 (penanda latar DAN bobot, bukan
+/// warna saja). [Lencana] koral di ujung bila ada angka.
+///
+/// Seluruh baris menerima ketukan. Pembaca layar mendengar satu butir:
+/// "judul, jumlah" bila ada lencana, ditandai terpilih.
+class _ButirLaci extends StatelessWidget {
+  const _ButirLaci({
+    required this.tujuan,
+    required this.terpilih,
+    required this.onTap,
+  });
+
+  final _Tujuan tujuan;
+  final bool terpilih;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final m = SidikMaterial.of(context);
+    final l10n = AppLocalizations.of(context);
+    final warnaIsi = terpilih ? m.biruTinta : m.tinta;
+    final gaya = HurufBiruAwan.tombol.copyWith(
+      color: warnaIsi,
+      fontWeight: terpilih ? FontWeight.w800 : FontWeight.w600,
+    );
+
+    return Semantics(
+      button: true,
+      selected: terpilih,
+      label: tujuan.jumlah > 0
+          ? l10n.biruAwanChipJumlah(tujuan.judul, tujuan.jumlah)
+          : tujuan.judul,
+      onTap: onTap,
+      excludeSemantics: true,
+      child: TekanSkala(
+        child: Material(
+          color: terpilih ? m.biruTipis : Colors.transparent,
+          shape: const StadiumBorder(),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onTap,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: _tinggiButir),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: _bantalanLaciSamping,
+                  vertical: AppSpacing.sm,
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      tujuan.ikon,
+                      size: UkuranKomponenBiruAwan.ikonBulat,
+                      color: warnaIsi,
+                    ),
+                    const SizedBox(width: _bantalanLaciSamping),
+                    Expanded(child: Text(tujuan.judul, style: gaya)),
+                    if (tujuan.jumlah > 0) ...[
+                      const SizedBox(width: AppSpacing.sm),
+                      _Lencana(tujuan.jumlah),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Lencana jumlah koral di ujung butir laci: pil >= 26, angka 12/800 navy
+/// (6,85:1 di koral). Lebih dari 99 ditulis "99+". Hanya angka dari provider;
+/// tidak menghitung apa pun.
+class _Lencana extends StatelessWidget {
+  const _Lencana(this.jumlah);
+
+  final int jumlah;
+
+  @override
+  Widget build(BuildContext context) {
+    final w = WarnaBiruAwan.of(context);
+
+    return ConstrainedBox(
+      constraints: const BoxConstraints(
+        minWidth: _ukuranLencana,
+        minHeight: _ukuranLencana,
+      ),
+      child: DecoratedBox(
+        decoration: ShapeDecoration(
+          color: w.isi(IsiBiruAwan.koral),
+          shape: const StadiumBorder(),
+        ),
+        child: Center(
+          widthFactor: 1,
+          heightFactor: 1,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: _bantalanLencana),
+            child: Text(
+              jumlah > _lencanaMaks ? '$_lencanaMaks+' : '$jumlah',
+              style: HurufBiruAwan.stempel.copyWith(
+                fontWeight: FontWeight.w800,
+                color: w.tinta(IsiBiruAwan.koral),
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -464,14 +745,20 @@ class _LabelSeksi extends StatelessWidget {
   Widget build(BuildContext context) {
     final m = SidikMaterial.of(context);
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.lg,
-        AppSpacing.md,
-        AppSpacing.lg,
-        AppSpacing.xs,
+    return Semantics(
+      header: true,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          _bantalanLaciSamping,
+          0,
+          _bantalanLaciSamping,
+          JarakBiruAwan.sisipan,
+        ),
+        child: Text(
+          teks,
+          style: HurufBiruAwan.stempel.copyWith(color: m.tinta2),
+        ),
       ),
-      child: Text(teks.toUpperCase(), style: m.gayaEtsa(ukuran: 11)),
     );
   }
 }

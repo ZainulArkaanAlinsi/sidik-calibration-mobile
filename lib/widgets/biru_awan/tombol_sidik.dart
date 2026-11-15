@@ -153,7 +153,12 @@ class _TombolSidikState extends State<TombolSidik> {
         ? BorderSide.none
         : BorderSide(color: tepi, width: AppUkuran.garis);
 
+    final reduksi = MediaQuery.disableAnimationsOf(context);
+
     final gaya = ButtonStyle(
+      // Peralihan isi dan tinta (mati/sibuk <-> aktif) memakai 200 ms bawaan
+      // Material; dengan "kurangi gerak" harus seketika.
+      animationDuration: reduksi ? Duration.zero : null,
       minimumSize: WidgetStatePropertyAll(
         Size(penuh ? double.infinity : AppUkuran.sasaranSentuh, tinggi),
       ),
@@ -182,7 +187,6 @@ class _TombolSidikState extends State<TombolSidik> {
       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
     );
 
-    final reduksi = MediaQuery.disableAnimationsOf(context);
     final Widget? penanda = sibuk
         ? SizedBox.square(
             dimension: UkuranKomponenBiruAwan.ikonTombol,

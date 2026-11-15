@@ -4379,5 +4379,12 @@
   "biruAwanLangkahSelesai": "done",
   "biruAwanLangkahSekarang": "current step",
   "biruAwanLangkahBelum": "not yet",
-  "biruAwanCari": "Search"
+  "biruAwanCari": "Search",
+  "shellTutupMenu": "Close menu",
+  "masukJudul": "Sign in to your lab account",
+  "masukAkreditasi": "KAN accreditation {nomor}, ISO/IEC 17025",
+  "@masukAkreditasi": {"placeholders": {"nomor": {"type": "String"}}},
+  "masukTampilkanSandi": "Show",
+  "masukSembunyikanSandi": "Hide",
+  "splashTagline": "KAN-accredited calibration"
 }
