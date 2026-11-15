@@ -8260,11 +8260,6 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String tekBerandaMenungguApproval(int n) {
-    return '$n menunggu approval.';
-  }
-
-  @override
   String get tekBerandaBersih => 'Semua lembar sudah terkirim.';
 
   @override
@@ -8281,4 +8276,9 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get tekMemuatDaftar => 'Memuat daftar';
+
+  @override
+  String tekBerandaKirimanMenunggu(int n) {
+    return '$n kiriman terakhir menunggu approval.';
+  }
 }

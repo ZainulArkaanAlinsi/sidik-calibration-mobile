@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart' show PointerDeviceKind;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -13,11 +14,13 @@ import '../../core/theme/warna_biru_awan.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/calibration_history_item.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/draf_lokal_provider.dart';
 import '../../providers/history_provider.dart';
 import '../../providers/kalibrasi_teknisi_provider.dart';
 import '../../providers/kesiapan_pindai_lembar_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../services/auth_service.dart' show gagalJaringan;
+import '../../services/draf_lokal.dart' show DrafLokal;
 import '../../widgets/biru_awan/hero_langit.dart';
 import '../../widgets/biru_awan/kartu_sidik24.dart';
 import '../../widgets/biru_awan/kepala_layar.dart';
@@ -51,7 +54,9 @@ import '../notification/notification_screen.dart';
 /// punya keadaannya sendiri: kerangka saat memuat, kabar saat kosong, galat
 /// dengan "Coba lagi", dan "tanpa koneksi" bila yang gagal jaringannya.
 /// Angka di kalimat judul datang dari daftar yang sama dengan bagian di
-/// bawahnya; tidak ada permintaan atau provider tambahan.
+/// bawahnya; tidak ada permintaan tambahan. Satu-satunya bacaan lain: salinan
+/// lembar di HP ini (`drafLokalProvider`), hanya untuk menggerbangi klaim
+/// "semua terkirim".
 class KalibrasiTeknisiScreen extends ConsumerWidget {
   const KalibrasiTeknisiScreen({super.key});
 
@@ -114,6 +119,10 @@ class KalibrasiTeknisiScreen extends ConsumerWidget {
     final revisi = ref.watch(perluRevisiTeknisiProvider);
     final draf = ref.watch(drafProvider);
     final terkirim = ref.watch(terkirimTerakhirProvider);
+    // Salinan lembar di HP ini: dibaca SAJA, hanya untuk menggerbangi klaim
+    // "semua terkirim" di kalimat judul. Daftarnya tidak ditampilkan di sini
+    // (tempatnya layar Draf).
+    final lokal = ref.watch(drafLokalProvider);
     final nama = ref.watch(authProvider.select((s) => s.value?.nama));
 
     return Scaffold(
@@ -151,6 +160,7 @@ class KalibrasiTeknisiScreen extends ConsumerWidget {
                     revisi: revisi,
                     draf: draf,
                     terkirim: terkirim,
+                    lokal: lokal,
                   ),
                 ),
                 const SizedBox(height: JarakBiruAwan.blok),
@@ -304,43 +314,71 @@ class _Kepala extends ConsumerWidget {
   }
 }
 
-/// "Halo, {nama}" + kalimat 28/34: "{n} draf belum dikirim. {m} menunggu
-/// approval." Bagian bernilai 0 tidak ditulis. Angkanya dihitung dari daftar
-/// yang sudah dimuat bagian di bawahnya: draf = isi bagian Draf; menunggu
-/// approval = sesi berstatus itu di antara kiriman terakhir yang dimuat
-/// (halaman pertama, paling banyak sepuluh), bukan hitungan seluruh lab.
+/// "Halo, {nama}" + kalimat 28/34: "{n} draf belum dikirim. {m} kiriman
+/// terakhir menunggu approval." Bagian bernilai 0 tidak ditulis.
+///
+/// Kalimat ini tidak pernah lebih yakin daripada yang sudah terbaca:
+///  - tiap potongan ditulis HANYA bila daftar asalnya terbaca (`hasValue`);
+///    daftar yang gagal atau masih memuat bukan "nol", jadi tidak ikut kalimat;
+///  - draf = isi bagian Draf; menunggu approval = sesi berstatus itu di antara
+///    kiriman terakhir yang dimuat (halaman pertama, paling banyak sepuluh),
+///    makanya kalimatnya menyebut "kiriman terakhir", bukan hitungan seluruh
+///    lab. Hitungan eksak nanti memakai `status=menunggu_approval` +
+///    `meta.total` dari server (CalibrationController.php:184, repo API);
+///    sekarang server mengembalikan 15 sesi terbaru semua status, jadi
+///    angkanya bisa kurang;
+///  - "Semua lembar sudah terkirim." hanya bila ketiga daftar server terbaca
+///    dan kosong DAN tidak ada salinan di HP ini yang belum tersinkron
+///    ([lokal] terbaca dan kosong). Selain itu judul netral, bukan klaim.
 class _Sapaan extends StatelessWidget {
   const _Sapaan({
     required this.nama,
     required this.revisi,
     required this.draf,
     required this.terkirim,
+    required this.lokal,
   });
 
   final String? nama;
   final AsyncValue<List<CalibrationHistoryItem>> revisi;
   final AsyncValue<List<CalibrationHistoryItem>> draf;
   final AsyncValue<List<CalibrationHistoryItem>> terkirim;
+  final AsyncValue<List<DrafLokal>> lokal;
+
+  /// Isi daftar hanya bila terbaca; memuat/gagal = `null`, BUKAN daftar kosong.
+  static List<T>? _terbaca<T>(AsyncValue<List<T>> daftar) =>
+      daftar.hasValue ? daftar.value : null;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final m = SidikMaterial.of(context);
 
-    final nDraf = draf.value?.length ?? 0;
+    final dataRevisi = _terbaca(revisi);
+    final dataDraf = _terbaca(draf);
+    final dataTerkirim = _terbaca(terkirim);
+    // Salinan di HP: HANYA yang sudah selesai dibaca (`AsyncData`). `hasValue`
+    // tidak cukup — pembacaan yang sedang diulang atau gagal masih membawa
+    // nilai sebelumnya (mis. `[]` waktu akun belum terbaca), dan nilai basi
+    // tidak boleh membenarkan klaim "semua terkirim".
+    final dataLokal = lokal is AsyncData<List<DrafLokal>> ? lokal.value : null;
+
+    final nDraf = dataDraf?.length ?? 0;
     final nTunggu =
-        terkirim.value
+        dataTerkirim
             ?.where((s) => s.status == CalibrationStatus.menungguApproval)
             .length ??
         0;
     final potongan = <String>[
       if (nDraf > 0) l10n.tekBerandaDrafBelumDikirim(nDraf),
-      if (nTunggu > 0) l10n.tekBerandaMenungguApproval(nTunggu),
+      if (nTunggu > 0) l10n.tekBerandaKirimanMenunggu(nTunggu),
     ];
-    // "Semua terkirim" hanya bila ketiga daftar sudah terbaca dan tidak ada
-    // lembar yang menunggu diperbaiki; selain itu judul netral, bukan klaim.
     final bersih =
-        (revisi.value?.isEmpty ?? false) && draf.hasValue && terkirim.hasValue;
+        potongan.isEmpty &&
+        (dataRevisi?.isEmpty ?? false) &&
+        (dataDraf?.isEmpty ?? false) &&
+        dataTerkirim != null &&
+        (dataLokal?.isEmpty ?? false);
 
     final depan = nama?.trim().split(RegExp(r'\s+')).first ?? '';
 
@@ -574,36 +612,71 @@ class _Bagian extends StatelessWidget {
 }
 
 /// Draf: baris geser mendatar, kartu 196 x 148 (tinggi ikut skala huruf).
-class _GeserDraf extends StatelessWidget {
+///
+/// Layar ini juga dipakai teknisi di Windows (`desktop_shell.dart`), dan
+/// `ScrollBehavior` bawaan TIDAK mengizinkan seret dengan tetikus: tanpa
+/// [ScrollConfiguration] di bawah, draf di luar lebar hanya terjangkau dengan
+/// Shift+roda. [Scrollbar] (pengendali sendiri, dibuang di [dispose]) memberi
+/// tahu bahwa barisnya masih bisa digeser; di ponsel ia hanya tampak saat
+/// digeser.
+class _GeserDraf extends StatefulWidget {
   const _GeserDraf({required this.daftar, required this.onBuka});
 
   final List<CalibrationHistoryItem> daftar;
   final void Function(CalibrationHistoryItem) onBuka;
 
   @override
+  State<_GeserDraf> createState() => _GeserDrafState();
+}
+
+class _GeserDrafState extends State<_GeserDraf> {
+  final _pengendali = ScrollController();
+
+  @override
+  void dispose() {
+    _pengendali.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final tinggi = MediaQuery.textScalerOf(
       context,
     ).scale(UkuranBiruAwan.kartuDrafTinggi);
+    final daftar = widget.daftar;
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: KalibrasiTeknisiScreen._tepi,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          for (var i = 0; i < daftar.length; i++) ...[
-            if (i > 0) const SizedBox(width: JarakBiruAwan.blok),
-            SizedBox(
-              width: UkuranBiruAwan.kartuDrafLebar,
-              height: tinggi,
-              child: _KartuDraf(
-                sesi: daftar[i],
-                onTap: () => onBuka(daftar[i]),
-              ),
-            ),
-          ],
-        ],
+    return ScrollConfiguration(
+      behavior: ScrollConfiguration.of(context).copyWith(
+        dragDevices: const {
+          PointerDeviceKind.touch,
+          PointerDeviceKind.mouse,
+          PointerDeviceKind.trackpad,
+          PointerDeviceKind.stylus,
+        },
+      ),
+      child: Scrollbar(
+        controller: _pengendali,
+        child: SingleChildScrollView(
+          controller: _pengendali,
+          scrollDirection: Axis.horizontal,
+          padding: KalibrasiTeknisiScreen._tepi,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (var i = 0; i < daftar.length; i++) ...[
+                if (i > 0) const SizedBox(width: JarakBiruAwan.blok),
+                SizedBox(
+                  width: UkuranBiruAwan.kartuDrafLebar,
+                  height: tinggi,
+                  child: _KartuDraf(
+                    sesi: daftar[i],
+                    onTap: () => widget.onBuka(daftar[i]),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }

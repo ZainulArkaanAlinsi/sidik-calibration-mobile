@@ -14402,12 +14402,6 @@ abstract class AppLocalizations {
   /// **'{n, plural, =1{1 draft not sent yet.} other{{n} drafts not sent yet.}}'**
   String tekBerandaDrafBelumDikirim(int n);
 
-  /// No description provided for @tekBerandaMenungguApproval.
-  ///
-  /// In en, this message translates to:
-  /// **'{n} awaiting approval.'**
-  String tekBerandaMenungguApproval(int n);
-
   /// No description provided for @tekBerandaBersih.
   ///
   /// In en, this message translates to:
@@ -14443,6 +14437,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Loading list'**
   String get tekMemuatDaftar;
+
+  /// No description provided for @tekBerandaKirimanMenunggu.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 recent submission awaiting approval.} other{{n} recent submissions awaiting approval.}}'**
+  String tekBerandaKirimanMenunggu(int n);
 }
 
 class _AppLocalizationsDelegate

@@ -302,7 +302,12 @@ void main() {
 
       // SDK-0002 = teknisi: shell-nya dua tab, jadi "Dashboard" (tab 0 admin)
       // digantikan "Kalibrasi" — yang dijaga: tab aktif kembali ke yang pertama.
-      expect(find.widgetWithText(AppBar, 'Kalibrasi'), findsOneWidget);
+      // Beranda teknisi Biru Awan (L7a) tidak punya AppBar; yang menandai layar
+      // Kalibrasi sedang tampil adalah tombol "Mulai kalibrasi"-nya.
+      expect(
+        find.byKey(const ValueKey('tombol-mulai-kalibrasi')),
+        findsOneWidget,
+      );
     });
 
     test('role asing dari backend → dianggap viewer (paling aman)', () {

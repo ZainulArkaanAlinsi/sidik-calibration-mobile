@@ -8401,11 +8401,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String tekBerandaMenungguApproval(int n) {
-    return '$n awaiting approval.';
-  }
-
-  @override
   String get tekBerandaBersih => 'All worksheets have been sent.';
 
   @override
@@ -8422,4 +8417,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tekMemuatDaftar => 'Loading list';
+
+  @override
+  String tekBerandaKirimanMenunggu(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n recent submissions awaiting approval.',
+      one: '1 recent submission awaiting approval.',
+    );
+    return '$_temp0';
+  }
 }

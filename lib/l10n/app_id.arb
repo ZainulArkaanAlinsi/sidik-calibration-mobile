@@ -3438,11 +3438,11 @@
   "tekBerandaKeteranganMerek": "Kalibrasi terakreditasi KAN",
   "tekBerandaNotifikasiBelumDibaca": "Notifikasi, {n} belum dibaca",
   "tekBerandaDrafBelumDikirim": "{n} draf belum dikirim.",
-  "tekBerandaMenungguApproval": "{n} menunggu approval.",
   "tekBerandaBersih": "Semua lembar sudah terkirim.",
   "tekBerandaJudulNetral": "Lembar kerja kamu",
   "tekHeroLabel": "Kalibrasi baru",
   "tekHeroJudul": "Mulai dari alat yang datang hari ini",
   "tekTanpaKoneksi": "Tanpa koneksi. Daftar ini belum bisa dimuat.",
-  "tekMemuatDaftar": "Memuat daftar"
+  "tekMemuatDaftar": "Memuat daftar",
+  "tekBerandaKirimanMenunggu": "{n} kiriman terakhir menunggu approval."
 }
