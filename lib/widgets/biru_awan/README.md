@@ -1,0 +1,85 @@
+# Komponen Biru Awan (`lib/widgets/biru_awan/`)
+
+Komponen dasar desain ulang SIDIK Lab (`docs/desain-ulang/`). Dibuat BARU; widget
+lama (`app_button`, `app_text_field`, `sidik_loader`, `status_badge`, dan
+`lib/widgets/sidik/*`) tidak diubah dan tetap dipakai area beku serta layar yang
+belum didesain ulang. Layar pindah ke komponen ini satu per satu (L5 dst.).
+
+**Status L3a (15 Nov 2026): semua komponen di bawah SUDAH ADA dan diuji, belum ada
+layar yang memakainya.** Satu-satunya pemakai di `lib/` adalah galeri
+pengembang `lib/screens/pengembang/galeri_biru_awan_screen.dart` (dibuka dari
+`design_system_screen.dart`, hanya di build debug). Komponen L3b (HeroLangit,
+UbinKpi, GrafikBatang, StepperTegak, GarisWaktu, AvatarInisial, Lencana,
+BilahLangkah, KolomCari) belum dibuat.
+
+## Daftar
+
+| Komponen | Berkas | Dipakai untuk | Pengganti |
+|---|---|---|---|
+| `TombolSidik` | `tombol_sidik.dart` | Semua tombol berlabel. Ragam: `utama` (56, satu per layar), `tegas` (navy), `sekunder` (tepi kontrol), `teks`, `bahaya`. Mati dengan `alasanMati`, `sibuk` | `AppButton`, `FilledButton`/`OutlinedButton` polos |
+| `TombolBulat` | `tombol_bulat.dart` | Tombol ikon: 44 (cari, tambah), 48 (kembali, lonceng, menu), 60 (Mulai di dock). `label` wajib; sentuh >= 48 | `IconButton`, FAB |
+| `IsianSidik` | `isian_sidik.dart` | Isian teks: label di atas, kotak 56, keadaan biasa, fokus, galat, mati; `wajib`, `mono`, `akhir` | `AppTextField`, `TextFormField` polos |
+| `StempelSidik` | `stempel_sidik.dart` | Status: pil 30, ikon + kata. Nada dari `StatusTampil` yang ada; FAIL navy pekat; `.keputusan(null)` netral | `StatusBadge`, `Stempel` lama |
+| `ChipSaring` | `chip_saring.dart` | Saring dengan jumlah (pil 44, bulatan 32) | `FilterChip`, `ChoiceChip` |
+| `SegmenPil<T>` | `segmen_pil.dart` | 2 sampai 3 pilihan saling meniadakan (peran, mode) | `SegmentedButton`, `TabBar` pendek |
+| `KartuSidik24` | `kartu_sidik24.dart` | Wadah kartu sudut 24, datar; bisa diketuk, terpilih, galat | `Card`, `KartuGradien` |
+| `PanelBaris` + `BarisMenu64` + `BarisDaftar72` | `panel_baris.dart` | Panel putih berisi baris menu (64, ubin bulat 44) atau baris daftar (72, ubin 48) dengan pemisah halus | `ListTile`, kartu per baris |
+| `UbinIkon` | `ubin_ikon.dart` | Ubin berwarna berisi ikon atau gambar kecil (bulat 44 atau persegi 48) | `CircleAvatar` hias |
+| `KepalaTab` + `KepalaAnak` | `kepala_layar.dart` | Kepala layar tab (logo, nama, peran, aksi bulat) dan layar anak (kembali, judul, nomor, aksi) | `AppBar` |
+
+Gerak bersama ada di `lib/core/motion/gerak_bersama.dart` (`MasukBerurutan`,
+`TekanSkala`); token di `lib/core/theme/token_komponen_biru_awan.dart` (huruf,
+jarak, ukuran) dan `lib/core/theme/warna_biru_awan.dart` (isi dan tinta status).
+
+## Aturan pakai
+
+- Teks tampilan dari pemanggil (l10n); komponen hanya membawa kunci `biruAwan*`
+  untuk kata bantu pembaca layar (kembali, sedang diproses, wajib, galat).
+- Tanpa warna, ukuran, atau radius mentah (`test/tema/token_only_test.dart`).
+  Kontras pasangan dijaga `test/tema/kontras_biru_awan_test.dart`.
+- Sasaran sentuh >= 48 dp, semantik berlabel dengan aksi ketuk, "kurangi gerak"
+  mematikan animasi, tanpa luapan di 320 dp x huruf 1,3 (tes di `test/biru_awan/`).
+- Komponen tidak menghitung angka ukur dan tidak memvonis: nada stempel dan
+  keputusan datang dari server lewat pemanggil. `keputusan == null` tampil netral,
+  tidak pernah hijau.
+- Satu tombol `utama` per layar. Aksi bahaya memakai kata kerja jelas.
+- Berkas beku (`PETA-LAYAR.md`, `BEKU.md`) tidak memakai komponen ini.
+
+## Penyimpangan dan batas yang dicatat (tinjauan L3a)
+
+Tiga hal ini sengaja dibiarkan dan dicatat di sini supaya tidak ditemukan ulang
+sebagai temuan baru. Tidak satu pun diubah di L3a.
+
+- **Pemutar sibuk `TombolSidik` (20 dp) langsung berputar.** `ELEMEN.md`
+  ("Memuat") menyebut spinner 36 dp yang baru tampil bila menunggu lebih dari
+  400 ms dan menjadikannya satu-satunya gerak berulang. Implementasi sekarang
+  menyimpang di dua hal: ukurannya 20 dp (sebaris dengan label di dalam
+  tombol) dan berputar sejak `sibuk` menyala, tanpa tunda 400 ms. Dengan "kurangi
+  gerak" busurnya diam. Ini penyimpangan yang dicatat, belum keputusan desain:
+  TANYAKAN ke desain apakah tombol berlabel boleh memakai pemutar kecil
+  langsung, atau harus menunda 400 ms (atau memakai spinner 36 di tempat lain).
+- **`IsianSidik` API-nya lebih sempit dari `AppTextField`.** Belum didukung:
+  `prefixIcon` dan `suffix` teks (satuan, mis. "mm", "kg"); yang ada hanya
+  `akhir` (widget bebas di ujung kotak, setara `trailing`). Tidak ada tombol
+  tampil/sembunyi sandi otomatis: `obscureText` saja, pemanggil memasang
+  tombolnya lewat `akhir`. Juga belum ada `readOnly`, `maxLength`, `validator`
+  (`Form`), dan `onEditingComplete`. Yang hanya ada di `IsianSidik`:
+  `focusNode`, `textCapitalization`, `maxLines`, `mono`, `wajib`.
+  Tambahkan yang dibutuhkan layar saat layar itu dipindahkan (L5 dst.), jangan
+  sebelumnya.
+- **`KepalaTab` belum memakai `LabProfile.logoAsset`.** Path logo masih ditulis
+  langsung (`assets/images/logo_pt_sidik.png`) di `kepala_layar.dart`, padahal
+  sudah ada `LabProfile.logoAsset` (`lib/core/config/lab_profile.dart`).
+  Disambungkan di L5/L6, saat layar pertama memakai kepala ini dan sumber logo
+  per lab menjadi relevan.
+
+## Cincin fokus `TombolSidik`
+
+Digambar di LUAR tombol, terpisah `UkuranKomponenBiruAwan.jarakCincinFokus` (2 dp)
+dari tepinya, warna `tinta`. Cincin di dalam bentuk (rancangan pertama) sama
+dengan isi pada ragam `tegas` (1,00:1) dan hanya 1,6 sampai 3,0:1 pada `utama`
+dan `bahaya`. Di luar dan terpisah, yang bersebelahan dengan cincin adalah latar
+halaman, jadi kontrasnya diukur terhadap `meja` dan `kertas` (>= 3:1, terang dan
+gelap): `test/biru_awan/tombol_sidik_test.dart` dan
+`test/tema/kontras_biru_awan_test.dart`. Cincin tidak memengaruhi tata letak;
+beri ruang >= 4 dp di sekeliling tombol yang berada di tepi wadah yang memotong.

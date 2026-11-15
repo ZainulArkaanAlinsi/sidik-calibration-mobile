@@ -8310,4 +8310,28 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get detailVerifikasiLewatLembar =>
       'This is a draft. Open the worksheet, check each camera reading one by one, then send. The confirm-all button is hidden here on purpose.';
+
+  @override
+  String get biruAwanKembali => 'Back';
+
+  @override
+  String get biruAwanSedangDiproses => 'in progress';
+
+  @override
+  String biruAwanLabelWajib(String label) {
+    return '$label (required)';
+  }
+
+  @override
+  String biruAwanIsianGalat(String pesan) {
+    return 'Error: $pesan';
+  }
+
+  @override
+  String biruAwanChipJumlah(String label, int jumlah) {
+    return '$label, $jumlah';
+  }
+
+  @override
+  String get biruAwanTanpaKeputusan => 'No PASS/FAIL';
 }

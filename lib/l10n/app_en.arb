@@ -4364,5 +4364,14 @@
   "@cekGridNomorTermokopel": {"placeholders": {"nomor": {"type": "int"}}},
   "cekGridIndikator": "Indicator",
   "cekGridSuhuRuang": "Room temperature",
-  "detailVerifikasiLewatLembar": "This is a draft. Open the worksheet, check each camera reading one by one, then send. The confirm-all button is hidden here on purpose."
+  "detailVerifikasiLewatLembar": "This is a draft. Open the worksheet, check each camera reading one by one, then send. The confirm-all button is hidden here on purpose.",
+  "biruAwanKembali": "Back",
+  "biruAwanSedangDiproses": "in progress",
+  "biruAwanLabelWajib": "{label} (required)",
+  "@biruAwanLabelWajib": {"placeholders": {"label": {"type": "String"}}},
+  "biruAwanIsianGalat": "Error: {pesan}",
+  "@biruAwanIsianGalat": {"placeholders": {"pesan": {"type": "String"}}},
+  "biruAwanChipJumlah": "{label}, {jumlah}",
+  "@biruAwanChipJumlah": {"placeholders": {"label": {"type": "String"}, "jumlah": {"type": "int"}}},
+  "biruAwanTanpaKeputusan": "No PASS/FAIL"
 }
