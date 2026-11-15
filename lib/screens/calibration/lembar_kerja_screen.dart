@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -111,6 +112,7 @@ class LembarKerjaScreen extends ConsumerStatefulWidget {
     this.judulTambahan,
     this.profil = 'ph_meter',
     this.drafLokal,
+    this.fotoAwal,
   });
 
   /// Keisi = lanjut draft / perbaiki sesi yang dikembalikan admin (`PUT`).
@@ -126,6 +128,23 @@ class LembarKerjaScreen extends ConsumerStatefulWidget {
   final DrafLokal? drafLokal;
 
   final String? judulTambahan;
+
+  /// Byte JPEG foto lembar yang SUDAH dipotret di beranda ("Pindai lembar
+  /// kerja"). `null` (bawaan) = perilaku lama persis.
+  ///
+  /// Dipakai SEKALI: pada "Foto lembar kerja" pertama — sesudah teknisi
+  /// memilih alat dan menekan tombolnya, tidak pernah sebelumnya — sebagai
+  /// percobaan pertama tanpa membuka kamera. Percobaan berikutnya (termasuk
+  /// "Foto ulang") kembali ke kamera. Hanya di memori: tidak ditulis ke disk
+  /// dan tidak diunggah.
+  ///
+  /// Memori, apa adanya: byte JPEG ini (beberapa MB, bukan citra decode) TETAP
+  /// dipegang widget ini, [_Form], dan closure route pemanggil selama lembar
+  /// terbuka, juga sesudah dipakai; baru lepas saat route ditutup. Yang
+  /// dikosongkan sesudah dipakai hanya salinan di State (`_fotoAwalSisa`),
+  /// supaya tidak bisa dipakai dua kali. Melepasnya lebih awal butuh pemegang
+  /// sekali-ambil yang mengubah tipe parameter ini; ditunda.
+  final Uint8List? fotoAwal;
 
   /// Kode jenis alat (`ph_meter` / `turbidimeter` / `chlorine_meter` /
   /// `refractometer`) —
@@ -382,6 +401,7 @@ class _LembarKerjaScreenState extends ConsumerState<LembarKerjaScreen>
           profil: widget.profil,
           judulTambahan: widget.judulTambahan,
           drafLokal: widget.drafLokal,
+          fotoAwal: widget.fotoAwal,
           equipmentIdKunci: _equipmentId,
           pengulanganKunci: _pengulangan,
           onAlatBerubah: (id) {
@@ -474,6 +494,7 @@ class _Form extends ConsumerStatefulWidget {
     this.sesiId,
     this.judulTambahan,
     this.drafLokal,
+    this.fotoAwal,
     this.equipmentIdKunci,
     this.pengulanganKunci,
   });
@@ -500,6 +521,10 @@ class _Form extends ConsumerStatefulWidget {
 
   /// Lihat [LembarKerjaScreen.drafLokal].
   final DrafLokal? drafLokal;
+
+  /// Lihat [LembarKerjaScreen.fotoAwal] (termasuk catatan memorinya: widget ini
+  /// tetap memegang byte-nya selama lembar terbuka).
+  final Uint8List? fotoAwal;
 
   /// Kunci bentuk yang DIMINTA layar di atas (alat & jumlah kotak) — dipakai
   /// buat tahu salinan di HP perlu menunggu bentuk lain dulu atau nggak.
@@ -650,6 +675,7 @@ class _FormState extends ConsumerState<_Form> {
     _tandaTampilTerakhir = _hitungTandaTampil();
 
     _sesiIdTerkini = widget.sesiId;
+    _fotoAwalSisa = widget.fotoAwal;
     _pasangSalinanHp();
 
     // Server Render gratis tidur sesudah ~15 menit nganggur dan butuh 30–90 s
@@ -671,6 +697,12 @@ class _FormState extends ConsumerState<_Form> {
       (kode: widget.profil, equipmentId: _isian.alat?.id);
 
   bool _sedangMemindai = false;
+
+  /// Sisa foto dari beranda yang belum dipakai ([LembarKerjaScreen.fotoAwal]).
+  /// Hanya salinan di State ini yang dikosongkan begitu diserahkan ke pindai,
+  /// apa pun hasilnya: itu yang membuatnya sekali pakai. Ini TIDAK melepas
+  /// memori (widget masih memegang byte-nya sampai route ditutup).
+  Uint8List? _fotoAwalSisa;
 
   /// Pintu "Foto lembar kerja" hanya untuk formulir yang boleh dipindai DAN
   /// yang tabelnya bisa diterima lembar ini (Enclosure: grid, belum).
@@ -791,11 +823,17 @@ class _FormState extends ConsumerState<_Form> {
         return;
       }
 
+      // Foto dari beranda hanya untuk percobaan pertama: salinan di State
+      // dikosongkan SEBELUM pindai jalan, jadi percobaan ulang selalu lewat
+      // kamera.
+      final awal = _fotoAwalSisa;
+      _fotoAwalSisa = null;
       final terisi = await pindaiFormulirAsli(
         context: context,
         ref: ref,
         isian: _isian,
         template: asli,
+        bitaAwal: awal,
       );
       if (terisi > 0 && mounted) _isianBerubah();
     } finally {
@@ -1471,6 +1509,9 @@ class _FormState extends ConsumerState<_Form> {
 
   @override
   void dispose() {
+    // Kebersihan saja: State ini dibuang bersama field-nya. Byte-nya sendiri
+    // masih dipegang widget/route sampai route benar-benar lepas.
+    _fotoAwalSisa = null;
     _pratinjauTertunda?.cancel();
     if (_kotor) {
       final ctl = _kotorCtl;

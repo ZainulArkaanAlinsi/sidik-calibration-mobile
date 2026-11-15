@@ -61,21 +61,37 @@ const _kodeIsian = '@isian';
 /// pemanggil tetap berlaku). Tiap percobaan adalah panggilan [_pindaiSekali]
 /// tersendiri yang SUDAH selesai sebelum dialog tampil: citra foto gagal yang
 /// puluhan MB tidak ikut tertahan selama percobaan berikutnya.
+///
+/// ## Foto awal (dari "Pindai lembar kerja" di beranda)
+///
+/// [bitaAwal] = JPEG kamera yang SUDAH diambil di beranda (apa adanya, bukan
+/// citra hasil decode). Dipakai HANYA untuk percobaan PERTAMA, melewati kamera
+/// dan pemulihan foto tertinggal; selebihnya identik dengan foto kamera biasa
+/// (decode yang sama, `_kenali` tetap memeriksa ulang kode formulir terhadap
+/// [template]). Sekali pakai: "Foto ulang" dan pemanggilan berikutnya kembali
+/// ke kamera. `null` = perilaku lama persis. Tidak ditulis ke disk dan tidak
+/// diunggah — hanya di memori (pemanggil yang memegang byte-nya; fungsi ini
+/// tidak menyimpannya).
 Future<int> pindaiFormulirAsli({
   required BuildContext context,
   required WidgetRef ref,
   required LembarKerjaState isian,
   required WorksheetTemplate template,
   JalankanPindaiAsli? mesin,
+  Uint8List? bitaAwal,
 }) async {
+  var awal = bitaAwal;
   while (true) {
     _UsulFotoUlang? usul;
+    final dipakai = awal;
+    awal = null; // Sekali pakai: percobaan berikutnya selalu lewat kamera.
     final terisi = await _pindaiSekali(
       context: context,
       ref: ref,
       isian: isian,
       template: template,
       mesin: mesin,
+      bitaAwal: dipakai,
       mintaFotoUlang: (u) => usul = u,
     );
 
@@ -124,6 +140,8 @@ bool sebabHalamanTerpotong(GagalPindaiAsli sebab) =>
 /// Satu percobaan penuh: ambil foto → baca → layar review → isi lembar.
 /// [mintaFotoUlang] dipanggil (lalu fungsi ini mengembalikan 0) bila alasan
 /// gagalnya layak ditawari foto ulang; kalau tidak, pesan lewat snackbar.
+/// [bitaAwal] non-null = JPEG yang sudah diambil pemanggil: kamera TIDAK
+/// dibuka untuk percobaan ini.
 Future<int> _pindaiSekali({
   required BuildContext context,
   required WidgetRef ref,
@@ -131,6 +149,7 @@ Future<int> _pindaiSekali({
   required WorksheetTemplate template,
   required void Function(_UsulFotoUlang usul) mintaFotoUlang,
   JalankanPindaiAsli? mesin,
+  Uint8List? bitaAwal,
 }) async {
   final l10n = AppLocalizations.of(context);
   final messenger = ScaffoldMessenger.of(context);
@@ -147,38 +166,45 @@ Future<int> _pindaiSekali({
         .then<void>((_) {}, onError: (Object _) {}),
   );
 
-  // Batas 4200 px per sisi, mutu JPEG 100 — sama dengan jalur foto tabel.
-  // Dulu foto PENUH (alasannya: tiap piksel yang dibuang hilang dari angka).
-  // Tapi yang dibaca per sel di sini citra HASIL PERATAAN di kanvas tetap
-  // 3 px/pt (A4 ≈ 1785×2526 px, `JalankanPindaiAsli.skalaPxPerPt`), jadi
-  // piksel di atas ~4200 tidak pernah sampai ke ML Kit sel — yang tersisa
-  // cuma decode + salinan citra 50–200 MP yang membuat HP murah kehabisan
-  // memori (OOM) lalu aplikasinya ditutup sistem. Mutunya TIDAK diturunkan:
-  // artefak JPEG di garis tipis yang bikin `4,04` kebaca `404`.
-  final File? berkas;
-  try {
-    berkas = await ambilFotoAtauPulihkan(
-      ref.read(sumberFotoProvider),
-      pakaiTertinggal: (f) => konfirmasiFotoTertinggal(context, f),
-      maxWidth: batasSisiFotoAsli,
-      maxHeight: batasSisiFotoAsli,
-      imageQuality: 100,
-      // Bingkai panduan kamera sendiri mengikuti bentuk halaman templat.
-      rasioKertas: _rasioKertas(template),
-    );
-  } catch (e, st) {
-    // Izin kamera ditolak, kamera tidak ada, dsb. Dulu lolos tanpa pesan.
-    catatGalatPindai('asli-kamera', e, st);
-    kabar(pesanGalatPindai(l10n, e, umum: l10n.lkAsliGagalUmum));
-    return 0;
-  }
-  if (berkas == null) return 0;
+  final Uint8List bita;
+  if (bitaAwal != null) {
+    // Foto dari beranda: sudah di memori, tanpa berkas. Kamera tidak dibuka.
+    // Beranda memotretnya dengan batas dan mutu yang sama dengan di bawah.
+    bita = bitaAwal;
+  } else {
+    // Batas 4200 px per sisi, mutu JPEG 100 — sama dengan jalur foto tabel.
+    // Dulu foto PENUH (alasannya: tiap piksel yang dibuang hilang dari angka).
+    // Tapi yang dibaca per sel di sini citra HASIL PERATAAN di kanvas tetap
+    // 3 px/pt (A4 ≈ 1785×2526 px, `JalankanPindaiAsli.skalaPxPerPt`), jadi
+    // piksel di atas ~4200 tidak pernah sampai ke ML Kit sel — yang tersisa
+    // cuma decode + salinan citra 50–200 MP yang membuat HP murah kehabisan
+    // memori (OOM) lalu aplikasinya ditutup sistem. Mutunya TIDAK diturunkan:
+    // artefak JPEG di garis tipis yang bikin `4,04` kebaca `404`.
+    final File? berkas;
+    try {
+      berkas = await ambilFotoAtauPulihkan(
+        ref.read(sumberFotoProvider),
+        pakaiTertinggal: (f) => konfirmasiFotoTertinggal(context, f),
+        maxWidth: batasSisiFotoAsli,
+        maxHeight: batasSisiFotoAsli,
+        imageQuality: 100,
+        // Bingkai panduan kamera sendiri mengikuti bentuk halaman templat.
+        rasioKertas: _rasioKertas(template),
+      );
+    } catch (e, st) {
+      // Izin kamera ditolak, kamera tidak ada, dsb. Dulu lolos tanpa pesan.
+      catatGalatPindai('asli-kamera', e, st);
+      kabar(pesanGalatPindai(l10n, e, umum: l10n.lkAsliGagalUmum));
+      return 0;
+    }
+    if (berkas == null) return 0;
 
-  final bita = await berkas.readAsBytes();
-  try {
-    await berkas.delete();
-  } catch (_) {
-    // Sampah yang tak terhapus bukan alasan menolak foto.
+    bita = await berkas.readAsBytes();
+    try {
+      await berkas.delete();
+    } catch (_) {
+      // Sampah yang tak terhapus bukan alasan menolak foto.
+    }
   }
 
   // Decode 4200 px = puluhan MB RGB. Di HP RAM kecil bisa kehabisan memori

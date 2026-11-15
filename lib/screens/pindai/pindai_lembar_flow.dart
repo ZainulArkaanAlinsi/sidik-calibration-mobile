@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io' show File;
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,32 +26,40 @@ import '../../widgets/pilih_jenis_lembar_sheet.dart';
 import '../calibration/lembar_kerja_screen.dart';
 import '../calibration/pindai_formulir_asli_flow.dart' show batasSisiFotoAsli;
 
-/// "Pindai lembar kerja" dari beranda (Opsi A): foto lembar -> aplikasi
+/// "Pindai lembar kerja" dari beranda (Opsi B): foto lembar -> aplikasi
 /// MENYARANKAN jenisnya -> teknisi konfirmasi -> lembar kerja jenis itu
-/// terbuka KOSONG.
+/// terbuka KOSONG, dan foto yang sama menunggu di sana untuk dipakai sekali.
 ///
 /// Urutannya, dan apa yang TIDAK dilakukannya:
 ///
 ///  1. Daftar jenis dari cache `kesiapanPindaiLembarProvider` (tidak meminta
 ///     server lagi); gagal = pesan butuh koneksi, tanpa kamera.
 ///  2. Kamera, lalu decode di isolate (foto 4200 px ≈ puluhan MB, dibuang
-///     dari memori sebelum lembar kerja dibuka).
+///     dari memori sebelum lembar kerja dibuka). Yang DISIMPAN hanya byte
+///     JPEG aslinya (beberapa MB), bukan citra hasil decode; byte itu tetap
+///     dipegang alur ini, `LembarKerjaScreen`, dan closure route selama lembar
+///     kerja terbuka, lalu lepas saat route ditutup.
 ///  3. Pembaca halaman ML Kit di perangkat, putaran 0/90/180/270 sampai kode
 ///     formulir terbaca (`kenaliJenisLembar`). Pembaca SELALU ditutup.
 ///  4. SATU lembar pilihan (`tampilkanPilihJenisLembar`): usulan hanya
 ///     memilih-awal baris bila kode cocok tepat satu jenis; pilih manual
-///     selalu ada; menutup lembar = selesai tanpa membuka apa pun.
+///     selalu ada; menutup lembar = selesai tanpa membuka apa pun (tidak ada
+///     yang memegang foto lagi).
 ///  5. Jenis yang dikonfirmasi belum boleh dipindai server = pesan, tanpa
 ///     navigasi. Selain itu `LembarKerjaScreen` jenis itu dibuka — dibungkus
-///     `BekuLembarKerja` seperti pemanggil lembar kerja lain.
+///     `BekuLembarKerja` seperti pemanggil lembar kerja lain — dengan
+///     `fotoAwal` = byte JPEG tadi.
 ///
 /// Tidak ada isian, navigasi, atau pilihan jenis tanpa konfirmasi teknisi;
-/// tidak ada satu sel pun yang terisi dari foto ini (sel kosong tetap kosong).
-/// Foto tidak diunggah dan tidak disimpan: hanya ada di memori selama dibaca,
-/// berkas kameranya dihapus begitu bitanya terbaca. Teknisi memotret LAGI di
-/// dalam lembar kerja lewat alur "Foto lembar kerja" yang sudah ada (butuh
-/// alat dipilih dulu), yang memeriksa ulang kode formulir terhadap jenis yang
-/// dipilih.
+/// tidak ada satu sel pun yang terisi dari foto ini di sini (sel kosong tetap
+/// kosong), dan alur ini sendiri TIDAK memulai pindai sel. Foto tidak
+/// diunggah dan tidak disimpan ke disk: hanya ada di memori, dan berkas
+/// kameranya dihapus begitu bitanya terbaca. Teknisi memilih alat dulu di
+/// lembar kerja (titik ukur lahir dari alat), lalu menekan "Foto lembar
+/// kerja": foto ini dipakai SEKALI sebagai percobaan pertama (kamera TIDAK
+/// dibuka lagi), melewati pemeriksaan yang sama dengan foto kamera biasa —
+/// termasuk memeriksa ulang kode formulir terhadap jenis yang dipilih. Yang
+/// kedua dan seterusnya lewat kamera.
 ///
 /// [setelahKembali] dipanggil sesudah lembar kerja ditutup (mis. menyegarkan
 /// daftar draf beranda teknisi).
@@ -109,6 +118,12 @@ Future<void> pindaiLembarKerja({
         child: LembarKerjaScreen(
           profil: pilihan.templateId,
           judulTambahan: namaPendekJudul(pilihan.judul),
+          // Byte JPEG yang SAMA dengan yang dikenali tadi: teknisi memotret
+          // sekali. Dipakai di lembar kerja hanya setelah alat dipilih dan
+          // "Foto lembar kerja" ditekan. Byte-nya tertahan (di widget dan
+          // closure ini) sampai route ditutup, bukan cuma sampai dipakai;
+          // pemegang sekali-ambil yang bisa melepasnya lebih awal ditunda.
+          fotoAwal: kenal.jpeg,
         ),
       ),
     ),
@@ -118,13 +133,14 @@ Future<void> pindaiLembarKerja({
 }
 
 /// Hasil pengenalan; `petunjuk == null` = tidak ada petunjuk sama sekali
-/// (lembar pilihan menampilkan daftar manual).
-typedef _Pengenalan = ({HasilJenisLembar? petunjuk});
+/// (lembar pilihan menampilkan daftar manual). [jpeg] = byte JPEG kamera apa
+/// adanya, untuk dibawa ke lembar kerja (satu-satunya salinan foto).
+typedef _Pengenalan = ({HasilJenisLembar? petunjuk, Uint8List jpeg});
 
 /// Kamera -> decode -> pembaca halaman. `null` = berhenti (dibatalkan atau
-/// gagal; pesan sudah ditampilkan). Fungsi terpisah supaya foto dan citra
-/// hasil decode (puluhan MB) lepas dari memori sebelum lembar pilihan dan
-/// lembar kerja dibuka.
+/// gagal; pesan sudah ditampilkan). Fungsi terpisah supaya citra hasil decode
+/// (puluhan MB) lepas dari memori sebelum lembar pilihan dan lembar kerja
+/// dibuka; yang keluar dari sini hanya byte JPEG-nya.
 Future<_Pengenalan?> _ambilDanKenali({
   required BuildContext context,
   required WidgetRef ref,
@@ -244,5 +260,5 @@ Future<_Pengenalan?> _ambilDanKenali({
     return null;
   }
 
-  return (petunjuk: petunjuk);
+  return (petunjuk: petunjuk, jpeg: bita);
 }
