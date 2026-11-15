@@ -1,0 +1,52 @@
+# Jaga drift berkas turunan di tiap pull request.
+#
+# ## Kenapa ada
+#
+# `AGENTS.md`: "Do not commit `pubspec.lock` drift from local SDK." Aturan itu
+# tadinya cuma lisan. `tool/jaga-drift.sh` menjadikannya pagar: PR yang mengubah
+# `pubspec.lock` (atau berkas turunan plugin) tanpa mengubah `pubspec.yaml`, atau
+# yang membawa berkas buatan alat (`.dart_tool/`, `graphify-out/`,
+# `_agents_workspace/`), ditolak di sini. Alasan lengkap, daftar aturan, dan jalan
+# keluar yang disengaja (`Izinkan-drift: <alasan>` di pesan commit) ada di kepala
+# skripnya.
+#
+# ## Sifatnya
+#
+# - Tanpa state dan tanpa secret: dijalankan ulang kapan pun hasilnya sama, dan
+#   tidak ada yang ditulis ke mana pun. Izin cuma baca.
+# - Murah: bash saja, tanpa Flutter, beberapa detik. Job terpisah dari
+#   `periksa-pr.yml` supaya salahnya langsung kelihatan tanpa menunggu toolchain.
+# - Mematikannya: hapus berkas ini, atau `gh workflow disable "Jaga drift"`.
+# - Hanya pull request. Di `main` tidak dijalankan: merge squash sudah lewat
+#   pemeriksaan ini di PR-nya, dan jalan keluar `Izinkan-drift:` yang sah tidak
+#   boleh membuat `main` merah.
+name: Jaga drift
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: jaga-drift-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  jaga:
+    name: Jaga drift
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      # Riwayat penuh: skrip membandingkan dari titik cabang PR (`base...head`)
+      # dan membaca pesan semua commit PR.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Uji skrip penjaga drift
+        run: ./tool/uji-jaga-drift.sh
+
+      - name: Jaga drift berkas turunan
+        run: ./tool/jaga-drift.sh "origin/${{ github.base_ref }}" "${{ github.event.pull_request.head.sha }}"
