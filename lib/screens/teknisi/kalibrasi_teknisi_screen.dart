@@ -1,34 +1,62 @@
+import 'package:flutter/gestures.dart' show PointerDeviceKind;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/motion/gerak_bersama.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_ukuran.dart';
 import '../../core/theme/beku_lembar_kerja.dart';
+import '../../core/theme/bentuk_lab.dart';
+import '../../core/theme/sidik_material.dart';
+import '../../core/theme/token_komponen_biru_awan.dart';
+import '../../core/theme/token_komponen_biru_awan_lanjut.dart';
+import '../../core/theme/warna_biru_awan.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/calibration_history_item.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/draf_lokal_provider.dart';
 import '../../providers/history_provider.dart';
 import '../../providers/kalibrasi_teknisi_provider.dart';
 import '../../providers/kesiapan_pindai_lembar_provider.dart';
-import '../../widgets/app_button.dart';
-import '../../widgets/notification_bell.dart';
+import '../../providers/notification_provider.dart';
+import '../../services/auth_service.dart' show gagalJaringan;
+import '../../services/draf_lokal.dart' show DrafLokal;
+import '../../widgets/biru_awan/hero_langit.dart';
+import '../../widgets/biru_awan/kartu_sidik24.dart';
+import '../../widgets/biru_awan/kepala_layar.dart';
+import '../../widgets/biru_awan/lencana.dart';
+import '../../widgets/biru_awan/panel_baris.dart';
+import '../../widgets/biru_awan/stempel_sidik.dart';
+import '../../widgets/biru_awan/tombol_sidik.dart';
+import '../../widgets/biru_awan/ubin_ikon.dart';
 import '../../widgets/readable_width.dart';
-import '../../widgets/status_badge.dart';
+import '../../widgets/sidik/status_tampil.dart';
 import '../../widgets/tombol_pindai_lembar.dart';
 import '../calibration/category_picker_screen.dart';
 import '../calibration/instrument_picker_screen.dart'
     show profilLembarKerjaUntuk;
 import '../calibration/lembar_kerja_screen.dart';
+import '../notification/notification_screen.dart';
 
 /// Tab "Kalibrasi" — SATU-SATUNYA tempat kerja teknisi (keputusan pemilik
 /// 15 Okt 2026, K-50-14: teknisi hanya mengisi lembar kerja + profil).
 ///
-/// Isinya urut pekerjaannya: mulai lembar baru, perbaiki yang dikembalikan,
-/// lanjutkan draf, lalu lihat apa yang sudah terkirim. Tidak ada dashboard,
+/// Tampilan Biru Awan (L7a, `docs/desain-ulang/LAYAR.md` 01): kepala dengan
+/// lonceng, sapaan + kalimat ringkas, hero langit berisi "Mulai kalibrasi",
+/// lalu bagian-bagiannya urut pekerjaannya: perbaiki yang dikembalikan,
+/// lanjutkan draf, lihat apa yang sudah terkirim. Tidak ada dashboard,
 /// grafik, panel 3D, daftar alat, atau arsip — semuanya pernah dibangun untuk
 /// teknisi dan tidak ada yang dipakai di lapangan; yang ada cuma membuat app
 /// lambat dibuka.
 ///
 /// Tiga daftar dimuat sendiri-sendiri (satu gagal tidak menjatuhkan yang
-/// lain), masing-masing SATU permintaan halaman pertama.
+/// lain), masing-masing SATU permintaan halaman pertama, dan tiap bagian
+/// punya keadaannya sendiri: kerangka saat memuat, kabar saat kosong, galat
+/// dengan "Coba lagi", dan "tanpa koneksi" bila yang gagal jaringannya.
+/// Angka di kalimat judul datang dari daftar yang sama dengan bagian di
+/// bawahnya; tidak ada permintaan tambahan. Satu-satunya bacaan lain: salinan
+/// lembar di HP ini (`drafLokalProvider`), hanya untuk menggerbangi klaim
+/// "semua terkirim".
 class KalibrasiTeknisiScreen extends ConsumerWidget {
   const KalibrasiTeknisiScreen({super.key});
 
@@ -52,83 +80,174 @@ class KalibrasiTeknisiScreen extends ConsumerWidget {
     if (context.mounted) segarkan(ref);
   }
 
+  /// Draf & perlu revisi dibuka langsung ke lembar kerjanya.
+  ///
+  /// Profil dari server dulu; tebakan nama cuma cadangan. Kalau dua-duanya tak
+  /// dikenal, JANGAN jatuh ke lembar pH: angka yang sudah diketik akan mendarat
+  /// di baris pH yang salah.
+  static void _bukaSesi(
+    BuildContext context,
+    WidgetRef ref,
+    CalibrationHistoryItem sesi,
+  ) {
+    final profil = sesi.profil ?? profilLembarKerjaUntuk(sesi.namaAlat);
+    if (profil == null) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            key: const ValueKey('snackbar-profil-tak-dikenal'),
+            content: Text(AppLocalizations.of(context).tekProfilTakDikenal),
+          ),
+        );
+      return;
+    }
+    buka(
+      context,
+      ref,
+      BekuLembarKerja(
+        child: LembarKerjaScreen(sesiId: sesi.id, profil: profil),
+      ),
+    );
+  }
+
+  static const _tepi = EdgeInsets.symmetric(horizontal: AppSpacing.md);
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final revisi = ref.watch(perluRevisiTeknisiProvider);
+    final draf = ref.watch(drafProvider);
+    final terkirim = ref.watch(terkirimTerakhirProvider);
+    // Salinan lembar di HP ini: dibaca SAJA, hanya untuk menggerbangi klaim
+    // "semua terkirim" di kalimat judul. Daftarnya tidak ditampilkan di sini
+    // (tempatnya layar Draf).
+    final lokal = ref.watch(drafLokalProvider);
+    final nama = ref.watch(authProvider.select((s) => s.value?.nama));
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.tekKalibrasiJudul),
-        // Lonceng tetap: lembar yang dikembalikan & kabar lain datang lewat
-        // notifikasi.
-        actions: const [
-          NotificationBell(),
-          SizedBox(width: AppSpacing.sm),
-        ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          segarkan(ref);
-          // Daftar jenis lembar di-cache sepanjang sesi; tarik-segarkan satu-
-          // satunya jalan memintanya lagi (tombol "Pindai lembar kerja").
-          ref.invalidate(kesiapanPindaiLembarProvider);
-          await Future.wait([
-            ref
-                .read(perluRevisiTeknisiProvider.future)
-                .then((_) {}, onError: (_) {}),
-            ref.read(drafProvider.future).then((_) {}, onError: (_) {}),
-            ref
-                .read(terkirimTerakhirProvider.future)
-                .then((_) {}, onError: (_) {}),
-          ]);
-        },
-        child: ReadableWidth(
-          child: ListView(
-            // Selalu bisa ditarik, juga saat isinya pendek: tarik-segarkan
-            // satu-satunya jalan pulih dari galat awal (mis. tanpa koneksi).
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(AppSpacing.md),
-            children: [
-              AppButton(
-                key: const ValueKey('tombol-mulai-kalibrasi'),
-                label: l10n.dashStartCalibration,
-                icon: Icons.add_task,
-                onPressed: () => buka(
-                  context,
-                  ref,
-                  const BekuLembarKerja(child: CategoryPickerScreen()),
+      body: SafeArea(
+        bottom: false,
+        child: RefreshIndicator(
+          onRefresh: () async {
+            segarkan(ref);
+            // Daftar jenis lembar di-cache sepanjang sesi; tarik-segarkan
+            // satu-satunya jalan memintanya lagi (tombol "Pindai lembar
+            // kerja").
+            ref.invalidate(kesiapanPindaiLembarProvider);
+            await Future.wait([
+              ref
+                  .read(perluRevisiTeknisiProvider.future)
+                  .then((_) {}, onError: (_) {}),
+              ref.read(drafProvider.future).then((_) {}, onError: (_) {}),
+              ref
+                  .read(terkirimTerakhirProvider.future)
+                  .then((_) {}, onError: (_) {}),
+            ]);
+          },
+          child: ReadableWidth(
+            child: ListView(
+              // Selalu bisa ditarik, juga saat isinya pendek: tarik-segarkan
+              // satu-satunya jalan pulih dari galat awal (mis. tanpa koneksi).
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+              children: [
+                const Padding(padding: _tepi, child: _Kepala()),
+                Padding(
+                  padding: _tepi.copyWith(top: AppSpacing.md),
+                  child: _Sapaan(
+                    nama: nama,
+                    revisi: revisi,
+                    draf: draf,
+                    terkirim: terkirim,
+                    lokal: lokal,
+                  ),
                 ),
-              ),
-              // Tampil hanya bila server menyatakan ada jenis lembar yang
-              // boleh dipindai; selain itu tidak memakan ruang.
-              TombolPindaiLembar(setelahKembali: () async => segarkan(ref)),
-              const SizedBox(height: AppSpacing.lg),
-              _Bagian(
-                kunci: 'bagian-perlu-revisi',
-                sembunyiBilaKosong: true,
-                judul: l10n.tekPerluRevisi,
-                kosong: l10n.tekPerluRevisiKosong,
-                isi: ref.watch(perluRevisiTeknisiProvider),
-                onCobaLagi: () => ref.invalidate(perluRevisiTeknisiProvider),
-                baris: (s) => _KartuSesi(sesi: s, bisaDibuka: true),
-              ),
-              _Bagian(
-                kunci: 'bagian-draf',
-                judul: l10n.drafTitle,
-                kosong: l10n.tekDrafKosong,
-                isi: ref.watch(drafProvider),
-                onCobaLagi: () => ref.invalidate(drafProvider),
-                baris: (s) => _KartuSesi(sesi: s, bisaDibuka: true),
-              ),
-              _Bagian(
-                kunci: 'bagian-terkirim',
-                judul: l10n.tekTerkirim,
-                kosong: l10n.tekTerkirimKosong,
-                isi: ref.watch(terkirimTerakhirProvider),
-                onCobaLagi: () => ref.invalidate(terkirimTerakhirProvider),
-                baris: (s) => _KartuSesi(sesi: s, bisaDibuka: false),
-              ),
-            ],
+                const SizedBox(height: JarakBiruAwan.blok),
+                MasukBerurutan(
+                  indeks: 0,
+                  child: Padding(
+                    padding: _tepi,
+                    child: _Hero(
+                      onMulai: () => buka(
+                        context,
+                        ref,
+                        const BekuLembarKerja(child: CategoryPickerScreen()),
+                      ),
+                    ),
+                  ),
+                ),
+                // Tampil hanya bila server menyatakan ada jenis lembar yang
+                // boleh dipindai; selain itu tidak memakan ruang.
+                Padding(
+                  padding: _tepi,
+                  child: TombolPindaiLembar(
+                    jarakAtas: JarakBiruAwan.blok,
+                    setelahKembali: () async => segarkan(ref),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                _Bagian(
+                  kunci: 'bagian-perlu-revisi',
+                  sembunyiBilaKosong: true,
+                  judul: l10n.tekPerluRevisi,
+                  kosong: l10n.tekPerluRevisiKosong,
+                  isi: revisi,
+                  onCobaLagi: () => ref.invalidate(perluRevisiTeknisiProvider),
+                  bangunKerangka: (_) => const SizedBox.shrink(),
+                  bangunIsi: (context, daftar) => Padding(
+                    padding: _tepi,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        for (final s in daftar)
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              bottom: JarakBiruAwan.blok,
+                            ),
+                            child: _KartuRevisi(
+                              sesi: s,
+                              onTap: () => _bukaSesi(context, ref, s),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                MasukBerurutan(
+                  indeks: 1,
+                  child: _Bagian(
+                    kunci: 'bagian-draf',
+                    judul: l10n.drafTitle,
+                    kosong: l10n.tekDrafKosong,
+                    isi: draf,
+                    onCobaLagi: () => ref.invalidate(drafProvider),
+                    bangunKerangka: (_) => const _KerangkaDraf(),
+                    bangunIsi: (context, daftar) => _GeserDraf(
+                      daftar: daftar,
+                      onBuka: (s) => _bukaSesi(context, ref, s),
+                    ),
+                  ),
+                ),
+                MasukBerurutan(
+                  indeks: 2,
+                  child: _Bagian(
+                    kunci: 'bagian-terkirim',
+                    judul: l10n.tekTerkirim,
+                    kosong: l10n.tekTerkirimKosong,
+                    isi: terkirim,
+                    onCobaLagi: () => ref.invalidate(terkirimTerakhirProvider),
+                    bangunKerangka: (_) => const _KerangkaTerkirim(),
+                    bangunIsi: (context, daftar) => Padding(
+                      padding: _tepi,
+                      child: PanelBaris.daftar(
+                        anak: [for (final s in daftar) _BarisTerkirim(sesi: s)],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -136,6 +255,221 @@ class KalibrasiTeknisiScreen extends ConsumerWidget {
   }
 }
 
+/// Kode status API untuk pemetaan tampilan yang sudah ada
+/// ([StatusTampil.dariKode]); satu status satu tampilan di seluruh app.
+String _kodeStatus(CalibrationStatus s) => switch (s) {
+  CalibrationStatus.draft => 'draft',
+  CalibrationStatus.menungguApproval => 'menunggu_approval',
+  CalibrationStatus.disetujui => 'disetujui',
+  CalibrationStatus.perluRevisi => 'perlu_revisi',
+};
+
+/// Stempel status satu baris Terkirim. Status sesi memakai pemetaan yang sudah
+/// ada ([StatusTampil.dariKode]); satu pengecualian: "menunggu approval"
+/// ditulis penuh ("Menunggu approval", seperti artboard dan layar lama) karena
+/// kata "Menunggu" saja di daftar kiriman tidak menyebut menunggu siapa.
+Widget _stempel(AppLocalizations l10n, CalibrationStatus status) =>
+    status == CalibrationStatus.menungguApproval
+    ? StempelSidik.teks(
+        teks: l10n.historyStatusMenungguApproval,
+        nada: NadaStempel.tunggu,
+        ikon: Icons.hourglass_empty,
+      )
+    : StempelSidik(StatusTampil.dariKode(_kodeStatus(status)));
+
+/// Logo, nama lab, dan lonceng notifikasi (lencana koral = belum dibaca).
+class _Kepala extends ConsumerWidget {
+  const _Kepala();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    // Gagal mengambil angka lencana dianggap 0, bukan galat: lonceng yang
+    // galat tidak menolong siapa-siapa dan layar notifikasinya sendiri tetap
+    // bisa dibuka (sama seperti `NotificationBell` lama).
+    final belumDibaca = ref.watch(unreadCountProvider).value ?? 0;
+
+    return KepalaTab(
+      judul: l10n.tekBerandaMerek,
+      subjudul: l10n.tekBerandaKeteranganMerek,
+      aksi: [
+        // Simpul sendiri: tanpa `container`, tombol bulat menyatu dengan nama
+        // dan keterangan lab di sebelahnya jadi satu simpul pembaca layar.
+        Semantics(
+          container: true,
+          child: LoncengBerlencana(
+            label: belumDibaca > 0
+                ? l10n.tekBerandaNotifikasiBelumDibaca(belumDibaca)
+                : l10n.navNotifications,
+            jumlah: belumDibaca,
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const NotificationScreen(),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// "Halo, {nama}" + kalimat 28/34: "{n} draf belum dikirim. {m} kiriman
+/// terakhir menunggu approval." Bagian bernilai 0 tidak ditulis.
+///
+/// Kalimat ini tidak pernah lebih yakin daripada yang sudah terbaca:
+///  - tiap potongan ditulis HANYA bila daftar asalnya terbaca (`hasValue`);
+///    daftar yang gagal atau masih memuat bukan "nol", jadi tidak ikut kalimat;
+///  - draf = isi bagian Draf; menunggu approval = sesi berstatus itu di antara
+///    kiriman terakhir yang dimuat (halaman pertama, paling banyak sepuluh),
+///    makanya kalimatnya menyebut "kiriman terakhir", bukan hitungan seluruh
+///    lab. Hitungan eksak nanti memakai `status=menunggu_approval` +
+///    `meta.total` dari server (CalibrationController.php:184, repo API);
+///    sekarang server mengembalikan 15 sesi terbaru semua status, jadi
+///    angkanya bisa kurang;
+///  - "Semua lembar sudah terkirim." hanya bila ketiga daftar server terbaca
+///    dan kosong DAN tidak ada salinan di HP ini yang belum tersinkron
+///    ([lokal] terbaca dan kosong). Selain itu judul netral, bukan klaim.
+class _Sapaan extends StatelessWidget {
+  const _Sapaan({
+    required this.nama,
+    required this.revisi,
+    required this.draf,
+    required this.terkirim,
+    required this.lokal,
+  });
+
+  final String? nama;
+  final AsyncValue<List<CalibrationHistoryItem>> revisi;
+  final AsyncValue<List<CalibrationHistoryItem>> draf;
+  final AsyncValue<List<CalibrationHistoryItem>> terkirim;
+  final AsyncValue<List<DrafLokal>> lokal;
+
+  /// Isi daftar hanya bila terbaca; memuat/gagal = `null`, BUKAN daftar kosong.
+  static List<T>? _terbaca<T>(AsyncValue<List<T>> daftar) =>
+      daftar.hasValue ? daftar.value : null;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final m = SidikMaterial.of(context);
+
+    final dataRevisi = _terbaca(revisi);
+    final dataDraf = _terbaca(draf);
+    final dataTerkirim = _terbaca(terkirim);
+    // Salinan di HP: HANYA yang sudah selesai dibaca (`AsyncData`). `hasValue`
+    // tidak cukup — pembacaan yang sedang diulang atau gagal masih membawa
+    // nilai sebelumnya (mis. `[]` waktu akun belum terbaca), dan nilai basi
+    // tidak boleh membenarkan klaim "semua terkirim".
+    final dataLokal = lokal is AsyncData<List<DrafLokal>> ? lokal.value : null;
+
+    final nDraf = dataDraf?.length ?? 0;
+    final nTunggu =
+        dataTerkirim
+            ?.where((s) => s.status == CalibrationStatus.menungguApproval)
+            .length ??
+        0;
+    final potongan = <String>[
+      if (nDraf > 0) l10n.tekBerandaDrafBelumDikirim(nDraf),
+      if (nTunggu > 0) l10n.tekBerandaKirimanMenunggu(nTunggu),
+    ];
+    final bersih =
+        potongan.isEmpty &&
+        (dataRevisi?.isEmpty ?? false) &&
+        (dataDraf?.isEmpty ?? false) &&
+        dataTerkirim != null &&
+        (dataLokal?.isEmpty ?? false);
+
+    final depan = nama?.trim().split(RegExp(r'\s+')).first ?? '';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (depan.isNotEmpty)
+          Text(
+            l10n.dashGreetingName(depan),
+            style: HurufBiruAwan.keterangan.copyWith(color: m.tinta2),
+          ),
+        const SizedBox(height: AppSpacing.xs),
+        Semantics(
+          header: true,
+          child: Text.rich(
+            TextSpan(
+              children: [
+                if (potongan.isEmpty)
+                  TextSpan(
+                    text: bersih
+                        ? l10n.tekBerandaBersih
+                        : l10n.tekBerandaJudulNetral,
+                  )
+                else
+                  for (var i = 0; i < potongan.length; i++)
+                    TextSpan(
+                      text: i == 0 ? potongan[i] : ' ${potongan[i]}',
+                      style: i == 0 ? null : TextStyle(color: m.tinta2),
+                    ),
+              ],
+            ),
+            style: HurufBiruAwan.judulLayar.copyWith(color: m.tinta),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Hero langit: "Kalibrasi baru" + judul + tombol navy "Mulai kalibrasi".
+class _Hero extends StatelessWidget {
+  const _Hero({required this.onMulai});
+
+  final VoidCallback onMulai;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final m = SidikMaterial.of(context);
+
+    return HeroLangit(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.tekHeroLabel,
+            style: HurufLanjutBiruAwan.labelKpi.copyWith(color: m.tinta),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          // Dibatasi selebar visual hero (188) supaya tidak menabrak gambar
+          // alat yang menumpang di kanan bawah (L4).
+          ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: UkuranBiruAwan.visualHero,
+            ),
+            child: Semantics(
+              header: true,
+              child: Text(
+                l10n.tekHeroJudul,
+                style: HurufBiruAwan.judulHero.copyWith(color: m.tinta),
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          TombolSidik(
+            key: const ValueKey('tombol-mulai-kalibrasi'),
+            label: l10n.dashStartCalibration,
+            ikon: Icons.add_task,
+            ragam: RagamTombolSidik.tegas,
+            lebarPenuh: false,
+            onPressed: onMulai,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Satu bagian daftar: judul + jumlah, lalu SALAH SATU dari kerangka (memuat),
+/// kabar kosong, galat / tanpa koneksi dengan "Coba lagi", atau isinya. Tiap
+/// bagian memuat dan gagal sendiri-sendiri.
 class _Bagian extends StatelessWidget {
   const _Bagian({
     required this.kunci,
@@ -143,7 +477,8 @@ class _Bagian extends StatelessWidget {
     required this.kosong,
     required this.isi,
     required this.onCobaLagi,
-    required this.baris,
+    required this.bangunKerangka,
+    required this.bangunIsi,
     this.sembunyiBilaKosong = false,
   });
 
@@ -157,16 +492,85 @@ class _Bagian extends StatelessWidget {
   final String kosong;
   final AsyncValue<List<CalibrationHistoryItem>> isi;
   final VoidCallback onCobaLagi;
-  final Widget Function(CalibrationHistoryItem) baris;
+  final WidgetBuilder bangunKerangka;
+
+  /// Isi bagian; mengatur bantalan tepinya sendiri (daftar draf menggeser
+  /// sampai tepi layar).
+  final Widget Function(BuildContext, List<CalibrationHistoryItem>) bangunIsi;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
+    final m = SidikMaterial.of(context);
     final data = isi.value;
 
     if (sembunyiBilaKosong && !isi.hasError && (data == null || data.isEmpty)) {
       return const SizedBox.shrink();
+    }
+
+    final Widget keadaan;
+    if (data != null) {
+      keadaan = data.isEmpty
+          ? Padding(
+              padding: KalibrasiTeknisiScreen._tepi,
+              child: Semantics(
+                container: true,
+                child: KartuSidik24(
+                  latar: LatarKartu.kabut,
+                  child: Text(
+                    kosong,
+                    style: HurufBiruAwan.keterangan.copyWith(color: m.tinta),
+                  ),
+                ),
+              ),
+            )
+          : bangunIsi(context, data);
+    } else if (isi.hasError) {
+      final tanpaKoneksi = gagalJaringan(isi.error);
+      keadaan = Padding(
+        padding: KalibrasiTeknisiScreen._tepi,
+        child: Semantics(
+          container: true,
+          child: KartuSidik24(
+            latar: LatarKartu.galat,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    UbinIkon(
+                      ikon: tanpaKoneksi ? Icons.wifi_off : Icons.error_outline,
+                      warna: IsiBiruAwan.koral,
+                    ),
+                    const SizedBox(width: JarakBiruAwan.blok),
+                    Expanded(
+                      child: Text(
+                        tanpaKoneksi ? l10n.tekTanpaKoneksi : l10n.tekGagalMuat,
+                        style: HurufBiruAwan.keterangan.copyWith(
+                          color: m.tinta,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                TombolSidik(
+                  label: l10n.folderRetry,
+                  ragam: RagamTombolSidik.tegas,
+                  lebarPenuh: false,
+                  onPressed: onCobaLagi,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    } else {
+      keadaan = Semantics(
+        container: true,
+        label: l10n.tekMemuatDaftar,
+        child: ExcludeSemantics(child: bangunKerangka(context)),
+      );
     }
 
     return Padding(
@@ -175,149 +579,355 @@ class _Bagian extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            data == null ? judul : '$judul (${data.length})',
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w700,
+          Padding(
+            padding: KalibrasiTeknisiScreen._tepi,
+            child: Semantics(
+              container: true,
+              header: true,
+              child: Text.rich(
+                TextSpan(
+                  text: judul,
+                  children: [
+                    // "Draf 0" tidak ditulis: kabar kosongnya sudah di bawah.
+                    if (data != null && data.isNotEmpty)
+                      TextSpan(
+                        text: ' ${data.length}',
+                        style: TextStyle(
+                          color: m.tinta2,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                  ],
+                ),
+                style: HurufBiruAwan.judulBagian.copyWith(color: m.tinta),
+              ),
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
-          if (data != null) ...[
-            if (data.isEmpty)
-              Text(
-                kosong,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              )
-            else
-              for (final s in data) baris(s),
-          ] else if (isi.hasError)
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    l10n.tekGagalMuat,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.error,
-                    ),
-                  ),
-                ),
-                TextButton(
-                  onPressed: onCobaLagi,
-                  child: Text(l10n.folderRetry),
-                ),
-              ],
-            )
-          else
-            const LinearProgressIndicator(),
+          keadaan,
         ],
       ),
     );
   }
 }
 
-class _KartuSesi extends ConsumerWidget {
-  const _KartuSesi({required this.sesi, required this.bisaDibuka});
+/// Draf: baris geser mendatar, kartu 196 x 148 (tinggi ikut skala huruf).
+///
+/// Layar ini juga dipakai teknisi di Windows (`desktop_shell.dart`), dan
+/// `ScrollBehavior` bawaan TIDAK mengizinkan seret dengan tetikus: tanpa
+/// [ScrollConfiguration] di bawah, draf di luar lebar hanya terjangkau dengan
+/// Shift+roda. [Scrollbar] (pengendali sendiri, dibuang di [dispose]) memberi
+/// tahu bahwa barisnya masih bisa digeser; di ponsel ia hanya tampak saat
+/// digeser.
+class _GeserDraf extends StatefulWidget {
+  const _GeserDraf({required this.daftar, required this.onBuka});
 
-  final CalibrationHistoryItem sesi;
-
-  /// Draf & perlu revisi dibuka langsung ke lembar kerjanya; yang sudah
-  /// terkirim cuma dibaca statusnya.
-  final bool bisaDibuka;
-
-  static String _kodeStatus(CalibrationStatus s) => switch (s) {
-    CalibrationStatus.draft => 'draft',
-    CalibrationStatus.menungguApproval => 'menunggu_approval',
-    CalibrationStatus.disetujui => 'disetujui',
-    CalibrationStatus.perluRevisi => 'perlu_revisi',
-  };
+  final List<CalibrationHistoryItem> daftar;
+  final void Function(CalibrationHistoryItem) onBuka;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final catatan = sesi.catatanRevisi;
+  State<_GeserDraf> createState() => _GeserDrafState();
+}
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: InkWell(
-        key: ValueKey('kartu-sesi-teknisi-${sesi.id}'),
-        onTap: !bisaDibuka
-            ? null
-            : () {
-                // Profil dari server dulu; tebakan nama cuma cadangan. Kalau
-                // dua-duanya tak dikenal, JANGAN jatuh ke lembar pH: angka
-                // yang sudah diketik akan mendarat di baris pH yang salah.
-                final profil =
-                    sesi.profil ?? profilLembarKerjaUntuk(sesi.namaAlat);
-                if (profil == null) {
-                  ScaffoldMessenger.of(context)
-                    ..hideCurrentSnackBar()
-                    ..showSnackBar(
-                      SnackBar(
-                        key: const ValueKey('snackbar-profil-tak-dikenal'),
-                        content: Text(
-                          AppLocalizations.of(context).tekProfilTakDikenal,
-                        ),
-                      ),
-                    );
-                  return;
-                }
-                KalibrasiTeknisiScreen.buka(
-                  context,
-                  ref,
-                  BekuLembarKerja(
-                    child: LembarKerjaScreen(sesiId: sesi.id, profil: profil),
-                  ),
-                );
-              },
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: Column(
+class _GeserDrafState extends State<_GeserDraf> {
+  final _pengendali = ScrollController();
+
+  @override
+  void dispose() {
+    _pengendali.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tinggi = MediaQuery.textScalerOf(
+      context,
+    ).scale(UkuranBiruAwan.kartuDrafTinggi);
+    final daftar = widget.daftar;
+
+    return ScrollConfiguration(
+      behavior: ScrollConfiguration.of(context).copyWith(
+        dragDevices: const {
+          PointerDeviceKind.touch,
+          PointerDeviceKind.mouse,
+          PointerDeviceKind.trackpad,
+          PointerDeviceKind.stylus,
+        },
+      ),
+      child: Scrollbar(
+        controller: _pengendali,
+        child: SingleChildScrollView(
+          controller: _pengendali,
+          scrollDirection: Axis.horizontal,
+          padding: KalibrasiTeknisiScreen._tepi,
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      sesi.namaAlat,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleSmall,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  StatusBadge.fromApi(_kodeStatus(sesi.status)),
-                ],
-              ),
-              if (sesi.nomorSesi != null || sesi.namaPelanggan != null) ...[
-                const SizedBox(height: 2),
-                Text(
-                  [?sesi.nomorSesi, ?sesi.namaPelanggan].join(' · '),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-              // Catatan Master Data ditulis UTUH di kartu: itu yang harus
-              // dikerjakan, dan teknisi tidak perlu membuka layar lain untuk
-              // membacanya.
-              if (sesi.status == CalibrationStatus.perluRevisi &&
-                  catatan != null &&
-                  catatan.trim().isNotEmpty) ...[
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  catatan,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.error,
+              for (var i = 0; i < daftar.length; i++) ...[
+                if (i > 0) const SizedBox(width: JarakBiruAwan.blok),
+                SizedBox(
+                  width: UkuranBiruAwan.kartuDrafLebar,
+                  height: tinggi,
+                  child: _KartuDraf(
+                    sesi: daftar[i],
+                    onTap: () => widget.onBuka(daftar[i]),
                   ),
                 ),
               ],
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _KartuDraf extends StatelessWidget {
+  const _KartuDraf({required this.sesi, required this.onTap});
+
+  final CalibrationHistoryItem sesi;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final m = SidikMaterial.of(context);
+
+    return KartuSidik24(
+      key: ValueKey('kartu-sesi-teknisi-${sesi.id}'),
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (sesi.nomorSesi != null)
+            Text(
+              sesi.nomorSesi!,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: HurufBiruAwan.nomor.copyWith(color: m.tinta2),
+            ),
+          Text(
+            sesi.namaAlat,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: HurufBiruAwan.judulBaris.copyWith(color: m.tinta),
+          ),
+          const Spacer(),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: Text(
+                  sesi.namaPelanggan ?? '',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: HurufBiruAwan.catatan.copyWith(color: m.tinta2),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              const UbinIkon.baris(ikon: Icons.edit_note),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Lembar yang dikembalikan: catatan Master Data ditulis UTUH — itu yang harus
+/// dikerjakan, dan teknisi tidak perlu membuka layar lain untuk membacanya.
+class _KartuRevisi extends StatelessWidget {
+  const _KartuRevisi({required this.sesi, required this.onTap});
+
+  final CalibrationHistoryItem sesi;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final m = SidikMaterial.of(context);
+    final w = WarnaBiruAwan.of(context);
+    final catatan = sesi.catatanRevisi?.trim();
+    final rincian = [?sesi.nomorSesi, ?sesi.namaPelanggan].join(' · ');
+
+    return KartuSidik24(
+      key: ValueKey('kartu-sesi-teknisi-${sesi.id}'),
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const UbinIkon.baris(
+                ikon: Icons.error_outline,
+                warna: IsiBiruAwan.kuning,
+              ),
+              const SizedBox(width: JarakBiruAwan.blok),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      sesi.namaAlat,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: HurufBiruAwan.judulBaris.copyWith(color: m.tinta),
+                    ),
+                    if (rincian.isNotEmpty)
+                      Text(
+                        rincian,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: HurufBiruAwan.catatan.copyWith(color: m.tinta2),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (catatan != null && catatan.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              catatan,
+              style: HurufBiruAwan.keteranganKecil.copyWith(
+                color: w.tintaGalat,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Terkirim = baca saja: barisnya tidak membuka lembar, hanya menunjukkan
+/// statusnya.
+class _BarisTerkirim extends StatelessWidget {
+  const _BarisTerkirim({required this.sesi});
+
+  final CalibrationHistoryItem sesi;
+
+  @override
+  Widget build(BuildContext context) {
+    return BarisDaftar72(
+      key: ValueKey('kartu-sesi-teknisi-${sesi.id}'),
+      awal: const UbinIkon.baris(ikon: Icons.straighten),
+      judul: sesi.namaAlat,
+      nomor: sesi.nomorSesi,
+      keterangan: sesi.namaPelanggan,
+      akhir: _stempel(AppLocalizations.of(context), sesi.status),
+    );
+  }
+}
+
+/// Blok kerangka: diam (tanpa denyut) supaya layar yang sedang memuat tidak
+/// menjadi satu-satunya gerak berulang dan tes tetap bisa `pumpAndSettle`.
+class _Blok extends StatelessWidget {
+  const _Blok({this.lebar, required this.tinggi, required this.radius});
+
+  final double? lebar;
+  final double tinggi;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: lebar,
+      height: tinggi,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: SidikMaterial.of(context).kertasTepi,
+          borderRadius: BorderRadius.circular(radius),
+        ),
+      ),
+    );
+  }
+}
+
+class _KerangkaDraf extends StatelessWidget {
+  const _KerangkaDraf();
+
+  @override
+  Widget build(BuildContext context) {
+    final tinggi = MediaQuery.textScalerOf(
+      context,
+    ).scale(UkuranBiruAwan.kartuDrafTinggi);
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: KalibrasiTeknisiScreen._tepi,
+      child: Row(
+        children: [
+          for (var i = 0; i < 2; i++) ...[
+            if (i > 0) const SizedBox(width: JarakBiruAwan.blok),
+            SizedBox(
+              width: UkuranBiruAwan.kartuDrafLebar,
+              height: tinggi,
+              child: const KartuSidik24(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _Blok(
+                      lebar: AppUkuran.skeletonLebarKeterangan,
+                      tinggi: AppUkuran.skeletonKeterangan,
+                      radius: BentukBiruAwan.pil,
+                    ),
+                    SizedBox(height: AppSpacing.sm),
+                    _Blok(
+                      lebar: AppUkuran.skeletonLebarJudul,
+                      tinggi: AppUkuran.skeletonJudul,
+                      radius: BentukBiruAwan.pil,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _KerangkaTerkirim extends StatelessWidget {
+  const _KerangkaTerkirim();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: KalibrasiTeknisiScreen._tepi,
+      child: PanelBaris.daftar(
+        anak: [
+          for (var i = 0; i < 3; i++)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
+              child: Row(
+                children: [
+                  _Blok(
+                    lebar: UkuranKomponenBiruAwan.ubinBaris,
+                    tinggi: UkuranKomponenBiruAwan.ubinBaris,
+                    radius: BentukBiruAwan.ikonUbin,
+                  ),
+                  SizedBox(width: JarakBiruAwan.blok),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _Blok(
+                        lebar: AppUkuran.skeletonLebarJudul,
+                        tinggi: AppUkuran.skeletonJudul,
+                        radius: BentukBiruAwan.pil,
+                      ),
+                      SizedBox(height: AppSpacing.sm),
+                      _Blok(
+                        lebar: AppUkuran.skeletonLebarKeterangan,
+                        tinggi: AppUkuran.skeletonKeterangan,
+                        radius: BentukBiruAwan.pil,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }

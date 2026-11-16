@@ -4386,5 +4386,37 @@
   "@masukAkreditasi": {"placeholders": {"nomor": {"type": "String"}}},
   "masukTampilkanSandi": "Show",
   "masukSembunyikanSandi": "Hide",
-  "splashTagline": "KAN-accredited calibration"
+  "splashTagline": "KAN-accredited calibration",
+  "tekBerandaMerek": "SIDIK Lab",
+  "tekBerandaKeteranganMerek": "KAN-accredited calibration",
+  "tekBerandaNotifikasiBelumDibaca": "Notifications, {n, plural, =1{1 unread} other{{n} unread}}",
+  "@tekBerandaNotifikasiBelumDibaca": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "tekBerandaDrafBelumDikirim": "{n, plural, =1{1 draft not sent yet.} other{{n} drafts not sent yet.}}",
+  "@tekBerandaDrafBelumDikirim": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "tekBerandaBersih": "All worksheets have been sent.",
+  "tekBerandaJudulNetral": "Your worksheets",
+  "tekHeroLabel": "New calibration",
+  "tekHeroJudul": "Start with the instrument that arrived today",
+  "tekTanpaKoneksi": "No connection. This list could not be loaded.",
+  "tekMemuatDaftar": "Loading list",
+  "tekBerandaKirimanMenunggu": "{n, plural, =1{1 recent submission awaiting approval.} other{{n} recent submissions awaiting approval.}}",
+  "@tekBerandaKirimanMenunggu": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  }
 }

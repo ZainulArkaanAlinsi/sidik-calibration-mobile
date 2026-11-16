@@ -8242,4 +8242,43 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get splashTagline => 'Kalibrasi terakreditasi KAN';
+
+  @override
+  String get tekBerandaMerek => 'SIDIK Lab';
+
+  @override
+  String get tekBerandaKeteranganMerek => 'Kalibrasi terakreditasi KAN';
+
+  @override
+  String tekBerandaNotifikasiBelumDibaca(int n) {
+    return 'Notifikasi, $n belum dibaca';
+  }
+
+  @override
+  String tekBerandaDrafBelumDikirim(int n) {
+    return '$n draf belum dikirim.';
+  }
+
+  @override
+  String get tekBerandaBersih => 'Semua lembar sudah terkirim.';
+
+  @override
+  String get tekBerandaJudulNetral => 'Lembar kerja kamu';
+
+  @override
+  String get tekHeroLabel => 'Kalibrasi baru';
+
+  @override
+  String get tekHeroJudul => 'Mulai dari alat yang datang hari ini';
+
+  @override
+  String get tekTanpaKoneksi => 'Tanpa koneksi. Daftar ini belum bisa dimuat.';
+
+  @override
+  String get tekMemuatDaftar => 'Memuat daftar';
+
+  @override
+  String tekBerandaKirimanMenunggu(int n) {
+    return '$n kiriman terakhir menunggu approval.';
+  }
 }

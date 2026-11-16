@@ -8371,4 +8371,61 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get splashTagline => 'KAN-accredited calibration';
+
+  @override
+  String get tekBerandaMerek => 'SIDIK Lab';
+
+  @override
+  String get tekBerandaKeteranganMerek => 'KAN-accredited calibration';
+
+  @override
+  String tekBerandaNotifikasiBelumDibaca(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n unread',
+      one: '1 unread',
+    );
+    return 'Notifications, $_temp0';
+  }
+
+  @override
+  String tekBerandaDrafBelumDikirim(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n drafts not sent yet.',
+      one: '1 draft not sent yet.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tekBerandaBersih => 'All worksheets have been sent.';
+
+  @override
+  String get tekBerandaJudulNetral => 'Your worksheets';
+
+  @override
+  String get tekHeroLabel => 'New calibration';
+
+  @override
+  String get tekHeroJudul => 'Start with the instrument that arrived today';
+
+  @override
+  String get tekTanpaKoneksi => 'No connection. This list could not be loaded.';
+
+  @override
+  String get tekMemuatDaftar => 'Loading list';
+
+  @override
+  String tekBerandaKirimanMenunggu(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n recent submissions awaiting approval.',
+      one: '1 recent submission awaiting approval.',
+    );
+    return '$_temp0';
+  }
 }
