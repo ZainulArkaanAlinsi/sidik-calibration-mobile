@@ -4418,5 +4418,12 @@
         "type": "int"
       }
     }
-  }
+  },
+  "biruAwanTutup": "Close",
+  "biruAwanBuka": "Open",
+  "biruAwanJenisSukses": "Success",
+  "biruAwanJenisInfo": "Information",
+  "biruAwanJenisPeringatan": "Warning",
+  "biruAwanJenisGalat": "Error",
+  "biruAwanMemuat": "Loading"
 }
