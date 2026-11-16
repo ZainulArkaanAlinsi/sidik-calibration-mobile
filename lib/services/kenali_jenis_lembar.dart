@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:image/image.dart' as img;
 
+import 'identifikasi_lembar.dart';
 import 'jenis_lembar.dart';
 import 'pembaca_halaman.dart';
 
@@ -18,13 +19,16 @@ typedef PutarFoto = Future<img.Image> Function(img.Image foto, int sudut);
 
 /// Mengenali JENIS lembar dari satu foto seluruh halaman, tanpa tahu dulu
 /// jenisnya: pembaca halaman (ML Kit sehalaman) dicoba tiap putaran di
-/// [sudut] dan berhenti begitu KODE FORMULIR (`SIDIK-FM-CAL-05xx`) terbaca,
-/// terkenal server atau tidak.
+/// [sudut]. Teks tiap putaran dinilai dengan bukti berlapis
+/// (`identifikasiLembar`: kode formulir, judul, revisi). Pencarian berhenti
+/// begitu satu putaran memberi KODE FORMULIR bersih (terkenal server atau
+/// tidak) atau bukti berlapis yang cukup kuat untuk memilih-awal satu jenis.
+/// Bukti yang masih samar tidak menghentikan pencarian: putaran lain dicoba,
+/// dan yang terbaik dikembalikan.
 ///
 /// Hasilnya hanya petunjuk untuk lembar pilihan jenis (lihat
 /// `jenis_lembar.dart`): tidak mengunci, tidak mengisi sel, tidak menavigasi.
-/// Kalau tidak ada putaran yang menghasilkan kode, petunjuk dari JUDUL
-/// tercetak (kalau ada) dikembalikan; kalau itu pun tidak ada, `null` dan
+/// Kalau tidak ada putaran yang menghasilkan bukti sama sekali, `null` dan
 /// pemanggil menampilkan daftar manual.
 ///
 /// Pemanggil memegang [halaman] dan wajib menutupnya (`finally`); fungsi ini
@@ -44,7 +48,7 @@ Future<HasilJenisLembar?> kenaliJenisLembar({
   final ifd = foto.exif.imageIfd;
   final orientasiAsal = ifd.hasOrientation ? ifd.orientation ?? 1 : 1;
 
-  HasilJenisLembar? dariJudul;
+  HasilJenisLembar? terbaik;
 
   for (final s in sudut) {
     // Citra yang dibaca = EXIF dipanggang lalu diputar [s]; foto asli dipakai
@@ -61,14 +65,33 @@ Future<HasilJenisLembar?> kenaliJenisLembar({
             ),
     );
 
-    final hasil = detectWorksheetType(teksHalaman(terbaca), dikenal: dikenal);
+    final hasil = identifikasiLembar(teksHalaman(terbaca), dikenal: dikenal);
     if (hasil == null) continue;
-    if (hasil.sumber == SumberJenisLembar.kodeFormulir) return hasil;
+    if (_cukupUntukBerhenti(hasil)) return hasil;
 
-    dariJudul ??= hasil;
+    if (terbaik == null || _lebihBaik(hasil, terbaik)) terbaik = hasil;
   }
 
-  return dariJudul;
+  return terbaik;
+}
+
+/// Kode bersih (dikenal atau tidak) atau pilih-awal berlapis: tidak ada gunanya
+/// memutar lagi (membaca ulang foto 4200 px memakan detik).
+bool _cukupUntukBerhenti(HasilJenisLembar h) =>
+    h.sumber == SumberJenisLembar.kodeFormulir || h.praPilihTemplateId != null;
+
+/// Antar putaran yang sama-sama belum cukup: bukti kode mengalahkan judul
+/// saja, lalu skor teratas yang lebih tinggi, lalu kandidat yang lebih sedikit.
+bool _lebihBaik(HasilJenisLembar a, HasilJenisLembar b) {
+  final dariKodeA = a.sumber != SumberJenisLembar.judul;
+  final dariKodeB = b.sumber != SumberJenisLembar.judul;
+  if (dariKodeA != dariKodeB) return dariKodeA;
+
+  final skorA = a.peringkat.isEmpty ? 0.0 : a.peringkat.first.skor;
+  final skorB = b.peringkat.isEmpty ? 0.0 : b.peringkat.first.skor;
+  if (skorA != skorB) return skorA > skorB;
+
+  return a.kandidat.length < b.kandidat.length;
 }
 
 img.Image _putar(({img.Image foto, int sudut}) a) =>
