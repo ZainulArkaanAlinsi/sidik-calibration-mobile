@@ -1,4 +1,4 @@
-// Pendaftaran komponen Biru Awan (L3a dan L3b).
+// Pendaftaran komponen Biru Awan (L3a, L3b, dan elemen umpan balik L2).
 //
 // `tool/cek-berkas-yatim.sh` menghitung berkas yang diimpor dari `test/` sebagai
 // terpakai, dan komponen ini belum dipakai layar mana pun. Tes ini menjaga agar
@@ -47,10 +47,27 @@ void main() {
     'lencana': ['Lencana', 'LoncengBerlencana'],
     'bilah_langkah': ['BilahLangkah'],
     'kolom_cari': ['KolomCari'],
+    // L2 (elemen umpan balik).
+    'toast_sidik': [
+      'ToastSidik',
+      'JenisToast',
+      'TombolTutupSidik',
+      'PilAksiSidik',
+      'UbinUmpanBalik',
+    ],
+    'dialog_sidik': ['DialogSidik'],
+    'lembar_bawah_sidik': ['LembarBawahSidik'],
+    'banner_sidik': ['BannerSidik', 'RagamBannerSidik'],
+    'keadaan_sidik': [
+      'KeadaanMemuat',
+      'KeadaanKosong',
+      'KeadaanGalat',
+      'RagamMemuat',
+    ],
   };
 
   test(
-    'berkas komponen = daftar L3a + L3b (tidak ada yang lebih, tidak ada yang kurang)',
+    'berkas komponen = daftar L3a + L3b + L2 (tidak ada yang lebih, tidak ada yang kurang)',
     () {
       expect(
         berkas.toSet(),

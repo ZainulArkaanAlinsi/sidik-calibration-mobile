@@ -2,33 +2,41 @@ import 'package:flutter/material.dart';
 
 import '../../core/motion/gerak_bersama.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/bentuk_lab.dart';
 import '../../core/theme/sidik_material.dart';
 import '../../core/theme/sidik_theme.dart';
 import '../../core/theme/token_komponen_biru_awan.dart';
 import '../../core/theme/token_komponen_biru_awan_lanjut.dart';
+import '../../core/theme/token_umpan_balik_biru_awan.dart';
 import '../../core/theme/warna_biru_awan.dart';
 import '../../widgets/biru_awan/avatar_inisial.dart';
+import '../../widgets/biru_awan/banner_sidik.dart';
 import '../../widgets/biru_awan/bilah_langkah.dart';
 import '../../widgets/biru_awan/chip_saring.dart';
+import '../../widgets/biru_awan/dialog_sidik.dart';
 import '../../widgets/biru_awan/garis_waktu.dart';
 import '../../widgets/biru_awan/grafik_batang.dart';
 import '../../widgets/biru_awan/hero_langit.dart';
 import '../../widgets/biru_awan/isian_sidik.dart';
 import '../../widgets/biru_awan/kartu_sidik24.dart';
+import '../../widgets/biru_awan/keadaan_sidik.dart';
 import '../../widgets/biru_awan/kepala_layar.dart';
 import '../../widgets/biru_awan/kolom_cari.dart';
+import '../../widgets/biru_awan/lembar_bawah_sidik.dart';
 import '../../widgets/biru_awan/lencana.dart';
 import '../../widgets/biru_awan/panel_baris.dart';
 import '../../widgets/biru_awan/segmen_pil.dart';
 import '../../widgets/biru_awan/stempel_sidik.dart';
 import '../../widgets/biru_awan/stepper_tegak.dart';
+import '../../widgets/biru_awan/toast_sidik.dart';
 import '../../widgets/biru_awan/tombol_bulat.dart';
 import '../../widgets/biru_awan/tombol_sidik.dart';
 import '../../widgets/biru_awan/ubin_ikon.dart';
 import '../../widgets/biru_awan/ubin_kpi.dart';
 import '../../widgets/sidik/status_tampil.dart';
 
-/// Galeri komponen dasar Biru Awan (L3a dan L3b), KHUSUS PENGEMBANG.
+/// Galeri komponen dasar Biru Awan (L3a, L3b, dan elemen umpan balik L2),
+/// KHUSUS PENGEMBANG.
 ///
 /// Tidak ada rute di navigasi pengguna. Satu-satunya pintu masuk adalah baris
 /// "Komponen Biru Awan" di `design_system_screen.dart` yang hanya dibuat di
@@ -55,6 +63,10 @@ class GaleriBiruAwanScreen extends StatelessWidget {
       const _BagianGrafikRiwayat(),
       const _BagianLangkah(),
       const _BagianKontrolKecil(),
+      const _BagianToast(),
+      const _BagianDialogLembar(),
+      const _BagianBanner(),
+      const _BagianKeadaan(),
       const _BagianGerak(),
     ];
     return Scaffold(
@@ -62,7 +74,7 @@ class GaleriBiruAwanScreen extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.md),
           children: [
-            const KepalaAnak(judul: 'Galeri Biru Awan', nomor: 'L3b'),
+            const KepalaAnak(judul: 'Galeri Biru Awan', nomor: 'L3b + L2'),
             for (var i = 0; i < bagian.length; i++)
               MasukBerurutan(
                 indeks: i,
@@ -819,6 +831,248 @@ class _BagianKontrolKecilState extends State<_BagianKontrolKecil> {
           ),
         ),
         const KolomCari(petunjuk: 'Cari (mati)', enabled: false),
+      ],
+    );
+  }
+}
+
+/// L2: toast. Kartu statis tiap jenis, lalu tombol yang memanggil
+/// `tampilkanToast` sungguhan (satu sekaligus; yang baru menggantikan).
+class _BagianToast extends StatelessWidget {
+  const _BagianToast();
+
+  @override
+  Widget build(BuildContext context) {
+    return _Bagian(
+      judul: 'ToastSidik',
+      keterangan:
+          'Kartu putih; sukses, info, peringatan, galat; kabar masuk navy. '
+          'Galat dan toast beraksi tidak hilang sendiri.',
+      anak: [
+        ToastSidik(
+          jenis: JenisToast.sukses,
+          judul: 'Draf tersimpan',
+          isi: 'Lembar kerja pH Meter disimpan di HP ini.',
+          onTutup: () {},
+        ),
+        ToastSidik(
+          jenis: JenisToast.info,
+          judul: 'Jadwal teknisi tersimpan',
+          isi: 'Pelanggan diberi tahu lewat aplikasinya.',
+          aksi: 'Lihat',
+          onAksi: () {},
+          onTutup: () {},
+        ),
+        ToastSidik(
+          jenis: JenisToast.peringatan,
+          judul: 'Server lambat',
+          isi: 'Permintaan masih jalan. Jangan tutup aplikasi.',
+          onTutup: () {},
+        ),
+        ToastSidik(
+          jenis: JenisToast.galat,
+          judul: 'Gagal mengirim',
+          isi: 'Tanpa koneksi. Dicoba lagi otomatis.',
+          aksi: 'Coba lagi',
+          onAksi: () {},
+          onTutup: () {},
+        ),
+        ToastSidik(
+          jenis: JenisToast.kabar,
+          judul: 'Lembar kerja baru masuk',
+          isi: '1 lembar kerja baru masuk antrean approval',
+          aksi: 'Buka',
+          onAksi: () {},
+          onTutup: () {},
+        ),
+        Wrap(
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.sm,
+          children: [
+            TombolSidik(
+              label: 'Toast sukses',
+              ragam: RagamTombolSidik.sekunder,
+              onPressed: () => tampilkanToast(
+                context,
+                jenis: JenisToast.sukses,
+                judul: 'Draf tersimpan',
+                isi: 'Hilang sendiri 4 detik.',
+              ),
+            ),
+            TombolSidik(
+              label: 'Toast galat',
+              ragam: RagamTombolSidik.sekunder,
+              onPressed: () => tampilkanToast(
+                context,
+                jenis: JenisToast.galat,
+                judul: 'Gagal mengirim',
+                isi: 'Tetap sampai ditutup.',
+                aksi: 'Coba lagi',
+                onAksi: () {},
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// L2: dialog konfirmasi dan lembar bawah.
+class _BagianDialogLembar extends StatelessWidget {
+  const _BagianDialogLembar();
+
+  @override
+  Widget build(BuildContext context) {
+    final u = WarnaUmpanBalikBiruAwan.of(context);
+    return _Bagian(
+      judul: 'DialogSidik dan LembarBawahSidik',
+      keterangan:
+          'Dialog: aksi berkata kerja jelas, bahaya merah. Lembar bawah: '
+          'maksimal 80 % layar, usap turun atau ketuk latar untuk menutup.',
+      anak: [
+        DecoratedBox(
+          decoration: BoxDecoration(
+            color: u.scrim,
+            borderRadius: BorderRadius.circular(BentukBiruAwan.kartu),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Center(
+              child: DialogSidik(
+                ikon: Icons.send_outlined,
+                judul: 'Kirim untuk approval?',
+                isi:
+                    'Lembar kerja tidak bisa diubah setelah dikirim, kecuali '
+                    'admin meminta revisi.',
+                aksi: 'Kirim',
+                onAksi: () {},
+                batal: 'Batal',
+                onBatal: () {},
+              ),
+            ),
+          ),
+        ),
+        DecoratedBox(
+          decoration: BoxDecoration(
+            color: u.scrim,
+            borderRadius: BorderRadius.circular(BentukBiruAwan.kartu),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Center(
+              child: DialogSidik(
+                ikon: Icons.delete_outline,
+                judul: 'Hapus folder ini?',
+                isi:
+                    'Berkas di dalamnya ikut terhapus. Sertifikat terbit tidak '
+                    'terpengaruh.',
+                aksi: 'Hapus',
+                onAksi: () {},
+                batal: 'Batal',
+                onBatal: () {},
+                bahaya: true,
+              ),
+            ),
+          ),
+        ),
+        Wrap(
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.sm,
+          children: [
+            TombolSidik(
+              label: 'Buka dialog',
+              ragam: RagamTombolSidik.sekunder,
+              onPressed: () => tampilkanDialogSidik(
+                context,
+                ikon: Icons.send_outlined,
+                judul: 'Kirim untuk approval?',
+                isi: 'Lembar kerja tidak bisa diubah setelah dikirim.',
+                aksi: 'Kirim',
+                batal: 'Batal',
+              ),
+            ),
+            TombolSidik(
+              label: 'Buka lembar bawah',
+              ragam: RagamTombolSidik.sekunder,
+              onPressed: () => tampilkanLembarBawahSidik<void>(
+                context,
+                judul: 'Kirim sertifikat lewat',
+                bangun: (_) => const Text('Email, WhatsApp, atau tautan.'),
+              ),
+            ),
+          ],
+        ),
+        LembarBawahSidik(
+          judul: 'Kirim sertifikat lewat',
+          onTutup: () {},
+          child: Text(
+            'Isi lembar bergulir; tombol utama penuh di bawah isi.',
+            style: HurufBiruAwan.keterangan,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// L2: banner (menempel di bawah kepala layar, bukan melayang).
+class _BagianBanner extends StatelessWidget {
+  const _BagianBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return _Bagian(
+      judul: 'BannerSidik',
+      keterangan:
+          'Tanpa koneksi (navy), pembaruan (langit + tombol navy), peringatan '
+          'data (kuning tipis).',
+      anak: [
+        const BannerSidik.tanpaKoneksi(
+          teks: 'Tanpa koneksi. Data terakhir 08.42',
+        ),
+        BannerSidik.pembaruan(
+          teks: 'Versi baru tersedia',
+          aksi: 'Pasang',
+          onAksi: () {},
+        ),
+        BannerSidik.peringatan(
+          teks: 'Standar acuan Buffer pH 10,01 berakhir dalam 12 hari.',
+          onTutup: () {},
+        ),
+      ],
+    );
+  }
+}
+
+/// L2: keadaan memuat, kosong, dan galat.
+class _BagianKeadaan extends StatelessWidget {
+  const _BagianKeadaan();
+
+  @override
+  Widget build(BuildContext context) {
+    return _Bagian(
+      judul: 'KeadaanSidik',
+      keterangan:
+          'Kosong: ubin langit + satu aksi. Galat: pesan apa adanya + "Coba '
+          'lagi". Memuat: kerangka (denyut terbatas) atau spinner > 400 ms.',
+      anak: [
+        KeadaanKosong(
+          judul: 'Belum ada draf',
+          isi:
+              'Lembar kerja yang kamu simpan lewat Simpan draf menunggu di '
+              'sini.',
+          aksi: 'Mulai kalibrasi',
+          onAksi: () {},
+        ),
+        KeadaanGalat(
+          judul: 'Gagal memuat antrean',
+          isi: 'Periksa koneksi lalu coba lagi. Data terakhir tetap tampil.',
+          aksi: 'Coba lagi',
+          onAksi: () {},
+        ),
+        const KeadaanMemuat.kerangka(baris: 2, label: 'Memuat antrean'),
+        const KeadaanMemuat.spinner(label: 'Memuat sertifikat'),
       ],
     );
   }

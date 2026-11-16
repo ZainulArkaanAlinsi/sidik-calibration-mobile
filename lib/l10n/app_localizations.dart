@@ -14443,6 +14443,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{n, plural, =1{1 recent submission awaiting approval.} other{{n} recent submissions awaiting approval.}}'**
   String tekBerandaKirimanMenunggu(int n);
+
+  /// No description provided for @biruAwanTutup.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get biruAwanTutup;
+
+  /// No description provided for @biruAwanBuka.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get biruAwanBuka;
+
+  /// No description provided for @biruAwanJenisSukses.
+  ///
+  /// In en, this message translates to:
+  /// **'Success'**
+  String get biruAwanJenisSukses;
+
+  /// No description provided for @biruAwanJenisInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Information'**
+  String get biruAwanJenisInfo;
+
+  /// No description provided for @biruAwanJenisPeringatan.
+  ///
+  /// In en, this message translates to:
+  /// **'Warning'**
+  String get biruAwanJenisPeringatan;
+
+  /// No description provided for @biruAwanJenisGalat.
+  ///
+  /// In en, this message translates to:
+  /// **'Error'**
+  String get biruAwanJenisGalat;
+
+  /// No description provided for @biruAwanMemuat.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading'**
+  String get biruAwanMemuat;
 }
 
 class _AppLocalizationsDelegate

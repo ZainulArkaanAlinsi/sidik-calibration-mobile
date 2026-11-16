@@ -3444,5 +3444,12 @@
   "tekHeroJudul": "Mulai dari alat yang datang hari ini",
   "tekTanpaKoneksi": "Tanpa koneksi. Daftar ini belum bisa dimuat.",
   "tekMemuatDaftar": "Memuat daftar",
-  "tekBerandaKirimanMenunggu": "{n} kiriman terakhir menunggu approval."
+  "tekBerandaKirimanMenunggu": "{n} kiriman terakhir menunggu approval.",
+  "biruAwanTutup": "Tutup",
+  "biruAwanBuka": "Buka",
+  "biruAwanJenisSukses": "Berhasil",
+  "biruAwanJenisInfo": "Informasi",
+  "biruAwanJenisPeringatan": "Peringatan",
+  "biruAwanJenisGalat": "Galat",
+  "biruAwanMemuat": "Memuat"
 }

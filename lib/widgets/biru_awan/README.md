@@ -5,8 +5,9 @@ lama (`app_button`, `app_text_field`, `sidik_loader`, `status_badge`, dan
 `lib/widgets/sidik/*`) tidak diubah dan tetap dipakai area beku serta layar yang
 belum didesain ulang. Layar pindah ke komponen ini satu per satu (L5 dst.).
 
-**Status L3a + L3b (15 Nov 2026): semua komponen di bawah SUDAH ADA dan diuji, belum
-ada layar yang memakainya.** Satu-satunya pemakai di `lib/` adalah galeri
+**Status L3a + L3b + L2 (16 Nov 2026): semua komponen di bawah SUDAH ADA dan diuji.
+Satu-satunya layar yang memakai elemen L2 adalah `LapisanKabarMasuk` (kartu kabar
+navy); `SnackBar` dan `AlertDialog` di layar mana pun BELUM diganti.** Satu-satunya pemakai di `lib/` adalah galeri
 pengembang `lib/screens/pengembang/galeri_biru_awan_screen.dart` (dibuka dari
 `design_system_screen.dart`, hanya di build debug). L3b menambah HeroLangit,
 UbinKpi, GrafikBatang, StepperTegak, GarisWaktu, AvatarInisial, Lencana (dan
@@ -36,6 +37,11 @@ UbinKpi, GrafikBatang, StepperTegak, GarisWaktu, AvatarInisial, Lencana (dan
 | `Lencana` + `LoncengBerlencana` | `lencana.dart` | Jumlah koral 22, kuning 26, titik 10; lonceng 48 dengan lencana di pojok | `Badge` Material |
 | `BilahLangkah` | `bilah_langkah.dart` | 4 segmen tinggi 6 + label "1 Alat" (Pilih alat) | `LinearProgressIndicator` ad hoc |
 | `KolomCari` | `kolom_cari.dart` | Pil 56 + tombol bulat cari 44; cincin fokus di luar | `SearchBar`, `TextField` cari |
+| `ToastSidik` + `tampilkanToast` | `toast_sidik.dart` | Umpan balik singkat: kartu putih (sukses, info, peringatan, galat) atau navy + logo (`JenisToast.kabar`). `tampilkanToast` menampilkannya di overlay, SATU sekaligus; `ToastSidik` kartunya saja (dipakai `LapisanKabarMasuk`). Juga memuat `TombolTutupSidik`, `PilAksiSidik` (pil aksi 40, sasaran 48, cincin di luar) dan `UbinUmpanBalik` yang dipakai bersama | `SnackBar` (BELUM diganti di layar mana pun) |
+| `DialogSidik` + `tampilkanDialogSidik` | `dialog_sidik.dart` | Konfirmasi: ubin ikon 56, judul, isi, Batal kiri dan aksi kanan (bahaya merah). Mengembalikan `true` bila aksi diketuk | `AlertDialog`, `showDialog` |
+| `LembarBawahSidik` + `tampilkanLembarBawahSidik` | `lembar_bawah_sidik.dart` | Lembar bawah: sudut atas 32, pegangan, judul + tutup, isi bergulir (maks 80 % layar) | `showModalBottomSheet` polos |
+| `BannerSidik` (`RagamBannerSidik`) | `banner_sidik.dart` | Banner di bawah kepala layar: tanpa koneksi (navy 48), pembaruan (langit 56 + tombol), peringatan data (kuning tipis) | `MaterialBanner`, pita ad hoc |
+| `KeadaanMemuat` (`RagamMemuat`), `KeadaanKosong`, `KeadaanGalat` | `keadaan_sidik.dart` | Memuat (kerangka berdenyut terbatas atau spinner > 400 ms), kosong (ubin langit + satu aksi), galat (ubin koral tipis + "Coba lagi") | `CircularProgressIndicator` ad hoc, pesan kosong/galat buatan layar |
 
 Gerak bersama ada di `lib/core/motion/gerak_bersama.dart` (`MasukBerurutan`,
 `TekanSkala`); token di `lib/core/theme/token_komponen_biru_awan.dart` (huruf,
@@ -121,3 +127,36 @@ beri ruang >= 4 dp di sekeliling tombol yang berada di tepi wadah yang memotong.
   `BilahLangkah`, `Lencana`) tidak menganimasikan apa pun; masuk layar dibungkus
   pemanggil dengan `MasukBerurutan`. Satu-satunya gerak L3b adalah `GrafikBatang`
   (sekali, tanpa `repeat`).
+
+## Catatan L2 (elemen umpan balik)
+
+Token di `lib/core/theme/token_umpan_balik_biru_awan.dart` (huruf, ukuran, warna
+turunan, bayangan toast dan dialog). Bayangan dibaca dari token itu, bukan
+`BoxShadow` di widget (gerbang `pendaftaran_biru_awan_test` tetap melarang
+`BoxShadow` di berkas komponen).
+
+- **Pemakaian**: `tampilkanToast(context, jenis:, judul:, isi:, aksi:, onAksi:)`,
+  `await tampilkanDialogSidik(context, ikon:, judul:, aksi:, batal:, bahaya:)`
+  (hasil `bool`), `tampilkanLembarBawahSidik<T>(context, judul:, bangun:)`.
+  Teks dari pemanggil (l10n); komponen membawa kunci `biruAwan*` untuk kata bantu
+  ("Tutup", "Buka", jenis toast, "Memuat").
+- **Satu toast sekaligus.** Hilang sendiri 4 detik (peringatan 6); galat dan toast
+  beraksi tidak hilang sendiri (`ToastSidik.lamaTampil`). Tutup: tombol "x" atau
+  usap ke atas. Diumumkan lewat `SemanticsService.sendAnnouncement`.
+- **Tinggi kartu toast 72, bukan 68**, bila ada tombol tutup atau aksi: sasaran
+  sentuh 48 + bantalan 12 x 2. Pil aksi tetap tampak 40.
+- **Pil aksi dan tombol tutup bergambar 40 (44 di lembar bawah), sasaran 48,
+  cincin fokus di luar gambar** (2 dp celah, 2 dp garis, warna lawan latar kartu:
+  `tinta` di kartu putih, putih di kartu navy). `TombolBulat` L3a tidak dipakai di
+  sini karena belum bisa difokuskan papan ketik.
+- **Aksi dialog**: kata kerja jelas, "OK" dan "Ya" dilarang oleh aturan desain
+  (tidak bisa ditegakkan kode). Ragam bahaya memakai `TombolSidik.bahaya` =
+  `colorScheme.error` (`#A81B33`, utang desain), bukan `#A3261A` di `ELEMEN.md`.
+  Tombol "Coba lagi" / "Mulai kalibrasi" 48, bukan 44 di artboard (sasaran 48).
+- **Kerangka memuat berdenyut 5 siklus (6 dtk) lalu diam**, bukan tanpa akhir
+  seperti artboard: `pumpAndSettle` harus selesai, dan gerak otomatis > 5 detik
+  perlu bisa dihentikan (WCAG 2.2.2). Spinner tetap berputar selama menunggu.
+  Dengan "kurangi gerak" keduanya diam dan toast, dialog, lembar tanpa animasi.
+- Banner pembaruan hanya untuk pembaruan opsional; pembaruan WAJIB memakai dialog.
+- `LapisanKabarMasuk` memakai `ToastSidik` varian kabar; dedup per id, hitung
+  mundur 5 detik, dan ketukan tidak berubah (logikanya di `KabarMasukNotifier`).

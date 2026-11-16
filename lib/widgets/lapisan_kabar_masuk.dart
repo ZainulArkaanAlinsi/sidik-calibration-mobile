@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/motion/app_motion.dart';
+import '../core/theme/token_umpan_balik_biru_awan.dart';
 import '../l10n/app_localizations.dart';
 import '../models/kabar_toast.dart';
 import '../providers/kabar_masuk_provider.dart';
+import 'biru_awan/toast_sidik.dart';
 
 /// Lapisan toast kabar masuk — dipasang SEKALI di `MaterialApp.builder`.
 ///
@@ -13,9 +15,12 @@ import '../providers/kabar_masuk_provider.dart';
 ///   menutupnya.
 /// - Masuk geser-turun + pudar 240 ms ([AppMotion.sedang], batasnya 300 ms);
 ///   "kurangi gerak" nyala → tanpa animasi sama sekali.
-/// - Satu kabar = judul + isi; lebih dari satu = satu kartu "n kabar baru".
-/// - Hilang sendiri 5 detik (diatur [KabarMasukNotifier]); ketukan membuka
-///   tujuan, atau daftar notifikasi bila banyak.
+/// - Kartu = varian kabar navy `ToastSidik` (Biru Awan, L2): logo, aksi "Buka",
+///   tombol tutup. Satu kabar = judul + isi; lebih dari satu = satu kartu
+///   "n kabar baru". Dedup per id dan hitung mundur tetap di
+///   [KabarMasukNotifier], tidak berubah.
+/// - Hilang sendiri 5 detik (diatur [KabarMasukNotifier]); ketukan (kartu atau
+///   "Buka") membuka tujuan, atau daftar notifikasi bila banyak.
 class LapisanKabarMasuk extends ConsumerStatefulWidget {
   const LapisanKabarMasuk({required this.child, super.key});
 
@@ -89,7 +94,12 @@ class _LapisanKabarMasukState extends ConsumerState<LapisanKabarMasuk>
               return SafeArea(
                 bottom: false,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+                  padding: const EdgeInsets.fromLTRB(
+                    UkuranUmpanBalikBiruAwan.toastJarakLuar,
+                    UkuranUmpanBalikBiruAwan.toastJarakLuar,
+                    UkuranUmpanBalikBiruAwan.toastJarakLuar,
+                    0,
+                  ),
                   child: Align(
                     alignment: Alignment.topCenter,
                     child: FadeTransition(
@@ -100,8 +110,15 @@ class _LapisanKabarMasukState extends ConsumerState<LapisanKabarMasuk>
                           end: Offset.zero,
                         ).animate(kurva),
                         child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 480),
-                          child: _KartuKabar(kabar: _terakhir, onTap: _ketuk),
+                          constraints: const BoxConstraints(
+                            maxWidth: UkuranUmpanBalikBiruAwan.toastLebarMaks,
+                          ),
+                          child: _KartuKabar(
+                            kabar: _terakhir,
+                            onTap: _ketuk,
+                            onTutup: () =>
+                                ref.read(kabarMasukProvider.notifier).tutup(),
+                          ),
                         ),
                       ),
                     ),
@@ -117,87 +134,38 @@ class _LapisanKabarMasukState extends ConsumerState<LapisanKabarMasuk>
 }
 
 class _KartuKabar extends StatelessWidget {
-  const _KartuKabar({required this.kabar, required this.onTap});
+  const _KartuKabar({
+    required this.kabar,
+    required this.onTap,
+    required this.onTutup,
+  });
 
   final List<KabarToast> kabar;
   final VoidCallback onTap;
+  final VoidCallback onTutup;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final tema = Theme.of(context);
     final banyak = kabar.length > 1;
     final judul = banyak
         ? l10n.kabarBaruJumlah(kabar.length)
         : kabar.first.judul;
     final isi = banyak ? l10n.kabarBaruKetuk : kabar.first.isi;
 
-    return Semantics(
-      liveRegion: true,
-      container: true,
-      label: '$judul. $isi',
-      child: Material(
-        color: tema.colorScheme.inverseSurface,
-        elevation: 6,
-        borderRadius: BorderRadius.circular(14),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          key: const ValueKey('kartu_kabar_masuk'),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            child: Row(
-              children: [
-                // Logo Sidik berwarna, bukan ikon generik: kartu ini harus
-                // terbaca "dari Sidik" sekilas.
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
-                  child: Container(
-                    color: Colors.white,
-                    padding: const EdgeInsets.all(2),
-                    child: Image.asset(
-                      'assets/images/logo_pt_sidik.png',
-                      width: 28,
-                      height: 28,
-                      fit: BoxFit.contain,
-                      excludeFromSemantics: true,
-                      errorBuilder: (_, _, _) =>
-                          const SizedBox(width: 28, height: 28),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        judul,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: tema.textTheme.titleSmall?.copyWith(
-                          color: tema.colorScheme.onInverseSurface,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      if (isi.isNotEmpty)
-                        Text(
-                          isi,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: tema.textTheme.bodySmall?.copyWith(
-                            color: tema.colorScheme.onInverseSurface,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+    // Kartu navy Biru Awan dengan logo Sidik berwarna (varian kabar `ToastSidik`):
+    // harus terbaca "dari Sidik" sekilas. Seluruh kartu bisa diketuk; aksi "Buka"
+    // dan tombol tutup berdiri sendiri.
+    return ToastSidik(
+      key: const ValueKey('kartu_kabar_masuk'),
+      jenis: JenisToast.kabar,
+      judul: judul,
+      isi: isi,
+      aksi: l10n.biruAwanBuka,
+      onAksi: onTap,
+      onTutup: onTutup,
+      onKetuk: onTap,
+      wilayahHidup: true,
     );
   }
 }

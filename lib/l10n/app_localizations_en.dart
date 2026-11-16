@@ -8428,4 +8428,25 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get biruAwanTutup => 'Close';
+
+  @override
+  String get biruAwanBuka => 'Open';
+
+  @override
+  String get biruAwanJenisSukses => 'Success';
+
+  @override
+  String get biruAwanJenisInfo => 'Information';
+
+  @override
+  String get biruAwanJenisPeringatan => 'Warning';
+
+  @override
+  String get biruAwanJenisGalat => 'Error';
+
+  @override
+  String get biruAwanMemuat => 'Loading';
 }

@@ -8281,4 +8281,25 @@ class AppLocalizationsId extends AppLocalizations {
   String tekBerandaKirimanMenunggu(int n) {
     return '$n kiriman terakhir menunggu approval.';
   }
+
+  @override
+  String get biruAwanTutup => 'Tutup';
+
+  @override
+  String get biruAwanBuka => 'Buka';
+
+  @override
+  String get biruAwanJenisSukses => 'Berhasil';
+
+  @override
+  String get biruAwanJenisInfo => 'Informasi';
+
+  @override
+  String get biruAwanJenisPeringatan => 'Peringatan';
+
+  @override
+  String get biruAwanJenisGalat => 'Galat';
+
+  @override
+  String get biruAwanMemuat => 'Memuat';
 }

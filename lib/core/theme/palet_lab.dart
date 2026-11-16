@@ -165,6 +165,13 @@ abstract final class PaletLab {
   /// Tembus pandang total: pengganti kilau/lekuk material lama.
   static const Color tembus = Color(0x00FFFFFF);
 
+  // ── Banner peringatan data (L2, `ELEMEN.md` §Banner) ────────────────────
+  /// Latar kartu peringatan data (standar segera habis, server lambat), terang.
+  static const Color kuningTipis = Color(0xFFFFF4D1);
+
+  /// Ikon segitiga peringatan di atas [kuningTipis]. Teksnya tetap [tinta].
+  static const Color kuningTinta = Color(0xFF8C5C0A);
+
   // ══════════════════════════════════════════════════════════════════════
   // ALIAS SEMENTARA: nama lama → token Biru Awan (hapus di L13)
   // ══════════════════════════════════════════════════════════════════════

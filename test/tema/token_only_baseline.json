@@ -6,9 +6,9 @@
       "hex_mentah": 74,
       "color_0x": 73,
       "warna_konstruktor": 1,
-      "colors_mentah": 46,
+      "colors_mentah": 45,
       "fontsize_kecil": 35,
-      "radius_literal": 57,
+      "radius_literal": 55,
       "radius_ekspresi": 9,
       "tinggi_tombol_kecil": 5
     }
@@ -61,7 +61,6 @@
     "lib/screens/settings/technician_list_screen.dart": 1,
     "lib/widgets/certificate_qr.dart": 2,
     "lib/widgets/kartu_gradien.dart": 2,
-    "lib/widgets/lapisan_kabar_masuk.dart": 1,
     "lib/widgets/liquid_glass.dart": 1,
     "lib/widgets/sakelar_tema.dart": 4,
     "lib/widgets/sidik/sidik_lembar.dart": 3,
@@ -113,7 +112,6 @@
     "lib/screens/shell/desktop_shell.dart": 2,
     "lib/widgets/dekorasi_isian_wajib.dart": 2,
     "lib/widgets/dinamis/form_dinamis.dart": 2,
-    "lib/widgets/lapisan_kabar_masuk.dart": 2,
     "lib/widgets/notification_bell.dart": 1,
     "lib/widgets/sidik/sidik_lembar.dart": 1,
     "lib/widgets/sidik/sidik_status.dart": 2,
