@@ -14485,6 +14485,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Loading'**
   String get biruAwanMemuat;
+
+  /// No description provided for @jlBertentangan.
+  ///
+  /// In en, this message translates to:
+  /// **'The printed code and the printed title point to different sheet types. Pick one yourself.'**
+  String get jlBertentangan;
+
+  /// No description provided for @jlSamarCocok.
+  ///
+  /// In en, this message translates to:
+  /// **'The print is a little blurry, but it matches one sheet type. Check it before using it.'**
+  String get jlSamarCocok;
+
+  /// No description provided for @jlSamarUsulan.
+  ///
+  /// In en, this message translates to:
+  /// **'The print is blurry. These are the closest suggestions, none is selected for you. Pick the one that matches your instrument.'**
+  String get jlSamarUsulan;
 }
 
 class _AppLocalizationsDelegate

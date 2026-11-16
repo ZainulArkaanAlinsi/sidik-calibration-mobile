@@ -103,3 +103,12 @@ macos/Runner/GoogleService-Info.plist
 android/key.properties
 *.jks
 *.keystore
+
+# Foto lembar kerja asli. Memuat nama dan alamat pelanggan, dan repo ini
+# PUBLIK: foto, potongan, dan hasil baca nyata tidak pernah masuk repo, tes,
+# atau CI. Fixture tes hanya teks buatan (lihat test/identifikasi_lembar_test.dart).
+# Sengaja SEMPIT: png/jpg umum TIDAK diabaikan karena aset aplikasi memakainya.
+# HEIC/HEIF = format foto kamera HP; foto-lembar-lokal/ = tempat foto uji lokal.
+*.heic
+*.heif
+foto-lembar-lokal/

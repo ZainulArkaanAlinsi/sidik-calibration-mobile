@@ -4425,5 +4425,8 @@
   "biruAwanJenisInfo": "Information",
   "biruAwanJenisPeringatan": "Warning",
   "biruAwanJenisGalat": "Error",
-  "biruAwanMemuat": "Loading"
+  "biruAwanMemuat": "Loading",
+  "jlBertentangan": "The printed code and the printed title point to different sheet types. Pick one yourself.",
+  "jlSamarCocok": "The print is a little blurry, but it matches one sheet type. Check it before using it.",
+  "jlSamarUsulan": "The print is blurry. These are the closest suggestions, none is selected for you. Pick the one that matches your instrument."
 }

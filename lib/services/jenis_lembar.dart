@@ -14,6 +14,19 @@ import 'registrasi_jangkar_teks.dart' show normalisasiKodeDokumen;
 ///    ditampilkan dan teknisi memilih.
 ///  - Pemetaan kode -> profil datang dari server (`GET /worksheet-templates`),
 ///    tidak ditulis di aplikasi: alat baru ikut dikenali tanpa APK baru.
+///
+/// Catatan jalur (16 Nov 2026): alur pindai TIDAK lagi memakai
+/// [detectWorksheetType] (jalur ketat, kode bersih persis). Ia memakai
+/// `identifikasiLembar` (`identifikasi_lembar.dart`) yang menimbang bukti
+/// berlapis. Di sana aturan "huruf tidak ditebak" diganti: huruf yang MIRIP
+/// angka (O/0, I/1, S/5 ...) boleh mendekatkan bacaan ke satu kode yang
+/// dikenal, tetapi hasilnya tetap hanya usulan (satu ketukan konfirmasi) dan
+/// pilih-awal bacaan samar butuh skor tinggi atau judul yang sepakat.
+/// [detectWorksheetType] dipertahankan sebagai acuan bacaan bersih (tes
+/// diferensial `identifikasi_lembar_diferensial_test.dart` mengunci bahwa
+/// mesin berlapis tidak pernah salah di tempat yang ketat sudah benar).
+/// `cariKodeDokumen` (pindai sel) tetap ketat dan tidak berubah: jenis salah
+/// dari bacaan samar tidak bisa mengisi sel.
 
 /// Dari mana jenis lembar disimpulkan.
 enum SumberJenisLembar {
@@ -26,9 +39,109 @@ enum SumberJenisLembar {
   /// cocok dengan judul tepat satu template. HANYA petunjuk untuk teknisi:
   /// tidak pernah dipakai memilih profil atau mengisi apa pun.
   judul,
+
+  /// Hanya dari `identifikasiLembar`: kode formulir terbaca SAMAR (separator
+  /// berganti, huruf kembar 0/O, I/1, S/5, ekor terpotong) dan dicocokkan ke
+  /// himpunan kode yang dikenal server. Bukan pembacaan bersih: pemilih-awal
+  /// hanya bila bukti lain (judul) sepakat atau samarnya kecil.
+  kodeSamar,
 }
 
-/// Hasil [detectWorksheetType].
+/// Mengapa [HasilJenisLembar] mengambil keputusannya. Hanya diisi
+/// `identifikasiLembar`; hasil `detectWorksheetType` tidak membawanya.
+enum AlasanPetunjuk {
+  /// Kode terbaca bersih dan cocok tepat satu jenis; tidak ada bukti lain
+  /// yang membantah. Dipilih-awal.
+  praPilihKode,
+
+  /// Kode samar, tetapi samarnya kecil dan unik. Dipilih-awal.
+  praPilihKodeSamar,
+
+  /// Kode dan judul menunjuk jenis yang sama (salah satunya samar). Dipilih-awal.
+  praPilihBerlapis,
+
+  /// Kode bersih dipakai beberapa jenis (0504, 0507, ...): semua ditampilkan.
+  kodeBersama,
+
+  /// Dua kandidat atau lebih berdekatan (kode terpotong, dua kode di satu
+  /// halaman): semua yang dekat ditampilkan, tanpa pilihan awal.
+  beberapaKandidat,
+
+  /// Kode menunjuk satu jenis, judul menunjuk jenis lain. Keduanya ditampilkan,
+  /// tanpa pilihan awal.
+  bertentangan,
+
+  /// Satu bukti samar yang belum cukup kuat. Usulan teratas, tanpa pilihan awal.
+  lemah,
+
+  /// Hanya judul. Judul bukan pengenal: usulan, tanpa pilihan awal.
+  judulSaja,
+
+  /// Kode terbaca bersih, tetapi tidak ada di daftar server.
+  kodeTakDikenal,
+}
+
+/// Lapis bukti yang dinilai `identifikasiLembar`.
+enum LapisBukti { kode, judul, revisi }
+
+/// Seberapa jelas satu lapis terbaca.
+enum MutuBukti {
+  /// Terbaca bersih dan cocok persis.
+  tepat,
+
+  /// Terbaca samar, cocok dalam batas toleransi.
+  samar,
+
+  /// Terbaca, tetapi menyimpang dari yang dipegang server (revisi).
+  bertentangan,
+}
+
+/// Bukti satu lapis untuk satu kandidat. Isinya hanya teks cetak formulir
+/// (kode, judul, revisi), bukan isian pelanggan.
+class BuktiLapis {
+  const BuktiLapis({
+    required this.lapis,
+    required this.mutu,
+    required this.skor,
+    required this.terbaca,
+    this.cocok,
+    this.biaya = 0,
+  });
+
+  final LapisBukti lapis;
+  final MutuBukti mutu;
+
+  /// Sumbangan ke skor kandidat, 0..1. Revisi selalu 0: ia pemeriksa, bukan
+  /// bukti.
+  final double skor;
+
+  /// Potongan teks cetak yang dibaca (paling banyak 32 karakter).
+  final String terbaca;
+
+  /// Kode, judul, atau revisi milik server yang dicocokkan.
+  final String? cocok;
+
+  /// Jarak ke yang dicocokkan: bobot jarak kode, atau jumlah kekeliruan huruf
+  /// judul. 0 = persis.
+  final double biaya;
+}
+
+/// Satu jenis lembar yang diusulkan beserta skor gabungan dan bukti per lapis.
+class KandidatJenis {
+  const KandidatJenis({
+    required this.formulir,
+    required this.skor,
+    this.bukti = const [],
+  });
+
+  final FormulirDikenal formulir;
+
+  /// 0..0,99. Bukan peluang; hanya urutan dan ambang pilih-awal.
+  final double skor;
+  final List<BuktiLapis> bukti;
+}
+
+/// Hasil [detectWorksheetType] dan `identifikasiLembar`.
 class HasilJenisLembar {
   const HasilJenisLembar({
     required this.sumber,
@@ -36,11 +149,56 @@ class HasilJenisLembar {
     this.revisiTerbaca,
     this.kandidat = const [],
     this.kodeLain = const [],
-  });
+  }) : _praPilih = null,
+       _praPilihDitentukan = false,
+       alasan = null,
+       peringkat = const [];
+
+  /// Hasil `identifikasiLembar`: keputusan pilih-awal diberikan mesinnya,
+  /// bukan diturunkan dari [kandidat].
+  HasilJenisLembar.berlapis({
+    required this.sumber,
+    required AlasanPetunjuk this.alasan,
+    this.kodeFormulir,
+    this.revisiTerbaca,
+    this.peringkat = const [],
+    String? praPilihTemplateId,
+  }) : _praPilih = praPilihTemplateId,
+       _praPilihDitentukan = true,
+       kandidat = [for (final k in peringkat) k.formulir],
+       kodeLain = const [];
 
   final SumberJenisLembar sumber;
 
-  /// Kode formulir yang terbaca, dinormalkan (`SIDIK-FM-CAL-0508.A`).
+  /// Hanya `identifikasiLembar`: keputusannya (`null` pada `detectWorksheetType`).
+  final AlasanPetunjuk? alasan;
+
+  /// Hanya `identifikasiLembar`: semua kandidat berurut skor turun, tiap
+  /// kandidat membawa bukti per lapis. Kosong pada `detectWorksheetType`.
+  final List<KandidatJenis> peringkat;
+
+  final String? _praPilih;
+  final bool _praPilihDitentukan;
+
+  /// Templat yang boleh dipilih-awal di lembar pilihan, atau `null` = tidak
+  /// ada pilihan awal. `detectWorksheetType`: kode bersih yang cocok tepat satu
+  /// jenis. `identifikasiLembar`: bukti berlapis kuat, unik, dan saling sepakat.
+  /// Tetap hanya usulan; teknisi menekan "Pakai jenis lembar ini".
+  String? get praPilihTemplateId {
+    if (_praPilihDitentukan) return _praPilih;
+
+    return sumber == SumberJenisLembar.kodeFormulir &&
+            templateId != null &&
+            kodeLain.isEmpty
+        ? templateId
+        : null;
+  }
+
+  /// Kode formulir, dinormalkan (`SIDIK-FM-CAL-0508.A`). Untuk
+  /// [SumberJenisLembar.kodeFormulir] itu yang TERBACA. Untuk
+  /// [SumberJenisLembar.kodeSamar] itu kode SERVER yang dicocokkan, bukan yang
+  /// tercetak/terbaca (yang terbaca ada di `peringkat.bukti.terbaca`); jangan
+  /// ditampilkan sebagai "kode terbaca". `null` bila kode tidak satu.
   final String? kodeFormulir;
 
   /// Revisi yang tercetak di dekat kode ("Revise : 4"), bila ada.
@@ -54,28 +212,39 @@ class HasilJenisLembar {
 
   /// KODE PROFIL server (`ph_meter`, ...) — kunci yang sama dengan
   /// `GET /worksheet-templates/{kode}` dan `profilLembarKerjaUntuk()`. Hanya
-  /// terisi bila [kandidat] TEPAT satu; selain itu `null` (kosong atau
-  /// ambigu) dan pemanggil tidak boleh memilihkan. Pun saat terisi, ini
-  /// usulan awal: teknisi tetap bisa mengganti.
-  String? get templateId =>
-      kandidat.length == 1 ? kandidat.single.templateId : null;
+  /// terisi bila ada satu jenis yang boleh dipilih-awal: untuk
+  /// `detectWorksheetType` bila [kandidat] TEPAT satu; untuk
+  /// `identifikasiLembar` HANYA bila [praPilihTemplateId] ada (kandidat tunggal
+  /// yang bacaannya lemah atau cuma dari judul memberi `null`, supaya pemanggil
+  /// tidak memakainya sebagai pilihan). Pun saat terisi, ini usulan awal:
+  /// teknisi tetap bisa mengganti.
+  String? get templateId => _praPilihDitentukan
+      ? _praPilih
+      : (kandidat.length == 1 ? kandidat.single.templateId : null);
 
-  /// Judul template server bila [kandidat] tepat satu.
-  String? get judul => kandidat.length == 1 ? kandidat.single.judul : null;
+  /// Judul template server untuk [templateId]; `null` bila [templateId] `null`.
+  String? get judul {
+    final id = templateId;
+    if (id == null) return null;
+
+    for (final k in kandidat) {
+      if (k.templateId == id) return k.judul;
+    }
+
+    return null;
+  }
 
   /// Kode FM lain yang ikut terbaca di halaman yang sama. Lebih dari satu
   /// berarti foto memuat beberapa formulir atau bacaan yang kacau; pemanggil
   /// tidak boleh memilih salah satunya diam-diam.
   final List<String> kodeLain;
 
-  /// Tepat SATU profil yang cocok dan tidak ada kode FM lain di halaman yang
-  /// sama. Cukup untuk MEMILIH-AWAL satu baris di daftar usulan; BUKAN izin
-  /// melewati pilihan teknisi (nama lama `pastiProfil` dihapus karena
-  /// menyiratkan kepastian yang tidak ada).
-  bool get satuKandidat =>
-      sumber == SumberJenisLembar.kodeFormulir &&
-      templateId != null &&
-      kodeLain.isEmpty;
+  /// Ada satu profil yang boleh MEMILIH-AWAL satu baris di daftar usulan
+  /// ([praPilihTemplateId]); BUKAN izin melewati pilihan teknisi (nama lama
+  /// `pastiProfil` dihapus karena menyiratkan kepastian yang tidak ada).
+  /// Untuk `detectWorksheetType`: tepat SATU profil cocok dengan kode bersih
+  /// dan tidak ada kode FM lain di halaman yang sama.
+  bool get satuKandidat => praPilihTemplateId != null;
 }
 
 /// Satu formulir yang dikenal server, bahan [detectWorksheetType]. Diambil
@@ -92,7 +261,9 @@ FormulirDikenal formulirDikenalDari(WorksheetTemplate t) =>
 
 // `SIDIK-FM-CAL-0508.A`: awalan, nomor deret 05xx, varian huruf opsional.
 // Spasi dan strip yang dipecah/ditempel OCR ditoleransi; huruf TIDAK ditebak
-// (`O5O9` bukan `0509`) — aturan yang sama dengan `cariKodeDokumen`. Hanya
+// (`O5O9` bukan `0509`) — jalur KETAT, sama dengan `cariKodeDokumen` (pindai
+// sel). Alur pindai beranda memakai `identifikasiLembar`, yang menimbang huruf
+// kembar sebagai usulan (lihat catatan jalur di kepala berkas). Hanya
 // deret 05xx (lembar kerja): `SIDIK-FM-CAL-2403` (formulir sertifikat) bukan
 // jenis lembar dan tidak dihitung sebagai "kode lain".
 final _polaKode = RegExp(
@@ -128,6 +299,12 @@ String _normJudul(String s) =>
 /// Menyimpulkan JENIS lembar dari teks seluruh halaman foto (hasil ML Kit
 /// sehalaman). Murni fungsi teks, tidak menyentuh kamera, jaringan, atau
 /// state — dan tidak mengisi apa pun.
+///
+/// Ini jalur KETAT: hanya kode yang terbaca bersih persis. Alur pindai memakai
+/// `identifikasiLembar` (`identifikasi_lembar.dart`) yang menimbang bukti
+/// berlapis (kode samar, judul, revisi). Fungsi ini dipertahankan sebagai
+/// acuan bacaan bersih; aturan ketatnya (mis. `O5O9` bukan `0509`) tidak
+/// dilonggarkan di sini.
 ///
 /// 1. **Kode formulir** (`SIDIK-FM-CAL-xxxx[.X]`): pengenal utama, tercetak di
 ///    kaki ke-41 formulir. Dicocokkan PERSIS (varian `.A` ≠ polos) ke

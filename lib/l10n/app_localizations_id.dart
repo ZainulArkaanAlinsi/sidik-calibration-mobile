@@ -8302,4 +8302,16 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get biruAwanMemuat => 'Memuat';
+
+  @override
+  String get jlBertentangan =>
+      'Kode dan judul yang tercetak menunjuk jenis lembar yang berbeda. Pilih sendiri.';
+
+  @override
+  String get jlSamarCocok =>
+      'Cetakannya agak samar, tetapi cocok dengan satu jenis lembar. Periksa lagi sebelum dipakai.';
+
+  @override
+  String get jlSamarUsulan =>
+      'Cetakannya samar. Ini usulan yang paling dekat, belum ada yang dipilihkan. Pilih yang sesuai dengan alat Anda.';
 }

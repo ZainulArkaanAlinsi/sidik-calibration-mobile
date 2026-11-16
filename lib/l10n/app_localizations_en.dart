@@ -8449,4 +8449,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get biruAwanMemuat => 'Loading';
+
+  @override
+  String get jlBertentangan =>
+      'The printed code and the printed title point to different sheet types. Pick one yourself.';
+
+  @override
+  String get jlSamarCocok =>
+      'The print is a little blurry, but it matches one sheet type. Check it before using it.';
+
+  @override
+  String get jlSamarUsulan =>
+      'The print is blurry. These are the closest suggestions, none is selected for you. Pick the one that matches your instrument.';
 }

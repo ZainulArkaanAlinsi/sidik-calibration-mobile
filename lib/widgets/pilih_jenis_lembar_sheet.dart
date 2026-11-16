@@ -6,13 +6,16 @@ import '../services/jenis_lembar.dart';
 
 /// Lembar pilihan "jenis lembar" untuk teknisi.
 ///
-/// Dipakai setelah foto dibaca (kode formulir `SIDIK-FM-CAL-05xx` sebagai
-/// PETUNJUK). Aturannya:
+/// Dipakai setelah foto dibaca (kode formulir `SIDIK-FM-CAL-05xx`, judul, dan
+/// revisi sebagai PETUNJUK berlapis, lihat `identifikasiLembar`). Aturannya:
 ///  - Tombol "Pilih jenis lembar manual" ([kunciPilihManual]) SELALU tampil:
 ///    saat kode terdeteksi, ambigu, tidak dikenal, maupun tidak terbaca.
-///  - Kode yang cocok dengan TEPAT satu jenis hanya memilih-awal baris itu;
-///    teknisi bebas mengganti. Kode yang cocok dengan beberapa jenis (0504,
-///    0507, 0513, 0514 ...) menampilkan semuanya TANPA pilihan awal.
+///  - Pilihan AWAL mengikuti `praPilihTemplateId` milik pengenal: kode bersih
+///    yang cocok tepat satu jenis, atau bukti berlapis yang kuat, unik, dan
+///    saling sepakat. Teknisi bebas mengganti. Kode yang cocok dengan beberapa
+///    jenis (0504, 0507, 0513, 0514 ...), dua kandidat yang berdekatan, kode
+///    dan judul yang bertentangan, bacaan samar yang lemah, dan judul saja
+///    menampilkan kandidatnya TANPA pilihan awal.
 ///  - Tidak ada navigasi atau pengisian otomatis: hasilnya hanya keluar saat
 ///    teknisi menekan "Pakai jenis lembar ini".
 ///
@@ -70,14 +73,12 @@ class _PilihJenisLembarSheetState extends State<PilihJenisLembarSheet> {
   void initState() {
     super.initState();
 
-    // Pilihan AWAL hanya dari KODE FORMULIR yang cocok dengan tepat satu jenis.
-    // Kode ambigu tidak memilihkan; petunjuk dari judul tercetak juga tidak
-    // (judul bukan pengenal, hanya usulan yang ditampilkan).
-    if (_p != null &&
-        _p!.sumber == SumberJenisLembar.kodeFormulir &&
-        _p!.satuKandidat) {
-      _terpilih = _p!.kandidat.single.templateId;
-    }
+    // Pilihan AWAL datang dari keputusan pengenal (`praPilihTemplateId`): kode
+    // bersih yang cocok tepat satu jenis, atau bukti berlapis yang kuat, unik,
+    // dan saling sepakat. Kode ambigu, bacaan samar yang lemah, kode dan judul
+    // yang bertentangan, serta judul saja tidak memilihkan (judul bukan
+    // pengenal, hanya usulan yang ditampilkan).
+    if (_petunjukDipakai) _terpilih = _p!.praPilihTemplateId;
     _semua = _kandidat.isEmpty;
   }
 
@@ -96,6 +97,27 @@ class _PilihJenisLembarSheetState extends State<PilihJenisLembarSheet> {
     final p = _p;
     if (p == null) return l10n.jlKodeTidakTerbaca;
     if (p.sumber == SumberJenisLembar.judul) return l10n.jlDariJudul;
+
+    // Hasil pengenal berlapis membawa alasannya; pesan mengikuti alasan itu.
+    switch (p.alasan) {
+      case AlasanPetunjuk.bertentangan:
+        return l10n.jlBertentangan;
+      case AlasanPetunjuk.praPilihKodeSamar:
+      case AlasanPetunjuk.praPilihBerlapis:
+        return l10n.jlSamarCocok;
+      case AlasanPetunjuk.lemah:
+        return l10n.jlSamarUsulan;
+      case AlasanPetunjuk.beberapaKandidat:
+        return p.sumber == SumberJenisLembar.kodeSamar
+            ? l10n.jlSamarUsulan
+            : l10n.jlBeberapaJenis;
+      case AlasanPetunjuk.praPilihKode:
+      case AlasanPetunjuk.kodeBersama:
+      case AlasanPetunjuk.kodeTakDikenal:
+      case AlasanPetunjuk.judulSaja:
+      case null:
+        break;
+    }
 
     final kode = p.kodeFormulir ?? '';
     if (p.kodeLain.isNotEmpty) {

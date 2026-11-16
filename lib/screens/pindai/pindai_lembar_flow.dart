@@ -40,11 +40,14 @@ import '../calibration/pindai_formulir_asli_flow.dart' show batasSisiFotoAsli;
 ///     dipegang alur ini, `LembarKerjaScreen`, dan closure route selama lembar
 ///     kerja terbuka, lalu lepas saat route ditutup.
 ///  3. Pembaca halaman ML Kit di perangkat, putaran 0/90/180/270 sampai kode
-///     formulir terbaca (`kenaliJenisLembar`). Pembaca SELALU ditutup.
+///     formulir bersih terbaca atau bukti berlapis (kode, judul, revisi)
+///     cukup kuat (`kenaliJenisLembar` -> `identifikasiLembar`). Pembaca
+///     SELALU ditutup.
 ///  4. SATU lembar pilihan (`tampilkanPilihJenisLembar`): usulan hanya
-///     memilih-awal baris bila kode cocok tepat satu jenis; pilih manual
-///     selalu ada; menutup lembar = selesai tanpa membuka apa pun (tidak ada
-///     yang memegang foto lagi).
+///     memilih-awal baris bila bukti kuat, unik, dan saling sepakat (kode
+///     bersih yang cocok tepat satu jenis, atau kode samar yang disepakati
+///     judul); pilih manual selalu ada; menutup lembar = selesai tanpa membuka
+///     apa pun (tidak ada yang memegang foto lagi).
 ///  5. Jenis yang dikonfirmasi belum boleh dipindai server = pesan, tanpa
 ///     navigasi. Selain itu `LembarKerjaScreen` jenis itu dibuka — dibungkus
 ///     `BekuLembarKerja` seperti pemanggil lembar kerja lain — dengan

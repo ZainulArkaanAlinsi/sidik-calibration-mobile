@@ -3451,5 +3451,8 @@
   "biruAwanJenisInfo": "Informasi",
   "biruAwanJenisPeringatan": "Peringatan",
   "biruAwanJenisGalat": "Galat",
-  "biruAwanMemuat": "Memuat"
+  "biruAwanMemuat": "Memuat",
+  "jlBertentangan": "Kode dan judul yang tercetak menunjuk jenis lembar yang berbeda. Pilih sendiri.",
+  "jlSamarCocok": "Cetakannya agak samar, tetapi cocok dengan satu jenis lembar. Periksa lagi sebelum dipakai.",
+  "jlSamarUsulan": "Cetakannya samar. Ini usulan yang paling dekat, belum ada yang dipilihkan. Pilih yang sesuai dengan alat Anda."
 }
