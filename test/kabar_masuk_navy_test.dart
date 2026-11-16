@@ -100,6 +100,28 @@ void main() {
     expect(find.byType(TombolTutupSidik), findsOneWidget);
   });
 
+  testWidgets('teks kabar panjang dibatasi: judul 1 baris, isi 2 baris', (
+    tester,
+  ) async {
+    layarUji(tester);
+    await tester.pumpWidget(_app(_Catat()));
+    final judulPanjang = 'Judul kabar yang sangat panjang ' * 6;
+    final isiPanjang = 'Isi kabar yang sangat panjang ' * 12;
+    _wadah(tester).read(kabarMasukProvider.notifier).tambahkan([
+      KabarToast(judul: judulPanjang, isi: isiPanjang, kunci: 'panjang'),
+    ]);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    final judul = tester.widget<Text>(find.text(judulPanjang));
+    expect(judul.maxLines, 1);
+    expect(judul.overflow, TextOverflow.ellipsis);
+    final isi = tester.widget<Text>(find.text(isiPanjang));
+    expect(isi.maxLines, 2);
+    expect(isi.overflow, TextOverflow.ellipsis);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('"Buka" membuka tujuan sekali dan menutup toast', (tester) async {
     final nav = _Catat();
     layarUji(tester);

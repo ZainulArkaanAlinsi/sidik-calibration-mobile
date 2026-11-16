@@ -383,6 +383,29 @@ void main() {
       expect(_kartu, findsNothing);
     });
 
+    testWidgets(
+      'ketukan kedua selama animasi keluar tidak memanggil aksi lagi',
+      (tester) async {
+        var n = 0;
+        await _tampil(
+          tester,
+          jenis: JenisToast.galat,
+          aksi: 'Coba lagi',
+          onAksi: () => n++,
+        );
+        await tester.tap(find.text('Coba lagi'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 60));
+        // Toast masih terlihat (keluar 160 ms): ketukan kedua tidak boleh
+        // memicu aksi untuk kedua kalinya.
+        expect(_kartu, findsOneWidget);
+        await tester.tap(find.text('Coba lagi'), warnIfMissed: false);
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(n, 1);
+        expect(_kartu, findsNothing);
+      },
+    );
+
     testWidgets('overlay hilang bersama pohon: tanpa timer atau galat', (
       tester,
     ) async {

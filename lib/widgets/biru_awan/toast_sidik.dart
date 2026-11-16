@@ -390,6 +390,10 @@ class ToastSidik extends StatelessWidget {
         children: [
           Text(
             judul,
+            // Kartu kabar masuk mempertahankan batas baris lama (judul 1,
+            // isi 2) supaya teks panjang tidak memenuhi layar selama 5 dtk.
+            maxLines: kabar ? 1 : null,
+            overflow: kabar ? TextOverflow.ellipsis : null,
             style: HurufUmpanBalikBiruAwan.judulToast.copyWith(color: teks),
           ),
           if (punyaIsi)
@@ -397,6 +401,8 @@ class ToastSidik extends StatelessWidget {
               padding: const EdgeInsets.only(top: JarakBiruAwan.baris),
               child: Text(
                 isi!,
+                maxLines: kabar ? 2 : null,
+                overflow: kabar ? TextOverflow.ellipsis : null,
                 style: HurufBiruAwan.keteranganKecil.copyWith(color: teksKedua),
               ),
             ),
@@ -686,6 +692,10 @@ class _PenayangToastState extends State<_PenayangToast>
                     onAksi: widget.onAksi == null
                         ? null
                         : () {
+                            // Ketukan kedua selama animasi keluar (160 ms)
+                            // tidak boleh memanggil aksi lagi ("Coba lagi",
+                            // kirim): guard yang sama dengan `_tutup`.
+                            if (_menutup) return;
                             widget.onAksi!();
                             _tutup();
                           },
