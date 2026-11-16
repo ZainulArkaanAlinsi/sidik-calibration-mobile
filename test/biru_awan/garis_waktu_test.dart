@@ -96,7 +96,7 @@ void main() {
       expect(kalimat1.style!.fontWeight, FontWeight.w400);
       final pelaku = kalimat1.children!.first as TextSpan;
       expect(pelaku.text, 'Admin');
-      expect(pelaku.style!.fontWeight, FontWeight.w800);
+      expect(pelaku.style!.fontWeight, FontWeight.w600);
       expect(
         teks.any((t) => t.toPlainText() == 'Sesi dikirim untuk approval'),
         isTrue,

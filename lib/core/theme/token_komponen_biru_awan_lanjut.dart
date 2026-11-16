@@ -15,39 +15,42 @@ import 'sidik_theme.dart';
 /// melengkapi keduanya dan memakai pola yang sama (angka dari artboard
 /// `docs/desain-ulang/referensi-html/` yang belum punya nama).
 ///
-/// Satu penyimpangan huruf, disengaja: artboard menulis angka lencana 11/800,
+/// Satu penyimpangan huruf, disengaja: artboard menulis angka lencana 11,
 /// sedangkan gerbang token-only melarang huruf di bawah 12. Lencana memakai
-/// 12/800 ([HurufLanjutBiruAwan.lencana]).
+/// 12/600 ([HurufLanjutBiruAwan.lencana]).
+///
+/// REVISI 16 Nov 2026 (R1): tidak ada berat 700/800; judul 600, label 500, isi
+/// 400. Angka sorot 32 dan angka kartu 28.
 abstract final class HurufLanjutBiruAwan {
   static const String _inter = SidikTheme.keluarga;
 
-  /// 56/60 · 800: satu angka di hero ("4 menunggu").
+  /// 32/36 · 600: satu angka sorot ("4 menunggu").
   static const TextStyle angkaHero = TextStyle(
     fontFamily: _inter,
-    fontSize: 56,
-    height: 60 / 56,
-    fontWeight: FontWeight.w800,
+    fontSize: 32,
+    height: 36 / 32,
+    fontWeight: FontWeight.w600,
   );
 
-  /// 36/40 · 800: angka ubin KPI.
+  /// 28/32 · 600: angka ubin KPI.
   static const TextStyle angkaKpi = TextStyle(
     fontFamily: _inter,
-    fontSize: 36,
-    height: 40 / 36,
-    fontWeight: FontWeight.w800,
+    fontSize: 28,
+    height: 32 / 28,
+    fontWeight: FontWeight.w600,
   );
 
-  /// 13/18 · 700: label ubin KPI.
+  /// 13/18 · 500: label ubin KPI.
   static const TextStyle labelKpi = TextStyle(
     fontFamily: _inter,
     fontSize: 13,
     height: 18 / 13,
-    fontWeight: FontWeight.w700,
+    fontWeight: FontWeight.w500,
   );
 
-  /// Plex Mono 12 · 700: angka di atas batang.
+  /// Plex Mono 12 · 600: angka di atas batang.
   static TextStyle get nilaiBatang =>
-      SidikTheme.gayaAngka(ukuran: 12, berat: FontWeight.w700);
+      SidikTheme.gayaAngka(ukuran: 12, berat: FontWeight.w600);
 
   /// 12/16 · 500: nama hari di bawah batang.
   static const TextStyle labelBatang = TextStyle(
@@ -57,28 +60,28 @@ abstract final class HurufLanjutBiruAwan {
     fontWeight: FontWeight.w500,
   );
 
-  /// 12/16 · 800: nama hari yang disorot.
+  /// 12/16 · 600: nama hari yang disorot.
   static const TextStyle labelBatangSorot = TextStyle(
     fontFamily: _inter,
     fontSize: 12,
     height: 16 / 12,
-    fontWeight: FontWeight.w800,
+    fontWeight: FontWeight.w600,
   );
 
-  /// 16/24 · 600: judul langkah yang sudah lewat atau belum.
+  /// 16/24 · 500: judul langkah yang sudah lewat atau belum.
   static const TextStyle judulLangkah = TextStyle(
     fontFamily: _inter,
     fontSize: 16,
     height: 24 / 16,
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.w500,
   );
 
-  /// 16/24 · 800: judul langkah yang sedang berjalan.
+  /// 16/24 · 600: judul langkah yang sedang berjalan.
   static const TextStyle judulLangkahSekarang = TextStyle(
     fontFamily: _inter,
     fontSize: 16,
     height: 24 / 16,
-    fontWeight: FontWeight.w800,
+    fontWeight: FontWeight.w600,
   );
 
   /// 15/21 · 400: kalimat di garis waktu.
@@ -89,15 +92,15 @@ abstract final class HurufLanjutBiruAwan {
     fontWeight: FontWeight.w400,
   );
 
-  /// 15/21 · 800: pelaku di kalimat garis waktu.
+  /// 15/21 · 600: pelaku di kalimat garis waktu.
   static const TextStyle pelakuRiwayat = TextStyle(
     fontFamily: _inter,
     fontSize: 15,
     height: 21 / 15,
-    fontWeight: FontWeight.w800,
+    fontWeight: FontWeight.w600,
   );
 
-  /// 12/16 · 400 / 700 / 800: label bilah langkah (belum / selesai / sekarang).
+  /// 12/16 · 400 / 500 / 600: label bilah langkah (belum / selesai / sekarang).
   static const TextStyle labelBilah = TextStyle(
     fontFamily: _inter,
     fontSize: 12,
@@ -108,47 +111,47 @@ abstract final class HurufLanjutBiruAwan {
     fontFamily: _inter,
     fontSize: 12,
     height: 16 / 12,
-    fontWeight: FontWeight.w700,
+    fontWeight: FontWeight.w500,
   );
   static const TextStyle labelBilahSekarang = TextStyle(
     fontFamily: _inter,
     fontSize: 12,
     height: 16 / 12,
-    fontWeight: FontWeight.w800,
+    fontWeight: FontWeight.w600,
   );
 
-  /// 12/16 · 800: angka lencana.
+  /// 12/16 · 600: angka lencana.
   static const TextStyle lencana = TextStyle(
     fontFamily: _inter,
     fontSize: 12,
     height: 16 / 12,
-    fontWeight: FontWeight.w800,
+    fontWeight: FontWeight.w600,
   );
 
-  /// Inisial avatar: 36 → 14, 48 → 16, 52 → 18, 84 → 28 (semuanya 800).
+  /// Inisial avatar: 36 → 14, 48 → 16, 52 → 18, 84 → 28 (semuanya 600).
   static const TextStyle inisialKecil = TextStyle(
     fontFamily: _inter,
     fontSize: 14,
     height: 20 / 14,
-    fontWeight: FontWeight.w800,
+    fontWeight: FontWeight.w600,
   );
   static const TextStyle inisialSedang = TextStyle(
     fontFamily: _inter,
     fontSize: 16,
     height: 24 / 16,
-    fontWeight: FontWeight.w800,
+    fontWeight: FontWeight.w600,
   );
   static const TextStyle inisialLaci = TextStyle(
     fontFamily: _inter,
     fontSize: 18,
     height: 24 / 18,
-    fontWeight: FontWeight.w800,
+    fontWeight: FontWeight.w600,
   );
   static const TextStyle inisialBesar = TextStyle(
     fontFamily: _inter,
     fontSize: 28,
     height: 34 / 28,
-    fontWeight: FontWeight.w800,
+    fontWeight: FontWeight.w600,
   );
 
   /// 14/20 · 400: teks yang diketik di kolom cari.

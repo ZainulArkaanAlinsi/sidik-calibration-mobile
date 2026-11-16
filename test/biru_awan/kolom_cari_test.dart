@@ -1,4 +1,5 @@
-// KolomCari: pil 56, isian 14, tombol bulat cari 44 primer, cincin fokus di luar.
+// KolomCari: kotak 48 sudut 12 (REVISI 16 Nov 2026), isian 14, tombol bulat cari
+// 44 primer, cincin fokus di luar.
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/semantics.dart';
@@ -35,12 +36,12 @@ void main() {
   setUpAll(muatFontUji);
 
   group('ukuran dan bentuk', () {
-    testWidgets('pil 56 sudut penuh; isian 14; tombol 44 digambar, area 48', (
+    testWidgets('kotak 48 sudut 12; isian 14; tombol 44 digambar, area 48', (
       tester,
     ) async {
       await pasang(tester, _k());
       final pil = tester.getRect(find.byType(KolomCari));
-      expect(pil.height, 56);
+      expect(pil.height, 48);
       final dekor = tester
           .widgetList<DecoratedBox>(
             find.descendant(
@@ -51,7 +52,11 @@ void main() {
           .map((d) => d.decoration)
           .whereType<BoxDecoration>()
           .firstWhere((d) => d.borderRadius != null);
-      expect(dekor.borderRadius, BorderRadius.circular(BentukBiruAwan.pil));
+      expect(
+        dekor.borderRadius,
+        BorderRadius.circular(BentukBiruAwan.saringan),
+      );
+      expect(BentukBiruAwan.saringan, 12);
       expect(
         tester.widget<TextField>(find.byType(TextField)).style!.fontSize,
         14,
@@ -163,6 +168,11 @@ void main() {
         final garis = dekor.border!.top;
         expect(garis.width, AppUkuran.garisTebal);
         expect(garis.color, bahan(tester).tinta);
+        // Cincin mengikuti sudut kotak (12) + celah 2 + garis 2.
+        expect(
+          dekor.borderRadius,
+          BorderRadius.circular(UkuranKomponenBiruAwan.sudutCincinSaringan),
+        );
         for (final e in {
           'meja': bahan(tester).meja,
           'kertas': bahan(tester).kertas,
@@ -178,7 +188,7 @@ void main() {
         }
         expect(
           tester.getSize(find.byType(KolomCari)).height,
-          56,
+          48,
           reason: 'cincin tidak mengubah ukuran',
         );
       });
@@ -328,7 +338,7 @@ void main() {
       await pasang(tester, _k(), lebar: 320, skala: 1.3);
       expect(
         tester.getSize(find.byType(KolomCari)).height,
-        greaterThanOrEqualTo(56),
+        greaterThanOrEqualTo(48),
       );
       expect(tester.takeException(), isNull);
     });

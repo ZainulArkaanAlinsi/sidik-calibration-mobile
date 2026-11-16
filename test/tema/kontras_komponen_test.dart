@@ -90,12 +90,13 @@ void main() {
         }
       });
 
-      test('Biru Awan (terang): isi hijau/kuning/awan, tinta navy 4,5:1', () {
+      test('REVISI 16 Nov (terang): isi MUDA, tinta GELAP berwarna, 4,5:1', () {
         if (!m.terang) return;
-        for (final (nada, isi) in [
-          (NadaStempel.lulus, PaletLab.hijau),
-          (NadaStempel.awas, PaletLab.kuning),
-          (NadaStempel.tunggu, PaletLab.awan),
+        for (final (nada, isi, tintaGelap) in [
+          (NadaStempel.lulus, PaletLab.hijau, PaletLab.hijauTinta),
+          (NadaStempel.awas, PaletLab.kuning, PaletLab.kuningTinta),
+          (NadaStempel.tunggu, PaletLab.biruKelabu, PaletLab.biruKelabuTinta),
+          (NadaStempel.gagal, PaletLab.kabutGagal, PaletLab.gagalTerang),
         ]) {
           final (tinta, latar) = StatusTampil(
             KataStatus.draf,
@@ -103,8 +104,19 @@ void main() {
             _ikon,
           ).warna(m);
           expect(latar, isi, reason: nada.name);
-          expect(tinta, PaletLab.tinta, reason: nada.name);
+          expect(tinta, tintaGelap, reason: nada.name);
           cek('${nada.name}/isi', rasioKontras(tinta, latar), teks);
+          // Isi muda: tinta jauh lebih gelap daripada isinya.
+          expect(
+            latar.computeLuminance(),
+            greaterThan(0.8),
+            reason: '${nada.name}: isi harus MUDA',
+          );
+          expect(
+            tinta.computeLuminance(),
+            lessThan(0.15),
+            reason: '${nada.name}: tinta harus GELAP',
+          );
         }
       });
 

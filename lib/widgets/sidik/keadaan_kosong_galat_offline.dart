@@ -28,7 +28,7 @@ enum RagamKeadaan {
 /// membawa ikon kecil sebaris dengan judul, sebagai penanda jenis (kata
 /// tetap membawa arti). Tindakan berupa tombol sekunder 48 dp; bila keadaan ini
 /// satu-satunya yang bisa dilakukan di layar ([aksiUtama]) ia menjadi tombol
-/// utama 56 dp.
+/// utama 48 dp.
 ///
 /// Banner offline di atas daftar yang masih punya isi adalah [BannerOffline].
 class KeadaanKosongGalatOffline extends StatelessWidget {
@@ -53,7 +53,7 @@ class KeadaanKosongGalatOffline extends StatelessWidget {
   final String? labelAksi;
   final VoidCallback? onAksi;
 
-  /// Tindakan sebagai tombol utama 56 dp.
+  /// Tindakan sebagai tombol utama 48 dp.
   final bool aksiUtama;
 
   @override

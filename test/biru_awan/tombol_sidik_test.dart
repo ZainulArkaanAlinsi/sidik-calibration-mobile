@@ -1,4 +1,4 @@
-// TombolSidik (utama 56; tegas, sekunder, teks, bahaya 48; pil).
+// TombolSidik (semua ragam 48; sudut 10; REVISI 16 Nov 2026).
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart' show LogicalKeyboardKey;
@@ -34,8 +34,7 @@ void main() {
 
   group('ukuran dan bentuk', () {
     for (final r in RagamTombolSidik.values) {
-      testWidgets('${r.name}: tinggi ${r == RagamTombolSidik.utama ? 56 : 48}, '
-          'pil', (tester) async {
+      testWidgets('${r.name}: tinggi 48, sudut 10 (bukan pil)', (tester) async {
         layarUji(tester, lebar: 360, tinggi: 640);
         await tester.pumpWidget(
           aplikasiUji(
@@ -46,7 +45,8 @@ void main() {
           ),
         );
         final ukuran = tester.getSize(find.byType(_jenis(r)));
-        expect(ukuran.height, r == RagamTombolSidik.utama ? 56 : 48);
+        expect(ukuran.height, 48);
+        expect(UkuranBiruAwan.tombolUtama, 48);
         if (r == RagamTombolSidik.utama) {
           expect(ukuran.width, 360 - 32, reason: 'utama selebar induk');
         } else {
@@ -55,8 +55,9 @@ void main() {
         final bentuk = _gaya(tester, r).shape!.resolve({})!;
         expect(
           (bentuk as RoundedRectangleBorder).borderRadius,
-          BorderRadius.circular(BentukBiruAwan.pil),
+          BorderRadius.circular(BentukBiruAwan.tombol),
         );
+        expect(BentukBiruAwan.tombol, 10);
       });
     }
 
@@ -295,7 +296,12 @@ void main() {
           final dekor = hias.decoration as BoxDecoration;
           final garis = dekor.border!.top;
           expect(garis.width, AppUkuran.garisTebal);
-          expect(dekor.borderRadius, BorderRadius.circular(BentukBiruAwan.pil));
+          // Cincin mengikuti sudut tombol (10) + celah 2 + garis 2.
+          expect(
+            dekor.borderRadius,
+            BorderRadius.circular(UkuranKomponenBiruAwan.sudutCincinTombol),
+          );
+          expect(UkuranKomponenBiruAwan.sudutCincinTombol, 14);
 
           // Warna: dari token, dan >= 3:1 terhadap latar halaman (meja) maupun
           // kartu (kertas), tempat tombol bisa duduk.
@@ -552,7 +558,7 @@ void main() {
           skala: 1.3,
         ),
       );
-      expect(tester.getSize(find.byType(FilledButton)).height, greaterThan(56));
+      expect(tester.getSize(find.byType(FilledButton)).height, greaterThan(48));
     });
 
     for (final gelap in [false, true]) {

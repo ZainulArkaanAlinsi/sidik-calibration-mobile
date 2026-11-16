@@ -8,8 +8,8 @@ import '../../core/theme/sidik_material.dart';
 import '../../core/theme/token_komponen_biru_awan.dart';
 import '../../core/theme/warna_biru_awan.dart';
 
-/// Ukuran [TombolBulat]: 44 (cari, tambah), 48 (kembali, lonceng, menu), 60
-/// (Mulai di dock).
+/// Ukuran [TombolBulat]: 44 (cari, tambah), 48 (kembali, lonceng, menu, Mulai
+/// di bilah teknisi; dulu 60).
 enum UkuranTombolBulat { kecil, standar, mulai }
 
 /// Isi [TombolBulat].
@@ -24,14 +24,14 @@ enum RagamTombolBulat {
   navy,
 }
 
-/// Tombol bulat berisi satu ikon (`Komponen.dc.html`): 44, 48, atau 60.
+/// Tombol bulat berisi satu ikon (`Komponen.dc.html`): 44 atau 48.
 ///
 /// - Tombol ikon tidak punya kata, jadi [label] WAJIB (dibaca pembaca layar).
 /// - Gambarnya 44 untuk [UkuranTombolBulat.kecil], tetapi area sentuhnya
 ///   selalu >= 48 (`AppUkuran.sasaranSentuh`): bidang transparan 2 dp di
 ///   sekeliling juga menanggapi ketukan.
-/// - [UkuranTombolBulat.mulai] membawa bayangan primer 40 %: satu-satunya
-///   tombol yang boleh berbayangan (`ELEMEN.md`).
+/// - Tanpa bayangan di ukuran mana pun (REVISI 16 Nov 2026; Mulai dulu
+///   berbayangan primer 40 %).
 /// - [onPressed] `null` = mati (isi netral).
 /// - Tekan: skala 0,97 (`TekanSkala`).
 class TombolBulat extends StatelessWidget {
@@ -80,23 +80,9 @@ class TombolBulat extends StatelessWidget {
     final tepi = aktif && ragam == RagamTombolBulat.putih
         ? BorderSide(color: m.kertasTepi, width: AppUkuran.garis)
         : BorderSide.none;
-    final bayangan = aktif && ukuran == UkuranTombolBulat.mulai
-        ? [
-            BoxShadow(
-              color: w.bayanganMulai.withValues(
-                alpha: UkuranKomponenBiruAwan.bayanganMulaiAlfa,
-              ),
-              offset: const Offset(
-                0,
-                UkuranKomponenBiruAwan.bayanganMulaiGeser,
-              ),
-              blurRadius: UkuranKomponenBiruAwan.bayanganMulaiBlur,
-            ),
-          ]
-        : null;
-
+    // Tanpa bayangan (REVISI 16 Nov 2026: tombol Mulai datar).
     final gambar = DecoratedBox(
-      decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: bayangan),
+      decoration: const BoxDecoration(shape: BoxShape.circle),
       child: Material(
         color: isi,
         shape: CircleBorder(side: tepi),

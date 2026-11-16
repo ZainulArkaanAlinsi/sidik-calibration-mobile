@@ -163,14 +163,14 @@ void main() {
       },
     );
 
-    testWidgets('judul 16/700 dan keterangan 13 tinta kedua', (tester) async {
+    testWidgets('judul 16/600 dan keterangan 13 tinta kedua', (tester) async {
       await tester.pumpWidget(aplikasiUji(_menu(onTap: () {})));
       final m = SidikMaterial.of(tester.element(find.byType(Scaffold)));
       final judul = tester.widget<Text>(find.text('Pelanggan')).style!;
       final ket = tester
           .widget<Text>(find.text('Kelola daftar pelanggan lab'))
           .style!;
-      expect((judul.fontSize, judul.fontWeight), (16, FontWeight.w700));
+      expect((judul.fontSize, judul.fontWeight), (16, FontWeight.w600));
       expect((ket.fontSize, ket.color), (13, m.tinta2));
     });
 
@@ -244,9 +244,11 @@ void main() {
   });
 
   group('BarisDaftar72', () {
-    testWidgets('minimum 72; ubin visual 48 persegi sudut 16', (tester) async {
+    testWidgets('minimum 64 (dulu 72); ubin visual 48 persegi sudut 12', (
+      tester,
+    ) async {
       await tester.pumpWidget(aplikasiUji(_daftar(onTap: () {})));
-      expect(tester.getSize(find.byType(BarisDaftar72)).height, 72);
+      expect(tester.getSize(find.byType(BarisDaftar72)).height, 64);
       expect(tester.getSize(find.byType(UbinIkon)), const Size(48, 48));
       final kotak =
           tester
@@ -265,13 +267,13 @@ void main() {
       );
     });
 
-    testWidgets('judul 16/800, nomor mono 12, keterangan 13', (tester) async {
+    testWidgets('judul 16/600, nomor mono 12, keterangan 13', (tester) async {
       await tester.pumpWidget(
         aplikasiUji(_daftar(nomor: 'KAL/2026/11/0001', onTap: () {})),
       );
       final judul = tester.widget<Text>(find.text('Oven Memmert')).style!;
       final nomor = tester.widget<Text>(find.text('KAL/2026/11/0001')).style!;
-      expect((judul.fontSize, judul.fontWeight), (16, FontWeight.w800));
+      expect((judul.fontSize, judul.fontWeight), (16, FontWeight.w600));
       expect(nomor.fontFamily, 'IBMPlexMono');
       expect(nomor.fontSize, 12);
     });

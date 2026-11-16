@@ -1,15 +1,21 @@
 import 'package:flutter/painting.dart';
 
-/// Palet mentah SIDIK Lab, "Biru Awan" (L1b, 15 Nov 2026). SATU-SATUNYA tempat
+/// Palet mentah SIDIK Lab, "Biru Awan" (L1b, 15 Nov 2026), diselaraskan ke
+/// REVISI 16 Nov 2026 (R1: tenang, formal, ringkas). SATU-SATUNYA tempat
 /// nilai warna Lab ditulis sebagai angka; `SidikMaterial`, `SidikTheme`, dan
 /// `WarnaLajur` membacanya dari sini. Layar tidak menulis warna mentah (dijaga
 /// `test/tema/token_only_test.dart`) dan membaca warna lewat
 /// `SidikMaterial.of(context)` atau `Theme.of(context).colorScheme`.
 ///
 /// Sumber nilainya `docs/desain-ulang/tokens.json` (nama sama dengan berkas itu).
+/// Di mana `DESIGN.md`, `ELEMEN.md`, `POLA.md`, dan `tokens.json` lama
+/// bertentangan dengan `docs/desain-ulang/REVISI-16NOV.md`, berkas revisi menang.
 /// Lembar kerja TIDAK memakai palet ini: ia membaca `PaletBeku` lewat `TemaBeku`
 /// (`docs/desain-ulang/BEKU.md`), jadi mengubah nilai di sini tidak menggeser
-/// satu piksel pun di sana.
+/// satu piksel pun di sana. TIGA konstanta di bawah tetap dibaca dari luar
+/// tema oleh `SidikMaterial.teksDiBiru` / `teksDiGagal` (dipakai komponen yang
+/// ikut area beku): [kertas], [teksDiAtasPrimerGelap], [gagalDiAtasGelap].
+/// NILAINYA TIDAK BOLEH DIUBAH; dijaga `test/tema/token_beku_tak_bocor_test.dart`.
 ///
 /// Semua pasangan yang dipakai sudah dihitung ke WCAG 2.x dan dijaga
 /// `test/tema/kontras_sidik_test.dart`: teks 4,5:1, komponen UI 3:1. Ubah satu
@@ -28,42 +34,46 @@ abstract final class PaletLab {
   // ══════════════════════════════════════════════════════════════════════
 
   // ── Merek ───────────────────────────────────────────────────────────────
-  /// Aksi utama, fokus, sel aktif. Putih di atasnya 5,10:1.
-  static const Color primer = Color(0xFF1C6FC4);
+  /// Aksi utama, fokus, sel aktif. Putih di atasnya 5,47:1 (revisi: #1769C2).
+  static const Color primer = Color(0xFF1769C2);
 
-  /// Teks dan ikon biru. Di atas kabut 7,18:1. Teks biru di atas kabut HARUS
-  /// memakai ini, bukan [primer] (4,47:1, gagal tipis).
+  /// Teks dan ikon biru. Di atas kabut 7,31:1. Teks biru di atas kabut sebaiknya
+  /// memakai ini; [primer] di atas kabut baru 4,89:1 (lolos tipis).
   static const Color primerTua = Color(0xFF0F4F94);
 
-  /// Permukaan sorot (hero, ubin). HANYA teks navy di atasnya (6,81:1); putih
-  /// DILARANG (2,26:1).
+  /// Ilustrasi dan panel KECIL (hero login, splash, motif). Jangan memenuhi
+  /// layar dengan blok besar berwarna ini (revisi 16 Nov). HANYA teks navy di
+  /// atasnya (6,48:1); putih DILARANG (2,26:1).
   static const Color langit = Color(0xFF5BB4F5);
 
-  /// Stempel "Menunggu approval". Navy di atasnya 10,19:1.
+  /// Isi dekoratif (batang grafik, cincin langkah). BUKAN lagi isi stempel
+  /// "Menunggu approval": itu [biruKelabu]. Navy di atasnya 9,69:1.
   static const Color awan = Color(0xFFA9D8FB);
 
-  /// Sel terisi, ubin terpilih, butir dock aktif, latar ikon. Navy 13,50:1.
-  static const Color kabut = Color(0xFFE4F2FD);
+  /// Pilihan aktif (dipadukan tepi biru atau indikator), sel terisi, latar
+  /// ikon. Navy 13,08:1. Sendirian cuma 1,1:1 di atas putih: JANGAN jadi satu-
+  /// satunya penanda pilihan.
+  static const Color kabut = Color(0xFFEAF3FF);
 
   /// Logo PT SIDIK saja, bukan UI.
   static const Color kobaltLogo = Color(0xFF043EA1);
 
   // ── Netral ──────────────────────────────────────────────────────────────
   /// Latar halaman.
-  static const Color latar = Color(0xFFF3F7FB);
+  static const Color latar = Color(0xFFF4F7FB);
 
   /// Kartu, panel, dock.
   static const Color kertas = Color(0xFFFFFFFF);
 
-  /// Teks, tombol tegas, ubin ringkasan admin. Juga disebut "navy". 15,39:1 di
+  /// Teks, tombol tegas, ubin ringkasan admin. Juga disebut "navy". 14,64:1 di
   /// atas putih.
-  static const Color tinta = Color(0xFF0B2545);
+  static const Color tinta = Color(0xFF102A43);
 
-  /// Keterangan. 6,71:1 di kertas, 5,89:1 di kabut.
-  static const Color tinta2 = Color(0xFF4A5D78);
+  /// Keterangan. 6,09:1 di kertas, 5,44:1 di kabut.
+  static const Color tinta2 = Color(0xFF526477);
 
   /// Pemisah baris dan tepi kartu. Hiasan: tidak boleh membawa makna sendiri.
-  static const Color garisHalus = Color(0xFFE8EEF5);
+  static const Color garisHalus = Color(0xFFDCE5EE);
 
   /// Garis DEKORATIF (bidang tanda tangan, pemisah kartu). TIDAK dipakai untuk
   /// tepi kontrol: di atas putih cuma ±1,5:1, di bawah ambang 3:1 komponen UI.
@@ -82,21 +92,34 @@ abstract final class PaletLab {
   /// `garisTegas` tema gelap di `tokens.json`.
   static const Color garisKontrol = Color(0xFF7C8FA8);
 
-  // ── Status: ubin dan stempel. Tinta di atasnya SELALU navy ([tinta]) ──────
-  /// Lulus, disetujui. Navy 11,23:1.
-  static const Color hijau = Color(0xFFBFE6C4);
+  // ── Status (revisi 16 Nov): tinta GELAP di atas isi MUDA ──────────────────
+  // Selalu ikon + kata, tidak pernah warna saja. Lulus = hijau, perlu diperiksa
+  // = krem (HANYA untuk itu), galat = merah muda, menunggu = biru kelabu.
 
-  /// Perlu dicek, revisi. Navy 10,59:1.
-  static const Color kuning = Color(0xFFF6D36B);
+  /// Lulus, disetujui: isi muda. Tintanya [hijauTinta] (8,59:1).
+  static const Color hijau = Color(0xFFE3F3E8);
 
-  /// Ditolak, tak terbaca. Navy 6,85:1.
-  static const Color koral = Color(0xFFF2957A);
+  /// Tinta hijau gelap di atas [hijau] dan kertas.
+  static const Color hijauTinta = Color(0xFF124D2C);
+
+  /// Perlu dicek, revisi: krem. Tintanya [kuningTinta] (5,63:1).
+  static const Color kuning = Color(0xFFFFF3D6);
+
+  /// Ditolak, tak terbaca, lewat jadwal: merah muda. Tintanya [gagalTerang]
+  /// (6,22:1). Juga isi kartu galat.
+  static const Color koral = Color(0xFFFDE8E6);
+
+  /// "Menunggu approval": biru kelabu muda. Tintanya [biruKelabuTinta] (10,77:1).
+  static const Color biruKelabu = Color(0xFFE6F0FA);
+
+  /// Biru tua di atas [biruKelabu] dan kertas.
+  static const Color biruKelabuTinta = Color(0xFF0A3560);
 
   /// Batang |kor|+U yang lewat toleransi, dan tepi isian galat. 3,36:1 di putih.
   static const Color koralBatang = Color(0xFFE0684A);
 
-  /// Latar tipis baris/isian galat.
-  static const Color kabutGagal = Color(0xFFFDE3DA);
+  /// Latar tipis baris/isian galat. Sama dengan [koral].
+  static const Color kabutGagal = Color(0xFFFDE8E6);
 
   /// Stempel netral (draf).
   static const Color netralStempel = Color(0xFFEEF2F6);
@@ -167,10 +190,12 @@ abstract final class PaletLab {
 
   // ── Banner peringatan data (L2, `ELEMEN.md` §Banner) ────────────────────
   /// Latar kartu peringatan data (standar segera habis, server lambat), terang.
-  static const Color kuningTipis = Color(0xFFFFF4D1);
+  /// Sama dengan [kuning] (krem "perlu diperiksa").
+  static const Color kuningTipis = kuning;
 
-  /// Ikon segitiga peringatan di atas [kuningTipis]. Teksnya tetap [tinta].
-  static const Color kuningTinta = Color(0xFF8C5C0A);
+  /// Tinta amber gelap: ikon dan teks status "perlu diperiksa" di atas [kuning]
+  /// dan kertas (5,63:1 / 6,21:1). Teks banner tetap [tinta].
+  static const Color kuningTinta = Color(0xFF8A5500);
 
   // ══════════════════════════════════════════════════════════════════════
   // ALIAS SEMENTARA: nama lama → token Biru Awan (hapus di L13)

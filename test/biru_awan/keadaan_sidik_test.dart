@@ -1,10 +1,11 @@
 // KeadaanSidik (L2): memuat (kerangka berdenyut terbatas, spinner > 400 ms),
-// kosong (ubin langit + satu aksi) dan galat (ubin koral tipis + Coba lagi):
+// kosong (kartu putih bergaris + satu aksi) dan galat (kartu merah muda + Coba lagi):
 // ukuran, warna, Semantics, kurangi gerak, tanpa animasi tak berujung pada
 // kerangka, sasaran 48, 320 dp x huruf 1,3.
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sidik_calibration/core/theme/token_umpan_balik_biru_awan.dart';
 import 'package:sidik_calibration/core/theme/warna_biru_awan.dart';
 import 'package:sidik_calibration/widgets/biru_awan/hero_langit.dart';
 import 'package:sidik_calibration/widgets/biru_awan/keadaan_sidik.dart';
@@ -30,7 +31,7 @@ void main() {
 
   group('memuat: kerangka', () {
     testWidgets(
-      'baris 64, sudut 18, ubin 40/14, batang 12 (60 %) dan 10 (40 %)',
+      'baris 64, sudut 12, ubin 40/10, batang 12 (60 %) dan 10 (40 %)',
       (tester) async {
         await pasang(
           tester,
@@ -60,11 +61,11 @@ void main() {
             .map((d) => d.decoration)
             .whereType<BoxDecoration>()
             .toList();
-        expect(kotak.first.borderRadius, BorderRadius.circular(18));
+        expect(kotak.first.borderRadius, BorderRadius.circular(12));
         expect(kotak.first.color, bahan(tester).kertas);
         expect(
           kotak.map((d) => d.borderRadius),
-          contains(BorderRadius.circular(14)),
+          contains(BorderRadius.circular(10)),
         );
         expect(
           kotak.map((d) => d.borderRadius),
@@ -241,9 +242,8 @@ void main() {
   });
 
   group('kosong', () {
-    testWidgets('ubin langit sudut 24, min 260, motif skala, judul 20/800', (
-      tester,
-    ) async {
+    testWidgets('kartu putih bergaris sudut 16, min 200, motif skala, judul '
+        '20/600', (tester) async {
       var n = 0;
       await pasang(
         tester,
@@ -259,7 +259,8 @@ void main() {
         bergulir: false,
       );
       final r = tester.getRect(find.byType(KeadaanKosong));
-      expect(r.height, greaterThanOrEqualTo(260));
+      expect(r.height, greaterThanOrEqualTo(200));
+      expect(UkuranUmpanBalikBiruAwan.keadaanMin, 200, reason: 'dulu 260');
       expect(r.width, 392 - 32);
       final d =
           tester
@@ -272,8 +273,11 @@ void main() {
                   .first
                   .decoration
               as BoxDecoration;
-      expect(d.color, warnaLanjut(tester).isiHero);
-      expect(d.borderRadius, BorderRadius.circular(24));
+      // REVISI 16 Nov: bukan blok langit penuh; kartu putih + garis halus.
+      expect(d.color, bahan(tester).kertas);
+      expect(d.color, isNot(warnaLanjut(tester).isiHero));
+      expect(d.border!.top.color, bahan(tester).kertasTepi);
+      expect(d.borderRadius, BorderRadius.circular(16));
       expect(
         find.byWidgetPredicate(
           (w) => w is CustomPaint && w.painter is PelukisMotifSkala,
@@ -282,8 +286,8 @@ void main() {
       );
       final judul = tester.widget<Text>(find.text('Belum ada draf')).style!;
       expect(judul.fontSize, 20);
-      expect(judul.fontWeight, FontWeight.w800);
-      expect(judul.color, warnaLanjut(tester).tintaHero);
+      expect(judul.fontWeight, FontWeight.w600);
+      expect(judul.color, bahan(tester).tinta);
       expect(
         tester.getSize(find.byType(TombolSidik)).height,
         48,
@@ -308,7 +312,9 @@ void main() {
 
     for (final gelap in [false, true]) {
       final nama = gelap ? 'gelap' : 'terang';
-      testWidgets('kontras teks di atas langit >= 4,5 ($nama)', (tester) async {
+      testWidgets('kontras teks di atas kartu putih >= 4,5 ($nama)', (
+        tester,
+      ) async {
         await pasang(
           tester,
           _p(
@@ -360,7 +366,7 @@ void main() {
   });
 
   group('galat', () {
-    testWidgets('ubin koral tipis 24, ubin ikon 48/16, pesan apa adanya', (
+    testWidgets('kartu merah muda 16, ubin ikon 48/12, pesan apa adanya', (
       tester,
     ) async {
       var n = 0;
@@ -378,7 +384,7 @@ void main() {
         bergulir: false,
       );
       final r = tester.getRect(find.byType(KeadaanGalat));
-      expect(r.height, greaterThanOrEqualTo(260));
+      expect(r.height, greaterThanOrEqualTo(200));
       final dekor = tester
           .widgetList<DecoratedBox>(
             find.descendant(
@@ -390,9 +396,9 @@ void main() {
           .whereType<BoxDecoration>()
           .toList();
       expect(dekor.first.color, warna(tester).isi(IsiBiruAwan.koralTipis));
-      expect(dekor.first.borderRadius, BorderRadius.circular(24));
+      expect(dekor.first.borderRadius, BorderRadius.circular(16));
       final ubin = dekor.firstWhere(
-        (d) => d.borderRadius == BorderRadius.circular(16),
+        (d) => d.borderRadius == BorderRadius.circular(12),
       );
       expect(ubin.color, warna(tester).isi(IsiBiruAwan.koral));
       expect(

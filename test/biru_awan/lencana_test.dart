@@ -54,7 +54,7 @@ void main() {
       await pasang(tester, const Center(child: Lencana(jumlah: 5)));
       final gaya = tester.widget<Text>(find.text('5')).style!;
       expect(gaya.fontSize, 12);
-      expect(gaya.fontWeight, FontWeight.w800);
+      expect(gaya.fontWeight, FontWeight.w600);
       final kotak = tester.widget<DecoratedBox>(
         find.descendant(
           of: find.byType(Lencana),
@@ -70,7 +70,8 @@ void main() {
   group('Lencana: warna dan kontras', () {
     for (final gelap in [false, true]) {
       final nama = gelap ? 'gelap' : 'terang';
-      testWidgets('koral dan kuning dari token ($nama)', (tester) async {
+      testWidgets('koral = merah galat penuh + angka putih; kuning dari token '
+          '($nama)', (tester) async {
         for (final r in RagamLencana.values) {
           await pasang(
             tester,
@@ -78,14 +79,25 @@ void main() {
             gelap: gelap,
           );
           final w = warna(tester);
-          final pilihan = r == RagamLencana.koral
-              ? IsiBiruAwan.koral
-              : IsiBiruAwan.kuning;
-          expect(isiKotak(tester, find.byType(Lencana)), w.isi(pilihan));
-          expect(
-            tester.widget<Text>(find.text('3')).style!.color,
-            w.tinta(pilihan),
-          );
+          final m = bahan(tester);
+          if (r == RagamLencana.koral) {
+            // REVISI 16 Nov 2026: merah muda sendirian tidak terlihat sebagai
+            // penanda "belum dibaca": isi merah galat penuh, angka putih.
+            expect(isiKotak(tester, find.byType(Lencana)), m.gagal);
+            expect(
+              tester.widget<Text>(find.text('3')).style!.color,
+              m.teksDiGagal,
+            );
+          } else {
+            expect(
+              isiKotak(tester, find.byType(Lencana)),
+              w.isi(IsiBiruAwan.kuning),
+            );
+            expect(
+              tester.widget<Text>(find.text('3')).style!.color,
+              w.tinta(IsiBiruAwan.kuning),
+            );
+          }
           expect(
             pelanggaranKontrasTeks(tester, find.byType(Lencana)),
             isEmpty,

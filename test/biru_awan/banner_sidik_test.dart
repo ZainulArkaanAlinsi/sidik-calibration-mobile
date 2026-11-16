@@ -1,5 +1,5 @@
-// BannerSidik (L2): tanpa koneksi navy 48, pembaruan langit 56 + tombol navy,
-// peringatan kuning tipis radius 20; Semantics (live region), tombol, kontras,
+// BannerSidik (L2, REVISI 16 Nov 2026): tanpa koneksi navy 48 sudut 12,
+// pembaruan biru muda 56 + tombol navy, peringatan krem sudut 16; Semantics (live region), tombol, kontras,
 // cincin fokus, sasaran 48, kurangi gerak (statis), 320 dp x huruf 1,3.
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
@@ -43,34 +43,35 @@ void main() {
   setUpAll(muatFontUji);
 
   group('tanpa koneksi', () {
-    testWidgets('pil navy 48, ikon wifi coret 18, teks 14/600 putih', (
-      tester,
-    ) async {
-      await pasang(
-        tester,
-        _p(const BannerSidik.tanpaKoneksi(teks: _koneksi)),
-        bergulir: false,
-      );
-      final r = tester.getRect(find.byType(BannerSidik));
-      expect(r.height, 48);
-      expect(r.width, 392 - 32);
-      final d = _dekor(tester);
-      expect(d.color, bahan(tester).tinta);
-      expect(d.borderRadius, BorderRadius.circular(999));
-      final ikon = tester.widget<Icon>(find.byIcon(Icons.wifi_off_rounded));
-      expect(ikon.size, 18);
-      expect(ikon.color, bahan(tester).kertas);
-      final teks = tester.widget<Text>(find.text(_koneksi)).style!;
-      expect(teks.fontSize, 14);
-      expect(teks.fontWeight, FontWeight.w600);
-      expect(teks.color, bahan(tester).kertas);
-      expect(
-        tester.getRect(find.byIcon(Icons.wifi_off_rounded)).left - r.left,
-        16,
-      );
-      expect(find.byType(PilAksiSidik), findsNothing);
-      expect(find.byType(TombolTutupSidik), findsNothing);
-    });
+    testWidgets(
+      'bilah navy 48 sudut 12, ikon wifi coret 18, teks 14/600 putih',
+      (tester) async {
+        await pasang(
+          tester,
+          _p(const BannerSidik.tanpaKoneksi(teks: _koneksi)),
+          bergulir: false,
+        );
+        final r = tester.getRect(find.byType(BannerSidik));
+        expect(r.height, 48);
+        expect(r.width, 392 - 32);
+        final d = _dekor(tester);
+        expect(d.color, bahan(tester).tinta);
+        expect(d.borderRadius, BorderRadius.circular(12));
+        final ikon = tester.widget<Icon>(find.byIcon(Icons.wifi_off_rounded));
+        expect(ikon.size, 18);
+        expect(ikon.color, bahan(tester).kertas);
+        final teks = tester.widget<Text>(find.text(_koneksi)).style!;
+        expect(teks.fontSize, 14);
+        expect(teks.fontWeight, FontWeight.w600);
+        expect(teks.color, bahan(tester).kertas);
+        expect(
+          tester.getRect(find.byIcon(Icons.wifi_off_rounded)).left - r.left,
+          16,
+        );
+        expect(find.byType(PilAksiSidik), findsNothing);
+        expect(find.byType(TombolTutupSidik), findsNothing);
+      },
+    );
 
     for (final gelap in [false, true]) {
       final nama = gelap ? 'gelap' : 'terang';
@@ -111,59 +112,62 @@ void main() {
   });
 
   group('pembaruan', () {
-    testWidgets('pil langit 56, teks navy 14/700, tombol Pasang', (
-      tester,
-    ) async {
-      var n = 0;
-      await pasang(
-        tester,
-        _p(
-          BannerSidik.pembaruan(
-            teks: _versi,
-            aksi: 'Pasang',
-            onAksi: () => n++,
+    testWidgets(
+      'kotak biru muda 56 sudut 12, teks navy 14/600, tombol Pasang',
+      (tester) async {
+        var n = 0;
+        await pasang(
+          tester,
+          _p(
+            BannerSidik.pembaruan(
+              teks: _versi,
+              aksi: 'Pasang',
+              onAksi: () => n++,
+            ),
           ),
-        ),
-        bergulir: false,
-      );
-      final r = tester.getRect(find.byType(BannerSidik));
-      expect(r.height, 56, reason: 'sasaran 48 + 4 + 4');
-      final d = _dekor(tester);
-      expect(d.color, warnaLanjut(tester).isiHero);
-      expect(d.borderRadius, BorderRadius.circular(999));
-      final teks = tester.widget<Text>(find.text(_versi)).style!;
-      expect(teks.fontSize, 14);
-      expect(teks.fontWeight, FontWeight.w700);
-      expect(teks.color, warnaLanjut(tester).tintaHero);
-      expect(
-        tester.getSize(find.byType(PilAksiSidik)).height,
-        greaterThanOrEqualTo(48),
-      );
-      final pil = tester.getSize(
-        find
-            .descendant(
-              of: find.byType(PilAksiSidik),
-              matching: find.byType(DecoratedBox),
-            )
-            .first,
-      );
-      expect(pil.height, 40, reason: 'gambar 40');
-      expect(
-        isiKotak(tester, find.byType(PilAksiSidik)),
-        bahan(tester).tinta,
-        reason: 'tombol navy',
-      );
-      expect(
-        tester.widget<Text>(find.text('Pasang')).style!.color,
-        bahan(tester).kertas,
-      );
-      await tester.tap(find.text('Pasang'));
-      expect(n, 1);
-      // Ketuk di tepi sasaran 48 (di luar pil 40) juga memasang.
-      final sasaran = tester.getRect(find.byType(PilAksiSidik));
-      await tester.tapAt(sasaran.topCenter + const Offset(0, 1.5));
-      expect(n, 2);
-    });
+          bergulir: false,
+        );
+        final r = tester.getRect(find.byType(BannerSidik));
+        expect(r.height, 56, reason: 'sasaran 48 + 4 + 4');
+        final d = _dekor(tester);
+        // Bukan bidang langit penuh lagi (REVISI 16 Nov): kabut yang tenang.
+        expect(d.color, bahan(tester).biruTipis);
+        expect(d.color, isNot(warnaLanjut(tester).isiHero));
+        expect(d.borderRadius, BorderRadius.circular(12));
+        final teks = tester.widget<Text>(find.text(_versi)).style!;
+        expect(teks.fontSize, 14);
+        expect(teks.fontWeight, FontWeight.w600);
+        expect(teks.color, bahan(tester).tinta);
+        expect(
+          tester.getSize(find.byType(PilAksiSidik)).height,
+          greaterThanOrEqualTo(48),
+        );
+        final pil = tester.getSize(
+          find
+              .descendant(
+                of: find.byType(PilAksiSidik),
+                matching: find.byType(DecoratedBox),
+              )
+              .first,
+        );
+        expect(pil.height, 40, reason: 'gambar 40');
+        expect(
+          isiKotak(tester, find.byType(PilAksiSidik)),
+          bahan(tester).tinta,
+          reason: 'tombol navy',
+        );
+        expect(
+          tester.widget<Text>(find.text('Pasang')).style!.color,
+          bahan(tester).kertas,
+        );
+        await tester.tap(find.text('Pasang'));
+        expect(n, 1);
+        // Ketuk di tepi sasaran 48 (di luar pil 40) juga memasang.
+        final sasaran = tester.getRect(find.byType(PilAksiSidik));
+        await tester.tapAt(sasaran.topCenter + const Offset(0, 1.5));
+        expect(n, 2);
+      },
+    );
 
     for (final gelap in [false, true]) {
       final nama = gelap ? 'gelap' : 'terang';
@@ -208,9 +212,9 @@ void main() {
                 as OutlinedBorder;
         expect(bentuk.side.width, AppUkuran.garisTebal);
         expect(
-          rasioKontras(bentuk.side.color, warnaLanjut(tester).isiHero),
+          rasioKontras(bentuk.side.color, bahan(tester).biruTipis),
           greaterThanOrEqualTo(ambangBukanTeks),
-          reason: 'cincin/langit ($nama)',
+          reason: 'cincin/kabut ($nama)',
         );
       });
     }
@@ -244,7 +248,7 @@ void main() {
   });
 
   group('peringatan data', () {
-    testWidgets('kartu kuning tipis radius 20, min 56, ikon segitiga', (
+    testWidgets('kartu krem radius 16, min 56, ikon segitiga amber', (
       tester,
     ) async {
       await pasang(
@@ -256,7 +260,7 @@ void main() {
       expect(r.height, greaterThanOrEqualTo(56));
       final d = _dekor(tester);
       expect(d.color, PaletLab.kuningTipis);
-      expect(d.borderRadius, BorderRadius.circular(20));
+      expect(d.borderRadius, BorderRadius.circular(16));
       final ikon = tester.widget<Icon>(
         find.byIcon(Icons.warning_amber_rounded),
       );

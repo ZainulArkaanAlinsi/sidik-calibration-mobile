@@ -39,32 +39,46 @@ class AppUkuran {
   static const double skeletonLebarKeterangan = 120;
 }
 
-/// Ukuran Biru Awan (`docs/desain-ulang/tokens.json` → `ukuran`), tambahan di
-/// samping [AppUkuran] dan `UkuranLab` yang TIDAK diubah (komponen lama dan
-/// `tanda_cek_sel` masih membacanya). Layar yang didesain ulang tidak menulis
-/// angka sendiri: semua lewat nama di bawah. Nilai dari
-/// `docs/desain-ulang/flutter/bentuk_ukuran_lab.dart`.
+/// Ukuran Biru Awan (`docs/desain-ulang/tokens.json` → `ukuran`, diselaraskan ke
+/// REVISI 16 Nov 2026), tambahan di samping [AppUkuran] dan `UkuranLab` yang
+/// TIDAK diubah (komponen lama, area beku, dan `tanda_cek_sel` masih
+/// membacanya). Layar yang didesain ulang tidak menulis angka sendiri: semua
+/// lewat nama di bawah.
+///
+/// Tombol dan isian utama 48 (revisi: 44-48), lencana status 24, tanpa blok
+/// besar. Sasaran sentuh tetap >= 48 (area ketuk dilebarkan komponen bila
+/// gambarnya lebih kecil).
 abstract final class UkuranBiruAwan {
-  static const double tombolUtama = 56;
+  static const double tombolUtama = 48;
   static const double tombolTegas = 48;
   static const double tombolBulatKecil = 44;
   static const double tombolKembali = 48;
-  static const double tombolMulaiDock = 60;
-  static const double butirDockTeknisi = 52;
-  static const double butirDockAdmin = 48;
-  static const double kolomCari = 56;
+
+  /// Tombol Mulai di tengah bilah teknisi.
+  static const double tombolMulaiDock = 48;
+
+  /// Tinggi bilah navigasi bawah (belum termasuk tepi sistem).
+  static const double tinggiBilah = 64;
+
+  /// Kapsul penanda butir aktif di bilah: 56 x 32.
+  static const double kapsulBilahLebar = 56;
+  static const double kapsulBilahTinggi = 32;
+  static const double kolomCari = 48;
   static const double chip = 44;
-  static const double stempel = 30;
-  static const double barisDaftar = 72;
+  static const double stempel = 24;
+  static const double barisDaftar = 64;
   static const double barisMenu = 64;
+
+  /// Kartu draf geser mendatar (Beranda teknisi lama; hilang di PR 2 Beranda:
+  /// draf menjadi daftar vertikal).
   static const double kartuDrafLebar = 196;
   static const double kartuDrafTinggi = 148;
 
   /// Minimum, boleh tumbuh.
   static const double ubinPilihAlat = 164;
 
-  /// Minimum.
-  static const double hero = 212;
+  /// Minimum panel hero (kecil: hanya ilustrasi, bukan banner layar).
+  static const double hero = 140;
   static const double bilahLangkah = 6;
   static const double visualHero = 188;
   static const double visualUbin = 104;

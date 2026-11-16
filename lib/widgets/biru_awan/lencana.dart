@@ -9,10 +9,11 @@ import 'tombol_bulat.dart';
 /// Warna [Lencana]: koral (belum dibaca, antrean) atau kuning (perlu dicek).
 enum RagamLencana { koral, kuning }
 
-/// Lencana jumlah (`ELEMEN.md` §Kontrol kecil): koral tinggi 22, kuning 26,
-/// titik 10. Angka 12/800 navy di atas isi (kontras 6,85:1 koral, 10,59:1
-/// kuning), tepi 2 dp warna latar halaman supaya terpisah dari tombol di
-/// bawahnya.
+/// Lencana jumlah (`ELEMEN.md` §Kontrol kecil, REVISI 16 Nov): koral tinggi 22,
+/// kuning 26, titik 10. Koral = merah galat penuh + angka putih 12/600 (7,32:1;
+/// merah muda di atas putih tidak terlihat sebagai penanda "belum dibaca");
+/// kuning = krem + amber gelap (5,63:1). Tepi 2 dp warna latar halaman supaya
+/// terpisah dari tombol di bawahnya.
 ///
 /// - Jumlah <= 0 = tidak tampil (`SizedBox.shrink`): "0 belum dibaca" tidak
 ///   pernah digambar. Di atas [UkuranLanjutBiruAwan.lencanaMaks] tampil "99+".
@@ -51,11 +52,10 @@ class Lencana extends StatelessWidget {
     if (!titik && (jumlah ?? 0) <= 0) return const SizedBox.shrink();
     final m = SidikMaterial.of(context);
     final w = WarnaBiruAwan.of(context);
-    final pilihan = ragam == RagamLencana.koral
-        ? IsiBiruAwan.koral
-        : IsiBiruAwan.kuning;
-    final isi = w.isi(pilihan);
-    final tinta = w.tinta(pilihan);
+    final koral = ragam == RagamLencana.koral;
+    final pilihan = koral ? IsiBiruAwan.koral : IsiBiruAwan.kuning;
+    final isi = koral ? m.gagal : w.isi(pilihan);
+    final tinta = koral ? m.teksDiGagal : w.tinta(pilihan);
     final tepi = BorderSide(
       color: m.meja,
       width: UkuranLanjutBiruAwan.lencanaTepi,

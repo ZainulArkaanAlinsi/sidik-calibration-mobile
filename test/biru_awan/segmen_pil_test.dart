@@ -1,4 +1,5 @@
-// SegmenPil: 2 sampai 3 pilihan dalam jalur 56 sudut 28; terpilih = pil navy.
+// SegmenPil: 2 sampai 3 pilihan dalam jalur 48 sudut 12; terpilih = biru muda
+// + tepi biru + kata navy (REVISI 16 Nov 2026).
 import 'dart:ui' show Tristate;
 
 import 'package:flutter/material.dart';
@@ -33,7 +34,7 @@ void main() {
   setUpAll(muatFontUji);
 
   group('bentuk', () {
-    testWidgets('jalur 56, sudut 28, segmen sama lebar', (tester) async {
+    testWidgets('jalur 48, sudut 12, segmen sama lebar', (tester) async {
       layarUji(tester, lebar: 360, tinggi: 640);
       await tester.pumpWidget(
         aplikasiUji(
@@ -44,7 +45,7 @@ void main() {
         ),
       );
       final jalur = tester.getSize(find.byType(SegmenPil<_Peran>));
-      expect(jalur.height, 56);
+      expect(jalur.height, 48);
       expect(jalur.width, 360 - 32);
       final bahan = tester.widget<Material>(
         find.descendant(
@@ -54,8 +55,9 @@ void main() {
       );
       expect(
         (bahan.shape! as RoundedRectangleBorder).borderRadius,
-        BorderRadius.circular(BentukBiruAwan.hero),
+        BorderRadius.circular(BentukBiruAwan.saringan),
       );
+      expect(BentukBiruAwan.saringan, 12);
       final lebar = [
         for (final t in ['Teknisi', 'Admin', 'Viewer'])
           tester
@@ -97,7 +99,7 @@ void main() {
     for (final gelap in [false, true]) {
       final nama = gelap ? 'gelap' : 'terang';
       testWidgets(
-        'terpilih = pil navy bertulisan putih; jalur = latar ($nama)',
+        'terpilih = biru muda + tepi biru bertulisan navy; jalur = latar ($nama)',
         (tester) async {
           await tester.pumpWidget(
             aplikasiUji(
@@ -120,8 +122,25 @@ void main() {
 
           Color teks(String t) =>
               tester.widget<Text>(find.text(t)).style!.color!;
-          expect(pil('Admin'), m.tinta);
-          expect(teks('Admin'), m.kertas);
+          expect(pil('Admin'), m.biruTipis);
+          expect(teks('Admin'), m.tinta);
+          // Pilihan dibawa tepi biru 2 dp (biru muda sendirian 1,1:1).
+          final tepi =
+              (tester
+                          .widget<DecoratedBox>(
+                            find
+                                .ancestor(
+                                  of: find.text('Admin'),
+                                  matching: find.byType(DecoratedBox),
+                                )
+                                .first,
+                          )
+                          .decoration
+                      as BoxDecoration)
+                  .border!
+                  .top;
+          expect(tepi.color, m.biru);
+          expect(tepi.width, 2);
           expect(
             pil('Teknisi'),
             m.meja,
@@ -171,7 +190,7 @@ void main() {
       expect(dipilih, [_Peran.viewer, _Peran.admin]);
     });
 
-    testWidgets('bidang sentuh = seluruh segmen 56 dp, bukan hanya pilnya', (
+    testWidgets('bidang sentuh = seluruh segmen 48 dp, bukan hanya penandanya', (
       tester,
     ) async {
       final dipilih = <_Peran>[];
@@ -181,8 +200,8 @@ void main() {
             .ancestor(of: find.text('Admin'), matching: find.byType(InkWell))
             .first,
       );
-      expect(segmen.height, 56);
-      // Tepi atas segmen: di luar pil (bantalan 6 dp), di dalam bidang sentuh.
+      expect(segmen.height, 48);
+      // Tepi atas segmen: di luar penanda (bantalan 6 dp), di dalam bidang sentuh.
       await tester.tapAt(segmen.topCenter + const Offset(0, 1));
       expect(dipilih, [_Peran.admin]);
     });
@@ -272,7 +291,7 @@ void main() {
       );
     });
 
-    testWidgets('jalur tumbuh bersama huruf (>= 56)', (tester) async {
+    testWidgets('jalur tumbuh bersama huruf (>= 48)', (tester) async {
       layarUji(tester, lebar: 320, tinggi: 640);
       await tester.pumpWidget(
         aplikasiUji(
@@ -285,7 +304,7 @@ void main() {
       );
       expect(
         tester.getSize(find.byType(SegmenPil<_Peran>)).height,
-        greaterThanOrEqualTo(56),
+        greaterThanOrEqualTo(48),
       );
     });
 

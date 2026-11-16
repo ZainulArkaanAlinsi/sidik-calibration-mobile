@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'bentuk_lab.dart';
 import 'palet_lab.dart';
 import 'sidik_material.dart';
 import 'sidik_theme.dart';
@@ -12,25 +13,25 @@ import 'sidik_theme.dart';
 /// tidak bertabrakan di berkas yang sama. Widget tidak menulis angka sendiri:
 /// semua lewat nama di bawah.
 
-/// Skala huruf elemen umpan balik. Berat 800 tampil 700 sampai font ExtraBold
-/// dibundel (catatan di `HurufBiruAwan`).
+/// Skala huruf elemen umpan balik. REVISI 16 Nov 2026: berat 600 untuk judul dan
+/// aksi, 500 untuk banner (catatan di `HurufBiruAwan`).
 abstract final class HurufUmpanBalikBiruAwan {
   static const String _inter = SidikTheme.keluarga;
 
-  /// 15/20 · 800: judul toast.
+  /// 15/20 · 600: judul toast.
   static const TextStyle judulToast = TextStyle(
     fontFamily: _inter,
     fontSize: 15,
     height: 20 / 15,
-    fontWeight: FontWeight.w800,
+    fontWeight: FontWeight.w600,
   );
 
-  /// 13/18 · 700: label aksi di toast dan banner ("Lihat", "Pasang").
+  /// 13/18 · 600: label aksi di toast dan banner ("Lihat", "Pasang").
   static const TextStyle aksiPil = TextStyle(
     fontFamily: _inter,
     fontSize: 13,
     height: 18 / 13,
-    fontWeight: FontWeight.w700,
+    fontWeight: FontWeight.w600,
   );
 
   /// 14/20 · 600: banner tanpa koneksi.
@@ -41,12 +42,12 @@ abstract final class HurufUmpanBalikBiruAwan {
     fontWeight: FontWeight.w600,
   );
 
-  /// 14/20 · 700: banner pembaruan.
+  /// 14/20 · 600: banner pembaruan.
   static const TextStyle bannerPembaruan = TextStyle(
     fontFamily: _inter,
     fontSize: 14,
     height: 20 / 14,
-    fontWeight: FontWeight.w700,
+    fontWeight: FontWeight.w600,
   );
 }
 
@@ -56,7 +57,7 @@ abstract final class UkuranUmpanBalikBiruAwan {
   /// Lebar maksimum kartu; di layar sempit lebarnya layar dikurangi 2 x 16.
   static const double toastLebarMaks = 420;
   static const double toastTinggiMin = 68;
-  static const double toastRadius = 22;
+  static const double toastRadius = BentukBiruAwan.kartu;
 
   /// Jarak dari status bar dan dari tepi samping layar.
   static const double toastJarakLuar = 16;
@@ -65,7 +66,7 @@ abstract final class UkuranUmpanBalikBiruAwan {
   /// bawah 12.
   static const double toastBantalanKanan = 8;
   static const double toastUbin = 40;
-  static const double toastUbinRadius = 14;
+  static const double toastUbinRadius = BentukBiruAwan.tombol;
   static const double toastIkon = 20;
   static const double toastIkonTutup = 18;
 
@@ -91,9 +92,9 @@ abstract final class UkuranUmpanBalikBiruAwan {
   static const double dialogLebarHp = 340;
   static const double dialogLebarLebar = 420;
   static const double dialogBantalan = 24;
-  static const double dialogUbin = 56;
-  static const double dialogUbinRadius = 20;
-  static const double dialogIkon = 26;
+  static const double dialogUbin = 48;
+  static const double dialogUbinRadius = BentukBiruAwan.ikonUbin;
+  static const double dialogIkon = 24;
   static const double dialogCelah = 14;
   static const double dialogCelahTombol = 10;
 
@@ -111,9 +112,9 @@ abstract final class UkuranUmpanBalikBiruAwan {
 
   // ── Banner ──────────────────────────────────────────────────────────────
   static const double bannerTanpaKoneksi = 48;
-  static const double bannerPembaruan = 56;
+  static const double bannerPembaruan = 48;
   static const double bannerPeringatanMin = 56;
-  static const double bannerPeringatanRadius = 20;
+  static const double bannerPeringatanRadius = BentukBiruAwan.kartu;
   static const double bannerIkon = 18;
   static const double bannerCelah = 10;
   static const double bannerBantalanKiri = 16;
@@ -121,12 +122,12 @@ abstract final class UkuranUmpanBalikBiruAwan {
   static const double bannerPeringatanAtasBawah = 10;
 
   // ── Keadaan ─────────────────────────────────────────────────────────────
-  static const double keadaanMin = 260;
+  static const double keadaanMin = 200;
   static const double keadaanBantalan = 20;
   static const double keadaanIsiLebarMaks = 220;
   static const double motifKosongLebar = 240;
   static const double galatUbin = 48;
-  static const double galatUbinRadius = 16;
+  static const double galatUbinRadius = BentukBiruAwan.ikonUbin;
   static const double galatIkon = 24;
 
   /// Spinner 36; muncul hanya bila menunggu lebih dari [spinnerTunda].
@@ -134,12 +135,12 @@ abstract final class UkuranUmpanBalikBiruAwan {
   static const double spinnerGaris = 4;
   static const Duration spinnerTunda = Duration(milliseconds: 400);
 
-  /// Baris kerangka: 64, sudut 18, ubin 40/14, dua batang 12/6 (60 %) dan 10/5
+  /// Baris kerangka: 64, sudut 12, ubin 40/10, dua batang 12/6 (60 %) dan 10/5
   /// (40 %).
   static const double kerangkaBaris = 64;
-  static const double kerangkaRadius = 18;
+  static const double kerangkaRadius = BentukBiruAwan.ikonUbin;
   static const double kerangkaUbin = 40;
-  static const double kerangkaUbinRadius = 14;
+  static const double kerangkaUbinRadius = BentukBiruAwan.tombol;
   static const double kerangkaBatang1 = 12;
   static const double kerangkaBatang1Radius = 6;
   static const double kerangkaBatang1Lebar = 0.6;
@@ -204,21 +205,23 @@ class WarnaUmpanBalikBiruAwan {
   /// Pegangan lembar bawah (hiasan).
   final Color pegangan;
 
-  /// Bayangan toast: 0 12 30, 16 %.
+  /// Bayangan toast: sangat tipis (0 2 8, 10 %); revisi 16 Nov: bayangan berat
+  /// diganti garis + bayangan tipis (toast melayang di atas isi, jadi tidak
+  /// boleh tanpa pemisah sama sekali).
   List<BoxShadow> get bayanganToast => [
     BoxShadow(
-      color: bayangan.withValues(alpha: 0.16),
-      offset: const Offset(0, 12),
-      blurRadius: 30,
+      color: bayangan.withValues(alpha: 0.10),
+      offset: const Offset(0, 2),
+      blurRadius: 8,
     ),
   ];
 
-  /// Bayangan dialog: 0 20 50, 22 %.
+  /// Bayangan dialog: sangat tipis (0 4 16, 14 %).
   List<BoxShadow> get bayanganDialog => [
     BoxShadow(
-      color: bayangan.withValues(alpha: 0.22),
-      offset: const Offset(0, 20),
-      blurRadius: 50,
+      color: bayangan.withValues(alpha: 0.14),
+      offset: const Offset(0, 4),
+      blurRadius: 16,
     ),
   ];
 

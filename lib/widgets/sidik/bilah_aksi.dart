@@ -16,14 +16,14 @@ class AksiBilah {
   final IconData? ikon;
 }
 
-/// Bilah aksi di bawah layar: SATU aksi utama (56 dp, [TombolUtama]) dan nol
+/// Bilah aksi di bawah layar: SATU aksi utama (48 dp, [TombolUtama]) dan nol
 /// atau lebih aksi sekunder (48 dp, garis tegas).
 ///
 /// Susunan mengikuti ruang ([berdampingan]):
 ///
-/// - berdampingan (tinggi isi 56 dp) bila ada tepat satu aksi sekunder, lebar
+/// - berdampingan (tinggi isi 48 dp) bila ada tepat satu aksi sekunder, lebar
 ///   bilah >= 360 dp, dan skala huruf <= 1,15: sekunder di kiri, utama di kanan;
-/// - bertumpuk (56 + 8 + 48 dp) selain itu: utama di atas, sekunder di bawah.
+/// - bertumpuk (48 + 8 + 48 dp) selain itu: utama di atas, sekunder di bawah.
 ///
 /// Isi dibatasi 560 dp dan dipusatkan, jadi di tablet bilah tidak membentang
 /// ±1.250 dp. Permukaan kertas dengan garis halus di atas, tanpa bayangan.
