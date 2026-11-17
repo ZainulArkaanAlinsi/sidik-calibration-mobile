@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../core/config/lab_profile.dart';
 import '../../../core/motion/gerak_bersama.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/theme/bentuk_lab.dart';
 import '../../../core/theme/palet_lab.dart';
 import '../../../core/theme/sidik_material.dart';
 import '../../../core/theme/sidik_theme.dart';
@@ -23,27 +22,26 @@ const Key kunciHeroMasuk = ValueKey<String>('masuk-hero');
 const Key kunciKartuMasuk = ValueKey<String>('masuk-kartu');
 
 /// Ukuran artboard E0 Masuk (`docs/desain-ulang/referensi-html/Login.dc.html`)
-/// dan E1 Splash yang dipakai bersama, DIPERKECIL oleh REVISI 16 Nov 2026
-/// (kurangi banner tinggi, logo besar, sudut ekstrem, bayangan berat). Nama
-/// berarti, bukan angka telanjang di layar.
+/// dan E1 Splash yang dipakai bersama. Nama berarti, bukan angka telanjang di
+/// layar.
 abstract final class UkuranMasuk {
-  /// Hero langit setinggi atas (di bawah bilah status): 190 pada layar 844,
-  /// yaitu [heroNisbi] dari tinggi layar, tidak melebihi [heroTinggi] dan tidak
-  /// kurang dari [heroMin] (dulu 330 / 210). Pada layar pendek (jendela 600, HP
-  /// lipat, mendatar) tombol Masuk tetap terlihat tanpa menggulir.
-  static const double heroTinggi = 190;
-  static const double heroNisbi = 190 / 844;
-  static const double heroMin = 150;
+  /// Hero langit setinggi atas (di bawah bilah status): 330 pada layar 844
+  /// (artboard), yaitu [heroNisbi] dari tinggi layar, tidak melebihi 330 dan
+  /// tidak kurang dari [heroMin]. Pada layar pendek (jendela 600, HP lipat,
+  /// mendatar) tombol Masuk tetap terlihat tanpa menggulir.
+  static const double heroTinggi = 330;
+  static const double heroNisbi = 330 / 844;
+  static const double heroMin = 210;
 
-  /// Plat logo bulat putih di hero (dulu 104).
-  static const double platLogo = 72;
-  static const double logoLebar = 36;
-  static const double logoTinggi = 50;
+  /// Plat logo bulat putih di hero.
+  static const double platLogo = 104;
+  static const double logoLebar = 50;
+  static const double logoTinggi = 70;
 
-  /// Kartu putih menumpang hero sedalam ini (dulu 36).
-  static const double kartuTumpang = 24;
-  static const double kartuRadius = BentukBiruAwan.kartu;
-  static const double kartuVertikal = 20;
+  /// Kartu putih menumpang hero sedalam ini.
+  static const double kartuTumpang = 36;
+  static const double kartuRadius = 32;
+  static const double kartuVertikal = 22;
   static const double kartuHorizontal = 20;
 
   /// Lebar isi di layar lebar (tablet, jendela desktop).
@@ -55,48 +53,57 @@ abstract final class UkuranMasuk {
   static const double motifGeserKiri = -80;
   static const double motifGeserBawah = -40;
   static const double motifOpasitas = 0.55;
+
+  /// Bayangan kartu dan plat: 0 14 34, navy 10 % dan 18 %.
+  static const double bayanganGeser = 14;
+  static const double bayanganBlur = 34;
+  static const double bayanganKartuAlfa = 0.10;
+  static const double bayanganPlatAlfa = 0.18;
 }
 
 /// Huruf khusus artboard E0 yang belum ada di [HurufBiruAwan]: nama produk
-/// hero 22/28 dan judul kartu 24/30, keduanya 600 tanpa spasi huruf negatif
-/// (REVISI 16 Nov 2026; dulu 28 dan 24 berat 800).
+/// hero 28/34 dan judul kartu 24/30, keduanya 800. Inter yang dibundel berhenti
+/// di 700, jadi 800 tampil 700 (lihat catatan di `token_komponen_biru_awan`).
 abstract final class HurufMasuk {
   static const TextStyle namaHero = TextStyle(
     fontFamily: SidikTheme.keluarga,
-    fontSize: 22,
-    height: 28 / 22,
-    fontWeight: FontWeight.w600,
+    fontSize: 28,
+    height: 34 / 28,
+    fontWeight: FontWeight.w800,
+    letterSpacing: -0.025 * 28,
   );
 
   static const TextStyle judulKartu = TextStyle(
     fontFamily: SidikTheme.keluarga,
     fontSize: 24,
     height: 30 / 24,
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.w800,
   );
 }
 
 /// Warna hero langit. `langit` belum punya penyangga di `SidikMaterial` atau
 /// `WarnaBiruAwan` (hanya hero memakainya), jadi dibaca dari [PaletLab] di sini:
-/// terang `langit` (navy di atasnya 6,48:1; putih DILARANG, 2,26:1), gelap
+/// terang `langit` (navy di atasnya 6,81:1; putih DILARANG, 2,26:1), gelap
 /// `langitGelap` (tinta terang di atasnya 5,3:1). Plat logo selalu putih
-/// (logonya digambar untuk latar putih); motif hero putih. Hero kini panel
-/// pendek (190 dp), bukan blok setinggi sepertiga layar.
+/// (logonya digambar untuk latar putih); motif hero putih.
 @immutable
 class WarnaMasuk {
   const WarnaMasuk._({
     required this.langit,
     required this.plat,
+    required this.bayangan,
     required this.motifHero,
   });
 
   final Color langit;
   final Color plat;
+  final Color bayangan;
   final Color motifHero;
 
   factory WarnaMasuk.dari(SidikMaterial m) => WarnaMasuk._(
     langit: m.terang ? PaletLab.langit : PaletLab.langitGelap,
     plat: PaletLab.kertas,
+    bayangan: PaletLab.tinta,
     motifHero: PaletLab.kertas,
   );
 
@@ -104,25 +111,37 @@ class WarnaMasuk {
       WarnaMasuk.dari(SidikMaterial.of(context));
 }
 
-/// Plat logo bulat putih (logo PT SIDIK), tanpa bayangan (REVISI 16 Nov 2026);
-/// dipakai hero masuk (72) dan splash. Logo hiasan: namanya sudah ada di judul.
+/// Plat logo bulat putih (logo PT SIDIK) dengan bayangan lembut; dipakai hero
+/// masuk (104) dan splash (128). Logo hiasan: namanya sudah ada di judul.
 class PlatLogo extends StatelessWidget {
   const PlatLogo({
     super.key,
     required this.diameter,
     required this.logoLebar,
     required this.logoTinggi,
+    required this.bayanganAlfa,
   });
 
   final double diameter;
   final double logoLebar;
   final double logoTinggi;
+  final double bayanganAlfa;
 
   @override
   Widget build(BuildContext context) {
     final w = WarnaMasuk.of(context);
     return DecoratedBox(
-      decoration: BoxDecoration(shape: BoxShape.circle, color: w.plat),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: w.plat,
+        boxShadow: [
+          BoxShadow(
+            color: w.bayangan.withValues(alpha: bayanganAlfa),
+            blurRadius: UkuranMasuk.bayanganBlur,
+            offset: const Offset(0, UkuranMasuk.bayanganGeser),
+          ),
+        ],
+      ),
       child: SizedBox.square(
         dimension: diameter,
         child: Center(
@@ -293,6 +312,7 @@ class _HeroLangit extends StatelessWidget {
                         diameter: UkuranMasuk.platLogo,
                         logoLebar: UkuranMasuk.logoLebar,
                         logoTinggi: UkuranMasuk.logoTinggi,
+                        bayanganAlfa: UkuranMasuk.bayanganPlatAlfa,
                       ),
                       const SizedBox(height: JarakBiruAwan.blok),
                       Semantics(
@@ -329,13 +349,19 @@ class _KartuMasuk extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final m = SidikMaterial.of(context);
+    final w = WarnaMasuk.of(context);
 
-    // Garis 1 dp, bukan bayangan (REVISI 16 Nov 2026).
     return DecoratedBox(
       decoration: BoxDecoration(
         color: m.kertas,
         borderRadius: BorderRadius.circular(UkuranMasuk.kartuRadius),
-        border: Border.all(color: m.kertasTepi),
+        boxShadow: [
+          BoxShadow(
+            color: w.bayangan.withValues(alpha: UkuranMasuk.bayanganKartuAlfa),
+            blurRadius: UkuranMasuk.bayanganBlur,
+            offset: const Offset(0, UkuranMasuk.bayanganGeser),
+          ),
+        ],
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(

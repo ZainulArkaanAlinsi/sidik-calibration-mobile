@@ -1,10 +1,5 @@
 # SIDIK Lab — "Biru Awan" (repo `sidik-calibration-mobile`)
 
-> **REVISI 16 Nov 2026 (R1) MENANG** atas dokumen di bawah bila bertentangan: lihat
-> `REVISI-16NOV.md` (token, komponen, penjaga 02/03). `DESIGN.md`, `ELEMEN.md`,
-> `POLA.md`, `LAYAR.md`, `VISUAL.md` dibiarkan sebagai arsip sampai layar terakhir
-> dipoles; nilai di `tokens.json` sudah diselaraskan.
-
 Baca berurutan:
 1. `BEKU.md` — yang tidak boleh berubah (lembar kerja dkk.) dan cara menguncinya.
 2. `PETA-LAYAR.md` — 105 berkas layar: DESAIN / POLA / TOKEN / BEKU.

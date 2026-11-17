@@ -487,14 +487,14 @@ void main() {
       expect(besar, closeTo(satu * 1.3, 0.01));
     });
 
-    testWidgets('teks 13 sp berat 600 (huruf stempel), minimum 12 sp', (
+    testWidgets('teks 13 sp berat 700 (huruf stempel), minimum 12 sp', (
       tester,
     ) async {
       final s = StatusTampil.dariKode('PASS');
       await tester.pumpWidget(aplikasiUji(Center(child: Stempel(s))));
       final gaya = tester.widget<Text>(find.text('PASS')).style!;
       expect(gaya.fontSize, 13);
-      expect(gaya.fontWeight, FontWeight.w600);
+      expect(gaya.fontWeight, FontWeight.w700);
       expect(gaya.fontSize, greaterThanOrEqualTo(12));
     });
   });

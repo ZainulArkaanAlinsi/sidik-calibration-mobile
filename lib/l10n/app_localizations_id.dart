@@ -8304,34 +8304,6 @@ class AppLocalizationsId extends AppLocalizations {
   String get biruAwanMemuat => 'Memuat';
 
   @override
-  String get tekPekerjaanSaya => 'Pekerjaan saya';
-
-  @override
-  String get tekKalibrasiBaru => 'Kalibrasi baru';
-
-  @override
-  String get tekLanjutkanPekerjaan => 'Lanjutkan pekerjaan';
-
-  @override
-  String get tekAktivitasTerbaru => 'Aktivitas terbaru';
-
-  @override
-  String get tekRingkasanMenunggu => 'Menunggu pemeriksaan';
-
-  @override
-  String tekRingkasanDariKiriman(int n) {
-    return 'dari $n kiriman terakhir';
-  }
-
-  @override
-  String get tekRingkasanBelumTerbaca => 'belum terbaca';
-
-  @override
-  String tekDiperbarui(String waktu) {
-    return 'Diperbarui $waktu';
-  }
-
-  @override
   String get jlBertentangan =>
       'Kode dan judul yang tercetak menunjuk jenis lembar yang berbeda. Pilih sendiri.';
 

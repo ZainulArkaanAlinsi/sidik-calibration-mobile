@@ -1,18 +1,15 @@
-// Beranda teknisi (layar 01 Kalibrasi), REVISI 16 Nov 2026 (R1, REVISI-1 §7):
-// area kerja ringkas "Pekerjaan saya" menggantikan banner besar dan carousel.
+// Beranda teknisi (layar 01 Kalibrasi) dalam tampilan Biru Awan, L7a.
 //
 // Melengkapi `kalibrasi_teknisi_test.dart` (tes lama, tidak diubah) dengan:
 // keadaan PER BAGIAN (memuat, kosong, galat + Coba lagi, tanpa koneksi, data),
-// ringkasan tiga angka (draf, perlu revisi, menunggu pemeriksaan: angka dari
-// daftar yang sama, "-" bukan 0 untuk daftar yang belum terbaca, dasar hitungan
-// "dari {n} kiriman terakhir"), klaim "semua terkirim" yang digerbangi salinan
-// lembar di HP, DRAF = DAFTAR VERTIKAL (bukan carousel) dengan nama alat,
-// pelanggan, nomor kalibrasi, waktu pembaruan, dan status per item, kurangi
-// gerak, skala huruf 1,3 pada lebar 320, Semantics, sasaran sentuh >= 48 dp,
-// "Kalibrasi baru" tetap membuka alur yang ada, dan tombol "Pindai lembar
-// kerja" yang tetap tersembunyi (tanpa memakan ruang).
+// kalimat judul (termasuk gerbang klaim "semua terkirim" oleh salinan lembar di
+// HP), kurangi gerak, skala huruf 1,3 pada lebar 320, Semantics, sasaran sentuh
+// >= 48 dp, "Mulai kalibrasi" tetap membuka alur yang ada, tombol "Pindai
+// lembar kerja" yang tetap tersembunyi (tanpa memakan ruang), dan baris Draf
+// mendatar yang bisa digeser dengan tetikus.
 import 'dart:async';
 
+import 'package:flutter/gestures.dart' show PointerDeviceKind;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -30,7 +27,6 @@ import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/calibration_input_provider.dart';
 import 'package:sidik_calibration/providers/draf_lokal_provider.dart';
 import 'package:sidik_calibration/providers/history_provider.dart';
-import 'package:sidik_calibration/providers/jam_provider.dart';
 import 'package:sidik_calibration/providers/kalibrasi_teknisi_provider.dart';
 import 'package:sidik_calibration/providers/notification_provider.dart';
 import 'package:sidik_calibration/screens/calibration/category_picker_screen.dart';
@@ -47,8 +43,6 @@ import 'package:sidik_calibration/services/notification_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 import 'package:sidik_calibration/widgets/biru_awan/hero_langit.dart';
 import 'package:sidik_calibration/widgets/biru_awan/lencana.dart';
-import 'package:sidik_calibration/widgets/biru_awan/panel_baris.dart';
-import 'package:sidik_calibration/widgets/biru_awan/stempel_sidik.dart';
 import 'package:sidik_calibration/widgets/biru_awan/tombol_sidik.dart';
 import 'package:sidik_calibration/widgets/tombol_pindai_lembar.dart';
 
@@ -63,8 +57,6 @@ CalibrationHistoryItem _sesi(
   String? nomor,
   String? pelanggan,
   String? catatan,
-  DateTime? diubah,
-  DateTime? dikirim,
 }) => CalibrationHistoryItem(
   id: id,
   namaAlat: alat,
@@ -74,13 +66,7 @@ CalibrationHistoryItem _sesi(
   nomorSesi: nomor,
   namaPelanggan: pelanggan,
   catatanRevisi: catatan,
-  diubahPada: diubah,
-  dikirimPada: dikirim,
 );
-
-/// "Sekarang" yang dipatok lewat `jamProvider`: waktu pembaruan relatif tidak
-/// boleh bergantung jam dinding.
-final _sekarang = DateTime(2026, 11, 16, 12);
 
 /// Layanan teknisi dengan jawaban yang bisa diatur per daftar dan dihitung
 /// pemanggilannya, supaya tiap bagian bisa dibuat memuat/gagal sendiri-sendiri.
@@ -186,7 +172,6 @@ Widget _app(
     notificationServiceProvider.overrideWithValue(
       MockNotificationService(kosong: notifKosong),
     ),
-    jamProvider.overrideWithValue(() => _sekarang),
   ],
   child: MaterialApp(
     debugShowCheckedModeBanner: false,
@@ -235,40 +220,8 @@ Finder _teksRingkas(String teks) => find.text(teks, findRichText: true);
 
 final _kunciMulai = find.byKey(const ValueKey('tombol-mulai-kalibrasi'));
 
-/// Kunci kartu ringkasan.
-const _kunciRingkasan = [
-  'ringkasan-draf',
-  'ringkasan-revisi',
-  'ringkasan-menunggu',
-];
-
-/// Angka besar (28) di kartu ringkasan [kunci]: "3", atau "–" bila daftarnya
-/// belum terbaca.
-String _angka(WidgetTester tester, String kunci) {
-  final teks = tester
-      .widgetList<Text>(
-        find.descendant(
-          of: find.byKey(ValueKey(kunci)),
-          matching: find.byType(Text),
-        ),
-      )
-      .where((t) => t.style?.fontSize == 28)
-      .map((t) => t.data!)
-      .toList();
-  expect(teks, hasLength(1), reason: 'satu angka di $kunci');
-  return teks.single;
-}
-
-/// Semua teks dalam kartu ringkasan [kunci].
-List<String> _teksKartu(WidgetTester tester, String kunci) => tester
-    .widgetList<Text>(
-      find.descendant(
-        of: find.byKey(ValueKey(kunci)),
-        matching: find.byType(Text),
-      ),
-    )
-    .map((t) => t.data!)
-    .toList();
+/// Judul netral (bukan klaim): tulisan id `tekBerandaJudulNetral`.
+const _netral = 'Lembar kerja kamu';
 
 void main() {
   setUpAll(muatFontUji);
@@ -319,10 +272,10 @@ void main() {
       expect(find.byKey(const ValueKey('bagian-perlu-revisi')), findsNothing);
       expect(find.text('Belum ada draf.'), findsOneWidget);
       expect(find.text('Belum ada lembar yang dikirim.'), findsOneWidget);
-      expect(_teksRingkas('Lanjutkan pekerjaan'), findsOneWidget);
-      expect(_teksRingkas('Aktivitas terbaru'), findsOneWidget);
-      expect(_teksRingkas('Lanjutkan pekerjaan 0'), findsNothing);
-      expect(_teksRingkas('Aktivitas terbaru 0'), findsNothing);
+      expect(_teksRingkas('Draf'), findsOneWidget);
+      expect(_teksRingkas('Terkirim terakhir'), findsOneWidget);
+      expect(_teksRingkas('Draf 0'), findsNothing);
+      expect(_teksRingkas('Terkirim terakhir 0'), findsNothing);
     });
 
     testWidgets('galat satu bagian tidak menjatuhkan yang lain; Coba lagi '
@@ -462,46 +415,13 @@ void main() {
     });
   });
 
-  group('judul, ringkasan, dan klaim', () {
-    final tigaDraf = _tetap([
-      _sesi(1, 'Flow Meter Cairan', CalibrationStatus.draft),
-      _sesi(2, 'Autoclave', CalibrationStatus.draft),
-      _sesi(3, 'Thermohygrometer', CalibrationStatus.draft),
-    ]);
-    Future<List<CalibrationHistoryItem>> putus() async =>
-        throw const KoneksiException('putus');
-
-    testWidgets('judul "Pekerjaan saya" (header), sapaan nama depan, tanpa '
-        'hero langit', (tester) async {
-      final semantik = tester.ensureSemantics();
-      await _buka(tester, _app(teknisi(), _Draf(_kosong)));
-
-      expect(_teksRingkas('Pekerjaan saya'), findsOneWidget);
-      expect(
-        tester
-            .getSemantics(_teksRingkas('Pekerjaan saya'))
-            .getSemanticsData()
-            .flagsCollection
-            .isHeader,
-        isTrue,
-      );
-      expect(find.textContaining('Halo, '), findsOneWidget);
-      // Banner besar dan kalimat 28/800 sudah tidak ada.
-      expect(find.byType(HeroLangit), findsNothing);
-      expect(find.text('Mulai dari alat yang datang hari ini'), findsNothing);
-      expect(find.textContaining('draf belum dikirim'), findsNothing);
-      semantik.dispose();
-    });
-
-    testWidgets('ringkasan: angka dari daftar yang sama dengan bagian di '
-        'bawahnya; "menunggu" menyebut dasar hitungannya', (tester) async {
+  group('data dan kalimat judul', () {
+    testWidgets('kalimat memakai angka dari daftar yang sama: "{n} draf belum '
+        'dikirim. {m} kiriman terakhir menunggu approval."', (tester) async {
       await _buka(
         tester,
         _app(
           teknisi(
-            revisi: () async => [
-              _sesi(7, 'Turbidimeter', CalibrationStatus.perluRevisi),
-            ],
             terkirim: () async => [
               _sesi(
                 20,
@@ -513,199 +433,55 @@ void main() {
               _sesi(22, 'Pipet Ukur', CalibrationStatus.disetujui),
             ],
           ),
-          _Draf(tigaDraf),
+          _Draf(
+            () async => [
+              _sesi(1, 'Flow Meter Cairan', CalibrationStatus.draft),
+              _sesi(2, 'Autoclave', CalibrationStatus.draft),
+              _sesi(3, 'Thermohygrometer', CalibrationStatus.draft),
+            ],
+          ),
         ),
       );
 
-      expect(_angka(tester, 'ringkasan-draf'), '3');
-      expect(_angka(tester, 'ringkasan-revisi'), '1');
-      expect(_angka(tester, 'ringkasan-menunggu'), '1');
       expect(
-        _teksKartu(tester, 'ringkasan-menunggu'),
-        contains('dari 3 kiriman terakhir'),
-        reason: 'angka ini hanya dari kiriman terakhir yang sudah dimuat',
+        _teksRingkas(
+          '3 draf belum dikirim. 1 kiriman terakhir menunggu approval.',
+        ),
+        findsOneWidget,
       );
-      expect(_teksKartu(tester, 'ringkasan-draf'), contains('Draf'));
-      expect(_teksKartu(tester, 'ringkasan-revisi'), contains('Perlu revisi'));
-      expect(
-        _teksKartu(tester, 'ringkasan-menunggu'),
-        contains('Menunggu pemeriksaan'),
-      );
-      // Judul bagian memakai daftar yang sama: jumlahnya cocok.
-      expect(_teksRingkas('Lanjutkan pekerjaan 3'), findsOneWidget);
-      expect(_teksRingkas('Aktivitas terbaru 3'), findsOneWidget);
+      expect(_teksRingkas('Draf 3'), findsOneWidget);
+      expect(_teksRingkas('Terkirim terakhir 3'), findsOneWidget);
+      // Sapaan memakai nama depan akun yang login.
+      expect(find.textContaining('Halo, '), findsOneWidget);
       // Stempel: ikon + kata dari pemetaan status yang ada.
       expect(find.text('Menunggu approval'), findsOneWidget);
       expect(find.text('Disetujui'), findsNWidgets(2));
       expect(find.text('KAL/2026/11/0001'), findsOneWidget);
     });
 
-    testWidgets('daftar yang TERBACA dan kosong = 0 (klaim sah); yang belum '
-        'terbaca = "–", BUKAN 0', (tester) async {
-      await _buka(tester, _app(teknisi(), _Draf(_kosong)));
-      expect(
-        [for (final k in _kunciRingkasan) _angka(tester, k)],
-        ['0', '0', '0'],
-      );
-
-      final tahan = Completer<List<CalibrationHistoryItem>>();
-      await _buka(
-        tester,
-        _app(teknisi(terkirim: () => tahan.future), _Draf(() => tahan.future)),
-      );
-      expect(
-        [for (final k in _kunciRingkasan) _angka(tester, k)],
-        ['–', '0', '–'],
-        reason: 'revisi terbaca (kosong); draf dan terkirim masih memuat',
-      );
-      // Tanpa daftar terkirim terbaca: tidak ada kalimat dasar hitungan.
-      expect(
-        _teksKartu(
-          tester,
-          'ringkasan-menunggu',
-        ).where((t) => t.contains('kiriman terakhir')),
-        isEmpty,
-      );
-      tahan.complete(const []);
-      await tester.pumpAndSettle();
-    });
-
-    testWidgets('daftar yang gagal atau masih memuat TIDAK terbaca nol: "–" di '
-        'kartunya, tidak ikut hitungan, tidak memicu "semua terkirim"', (
-      tester,
-    ) async {
-      final tahan = Completer<List<CalibrationHistoryItem>>();
-      final menunggu2 = _tetap([
-        _sesi(20, 'pH Meter', CalibrationStatus.menungguApproval),
-        _sesi(21, 'Inkubator', CalibrationStatus.menungguApproval),
-      ]);
-
-      // (keadaan, layanan, draf, [draf, revisi, menunggu] yang diharapkan).
-      final kasus = <(String, _Teknisi, _Draf, List<String>)>[
-        (
-          'draf gagal + 2 menunggu',
-          teknisi(terkirim: menunggu2),
-          _Draf(putus),
-          ['–', '0', '2'],
-        ),
-        (
-          'draf memuat + 2 menunggu',
-          teknisi(terkirim: menunggu2),
-          _Draf(() => tahan.future),
-          ['–', '0', '2'],
-        ),
-        (
-          'terkirim gagal + 3 draf',
-          teknisi(terkirim: putus),
-          _Draf(tigaDraf),
-          ['3', '0', '–'],
-        ),
-        (
-          'draf gagal, lainnya kosong',
-          teknisi(),
-          _Draf(putus),
-          ['–', '0', '0'],
-        ),
-        (
-          'terkirim gagal, lainnya kosong',
-          teknisi(terkirim: putus),
-          _Draf(_kosong),
-          ['0', '0', '–'],
-        ),
-        (
-          'perlu revisi gagal, lainnya kosong',
-          teknisi(revisi: putus),
-          _Draf(_kosong),
-          ['0', '–', '0'],
-        ),
-      ];
-      for (final (keadaan, lembar, draf, angka) in kasus) {
-        await _buka(tester, _app(lembar, draf));
-        expect(
-          [for (final k in _kunciRingkasan) _angka(tester, k)],
-          angka,
-          reason: keadaan,
-        );
-        expect(
-          _teksRingkas('Semua lembar sudah terkirim.'),
-          findsNothing,
-          reason: keadaan,
-        );
-      }
-      tahan.complete(const []);
-      await tester.pumpAndSettle();
-    });
-
-    testWidgets('"Menunggu pemeriksaan" dihitung dari kiriman terakhir yang '
-        'DIMUAT (10), dan kalimatnya menyebut itu', (tester) async {
+    testWidgets('bagian bernilai 0 tidak ditulis', (tester) async {
       await _buka(
         tester,
         _app(
           teknisi(
             terkirim: () async => [
-              for (var i = 0; i < 10; i++)
-                _sesi(
-                  30 + i,
-                  'Alat $i',
-                  i < 4
-                      ? CalibrationStatus.menungguApproval
-                      : CalibrationStatus.disetujui,
-                ),
+              _sesi(20, 'pH Meter', CalibrationStatus.menungguApproval),
             ],
           ),
           _Draf(_kosong),
         ),
       );
-      expect(_angka(tester, 'ringkasan-menunggu'), '4');
       expect(
-        _teksKartu(tester, 'ringkasan-menunggu'),
-        contains('dari 10 kiriman terakhir'),
+        _teksRingkas('1 kiriman terakhir menunggu approval.'),
+        findsOneWidget,
       );
+      expect(find.textContaining('draf belum dikirim'), findsNothing);
+      expect(find.textContaining('0 '), findsNothing);
     });
 
-    testWidgets(
-      'kartu "Perlu revisi" krem HANYA bila ada yang perlu diperiksa',
-      (tester) async {
-        Color? isi(WidgetTester t) {
-          final kartu = find.descendant(
-            of: find.byKey(const ValueKey('ringkasan-revisi')),
-            matching: find.byType(Material),
-          );
-          return t.widget<Material>(kartu.first).color;
-        }
-
-        await _buka(tester, _app(teknisi(), _Draf(_kosong)));
-        final m = SidikMaterial.of(tester.element(_kunciMulai));
-        expect(isi(tester), m.kertas, reason: '0 revisi: netral');
-        expect(isi(tester), isNot(m.awasTipis));
-
-        await _buka(
-          tester,
-          _app(
-            teknisi(
-              revisi: () async => [
-                _sesi(7, 'Turbidimeter', CalibrationStatus.perluRevisi),
-              ],
-            ),
-            _Draf(_kosong),
-          ),
-        );
-        expect(isi(tester), m.awasTipis, reason: 'ada revisi: krem');
-        // Dua kartu lain tidak pernah krem.
-        for (final k in ['ringkasan-draf', 'ringkasan-menunggu']) {
-          final kartu = find.descendant(
-            of: find.byKey(ValueKey(k)),
-            matching: find.byType(Material),
-          );
-          expect(tester.widget<Material>(kartu.first).color, m.kertas);
-        }
-      },
-    );
-
     testWidgets('semua kosong dan tak ada yang perlu revisi: "Semua lembar '
-        'sudah terkirim."; ada yang perlu revisi: tidak ada klaim', (
-      tester,
-    ) async {
+        'sudah terkirim."; ada yang perlu revisi: judul netral, bukan '
+        'klaim', (tester) async {
       await _buka(tester, _app(teknisi(), _Draf(_kosong)));
       expect(_teksRingkas('Semua lembar sudah terkirim.'), findsOneWidget);
 
@@ -721,23 +497,87 @@ void main() {
         ),
       );
       expect(_teksRingkas('Semua lembar sudah terkirim.'), findsNothing);
+      expect(_teksRingkas('Lembar kerja kamu'), findsOneWidget);
     });
 
-    testWidgets('daftar belum terbaca / gagal: tidak ada klaim', (
-      tester,
-    ) async {
+    testWidgets('daftar belum terbaca / gagal: judul netral, tidak ada angka '
+        'karangan', (tester) async {
       final tahan = Completer<List<CalibrationHistoryItem>>();
       await _buka(
         tester,
         _app(teknisi(terkirim: () => tahan.future), _Draf(() => tahan.future)),
       );
+      expect(_teksRingkas('Lembar kerja kamu'), findsOneWidget);
       expect(_teksRingkas('Semua lembar sudah terkirim.'), findsNothing);
       tahan.complete(const []);
       await tester.pumpAndSettle();
     });
 
+    testWidgets('daftar yang gagal atau masih memuat TIDAK terbaca nol: tidak '
+        'ikut kalimat dan tidak memicu "semua terkirim"', (tester) async {
+      final tahan = Completer<List<CalibrationHistoryItem>>();
+      final menunggu2 = _tetap([
+        _sesi(20, 'pH Meter', CalibrationStatus.menungguApproval),
+        _sesi(21, 'Inkubator', CalibrationStatus.menungguApproval),
+      ]);
+      final tigaDraf = _tetap([
+        _sesi(1, 'Flow Meter Cairan', CalibrationStatus.draft),
+        _sesi(2, 'Autoclave', CalibrationStatus.draft),
+        _sesi(3, 'Thermohygrometer', CalibrationStatus.draft),
+      ]);
+      Future<List<CalibrationHistoryItem>> putus() async =>
+          throw const KoneksiException('putus');
+
+      // (keadaan, layanan teknisi, layanan draf, kalimat judul seutuhnya).
+      // Kecocokan kalimat PERSIS: potongan yang tidak seharusnya ada merusaknya.
+      final kasus = <(String, _Teknisi, _Draf, String)>[
+        (
+          'draf gagal + 2 menunggu',
+          teknisi(terkirim: menunggu2),
+          _Draf(putus),
+          '2 kiriman terakhir menunggu approval.',
+        ),
+        (
+          'draf memuat + 2 menunggu',
+          teknisi(terkirim: menunggu2),
+          _Draf(() => tahan.future),
+          '2 kiriman terakhir menunggu approval.',
+        ),
+        (
+          'terkirim gagal + 3 draf',
+          teknisi(terkirim: putus),
+          _Draf(tigaDraf),
+          '3 draf belum dikirim.',
+        ),
+        ('draf gagal, lainnya kosong', teknisi(), _Draf(putus), _netral),
+        (
+          'terkirim gagal, lainnya kosong',
+          teknisi(terkirim: putus),
+          _Draf(_kosong),
+          _netral,
+        ),
+        (
+          'perlu revisi gagal, lainnya kosong',
+          teknisi(revisi: putus),
+          _Draf(_kosong),
+          _netral,
+        ),
+      ];
+      for (final (keadaan, lembar, draf, kalimat) in kasus) {
+        await _buka(tester, _app(lembar, draf));
+        expect(_teksRingkas(kalimat), findsOneWidget, reason: keadaan);
+        expect(
+          _teksRingkas('Semua lembar sudah terkirim.'),
+          findsNothing,
+          reason: keadaan,
+        );
+      }
+      tahan.complete(const []);
+      await tester.pumpAndSettle();
+    });
+
     testWidgets('"Semua lembar sudah terkirim." digerbangi salinan lembar di '
-        'HP: ada isi, gagal terbaca, atau belum selesai -> tanpa klaim; '
+        'HP: ada isi, gagal terbaca, atau belum selesai -> judul netral; '
         'terbaca dan kosong -> klaim', (tester) async {
       final tahan = Completer<List<DrafLokal>>();
       final antre = SimpananDrafLokalMemori();
@@ -756,6 +596,7 @@ void main() {
       for (final e in kasus.entries) {
         // Server bersih total: tanpa gerbang lokal klaim akan muncul.
         await _buka(tester, _app(teknisi(), _Draf(_kosong), simpanan: e.value));
+        expect(_teksRingkas(_netral), findsOneWidget, reason: e.key);
         expect(
           _teksRingkas('Semua lembar sudah terkirim.'),
           findsNothing,
@@ -767,199 +608,23 @@ void main() {
       tahan.complete(const []);
       await tester.pumpAndSettle();
       expect(_teksRingkas('Semua lembar sudah terkirim.'), findsOneWidget);
+      expect(_teksRingkas(_netral), findsNothing);
     });
 
-    test('dasar hitungan "dari {n} kiriman terakhir": id dan en, tunggal dan '
-        'jamak', () {
+    test('kalimat "kiriman terakhir menunggu approval": id dan en, tunggal '
+        'dan jamak', () {
       expect(
-        AppLocalizationsId().tekRingkasanDariKiriman(10),
-        'dari 10 kiriman terakhir',
-      );
-      expect(
-        AppLocalizationsEn().tekRingkasanDariKiriman(1),
-        'from the latest submission',
+        AppLocalizationsId().tekBerandaKirimanMenunggu(10),
+        '10 kiriman terakhir menunggu approval.',
       );
       expect(
-        AppLocalizationsEn().tekRingkasanDariKiriman(10),
-        'from the latest 10 submissions',
-      );
-    });
-  });
-
-  group('daftar vertikal: item membawa nama alat, pelanggan, nomor, waktu '
-      'pembaruan, dan status', () {
-    testWidgets('draf: satu baris per draf, urut ke bawah, tombol yang bisa '
-        'diketuk', (tester) async {
-      final semantik = tester.ensureSemantics();
-      await _buka(
-        tester,
-        _app(
-          teknisi(),
-          _Draf(
-            () async => [
-              _sesi(
-                1,
-                'Flow Meter Cairan',
-                CalibrationStatus.draft,
-                nomor: 'KAL/2026/11/0003',
-                pelanggan: 'PT Contoh Kalibrasi Nusantara',
-                diubah: _sekarang.subtract(const Duration(minutes: 5)),
-              ),
-              _sesi(2, 'Autoclave', CalibrationStatus.draft, nomor: 'KAL/2'),
-            ],
-          ),
-        ),
-      );
-
-      final baris1 = find.byKey(const ValueKey('kartu-sesi-teknisi-1'));
-      expect(find.byType(BarisDaftar72), findsNWidgets(2));
-      expect(
-        find.descendant(of: baris1, matching: find.text('Flow Meter Cairan')),
-        findsOneWidget,
+        AppLocalizationsEn().tekBerandaKirimanMenunggu(1),
+        '1 recent submission awaiting approval.',
       );
       expect(
-        find.descendant(
-          of: baris1,
-          matching: find.text('PT Contoh Kalibrasi Nusantara'),
-        ),
-        findsOneWidget,
+        AppLocalizationsEn().tekBerandaKirimanMenunggu(10),
+        '10 recent submissions awaiting approval.',
       );
-      expect(
-        find.descendant(of: baris1, matching: find.text('KAL/2026/11/0003')),
-        findsOneWidget,
-      );
-      expect(
-        find.descendant(
-          of: baris1,
-          matching: find.text('Diperbarui 5 menit lalu'),
-        ),
-        findsOneWidget,
-      );
-      expect(
-        find.descendant(of: baris1, matching: find.text('Draf')),
-        findsOneWidget,
-        reason: 'status per item',
-      );
-      expect(
-        find.descendant(of: baris1, matching: find.byType(StempelSidik)),
-        findsOneWidget,
-      );
-      // Vertikal: x sama, y naik; bisa diketuk.
-      final a = tester.getRect(baris1);
-      final b = tester.getRect(
-        find.byKey(const ValueKey('kartu-sesi-teknisi-2')),
-      );
-      expect(b.top, greaterThanOrEqualTo(a.bottom));
-      expect(b.left, a.left);
-      final data = tester.getSemantics(baris1).getSemanticsData();
-      expect(data.flagsCollection.isButton, isTrue);
-      expect(data.hasAction(SemanticsAction.tap), isTrue);
-      expect(data.label, contains('Flow Meter Cairan'));
-      expect(data.label, contains('Diperbarui 5 menit lalu'));
-      semantik.dispose();
-    });
-
-    testWidgets('waktu pembaruan: diubahPada, atau dikirimPada bila hanya itu; '
-        'TANPA keduanya baris waktu tidak ditulis', (tester) async {
-      await _buka(
-        tester,
-        _app(
-          teknisi(
-            terkirim: () async => [
-              _sesi(
-                20,
-                'pH Meter',
-                CalibrationStatus.menungguApproval,
-                dikirim: _sekarang.subtract(const Duration(hours: 3)),
-              ),
-              _sesi(21, 'Inkubator', CalibrationStatus.disetujui),
-            ],
-          ),
-          _Draf(
-            () async => [
-              _sesi(
-                1,
-                'Autoclave',
-                CalibrationStatus.draft,
-                diubah: _sekarang.subtract(const Duration(days: 1)),
-                dikirim: _sekarang.subtract(const Duration(days: 9)),
-              ),
-            ],
-          ),
-        ),
-      );
-      expect(
-        find.descendant(
-          of: find.byKey(const ValueKey('kartu-sesi-teknisi-20')),
-          matching: find.text('Diperbarui 3 jam lalu'),
-        ),
-        findsOneWidget,
-      );
-      expect(
-        find.descendant(
-          of: find.byKey(const ValueKey('kartu-sesi-teknisi-1')),
-          matching: find.text('Diperbarui Kemarin'),
-        ),
-        findsOneWidget,
-        reason: 'diubahPada menang atas dikirimPada',
-      );
-      expect(
-        find.descendant(
-          of: find.byKey(const ValueKey('kartu-sesi-teknisi-21')),
-          matching: find.textContaining('Diperbarui'),
-        ),
-        findsNothing,
-        reason: 'tidak ada titik waktu: tidak dikarang',
-      );
-    });
-
-    testWidgets('draf BUKAN carousel: delapan draf tersusun ke bawah, tanpa '
-        'gulir mendatar dan tanpa Scrollbar', (tester) async {
-      await _buka(
-        tester,
-        _app(
-          teknisi(),
-          _Draf(
-            _tetap([
-              for (var i = 1; i <= 8; i++)
-                _sesi(i, 'Alat $i', CalibrationStatus.draft, nomor: 'KAL/$i'),
-            ]),
-          ),
-        ),
-        lebar: 1000,
-      );
-      final area = find.byKey(const ValueKey('bagian-draf'));
-      expect(
-        find.descendant(
-          of: area,
-          matching: find.byWidgetPredicate(
-            (w) => w is Scrollable && w.axisDirection == AxisDirection.right,
-          ),
-        ),
-        findsNothing,
-        reason: 'tidak ada baris yang menggulir ke samping',
-      );
-      expect(
-        find.descendant(of: area, matching: find.byType(Scrollbar)),
-        findsNothing,
-      );
-      var atas = double.negativeInfinity;
-      for (var i = 1; i <= 8; i++) {
-        final r = tester.getRect(find.byKey(ValueKey('kartu-sesi-teknisi-$i')));
-        expect(r.top, greaterThanOrEqualTo(atas), reason: 'draf $i');
-        expect(
-          r.left,
-          tester
-              .getRect(find.byKey(const ValueKey('kartu-sesi-teknisi-1')))
-              .left,
-        );
-        expect(
-          r.right,
-          lessThanOrEqualTo(1000),
-          reason: 'draf $i di dalam layar',
-        );
-        atas = r.bottom;
-      }
     });
 
     testWidgets('Terkirim = baca saja: baris tidak membuka lembar dan tidak '
@@ -1012,41 +677,6 @@ void main() {
       expect(kartu.flagsCollection.isButton, isTrue);
       semantik.dispose();
     });
-
-    testWidgets('urutan blok: header, judul, ringkasan, Kalibrasi baru, '
-        'Perlu revisi, Lanjutkan pekerjaan, Aktivitas terbaru', (tester) async {
-      await _buka(
-        tester,
-        _app(
-          teknisi(
-            revisi: () async => [
-              _sesi(7, 'Turbidimeter', CalibrationStatus.perluRevisi),
-            ],
-            terkirim: () async => [
-              _sesi(20, 'pH Meter', CalibrationStatus.disetujui),
-            ],
-          ),
-          _Draf(() async => [_sesi(1, 'Autoclave', CalibrationStatus.draft)]),
-        ),
-      );
-      double y(Finder f) => tester.getTopLeft(f).dy;
-      final urut = <(String, double)>[
-        ('header', y(find.text('SIDIK Lab'))),
-        ('judul', y(find.text('Pekerjaan saya'))),
-        ('ringkasan', y(find.byKey(const ValueKey('ringkasan-draf')))),
-        ('Kalibrasi baru', y(_kunciMulai)),
-        ('revisi', y(find.byKey(const ValueKey('bagian-perlu-revisi')))),
-        ('draf', y(find.byKey(const ValueKey('bagian-draf')))),
-        ('terkirim', y(find.byKey(const ValueKey('bagian-terkirim')))),
-      ];
-      for (var i = 1; i < urut.length; i++) {
-        expect(
-          urut[i].$2,
-          greaterThan(urut[i - 1].$2),
-          reason: '${urut[i].$1} harus di bawah ${urut[i - 1].$1}',
-        );
-      }
-    });
   });
 
   group('galat dan Coba lagi di KETIGA bagian', () {
@@ -1059,13 +689,13 @@ void main() {
             status: CalibrationStatus.perluRevisi,
           ),
           (
-            nama: 'Lanjutkan pekerjaan',
+            nama: 'Draf',
             kunci: 'bagian-draf',
             id: 5,
             status: CalibrationStatus.draft,
           ),
           (
-            nama: 'Aktivitas terbaru',
+            nama: 'Terkirim',
             kunci: 'bagian-terkirim',
             id: 8,
             status: CalibrationStatus.menungguApproval,
@@ -1180,14 +810,67 @@ void main() {
     }
   });
 
+  group('baris Draf mendatar di layar lebar', () {
+    final banyak = _tetap([
+      for (var i = 1; i <= 8; i++)
+        _sesi(i, 'Alat $i', CalibrationStatus.draft, nomor: 'KAL/$i'),
+    ]);
+    final area = find.byKey(const ValueKey('bagian-draf'));
+    SingleChildScrollView baris(WidgetTester tester) =>
+        tester.widget<SingleChildScrollView>(
+          find.descendant(
+            of: area,
+            matching: find.byType(SingleChildScrollView),
+          ),
+        );
+
+    testWidgets('bisa digeser dengan tetikus, sentuh, trackpad, dan stylus '
+        '(Windows memakai layar ini)', (tester) async {
+      await _buka(tester, _app(teknisi(), _Draf(banyak)), lebar: 1000);
+      final pengendali = baris(tester).controller!;
+      expect(pengendali.position.maxScrollExtent, greaterThan(0));
+
+      for (final jenis in [
+        PointerDeviceKind.mouse,
+        PointerDeviceKind.touch,
+        PointerDeviceKind.trackpad,
+        PointerDeviceKind.stylus,
+      ]) {
+        pengendali.jumpTo(0);
+        await tester.pumpAndSettle();
+        final jari = await tester.startGesture(
+          tester.getCenter(find.byKey(const ValueKey('kartu-sesi-teknisi-1'))),
+          kind: jenis,
+        );
+        await jari.moveBy(const Offset(-100, 0));
+        await jari.moveBy(const Offset(-100, 0));
+        await jari.up();
+        await tester.pumpAndSettle();
+        expect(pengendali.offset, greaterThan(0), reason: 'seret $jenis');
+      }
+    });
+
+    testWidgets('Scrollbar memakai pengendali yang sama dengan barisnya, dan '
+        'pengendali dibuang bersama layar', (tester) async {
+      await _buka(tester, _app(teknisi(), _Draf(banyak)), lebar: 1000);
+      final pengendali = baris(tester).controller!;
+      final bilah = tester.widget<Scrollbar>(
+        find.descendant(of: area, matching: find.byType(Scrollbar)),
+      );
+      expect(bilah.controller, same(pengendali));
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      expect(() => pengendali.addListener(() {}), throwsFlutterError);
+    });
+  });
+
   group('aksi yang sudah ada tetap jalan', () {
-    testWidgets('"Kalibrasi baru" tetap membuka alur pilih kategori', (
+    testWidgets('"Mulai kalibrasi" tetap membuka alur pilih kategori', (
       tester,
     ) async {
       await _buka(tester, _app(teknisi(), _Draf(_kosong)));
 
-      expect(find.text('Kalibrasi baru'), findsOneWidget);
-      expect(find.text('Mulai kalibrasi'), findsNothing);
+      expect(find.text('Mulai kalibrasi'), findsOneWidget);
       await tester.tap(_kunciMulai);
       await tester.pumpAndSettle();
 
@@ -1211,11 +894,11 @@ void main() {
       expect(find.text('Pindai lembar kerja'), findsNothing);
       expect(tester.getSize(find.byType(TombolPindaiLembar)).height, 0);
       // Tidak memakan ruang SAMA SEKALI, termasuk bantalan pembungkusnya: dari
-      // dasar tombol "Kalibrasi baru" langsung selebar jarak antarbagian ke
-      // bagian berikutnya (Perlu revisi kosong = tersembunyi, jadi itu Draf).
+      // dasar hero langsung selebar jarak antarbagian ke bagian berikutnya
+      // (Perlu revisi kosong = tersembunyi, jadi itu Draf).
       expect(
         tester.getTopLeft(find.byKey(const ValueKey('bagian-draf'))).dy -
-            tester.getBottomLeft(_kunciMulai).dy,
+            tester.getBottomLeft(find.byType(HeroLangit)).dy,
         moreOrLessEquals(AppSpacing.lg),
       );
       // Jalur manual utuh.
@@ -1253,7 +936,7 @@ void main() {
   });
 
   group('gerak', () {
-    testWidgets('kurangi gerak: tombol dan bagian langsung utuh; tanpa itu '
+    testWidgets('kurangi gerak: hero dan bagian langsung utuh; tanpa itu '
         'masuk berurutan', (tester) async {
       Iterable<double> opasitas() => tester
           .widgetList<FadeTransition>(
@@ -1264,7 +947,7 @@ void main() {
           )
           .map((f) => f.opacity.value);
 
-      // Dengan gerak: pada bingkai pertama tombol masih transparan.
+      // Dengan gerak: pada bingkai pertama hero masih transparan.
       await _buka(tester, _app(teknisi(), _Draf(_kosong)), tunggu: false);
       expect(opasitas().any((o) => o < 1), isTrue);
       await tester.pumpAndSettle();
@@ -1368,7 +1051,7 @@ void main() {
           expect(
             tester.getRect(_kunciMulai).right,
             lessThanOrEqualTo(320),
-            reason: 'Kalibrasi baru keluar layar (${e.key})',
+            reason: 'Mulai kalibrasi keluar layar (${e.key})',
           );
         }
       }
@@ -1376,9 +1059,9 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('Semantics dan sasaran sentuh: judul bagian = header, '
-        'Kalibrasi baru = tombol aktif, lonceng membawa jumlah belum dibaca, '
-        'semua sasaran >= 48 dp dan berlabel', (tester) async {
+    testWidgets('Semantics dan sasaran sentuh: judul bagian = header, Mulai = '
+        'tombol aktif, lonceng membawa jumlah belum dibaca, semua sasaran >= '
+        '48 dp dan berlabel', (tester) async {
       final semantik = tester.ensureSemantics();
       await _buka(
         tester,
@@ -1393,7 +1076,7 @@ void main() {
         ),
       );
 
-      // Kalibrasi baru: tombol aktif berlabel, aksi ketuk, tinggi >= 48.
+      // Mulai kalibrasi: tombol aktif berlabel, aksi ketuk, tinggi >= 48.
       final mulai = tester
           .getSemantics(
             find.descendant(
@@ -1402,7 +1085,7 @@ void main() {
             ),
           )
           .getSemanticsData();
-      expect(mulai.label, contains('Kalibrasi baru'));
+      expect(mulai.label, contains('Mulai kalibrasi'));
       expect(mulai.flagsCollection.isButton, isTrue);
       expect(mulai.hasAction(SemanticsAction.tap), isTrue);
       expect(semantikAktif(mulai), isTrue);
@@ -1418,12 +1101,8 @@ void main() {
       expect(ukuran.width, greaterThanOrEqualTo(48));
       expect(ukuran.height, greaterThanOrEqualTo(48));
 
-      // Judul bagian: header.
-      for (final judul in [
-        'Perlu revisi 1',
-        'Lanjutkan pekerjaan 1',
-        'Aktivitas terbaru 2',
-      ]) {
+      // Judul bagian dan kalimat judul: header.
+      for (final judul in ['Perlu revisi 1', 'Draf 1', 'Terkirim terakhir 2']) {
         final data = tester
             .getSemantics(_teksRingkas(judul))
             .getSemanticsData();
@@ -1431,29 +1110,14 @@ void main() {
       }
       expect(
         tester
-            .getSemantics(find.text('Pekerjaan saya'))
+            .getSemantics(find.text('Mulai dari alat yang datang hari ini'))
             .getSemanticsData()
             .flagsCollection
             .isHeader,
         isTrue,
       );
-      // Tiga kartu ringkasan: satu simpul berlabel "label: angka".
-      for (final (kunci, label) in [
-        ('ringkasan-draf', 'Draf: 1'),
-        ('ringkasan-revisi', 'Perlu revisi: 1'),
-        (
-          'ringkasan-menunggu',
-          'Menunggu pemeriksaan: 1, dari 2 kiriman terakhir',
-        ),
-      ]) {
-        expect(
-          tester.getSemantics(find.byKey(ValueKey(kunci))).label,
-          label,
-          reason: kunci,
-        );
-      }
 
-      // Baris draf dan kartu revisi: sasaran >= 48.
+      // Kartu draf dan kartu revisi: sasaran >= 48.
       for (final id in [1, 7]) {
         expect(
           tester.getSize(find.byKey(ValueKey('kartu-sesi-teknisi-$id'))).height,
@@ -1482,14 +1146,13 @@ void main() {
       semantik.dispose();
     });
 
-    testWidgets('tombol utama: biru aksi 48 dp selebar kolom (bukan banner), '
-        'tema terang dan gelap', (tester) async {
+    testWidgets('hero: tombol navy tegas di atas langit, tema terang dan '
+        'gelap', (tester) async {
       for (final gelap in [false, true]) {
         await _buka(tester, _app(teknisi(), _Draf(_kosong), gelap: gelap));
         final m = SidikMaterial.of(tester.element(_kunciMulai));
-        final tema = Theme.of(tester.element(_kunciMulai)).colorScheme;
         final tombol = tester.widget<TombolSidik>(_kunciMulai);
-        expect(tombol.ragam, RagamTombolSidik.utama);
+        expect(tombol.ragam, RagamTombolSidik.tegas);
         final isi = tester
             .widget<FilledButton>(
               find.descendant(
@@ -1500,73 +1163,8 @@ void main() {
             .style!
             .backgroundColor!
             .resolve(<WidgetState>{});
-        expect(isi, tema.primary, reason: gelap ? 'gelap' : 'terang');
-        expect(isi, m.biru);
-        final ukuran = tester.getSize(_kunciMulai);
-        expect(ukuran.height, 48);
-        expect(ukuran.width, 412 - 2 * AppSpacing.md, reason: 'selebar kolom');
+        expect(isi, m.tinta, reason: gelap ? 'gelap' : 'terang');
       }
-    });
-
-    testWidgets('ringkasan: tiga kartu sebaris di 412 dp, ditumpuk di 360 dp '
-        'dan di 320 dp x huruf 1,3; kata terpanjang tidak putus di tengah', (
-      tester,
-    ) async {
-      const label = {
-        'ringkasan-draf': 'Draf',
-        'ringkasan-revisi': 'Perlu revisi',
-        'ringkasan-menunggu': 'Menunggu pemeriksaan',
-      };
-
-      /// Kata terpanjang ("pemeriksaan") muat dalam satu baris: lebar kata
-      /// terpanjang <= lebar paragraf yang dipakai.
-      void kataUtuh(String alasan) {
-        for (final e in label.entries) {
-          final p = tester.renderObject<RenderParagraph>(
-            find.descendant(
-              of: find.byKey(ValueKey(e.key)),
-              matching: find.text(e.value),
-            ),
-          );
-          expect(
-            p.getMinIntrinsicWidth(double.infinity),
-            lessThanOrEqualTo(p.size.width + 0.01),
-            reason: 'kata terpanjang "${e.value}" putus di tengah ($alasan)',
-          );
-        }
-      }
-
-      double atas(String k) => tester.getTopLeft(find.byKey(ValueKey(k))).dy;
-
-      // 412 dp: sebaris.
-      await _buka(tester, _app(teknisi(), _Draf(_kosong)), lebar: 412);
-      expect({for (final k in _kunciRingkasan) atas(k)}, hasLength(1));
-      kataUtuh('412 dp, sebaris');
-
-      // 360 dp: sel sempit, ditumpuk (di sebaris "pemeriksaan" akan putus).
-      await _buka(tester, _app(teknisi(), _Draf(_kosong)), lebar: 360);
-      expect(atas('ringkasan-revisi'), greaterThan(atas('ringkasan-draf')));
-      expect(atas('ringkasan-menunggu'), greaterThan(atas('ringkasan-revisi')));
-      kataUtuh('360 dp, ditumpuk');
-
-      // 320 dp x 1,3: ditumpuk, selebar kolom, tanpa luapan.
-      await _buka(
-        tester,
-        _app(teknisi(), _Draf(_kosong), skala: 1.3),
-        lebar: 320,
-        tinggi: 3200,
-      );
-      expect(tester.takeException(), isNull);
-      expect(atas('ringkasan-revisi'), greaterThan(atas('ringkasan-draf')));
-      expect(atas('ringkasan-menunggu'), greaterThan(atas('ringkasan-revisi')));
-      for (final k in _kunciRingkasan) {
-        expect(
-          tester.getSize(find.byKey(ValueKey(k))).width,
-          320 - 2 * AppSpacing.md,
-          reason: '$k selebar kolom',
-        );
-      }
-      kataUtuh('320 dp x 1,3, ditumpuk');
     });
   });
 }

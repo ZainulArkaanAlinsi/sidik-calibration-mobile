@@ -4,21 +4,21 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/bentuk_lab.dart';
 import '../../core/theme/sidik_material.dart';
 import '../../core/theme/token_komponen_biru_awan.dart';
+import '../../core/theme/token_komponen_biru_awan_lanjut.dart';
 import '../../core/theme/token_umpan_balik_biru_awan.dart';
 import '../../l10n/app_localizations.dart';
 import 'toast_sidik.dart';
 
 /// Ragam [BannerSidik].
 enum RagamBannerSidik {
-  /// Bilah navy 48 sudut 12: "Tanpa koneksi. Data terakhir 08.42".
+  /// Pil navy 48: "Tanpa koneksi. Data terakhir 08.42".
   tanpaKoneksi,
 
-  /// Bilah biru muda 48 sudut 12 dengan tombol navy: "Versi baru tersedia" +
-  /// "Pasang".
+  /// Pil langit 56 dengan tombol navy: "Versi baru tersedia" + "Pasang".
   /// Pembaruan WAJIB memakai dialog, bukan banner.
   pembaruan,
 
-  /// Kartu krem sudut 16: standar segera habis, server lambat.
+  /// Kartu kuning tipis sudut 20: standar segera habis, server lambat.
   peringatan,
 }
 
@@ -32,7 +32,7 @@ enum RagamBannerSidik {
 ///   ikon hiasan, [aksi] dan tombol tutup simpul tombol sendiri.
 /// - [aksi] hanya untuk [RagamBannerSidik.pembaruan]; [onTutup] hanya untuk
 ///   [RagamBannerSidik.peringatan] (tombol tutup sasaran 48). Pil aksi
-///   bergambar 40, sasaran 48, cincin fokus di luar (>= 3:1 terhadap latar banner).
+///   bergambar 40, sasaran 48, cincin fokus di luar (>= 3:1 terhadap langit).
 /// - Teks membungkus bila panjang atau huruf diperbesar; banner ikut tumbuh.
 class BannerSidik extends StatelessWidget {
   const BannerSidik.tanpaKoneksi({super.key, required this.teks})
@@ -64,6 +64,7 @@ class BannerSidik extends StatelessWidget {
   Widget build(BuildContext context) {
     final m = SidikMaterial.of(context);
     final u = WarnaUmpanBalikBiruAwan.of(context);
+    final lanjut = WarnaLanjutBiruAwan.of(context);
     final l10n = AppLocalizations.of(context);
 
     final (
@@ -82,18 +83,16 @@ class BannerSidik extends StatelessWidget {
         Icons.wifi_off_rounded,
         HurufUmpanBalikBiruAwan.bannerTanpaKoneksi,
         UkuranUmpanBalikBiruAwan.bannerTanpaKoneksi,
-        BentukBiruAwan.saringan,
+        BentukBiruAwan.pil,
       ),
-      // Pembaruan opsional: kotak biru muda (kabut) yang tenang, bukan bidang
-      // langit penuh (REVISI 16 Nov 2026).
       RagamBannerSidik.pembaruan => (
-        m.biruTipis,
-        m.tinta,
-        m.biruTinta,
+        lanjut.isiHero,
+        lanjut.tintaHero,
+        lanjut.tintaHero,
         Icons.download_rounded,
         HurufUmpanBalikBiruAwan.bannerPembaruan,
         UkuranUmpanBalikBiruAwan.bannerPembaruan,
-        BentukBiruAwan.saringan,
+        BentukBiruAwan.pil,
       ),
       RagamBannerSidik.peringatan => (
         u.peringatanLatar,
@@ -157,7 +156,7 @@ class BannerSidik extends StatelessWidget {
                     onPressed: onAksi,
                     isi: m.tinta,
                     tinta: m.kertas,
-                    cincin: m.tinta,
+                    cincin: lanjut.tintaHero,
                   ),
                 if (onTutup != null)
                   TombolTutupSidik(

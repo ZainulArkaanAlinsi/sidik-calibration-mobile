@@ -1,5 +1,4 @@
-// ChipSaring: kotak 44 sudut 12 (sentuh >= 48) dengan bulatan jumlah 32;
-// terpilih = biru muda + tepi biru (REVISI 16 Nov 2026).
+// ChipSaring: pil 44 (sentuh >= 48) dengan bulatan jumlah 32.
 import 'dart:ui' show Tristate;
 
 import 'package:flutter/material.dart';
@@ -117,8 +116,7 @@ void main() {
     for (final gelap in [false, true]) {
       final nama = gelap ? 'gelap' : 'terang';
       testWidgets(
-        'terpilih biru muda + tepi biru 2 dp + kata navy; belum terpilih putih '
-        'bertepi kontrol ($nama)',
+        'terpilih navy, belum terpilih putih bertepi kontrol ($nama)',
         (tester) async {
           await tester.pumpWidget(
             aplikasiUji(
@@ -138,29 +136,15 @@ void main() {
               matching: find.byType(Material),
             ),
           );
-          expect(bahan('Aktif').color, m.biruTipis);
+          expect(bahan('Aktif').color, m.tinta);
           expect(bahan('Biasa').color, m.kertas);
-          final biasa = bahan('Biasa').shape! as RoundedRectangleBorder;
-          expect(biasa.side.color, m.garisTegas, reason: 'tepi kontrol 3:1');
-          expect(biasa.side.width, 1);
-          final aktif = bahan('Aktif').shape! as RoundedRectangleBorder;
-          // Pilihan dibawa tepi biru, bukan biru muda saja (1,1:1 di putih).
-          expect(aktif.side.color, m.biru);
-          expect(aktif.side.width, 2);
-          for (final b in [biasa, aktif]) {
-            expect(b.borderRadius, BorderRadius.circular(12));
-          }
-          // Kata navy di atas biru muda.
-          final tinta = tester
-              .widget<Text>(
-                find.descendant(
-                  of: find.widgetWithText(ChipSaring, 'Aktif'),
-                  matching: find.text('Aktif'),
-                ),
-              )
-              .style!
-              .color;
-          expect(tinta, m.tinta);
+          final tepi = (bahan('Biasa').shape! as StadiumBorder).side;
+          expect(tepi.color, m.garisTegas, reason: 'tepi kontrol 3:1');
+          expect(tepi.width, 1);
+          expect(
+            (bahan('Aktif').shape! as StadiumBorder).side,
+            BorderSide.none,
+          );
         },
       );
 

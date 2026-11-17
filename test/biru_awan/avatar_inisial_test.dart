@@ -1,4 +1,4 @@
-// AvatarInisial: bulatan inisial 36/48/52/84 (inisial 600; REVISI 16 Nov).
+// AvatarInisial: bulatan inisial 36/48/52/84 (inisial 800).
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -72,7 +72,7 @@ void main() {
         expect(dekor.shape, BoxShape.circle);
         expect(
           tester.widget<Text>(find.text('SA')).style!.fontWeight,
-          FontWeight.w600,
+          FontWeight.w800,
         );
       });
     }

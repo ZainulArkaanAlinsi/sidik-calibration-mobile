@@ -1,4 +1,4 @@
-// HeroLangit: panel langit sudut 16 (REVISI 16 Nov) + motif skala (BUKAN awan) dari
+// HeroLangit: bidang langit sudut 28 + motif skala (BUKAN awan) dari
 // `docs/desain-ulang/aset/motif_skala.svg`.
 import 'dart:io';
 import 'dart:ui' as ui;
@@ -149,10 +149,11 @@ void main() {
   });
 
   group('bentuk dan ukuran', () {
-    testWidgets('tinggi minimum 140 (bawaan; dulu 212) dan bisa diubah, '
-        'sudut 16', (tester) async {
+    testWidgets('tinggi minimum 212 (bawaan) dan bisa diubah, sudut 28', (
+      tester,
+    ) async {
       await pasang(tester, Center(child: _hero()));
-      expect(tester.getSize(find.byType(HeroLangit)).height, 140);
+      expect(tester.getSize(find.byType(HeroLangit)).height, 212);
       await pasang(tester, Center(child: _hero(tinggiMin: 196)));
       expect(tester.getSize(find.byType(HeroLangit)).height, 196);
       final klip = tester.widget<ClipRRect>(
@@ -162,7 +163,6 @@ void main() {
         ),
       );
       expect(klip.borderRadius, BorderRadius.circular(BentukBiruAwan.hero));
-      expect(BentukBiruAwan.hero, 16);
     });
 
     testWidgets(

@@ -28,7 +28,7 @@ void main() {
       final sub = tester.widget<Text>(find.text('Admin, Master Data')).style!;
       expect(
         (judul.fontSize, judul.fontWeight, judul.color),
-        (16, FontWeight.w600, m.tinta),
+        (16, FontWeight.w800, m.tinta),
       );
       expect((sub.fontSize, sub.color), (12, m.tinta2));
       expect(
@@ -157,7 +157,7 @@ void main() {
       );
       final judul = tester.widget<Text>(find.text('Periksa sesi')).style!;
       final nomor = tester.widget<Text>(find.text('KAL/2026/11/0001')).style!;
-      expect((judul.fontSize, judul.fontWeight), (20, FontWeight.w600));
+      expect((judul.fontSize, judul.fontWeight), (20, FontWeight.w800));
       expect(nomor.fontFamily, 'IBMPlexMono');
       expect(tester.getSize(find.byType(TombolBulat)), const Size(48, 48));
     });

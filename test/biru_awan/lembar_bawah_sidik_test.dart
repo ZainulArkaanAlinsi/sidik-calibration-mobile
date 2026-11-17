@@ -1,4 +1,4 @@
-// LembarBawahSidik + tampilkanLembarBawahSidik (L2): sudut atas 16, pegangan
+// LembarBawahSidik + tampilkanLembarBawahSidik (L2): sudut atas 32, pegangan
 // 44 x 5, judul + tutup, maksimal 80 % layar dengan isi bergulir, tutup (tombol,
 // latar, usap turun), kurangi gerak, Semantics, cincin fokus, sasaran 48,
 // 320 dp x huruf 1,3.
@@ -72,7 +72,7 @@ void main() {
   setUpAll(muatFontUji);
 
   group('bentuk dan token', () {
-    testWidgets('sudut atas 16, pegangan 44 x 5, bantalan 10/16/20', (
+    testWidgets('sudut atas 32, pegangan 44 x 5, bantalan 10/16/20', (
       tester,
     ) async {
       await _buka(tester);
@@ -88,7 +88,7 @@ void main() {
           .first;
       expect(
         dekor.borderRadius,
-        const BorderRadius.vertical(top: Radius.circular(16)),
+        const BorderRadius.vertical(top: Radius.circular(32)),
       );
       expect(dekor.color, bahan(tester).kertas);
 
@@ -112,13 +112,13 @@ void main() {
       );
     });
 
-    testWidgets('judul 20/26 600 tinta; tombol tutup 44 digambar, sasaran 48', (
+    testWidgets('judul 20/26 800 tinta; tombol tutup 44 digambar, sasaran 48', (
       tester,
     ) async {
       await _buka(tester);
       final judul = tester.widget<Text>(find.text(_judul)).style!;
       expect(judul.fontSize, 20);
-      expect(judul.fontWeight, FontWeight.w600);
+      expect(judul.fontWeight, FontWeight.w800);
       expect(judul.color, bahan(tester).tinta);
       expect(
         tester.getSize(_tutup),

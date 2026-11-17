@@ -1,5 +1,4 @@
-// IsianSidik: label di atas, kotak 48 sudut 12 (REVISI 16 Nov); biasa, fokus,
-// galat, mati.
+// IsianSidik: label di atas, kotak 56 sudut 16; biasa, fokus, galat, mati.
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -27,7 +26,7 @@ void main() {
   setUpAll(muatFontUji);
 
   group('bentuk', () {
-    testWidgets('label di ATAS kotak; kotak >= 48 dp, sudut 12', (
+    testWidgets('label di ATAS kotak; kotak >= 56 dp, sudut 16', (
       tester,
     ) async {
       await tester.pumpWidget(
@@ -41,7 +40,7 @@ void main() {
         ),
       );
       expect(label.bottom, lessThanOrEqualTo(kotak.top));
-      expect(kotak.height, greaterThanOrEqualTo(48));
+      expect(kotak.height, greaterThanOrEqualTo(56));
       expect(
         _kotak(tester).borderRadius,
         BorderRadius.circular(BentukBiruAwan.isian),
@@ -423,7 +422,7 @@ void main() {
           matching: find.byType(AnimatedContainer),
         ),
       );
-      expect(kotak.height, greaterThanOrEqualTo(48));
+      expect(kotak.height, greaterThanOrEqualTo(56));
     });
 
     for (final gelap in [false, true]) {

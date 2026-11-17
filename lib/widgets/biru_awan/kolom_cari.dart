@@ -182,11 +182,10 @@ class _KolomCariState extends State<KolomCari> {
         child: DecoratedBox(
           decoration: BoxDecoration(
             color: aktif ? m.kertas : w.latarMati,
-            borderRadius: BorderRadius.circular(BentukBiruAwan.saringan),
-            border: Border.all(
-              color: aktif ? m.kertasTepi : w.tepiMati,
-              width: AppUkuran.garis,
-            ),
+            borderRadius: BorderRadius.circular(BentukBiruAwan.pil),
+            border: aktif
+                ? null
+                : Border.all(color: w.tepiMati, width: AppUkuran.garis),
           ),
           child: Padding(
             padding: const EdgeInsets.only(
@@ -229,9 +228,7 @@ class _KolomCariState extends State<KolomCari> {
               child: IgnorePointer(
                 child: DecoratedBox(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(
-                      UkuranKomponenBiruAwan.sudutCincinSaringan,
-                    ),
+                    borderRadius: BorderRadius.circular(BentukBiruAwan.pil),
                     border: Border.fromBorderSide(
                       BorderSide(color: m.tinta, width: AppUkuran.garisTebal),
                     ),

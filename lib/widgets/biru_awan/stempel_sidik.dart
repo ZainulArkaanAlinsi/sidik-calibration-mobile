@@ -8,8 +8,7 @@ import '../../core/theme/warna_biru_awan.dart';
 import '../../l10n/app_localizations.dart';
 import '../sidik/status_tampil.dart';
 
-/// Stempel status Biru Awan: lencana kecil 24 bersudut 6, ikon 14 + kata 12/600
-/// (REVISI 16 Nov 2026; dulu pil 30).
+/// Stempel status Biru Awan: pil 30, ikon 14 + kata 12/700 (`Komponen.dc.html`).
 ///
 /// Nada dan kata TIDAK dibuat di sini: dipakai pemetaan status yang sudah ada
 /// ([StatusTampil.dariKode], [StatusTampil.jadwal]) sehingga satu status satu
@@ -17,10 +16,10 @@ import '../sidik/status_tampil.dart';
 ///
 /// | Nada | Isi | Tinta |
 /// |---|---|---|
-/// | lulus | hijau muda | hijau gelap |
-/// | awas | krem | amber gelap |
-/// | tunggu | biru kelabu muda | biru tua |
-/// | gagal (lewat jadwal, ditolak, ...) | merah muda | merah gelap |
+/// | lulus | hijau | navy |
+/// | awas | kuning | navy |
+/// | tunggu | awan | navy |
+/// | gagal (lewat jadwal, ditolak, ...) | koral | navy |
 /// | netral | netralStempel | navy |
 /// | **FAIL** (`KataStatus.fail`) | navy pekat | putih |
 ///
@@ -29,7 +28,7 @@ import '../sidik/status_tampil.dart';
 /// lama (`widgets/sidik/stempel.dart`) tidak diubah.
 ///
 /// Status selalu ikon + kata, tidak pernah warna saja. Stempel bukan tombol:
-/// pembaca layar menerima "Status: kata" tanpa aksi ketuk. Tinggi 24 adalah
+/// pembaca layar menerima "Status: kata" tanpa aksi ketuk. Tinggi 30 adalah
 /// minimum; kata panjang ("Masa berlaku berakhir") membungkus dan stempel
 /// tumbuh, tidak dipotong.
 ///
@@ -120,7 +119,7 @@ class StempelSidik extends StatelessWidget {
       final pilihan = switch (nada) {
         NadaStempel.lulus => IsiBiruAwan.hijau,
         NadaStempel.awas => IsiBiruAwan.kuning,
-        NadaStempel.tunggu => IsiBiruAwan.tunggu,
+        NadaStempel.tunggu => IsiBiruAwan.awan,
         NadaStempel.gagal => IsiBiruAwan.koral,
         NadaStempel.netral => IsiBiruAwan.netral,
       };
@@ -136,11 +135,11 @@ class StempelSidik extends StatelessWidget {
         child: DecoratedBox(
           decoration: BoxDecoration(
             color: isi,
-            borderRadius: BorderRadius.circular(BentukBiruAwan.lencana),
+            borderRadius: BorderRadius.circular(BentukBiruAwan.pil),
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.sm,
+              horizontal: JarakBiruAwan.blok,
               vertical: AppSpacing.xs,
             ),
             child: Row(

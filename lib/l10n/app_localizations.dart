@@ -14486,54 +14486,6 @@ abstract class AppLocalizations {
   /// **'Loading'**
   String get biruAwanMemuat;
 
-  /// No description provided for @tekPekerjaanSaya.
-  ///
-  /// In en, this message translates to:
-  /// **'My work'**
-  String get tekPekerjaanSaya;
-
-  /// No description provided for @tekKalibrasiBaru.
-  ///
-  /// In en, this message translates to:
-  /// **'New calibration'**
-  String get tekKalibrasiBaru;
-
-  /// No description provided for @tekLanjutkanPekerjaan.
-  ///
-  /// In en, this message translates to:
-  /// **'Continue working'**
-  String get tekLanjutkanPekerjaan;
-
-  /// No description provided for @tekAktivitasTerbaru.
-  ///
-  /// In en, this message translates to:
-  /// **'Recent activity'**
-  String get tekAktivitasTerbaru;
-
-  /// No description provided for @tekRingkasanMenunggu.
-  ///
-  /// In en, this message translates to:
-  /// **'Awaiting review'**
-  String get tekRingkasanMenunggu;
-
-  /// Dasar hitungan 'Menunggu pemeriksaan' di Beranda teknisi: yang dihitung hanya kiriman terakhir yang sudah dimuat, bukan seluruh lab.
-  ///
-  /// In en, this message translates to:
-  /// **'{n, plural, =1{from the latest submission} other{from the latest {n} submissions}}'**
-  String tekRingkasanDariKiriman(int n);
-
-  /// No description provided for @tekRingkasanBelumTerbaca.
-  ///
-  /// In en, this message translates to:
-  /// **'not loaded'**
-  String get tekRingkasanBelumTerbaca;
-
-  /// Waktu pembaruan satu pekerjaan di Beranda teknisi ("5 minutes ago").
-  ///
-  /// In en, this message translates to:
-  /// **'Updated {waktu}'**
-  String tekDiperbarui(String waktu);
-
   /// No description provided for @jlBertentangan.
   ///
   /// In en, this message translates to:
