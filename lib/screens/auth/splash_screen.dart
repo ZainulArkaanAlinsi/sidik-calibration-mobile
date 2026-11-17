@@ -81,18 +81,16 @@ abstract final class _UkuranSplash {
   static const double sapuMiring = 20 * math.pi / 180;
   static const double sapuJarak = 110;
   static const double sapuAlfa = 0.75;
-
-  static const double bayanganPlatAlfa = 0.14;
 }
 
-/// Huruf splash: nama produk 32/38 · 800 dan kalimat 15/20 (artboard E1).
+/// Huruf splash: nama produk 28/34 · 600 dan kalimat 15/20 (artboard E1,
+/// diselaraskan ke REVISI 16 Nov 2026: tanpa berat 800 dan spasi negatif).
 abstract final class _HurufSplash {
   static const TextStyle nama = TextStyle(
     fontFamily: SidikTheme.keluarga,
-    fontSize: 32,
-    height: 38 / 32,
-    fontWeight: FontWeight.w800,
-    letterSpacing: -0.03 * 32,
+    fontSize: 28,
+    height: 34 / 28,
+    fontWeight: FontWeight.w600,
   );
 
   static const TextStyle tagline = TextStyle(
@@ -263,9 +261,7 @@ class _SplashScreenState extends State<SplashScreen>
                             child: Text(
                               namaMerekSidikLab,
                               textAlign: TextAlign.center,
-                              style: _HurufSplash.nama.copyWith(
-                                color: m.tinta,
-                              ),
+                              style: _HurufSplash.nama.copyWith(color: m.tinta),
                             ),
                           ),
                         ),
@@ -377,18 +373,11 @@ class _CincinLogo extends StatelessWidget {
                   _UkuranSplash.platSkalaAwal +
                   (1 - _UkuranSplash.platSkalaAwal) * plat,
               child: DecoratedBox(
+                // Garis 1 dp, bukan bayangan (REVISI 16 Nov 2026).
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: warna.plat,
-                  boxShadow: [
-                    BoxShadow(
-                      color: warna.bayangan.withValues(
-                        alpha: _UkuranSplash.bayanganPlatAlfa,
-                      ),
-                      blurRadius: UkuranMasuk.bayanganBlur,
-                      offset: const Offset(0, UkuranMasuk.bayanganGeser),
-                    ),
-                  ],
+                  border: Border.all(color: m.kertasTepi),
                 ),
                 child: SizedBox.square(
                   dimension: _UkuranSplash.plat,

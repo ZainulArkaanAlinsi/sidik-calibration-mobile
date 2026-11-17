@@ -149,7 +149,7 @@ void main() {
       await pasang(tester, _g());
       expect(
         tester.widget<Text>(find.text('Kam')).style!.fontWeight,
-        FontWeight.w800,
+        FontWeight.w600,
       );
       expect(
         tester.widget<Text>(find.text('Sen')).style!.fontWeight,

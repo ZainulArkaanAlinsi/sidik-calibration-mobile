@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'bentuk_lab.dart';
 import 'palet_lab.dart';
 
-/// Token & resep permukaan untuk tema Lab ("Biru Awan", L1b 15 Nov 2026).
+/// Token & resep permukaan untuk tema Lab ("Biru Awan", L1b 15 Nov 2026;
+/// diselaraskan ke REVISI 16 Nov 2026, R1).
 ///
 /// Ini SATU-SATUNYA tempat peran warna dan bentuk permukaan ditentukan; nilai
 /// mentahnya ada di `PaletLab`. Lembar kerja TIDAK membaca nilai di bawah:
@@ -18,17 +19,17 @@ import 'palet_lab.dart';
 /// dari sistem "Meja Kerja Lab" yang meniru material fisik. Layar-layar masih
 /// memakainya, jadi namanya dipertahankan dan yang berganti isinya:
 ///
-/// - [meja] latar layar (`latar` #F3F7FB), [kertas] baris/kartu/sel (putih),
+/// - [meja] latar layar (`latar` #F4F7FB), [kertas] baris/kartu/sel (putih),
 ///   [kertas2] permukaan cekung (isian, baki).
 /// - [logam] permukaan app bar dan navigasi: putih, bukan aluminium disikat.
 ///   [logamTepi] adalah TEPI KONTROL (tombol sekunder, isian, centang; >= 3:1,
 ///   `PaletLab.garisKontrol`); garis pemisah halus ada di [kertasTepi] dan
 ///   [garis].
-/// - Status: ubin/stempel berisi hijau/kuning/awan (`*Tipis`) dengan tinta
-///   NAVY di atasnya ([lulus], [awas], [tunggu] = tinta). [gagal] tetap
-///   merah tua karena `colorScheme.error` memakainya sebagai TEKS galat
-///   (koral gagal sebagai teks di atas putih); itu utang desain di
-///   `docs/standar-kualitas-desain.md`.
+/// - Status (revisi 16 Nov): ubin/stempel berisi isi MUDA (`*Tipis`: hijau muda,
+///   krem, merah muda, biru kelabu muda) dengan tinta GELAP yang berwarna
+///   ([lulus] hijau gelap, [awas] amber gelap, [gagal] merah gelap, [tunggu]
+///   biru tua). Selalu disertai ikon + kata, tidak pernah warna saja. Krem
+///   ([awasTipis]) hanya untuk "perlu diperiksa".
 /// - [kaca] dan `lcd*` permukaan alat ukur yang selalu gelap.
 /// - Resep di bawah ([kertasLembar], [logamTimbul], ...) menghasilkan
 ///   permukaan DATAR: tanpa gradien, tanpa bayangan, tanpa bayangan dalam.
@@ -405,8 +406,8 @@ class SidikMaterial extends ThemeExtension<SidikMaterial> {
     kertas2: PaletLab.latar, // permukaan cekung: isian dan baki
     kertasTepi: PaletLab.garisHalus,
     garis: PaletLab.garisHalus,
-    tinta: PaletLab.tinta, // 15,39:1 di kertas
-    tinta2: PaletLab.tinta2, // 6,71:1 di kertas, 5,89:1 di kabut
+    tinta: PaletLab.tinta, // 14,64:1 di kertas
+    tinta2: PaletLab.tinta2, // 6,09:1 di kertas, 5,44:1 di kabut
     pensil: PaletLab.tinta2, // saran OCR; 4,6:1 di atas kuning, lihat PaletLab
     logam: PaletLab.kertas,
     logamAtas: PaletLab.kertas,
@@ -416,18 +417,18 @@ class SidikMaterial extends ThemeExtension<SidikMaterial> {
     etsa: PaletLab.tinta,
     kilau: PaletLab.tembus,
     lekuk: PaletLab.tembus,
-    biru: PaletLab.primer, // 5,10:1 di kertas; putih di atasnya 5,10:1
+    biru: PaletLab.primer, // 5,47:1 di kertas; putih di atasnya 5,47:1
     biruAtas: PaletLab.primerGelap, // biru di atas permukaan GELAP (Lajur)
     biruTipis: PaletLab.kabut,
-    biruTinta: PaletLab.primerTua, // teks biru di atas kabut: 7,18:1
-    lulus: PaletLab.tinta, // navy di atas hijau: 11,23:1
+    biruTinta: PaletLab.primerTua, // teks biru di atas kabut: 7,31:1
+    lulus: PaletLab.hijauTinta, // hijau gelap di atas hijau muda: 8,59:1
     lulusTipis: PaletLab.hijau,
     gagal: PaletLab.gagalTerang, // teks galat (utang desain), 7,3:1 di kertas
     gagalTipis: PaletLab.kabutGagal,
-    awas: PaletLab.tinta, // navy di atas kuning: 10,59:1
+    awas: PaletLab.kuningTinta, // amber gelap di atas krem: 5,63:1
     awasTipis: PaletLab.kuning,
-    tunggu: PaletLab.tinta, // navy di atas awan: 10,19:1
-    tungguTipis: PaletLab.awan,
+    tunggu: PaletLab.biruKelabuTinta, // biru tua di atas biru kelabu: 10,77:1
+    tungguTipis: PaletLab.biruKelabu,
     kaca: PaletLab.latarGelap,
     kaca2: PaletLab.kertasGelap,
     lcdHijau: PaletLab.lulusGelap,

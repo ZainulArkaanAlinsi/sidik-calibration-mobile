@@ -1,5 +1,5 @@
-// TombolUtama (56 dp) dan BilahAksi (utama 56, lain 48; berdampingan atau
-// bertumpuk menurut ruang).
+// TombolUtama (48 dp, REVISI 16 Nov 2026) dan BilahAksi (semua 48;
+// berdampingan atau bertumpuk menurut ruang).
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -13,7 +13,9 @@ void main() {
   setUpAll(muatFontUji);
 
   group('TombolUtama', () {
-    testWidgets('tinggi 56 dp, pil, primer, selebar induk', (tester) async {
+    testWidgets('tinggi 48 dp, sudut 10, primer, selebar induk', (
+      tester,
+    ) async {
       layarUji(tester, lebar: 360, tinggi: 640);
       await tester.pumpWidget(
         aplikasiUji(
@@ -24,7 +26,7 @@ void main() {
         ),
       );
       final ukuran = tester.getSize(find.byType(FilledButton));
-      expect(ukuran.height, 56);
+      expect(ukuran.height, 48);
       expect(ukuran.width, 360 - 32);
       final skema = Theme.of(
         tester.element(find.byType(FilledButton)),
@@ -40,7 +42,7 @@ void main() {
       expect(bahan.color, skema.primary);
       expect(
         (bahan.shape! as RoundedRectangleBorder).borderRadius,
-        BorderRadius.circular(BentukBiruAwan.pil),
+        BorderRadius.circular(BentukBiruAwan.tombol),
       );
     });
 
@@ -156,7 +158,7 @@ void main() {
           expect(tester.takeException(), isNull);
           expect(
             tester.getSize(find.byType(FilledButton)).height,
-            greaterThan(56),
+            greaterThan(48),
           );
         },
       );
@@ -202,7 +204,7 @@ void main() {
       alasanMati: alasan,
     );
 
-    testWidgets('392 dp: berdampingan, tinggi isi 56 (bilah 88 dp)', (
+    testWidgets('392 dp: berdampingan, tinggi isi 48 (bilah 80 dp)', (
       tester,
     ) async {
       layarUji(tester);
@@ -216,12 +218,12 @@ void main() {
         find.widgetWithText(OutlinedButton, 'Simpan draf 0'),
       );
       expect(utama.left, greaterThan(sekunder.right));
-      expect(utama.height, 56);
+      expect(utama.height, 48);
       expect(sekunder.height, 48);
-      expect(tester.getSize(find.byType(BilahAksi)).height, 88);
+      expect(tester.getSize(find.byType(BilahAksi)).height, 80);
     });
 
-    testWidgets('320 dp: bertumpuk, utama di atas (bilah 144 dp)', (
+    testWidgets('320 dp: bertumpuk, utama di atas (bilah 136 dp)', (
       tester,
     ) async {
       layarUji(tester, lebar: 320, tinggi: 640);
@@ -235,9 +237,9 @@ void main() {
         find.widgetWithText(OutlinedButton, 'Simpan draf 0'),
       );
       expect(utama.bottom, lessThan(sekunder.top));
-      expect(utama.height, 56);
+      expect(utama.height, 48);
       expect(sekunder.height, 48);
-      expect(tester.getSize(find.byType(BilahAksi)).height, 144);
+      expect(tester.getSize(find.byType(BilahAksi)).height, 136);
     });
 
     testWidgets('392 dp x huruf 1,3x: bertumpuk, tanpa luapan', (tester) async {
@@ -258,11 +260,11 @@ void main() {
         find.widgetWithText(OutlinedButton, 'Simpan draf 0'),
       );
       expect(utama.bottom, lessThan(sekunder.top));
-      expect(utama.height, greaterThanOrEqualTo(56));
+      expect(utama.height, greaterThanOrEqualTo(48));
       expect(sekunder.height, greaterThanOrEqualTo(48));
     });
 
-    testWidgets('dua sekunder: selalu bertumpuk, utama 56 dan lain 48', (
+    testWidgets('dua sekunder: selalu bertumpuk, semua tombol 48', (
       tester,
     ) async {
       layarUji(tester);
@@ -307,7 +309,7 @@ void main() {
       expect(tester.getSize(find.byType(BilahAksi)).width, 1280);
     });
 
-    testWidgets('hanya aksi utama: satu tombol 56 dp', (tester) async {
+    testWidgets('hanya aksi utama: satu tombol 48 dp', (tester) async {
       await tester.pumpWidget(
         aplikasiUji(
           BilahAksi(
@@ -318,7 +320,7 @@ void main() {
         ),
       );
       expect(find.byType(OutlinedButton), findsNothing);
-      expect(tester.getSize(find.byType(FilledButton)).height, 56);
+      expect(tester.getSize(find.byType(FilledButton)).height, 48);
     });
 
     testWidgets('ketuk memanggil aksi masing-masing', (tester) async {

@@ -9,10 +9,13 @@ import '../../core/theme/token_komponen_biru_awan.dart';
 import '../../core/theme/warna_biru_awan.dart';
 import '../../l10n/app_localizations.dart';
 
-/// Chip saring Biru Awan (`ELEMEN.md`: "pil 44 + bulatan jumlah 32"): satu
-/// pilihan saring dengan jumlah hasilnya di bulatan di ujung.
+/// Chip saring Biru Awan (`ELEMEN.md`, REVISI 16 Nov 2026): kotak 44 bersudut
+/// 12 + bulatan jumlah 32; satu pilihan saring dengan jumlah hasilnya di
+/// bulatan di ujung.
 ///
-/// - Terpilih: navy berisi teks putih. Belum terpilih: putih bertepi kontrol.
+/// - Terpilih: biru muda + tepi biru 2 dp + kata navy (bukan blok navy penuh;
+///   biru muda sendirian cuma 1,1:1 di atas putih, jadi tepi membawa pilihan).
+///   Belum terpilih: putih bertepi kontrol.
 /// - [jumlah] opsional; warna bulatannya dari [isiJumlah] (kuning untuk
 ///   "perlu dicek", koral untuk "ada FAIL", netral untuk sisanya). Jumlah SELALU
 ///   angka tertulis, tidak hanya warna.
@@ -47,26 +50,29 @@ class ChipSaring extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final aktif = onTap != null;
 
-    final (Color isi, Color tinta, Color? tepi) = !aktif
+    final (Color isi, Color tinta, Color tepi) = !aktif
         ? (m.kertas, w.tintaTombolMati, m.kertasTepi)
         : terpilih
-        ? (m.tinta, m.kertas, null)
+        ? (m.biruTipis, m.tinta, m.biru)
         : (m.kertas, m.tinta, m.garisTegas);
+    final bentuk = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(BentukBiruAwan.saringan),
+      side: BorderSide(
+        color: tepi,
+        width: aktif && terpilih ? AppUkuran.garisTebal : AppUkuran.garis,
+      ),
+    );
 
     final kiri = AppSpacing.md;
     final kanan = jumlah == null ? AppSpacing.md : JarakBiruAwan.sisipan;
 
     final pil = Material(
       color: isi,
-      shape: StadiumBorder(
-        side: tepi == null
-            ? BorderSide.none
-            : BorderSide(color: tepi, width: AppUkuran.garis),
-      ),
+      shape: bentuk,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
-        customBorder: const StadiumBorder(),
+        customBorder: bentuk,
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: UkuranBiruAwan.chip),
           child: Padding(

@@ -1,4 +1,5 @@
-// KartuSidik24: putih, sudut 24, datar; bisa diketuk dengan skala 0,97.
+// KartuSidik24: putih, sudut 16, datar, garis halus 1 dp; bisa diketuk dengan
+// skala 0,97 (REVISI 16 Nov 2026).
 import 'dart:ui' show Tristate;
 
 import 'package:flutter/material.dart';
@@ -24,7 +25,7 @@ void main() {
   setUpAll(muatFontUji);
 
   group('bentuk', () {
-    testWidgets('putih, sudut 24, datar (tanpa bayangan), tanpa tepi', (
+    testWidgets('putih, sudut 16, datar (tanpa bayangan), garis halus 1 dp', (
       tester,
     ) async {
       await tester.pumpWidget(
@@ -36,7 +37,8 @@ void main() {
       expect(b.elevation, 0);
       final bentuk = b.shape! as RoundedRectangleBorder;
       expect(bentuk.borderRadius, BorderRadius.circular(BentukBiruAwan.kartu));
-      expect(bentuk.side, BorderSide.none);
+      expect(BentukBiruAwan.kartu, 16);
+      expect(bentuk.side, BorderSide(color: m.kertasTepi));
     });
 
     testWidgets('tinggi = isi; tumbuh bersama huruf', (tester) async {
@@ -54,9 +56,8 @@ void main() {
       );
     });
 
-    testWidgets('latar kabut dan galat mengikuti WarnaBiruAwan', (
-      tester,
-    ) async {
+    testWidgets('latar kabut, galat, dan awas (krem) mengikuti WarnaBiruAwan; '
+        'kartu berisi warna tanpa garis', (tester) async {
       await tester.pumpWidget(
         aplikasiUji(
           const Column(
@@ -70,6 +71,11 @@ void main() {
                 key: ValueKey('g'),
                 latar: LatarKartu.galat,
                 child: Text('b'),
+              ),
+              KartuSidik24(
+                key: ValueKey('a'),
+                latar: LatarKartu.awas,
+                child: Text('c'),
               ),
             ],
           ),
@@ -88,6 +94,22 @@ void main() {
           .color!;
       expect(warna('k'), w.isi(IsiBiruAwan.kabut));
       expect(warna('g'), w.isi(IsiBiruAwan.koralTipis));
+      expect(warna('a'), w.isi(IsiBiruAwan.kuning));
+      for (final k in ['k', 'g', 'a']) {
+        final bahan = tester.widget<Material>(
+          find
+              .descendant(
+                of: find.byKey(ValueKey(k)),
+                matching: find.byType(Material),
+              )
+              .first,
+        );
+        expect(
+          (bahan.shape! as RoundedRectangleBorder).side,
+          BorderSide.none,
+          reason: 'kartu berisi warna tanpa garis: $k',
+        );
+      }
     });
 
     for (final gelap in [false, true]) {

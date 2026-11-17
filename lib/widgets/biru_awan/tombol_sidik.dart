@@ -11,7 +11,7 @@ import '../../l10n/app_localizations.dart';
 
 /// Ragam [TombolSidik]. Satu aksi utama per layar; sisanya 48.
 enum RagamTombolSidik {
-  /// Primer, 56, penuh. Satu per layar.
+  /// Primer, 48, penuh. Satu per layar.
   utama,
 
   /// Navy, 48: aksi kedua yang tetap penting.
@@ -28,9 +28,10 @@ enum RagamTombolSidik {
   bahaya,
 }
 
-/// Tombol pil Biru Awan (`docs/desain-ulang/referensi-html/Komponen.dc.html`):
-/// utama 56, lainnya 48. Pengganti `AppButton` (beku, tetap dipakai lembar
-/// kerja) di layar yang didesain ulang.
+/// Tombol Biru Awan (`docs/desain-ulang/referensi-html/Komponen.dc.html`,
+/// REVISI 16 Nov 2026): semua ragam 48, persegi bersudut 10 (dulu pil dan
+/// utama 56). Pengganti `AppButton` (beku, tetap dipakai lembar kerja) di layar
+/// yang didesain ulang.
 ///
 /// - [onPressed] `null` = mati; isi netral dan label tinta kedua (tetap
 ///   terbaca). Aksi yang mati menjelaskan alasannya lewat [alasanMati], tampil
@@ -74,7 +75,7 @@ class TombolSidik extends StatefulWidget {
   /// Kalimat pendek di atas tombol saat mati ("Isi 2 sel wajib dulu").
   final String? alasanMati;
 
-  /// Tinggi tombol menurut ragam: utama 56, lainnya 48.
+  /// Tinggi tombol menurut ragam: semua 48 (revisi 16 Nov; dulu utama 56).
   static double tinggiUntuk(RagamTombolSidik ragam) =>
       ragam == RagamTombolSidik.utama
       ? UkuranBiruAwan.tombolUtama
@@ -174,7 +175,7 @@ class _TombolSidikState extends State<TombolSidik> {
       elevation: const WidgetStatePropertyAll(0),
       shape: WidgetStatePropertyAll(
         RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(BentukBiruAwan.pil),
+          borderRadius: BorderRadius.circular(BentukBiruAwan.tombol),
         ),
       ),
       // Eksplisit untuk semua ragam: tema `OutlinedButton` memasang `side`
@@ -292,7 +293,7 @@ class _TombolSidikState extends State<TombolSidik> {
 /// Kunci cincin fokus [TombolSidik] (dipakai tes untuk mengukur letaknya).
 const Key kunciCincinFokusTombol = ValueKey<String>('cincin-fokus-tombol');
 
-/// Cincin fokus: garis `tinta` 2 dp berbentuk pil. Warna dari tema; kontrasnya
+/// Cincin fokus: garis `tinta` 2 dp, sudut tombol + celah. Warna dari tema; kontrasnya
 /// terhadap latar halaman dijaga `test/biru_awan/tombol_sidik_test.dart`.
 class _CincinFokus extends StatelessWidget {
   const _CincinFokus();
@@ -301,7 +302,9 @@ class _CincinFokus extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(BentukBiruAwan.pil),
+        borderRadius: BorderRadius.circular(
+          UkuranKomponenBiruAwan.sudutCincinTombol,
+        ),
         border: Border.fromBorderSide(
           BorderSide(
             color: SidikMaterial.of(context).tinta,

@@ -1,4 +1,5 @@
-// StempelSidik: pil 30, nada dari pemetaan status yang ADA; FAIL navy pekat;
+// StempelSidik: lencana 24 sudut 6 (REVISI 16 Nov 2026), nada dari pemetaan
+// status yang ADA; FAIL navy pekat;
 // keputusan null = netral, tidak pernah hijau.
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
@@ -37,7 +38,9 @@ void main() {
   setUpAll(muatFontUji);
 
   group('bentuk', () {
-    testWidgets('pil, tinggi minimum 30, ikon + kata 12/700', (tester) async {
+    testWidgets('lencana kecil: tinggi 24, sudut 6, ikon + kata 12/600', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         aplikasiUji(
           Center(
@@ -45,16 +48,17 @@ void main() {
           ),
         ),
       );
-      expect(tester.getSize(find.byType(StempelSidik)).height, 30);
+      expect(tester.getSize(find.byType(StempelSidik)).height, 24);
       expect(
         _kotak(tester).borderRadius,
-        BorderRadius.circular(BentukBiruAwan.pil),
+        BorderRadius.circular(BentukBiruAwan.lencana),
       );
+      expect(BentukBiruAwan.lencana, 6);
       expect(find.byIcon(Icons.hourglass_empty), findsOneWidget);
       expect(find.text('Menunggu'), findsOneWidget);
       final gaya = _gayaTeks(tester);
       expect(gaya.fontSize, 12);
-      expect(gaya.fontWeight, FontWeight.w700);
+      expect(gaya.fontWeight, FontWeight.w600);
     });
 
     testWidgets('selalu ikon + kata, untuk semua nada dan FAIL', (
@@ -94,7 +98,7 @@ void main() {
       ) async {
         final peta = <String, IsiBiruAwan>{
           'draft': IsiBiruAwan.netral,
-          'menunggu_approval': IsiBiruAwan.awan,
+          'menunggu_approval': IsiBiruAwan.tunggu,
           'perlu_revisi': IsiBiruAwan.kuning,
           'disetujui': IsiBiruAwan.hijau,
           'PASS': IsiBiruAwan.hijau,
@@ -398,7 +402,7 @@ void main() {
       );
     });
 
-    testWidgets('huruf besar: ikon ikut membesar, tinggi di atas 30', (
+    testWidgets('huruf besar: ikon ikut membesar, tinggi di atas 24', (
       tester,
     ) async {
       layarUji(tester, lebar: 200, tinggi: 640);
@@ -414,7 +418,7 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(
         tester.getSize(find.byType(StempelSidik)).height,
-        greaterThanOrEqualTo(30),
+        greaterThanOrEqualTo(24),
       );
       expect(
         tester.widget<Icon>(find.byType(Icon)).size,

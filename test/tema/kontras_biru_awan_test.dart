@@ -97,15 +97,18 @@ void main() {
         );
       });
 
-      test('chip: tepi (di atas latar) dan chip terpilih 3:1', () {
+      test('chip: tepi dan chip terpilih (biru muda + tepi biru) 3:1', () {
         cek('tepi chip/latar', m.garisTegas, m.meja, komponen);
-        cek('chip terpilih/latar', m.tinta, m.meja, komponen);
-        cek('kertas/tinta (label terpilih)', m.kertas, m.tinta, teks);
+        // REVISI 16 Nov: terpilih = biru muda + tepi biru + kata navy. Biru muda
+        // sendirian ~1,1:1, jadi TEPI biru yang membawa pilihan (3:1).
+        cek('tepi chip terpilih/latar', m.biru, m.meja, komponen);
+        cek('tepi chip terpilih/kertas', m.biru, m.kertas, komponen);
+        cek('kata navy/biru muda (label terpilih)', m.tinta, m.biruTipis, teks);
       });
 
-      test('segmen: pil terpilih terhadap jalur 3:1, teks 4,5:1', () {
-        cek('pil terpilih/jalur', m.tinta, m.meja, komponen);
-        cek('teks terpilih', m.kertas, m.tinta, teks);
+      test('segmen: penanda terpilih (biru muda + tepi biru), teks 4,5:1', () {
+        cek('tepi terpilih/jalur', m.biru, m.meja, komponen);
+        cek('teks terpilih', m.tinta, m.biruTipis, teks);
         cek('teks tidak terpilih', m.tinta, m.meja, teks);
         cek('teks mati terpilih', w.tintaTombolMati, w.isiTombolMati, teks);
         cek('teks mati', w.tintaTombolMati, m.meja, teks);
@@ -119,6 +122,23 @@ void main() {
         cek('tinta2/kertas', m.tinta2, m.kertas, komponen);
       });
 
+      test('lencana jumlah: angka putih di atas merah galat', () {
+        cek('angka/lencana', m.teksDiGagal, m.gagal, teks);
+        cek('lencana/latar', m.gagal, m.meja, komponen);
+      });
+
+      test('bilah navigasi: ikon dan kata aktif di atas kapsul biru muda', () {
+        cek('biruTinta/kapsul', m.biruTinta, m.biruTipis, teks);
+        cek('tinta/kapsul', m.tinta, m.biruTipis, teks);
+        cek('tinta2/kertas (butir lain)', m.tinta2, m.kertas, teks);
+        cek('cincin fokus/kertas', m.tinta, m.kertas, komponen);
+      });
+
+      test('banner pembaruan: kata navy di atas biru muda, ikon primerTua', () {
+        cek('tinta/kabut', m.tinta, m.biruTipis, teks);
+        cek('biruTinta/kabut', m.biruTinta, m.biruTipis, teks);
+      });
+
       test('tombol bulat putih dan navy terhadap latar', () {
         cek('ikon/putih', m.tinta, m.kertas, teks);
         cek('ikon/navy', m.kertas, m.tinta, teks);
@@ -128,16 +148,15 @@ void main() {
   }
 
   group('Biru Awan L3a: pasangan terlarang, tes negatif', () {
-    test(
-      'teks putih di atas koral (stempel) gagal: FAIL tidak boleh koral',
-      () {
-        expect(
-          rasioKontras(PaletLab.kertas, PaletLab.koral),
-          lessThan(teks),
-          reason: 'ini alasan FAIL navy pekat berteks putih, bukan koral',
-        );
-      },
-    );
+    test('teks putih di atas isi muda status gagal: tinta HARUS gelap', () {
+      expect(
+        rasioKontras(PaletLab.kertas, PaletLab.koral),
+        lessThan(teks),
+        reason:
+            'merah muda memakai tinta merah gelap, bukan putih; FAIL '
+            'memakai navy pekat berteks putih',
+      );
+    });
 
     test('teks putih di atas langit gagal (DILARANG)', () {
       expect(rasioKontras(PaletLab.kertas, PaletLab.langit), lessThan(teks));

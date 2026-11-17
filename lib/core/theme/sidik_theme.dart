@@ -7,7 +7,9 @@ import 'bentuk_lab.dart';
 import 'palet_lab.dart';
 import 'sidik_material.dart';
 
-/// Tema Lab: Material 3 datar, "Biru Awan" (L1b, 15 Nov 2026), terang dan gelap.
+/// Tema Lab: Material 3 datar, "Biru Awan" (L1b, 15 Nov 2026), terang dan gelap,
+/// diselaraskan ke REVISI 16 Nov 2026 (R1, `docs/desain-ulang/REVISI-16NOV.md`):
+/// tenang, formal, ringkas.
 ///
 /// Kenapa file ini penting: hampir semua layar di `lib/screens/` memakai widget
 /// Material bawaan (`Card`, `FilledButton`, `TextFormField`, `ListTile`).
@@ -18,19 +20,23 @@ import 'sidik_material.dart';
 /// Nilai warna datang dari [SidikMaterial] (yang membaca `PaletLab`); bentuk
 /// dan ukuran sentuh dari [BentukBiruAwan], [UkuranBiruAwan], dan [UkuranLab]:
 ///
-/// - Aksi utama (`FilledButton`) 56 dp, pil, primer. Semua aksi lain 48 dp,
-///   pil (desktop Windows 44, alat tunjuk tetikus).
-/// - Isian = kotak radius 16 bertepi kontrol (3:1, `PaletLab.garisKontrol`);
-///   fokus = primer 2 dp; galat = koral batang 2 dp. Dialog radius 28, lembar
-///   bawah radius atas 32.
-/// - Kartu tetap radius 8 ([BentukLab.panel]): kartu 24 dibawa layar yang
-///   didesain ulang (L5 dst.), bukan tema, karena widget lama memotong ripple
-///   dengan radius 8.
+/// - Aksi utama (`FilledButton`) dan semua aksi lain 48 dp, persegi bersudut
+///   [BentukBiruAwan.tombol] (10); desktop Windows 44 (alat tunjuk tetikus).
+/// - Isian = kotak radius 12 bertepi kontrol (3:1, `PaletLab.garisKontrol`);
+///   fokus = primer 2 dp; galat = koral batang 2 dp. Dialog dan lembar bawah
+///   radius 16.
+/// - Kartu radius [BentukBiruAwan.kartu] (16), dipotong (`antiAlias`) supaya
+///   riak widget lama tidak keluar dari sudutnya. `SidikMaterial.sudutKertas`
+///   (8) TIDAK diubah: ia dibaca `neu.dart`/`tabel_perhitungan` yang beku, jadi
+///   permukaan lama (`SidikPermukaan`, `kertasLembar`) tetap 8 sampai layarnya
+///   dipoles.
 /// - Tanpa gradien dan tanpa bayangan di layar; hanya lembar bawah dan dialog
-///   yang punya bayangan lembut.
+///   yang punya bayangan sangat tipis.
 /// - Huruf minimum 12 sp, termasuk di desktop (skala 0,9 tidak boleh menembus).
-///   Skala huruf Biru Awan (`DESIGN.md` §Huruf) BELUM dipasang di tema ini.
-/// - Lembar kerja tidak memakai tema ini: `TemaBeku` (`BEKU.md`).
+///   Berat 400/500/600 saja (tidak ada 700/800), tanpa spasi huruf negatif.
+/// - Lembar kerja tidak memakai tema ini: `TemaBeku` (`BEKU.md`). Yang tetap
+///   dibaca dari sini oleh area beku hanya [keluarga], [keluargaMono], dan
+///   [gayaAngka] (`lembar_kerja_screen.dart`): JANGAN diubah.
 ///
 /// Dipasang lewat `AppTheme.light` / `AppTheme.dark` (`lib/app.dart`).
 class SidikTheme {
@@ -132,10 +138,10 @@ class SidikTheme {
     // `UkuranBiruAwan`.
     final tinggiUtama = _meja ? UkuranLab.aksiMeja : UkuranBiruAwan.tombolUtama;
     final tinggiAksi = _meja ? UkuranLab.aksiMeja : UkuranBiruAwan.tombolTegas;
-    // Tombol = pil (`DESIGN.md` §Sudut). Kontrol kecil lain (snack) tetap
-    // sudut lama.
-    final bentukPil = RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(BentukBiruAwan.pil),
+    // Tombol = persegi bersudut 10 (revisi 16 Nov; dulu pil). Kontrol kecil
+    // lain (snack) tetap sudut lama.
+    final bentukTombol = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(BentukBiruAwan.tombol),
     );
     final bentukKontrol = RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(BentukLab.kontrol),
@@ -190,13 +196,16 @@ class SidikTheme {
         color: m.kertas,
         surfaceTintColor: Colors.transparent,
         margin: EdgeInsets.zero,
+        // Dipotong ke sudutnya: riak dan isi widget lama (InkWell persegi di
+        // dalam Card) tidak boleh keluar dari sudut 16.
+        clipBehavior: Clip.antiAlias,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(SidikMaterial.sudutKertas),
+          borderRadius: BorderRadius.circular(BentukBiruAwan.kartu),
           side: garisHalus,
         ),
       ),
 
-      // ── Aksi utama: primer, 56 dp, pil ───────────────────────────────
+      // ── Aksi utama: primer, 48 dp, sudut 10 ──────────────────────────
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: Size.fromHeight(tinggiUtama),
@@ -210,12 +219,12 @@ class SidikTheme {
           disabledForegroundColor: m.tinta2.withValues(alpha: 0.7),
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 20),
-          shape: bentukPil,
+          shape: bentukTombol,
           textStyle: tengahTebal,
         ),
       ),
 
-      // ── Aksi sekunder: tepi kontrol (3:1), 48 dp, pil ────────────────
+      // ── Aksi sekunder: tepi kontrol (3:1), 48 dp, sudut 10 ───────────
       // `DESIGN.md` menulis tepi #C5D5E6, tetapi itu cuma ±1,5:1 di putih;
       // tepi tombol memakai `garisKontrol` (keputusan L1b).
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -225,7 +234,7 @@ class SidikTheme {
           backgroundColor: m.kertas,
           padding: const EdgeInsets.symmetric(horizontal: 18),
           side: BorderSide(color: m.garisTegas),
-          shape: bentukPil,
+          shape: bentukTombol,
           textStyle: tengahTebal,
         ),
       ),
@@ -234,7 +243,7 @@ class SidikTheme {
         style: TextButton.styleFrom(
           minimumSize: Size(48, tinggiAksi),
           foregroundColor: m.biruTinta,
-          shape: bentukPil,
+          shape: bentukTombol,
           textStyle: tengahTebal,
         ),
       ),
@@ -249,14 +258,14 @@ class SidikTheme {
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: m.biru,
         foregroundColor: m.teksDiBiru,
-        elevation: 2,
-        focusElevation: 2,
-        hoverElevation: 3,
-        highlightElevation: 2,
-        shape: bentukPil,
+        elevation: 1,
+        focusElevation: 1,
+        hoverElevation: 2,
+        highlightElevation: 1,
+        shape: bentukTombol,
       ),
 
-      // ── Isian: kotak radius 16, tepi kontrol (3:1) ───────────────────
+      // ── Isian: kotak radius 12, tepi kontrol (3:1) ───────────────────
       // Isi putih (`ELEMEN.md` §Isian). Fokus = primer 2 dp; galat = koral
       // batang 2 dp (3,36:1 di putih); kalimat galat tetap `m.gagal` (merah
       // tua: koral gagal sebagai teks). `NeuTextField` (login) dan ~100 isian
@@ -344,8 +353,8 @@ class SidikTheme {
         backgroundColor: m.kertas,
         surfaceTintColor: Colors.transparent,
         modalBackgroundColor: m.kertas,
-        elevation: 3,
-        shadowColor: Colors.black.withValues(alpha: 0.25),
+        elevation: 1,
+        shadowColor: Colors.black.withValues(alpha: 0.18),
         shape: RoundedRectangleBorder(
           borderRadius: const BorderRadius.vertical(
             top: Radius.circular(BentukBiruAwan.lembarBawah),
@@ -360,8 +369,11 @@ class SidikTheme {
         constraints: const BoxConstraints(minWidth: 280, maxWidth: 560),
         backgroundColor: m.kertas,
         surfaceTintColor: Colors.transparent,
-        elevation: 3,
-        shadowColor: Colors.black.withValues(alpha: 0.25),
+        elevation: 1,
+        shadowColor: Colors.black.withValues(alpha: 0.18),
+        // Ikon di atas judul: `secondary` (bawaan M3) tidak terbaca di dialog
+        // putih; pakai `primary` (pelajaran tinjauan Pelanggan R1).
+        iconColor: skema.primary,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(BentukBiruAwan.dialog),
           side: garisHalus,
@@ -398,8 +410,10 @@ class SidikTheme {
           color: skema.onPrimary,
           fontWeight: FontWeight.w600,
         ),
-        // Chip = pil (`DESIGN.md` §Sudut).
-        shape: bentukPil,
+        // Chip = persegi bersudut 12 (revisi 16 Nov; dulu pil).
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(BentukBiruAwan.saringan),
+        ),
       ),
 
       listTileTheme: ListTileThemeData(
@@ -494,7 +508,7 @@ class SidikTheme {
   ///
   /// | Tingkat    | Ukuran/baris | Berat | Slot `TextTheme`          |
   /// |------------|--------------|-------|---------------------------|
-  /// | tampilan   | 28/34        | 700   | display*                  |
+  /// | tampilan   | 24/30        | 600   | display*                  |
   /// | judul      | 20/26        | 600   | headline*                 |
   /// | app bar    | 18/24        | 600   | titleLarge                |
   /// | subjudul   | 16/24        | 600   | titleMedium               |
@@ -502,7 +516,7 @@ class SidikTheme {
   /// | isi        | 15/22        | 400   | bodyMedium (bodyLarge 16) |
   /// | keterangan | 13/18        | 400   | bodySmall (tinta kedua)   |
   /// | tombol     | 15/20        | 600   | labelLarge                |
-  /// | label      | 12/16        | 600   | labelMedium, labelSmall   |
+  /// | label      | 12/16        | 500   | labelMedium, labelSmall   |
   ///
   /// Minimum 12 sp: tidak ada ukuran di bawahnya (panel lama sampai 8,5).
   /// Kapital hanya untuk singkatan (PASS, FAIL, KAN), bukan gaya label.
@@ -521,9 +535,9 @@ class SidikTheme {
       color: warna,
     );
 
-    final tampilan = gaya(28, 34, FontWeight.w700, m.tinta, -0.3);
-    final judul = gaya(20, 26, FontWeight.w600, m.tinta, -0.1);
-    final label = gaya(12, 16, FontWeight.w600, m.tinta2);
+    final tampilan = gaya(24, 30, FontWeight.w600, m.tinta);
+    final judul = gaya(20, 26, FontWeight.w600, m.tinta);
+    final label = gaya(12, 16, FontWeight.w500, m.tinta2);
 
     return TextTheme(
       displayLarge: tampilan,

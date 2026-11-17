@@ -131,24 +131,19 @@ void main() {
         // kejenuhan merah-hijau, dan memaksanya ikut aturan ini mendorongnya
         // jadi nyaris putih ("menunggu" yang paling menyala itu salah arti).
         //
-        // Tema terang (Biru Awan): tinta stempel SELALU navy, jadi yang
-        // berbeda antar status adalah ISI-nya (hijau, kuning, koral). Tema
-        // gelap masih memakai tinta lama (utang desain).
+        // REVISI 16 Nov 2026: status = tinta GELAP berwarna di atas isi MUDA
+        // (hijau gelap, merah gelap, amber gelap). Isi mudanya nyaris sama
+        // terang BY DESIGN; yang dibandingkan di dua tema adalah TINTA-nya.
         //
         // Pengaman utamanya tetap bukan warna: tiap lencana SELALU membawa
         // ikon + kata (diuji di `token_tema_lab_test.dart`). Aturan ini lapis
-        // kedua.
-        final berona = m.terang
-            ? <String, double>{
-                'hijau': _luminansi(m.lulusTipis),
-                'kuning': _luminansi(m.awasTipis),
-                'koral': _luminansi(PaletLab.koral),
-              }
-            : <String, double>{
-                'lulus': _luminansi(m.lulus),
-                'gagal': _luminansi(m.gagal),
-                'awas': _luminansi(m.awas),
-              };
+        // kedua, dan BUKAN bukti aksesibilitas sendirian: selisih 0,02 di
+        // luminans (rasio ~1,2:1) tidak terbedakan di hitam-putih.
+        final berona = <String, double>{
+          'lulus': _luminansi(m.lulus),
+          'gagal': _luminansi(m.gagal),
+          'awas': _luminansi(m.awas),
+        };
         final kunci = berona.keys.toList();
         for (var a = 0; a < kunci.length; a++) {
           for (var b = a + 1; b < kunci.length; b++) {
@@ -465,19 +460,37 @@ void main() {
     // nilai warna: kalau salah satunya digeser (atau dokumennya salah ketik),
     // tes ini yang berteriak.
     final pasangan = <(String, Color, Color, double)>[
-      ('putih/primer', PaletLab.kertas, PaletLab.primer, 5.10),
+      ('putih/primer', PaletLab.kertas, PaletLab.primer, 5.47),
       ('putih/primerTua', PaletLab.kertas, PaletLab.primerTua, 8.18),
-      ('navy/langit', PaletLab.tinta, PaletLab.langit, 6.81),
-      ('navy/awan', PaletLab.tinta, PaletLab.awan, 10.19),
-      ('navy/kabut', PaletLab.tinta, PaletLab.kabut, 13.50),
-      ('primerTua/kabut', PaletLab.primerTua, PaletLab.kabut, 7.18),
-      ('navy/latar', PaletLab.tinta, PaletLab.latar, 14.29),
-      ('navy/putih', PaletLab.tinta, PaletLab.kertas, 15.39),
-      ('tinta2/kertas', PaletLab.tinta2, PaletLab.kertas, 6.71),
-      ('tinta2/kabut', PaletLab.tinta2, PaletLab.kabut, 5.89),
-      ('navy/hijau', PaletLab.tinta, PaletLab.hijau, 11.23),
-      ('navy/kuning', PaletLab.tinta, PaletLab.kuning, 10.59),
-      ('navy/koral', PaletLab.tinta, PaletLab.koral, 6.85),
+      ('navy/langit', PaletLab.tinta, PaletLab.langit, 6.48),
+      ('navy/awan', PaletLab.tinta, PaletLab.awan, 9.69),
+      ('navy/kabut', PaletLab.tinta, PaletLab.kabut, 13.08),
+      ('primerTua/kabut', PaletLab.primerTua, PaletLab.kabut, 7.31),
+      (
+        'primer/kabut (teks, lolos tipis)',
+        PaletLab.primer,
+        PaletLab.kabut,
+        4.89,
+      ),
+      ('navy/latar', PaletLab.tinta, PaletLab.latar, 13.63),
+      ('navy/putih', PaletLab.tinta, PaletLab.kertas, 14.64),
+      ('tinta2/kertas', PaletLab.tinta2, PaletLab.kertas, 6.09),
+      ('tinta2/kabut', PaletLab.tinta2, PaletLab.kabut, 5.44),
+      ('hijauTinta/hijau', PaletLab.hijauTinta, PaletLab.hijau, 8.59),
+      ('kuningTinta/kuning', PaletLab.kuningTinta, PaletLab.kuning, 5.63),
+      ('gagalTerang/koral', PaletLab.gagalTerang, PaletLab.koral, 6.22),
+      (
+        'biruKelabuTinta/biruKelabu',
+        PaletLab.biruKelabuTinta,
+        PaletLab.biruKelabu,
+        10.77,
+      ),
+      (
+        'putih/gagalTerang (tombol bahaya, lencana)',
+        PaletLab.kertas,
+        PaletLab.gagalTerang,
+        7.32,
+      ),
       (
         'tema gelap: teks di atas primer',
         PaletLab.teksDiAtasPrimerGelap,
@@ -514,10 +527,27 @@ void main() {
       expect(s.primaryContainer, PaletLab.kabut);
       expect(SidikMaterial.terangDefault.lulusTipis, PaletLab.hijau);
       expect(SidikMaterial.terangDefault.awasTipis, PaletLab.kuning);
-      expect(SidikMaterial.terangDefault.tungguTipis, PaletLab.awan);
-      expect(SidikMaterial.terangDefault.lulus, PaletLab.tinta);
-      expect(SidikMaterial.terangDefault.awas, PaletLab.tinta);
-      expect(SidikMaterial.terangDefault.tunggu, PaletLab.tinta);
+      expect(SidikMaterial.terangDefault.tungguTipis, PaletLab.biruKelabu);
+      expect(SidikMaterial.terangDefault.gagalTipis, PaletLab.kabutGagal);
+      // REVISI 16 Nov 2026: tinta status GELAP berwarna, bukan navy.
+      expect(SidikMaterial.terangDefault.lulus, PaletLab.hijauTinta);
+      expect(SidikMaterial.terangDefault.awas, PaletLab.kuningTinta);
+      expect(SidikMaterial.terangDefault.tunggu, PaletLab.biruKelabuTinta);
+      expect(SidikMaterial.terangDefault.gagal, PaletLab.gagalTerang);
+    });
+
+    test('palet REVISI 16 Nov 2026 dikunci literal', () {
+      expect(PaletLab.latar, const Color(0xFFF4F7FB));
+      expect(PaletLab.kertas, const Color(0xFFFFFFFF));
+      expect(PaletLab.tinta, const Color(0xFF102A43));
+      expect(PaletLab.tinta2, const Color(0xFF526477));
+      expect(PaletLab.primer, const Color(0xFF1769C2));
+      expect(PaletLab.kabut, const Color(0xFFEAF3FF));
+      expect(PaletLab.garisHalus, const Color(0xFFDCE5EE));
+      expect(PaletLab.hijau, const Color(0xFFE3F3E8));
+      expect(PaletLab.kuning, const Color(0xFFFFF3D6));
+      expect(PaletLab.koral, const Color(0xFFFDE8E6));
+      expect(PaletLab.biruKelabu, const Color(0xFFE6F0FA));
     });
   });
 
@@ -541,11 +571,15 @@ void main() {
       },
     );
 
-    test('teks PRIMER di atas kabut: 4,47:1, gagal tipis; pakai primerTua', () {
+    test('teks PRIMER di atas kabut: 4,89:1 (revisi), lolos tipis; tema '
+        'tetap memakai primerTua', () {
+      // Primer revisi #1769C2 dan kabut #EAF3FF (dulu 4,47:1 gagal tipis).
+      // Lolos 4,5:1 hanya dengan selisih 0,39: tema TETAP memakai primerTua
+      // (7,31:1) untuk teks biru di atas kabut.
       final r = _rasio(PaletLab.primer, PaletLab.kabut);
-      expect(r, closeTo(4.47, 0.02));
-      expect(r, lessThan(4.5));
-      // Pengganti yang sah: primerTua (7,18:1), dan itu yang dipakai tema.
+      expect(r, closeTo(4.89, 0.02));
+      expect(r, greaterThanOrEqualTo(4.5));
+      // Yang dipakai tema: primerTua.
       expect(
         _rasio(PaletLab.primerTua, PaletLab.kabut),
         greaterThanOrEqualTo(4.5),
@@ -565,11 +599,11 @@ void main() {
     // sebenarnya; ambang 3:1 di grup lain TIDAK dilonggarkan. Tes 3:1 hanya
     // menjaga kertas, baki (latar), dan meja; di atas kabut/kabutGagal tepi
     // kontrol terang jatuh di bawah 3:1 dan itu utang desain yang terdaftar.
-    test('rasio sebenarnya: 2,90:1 di kabut, 2,70:1 di kabutGagal', () {
+    test('rasio sebenarnya: 2,95:1 di kabut, 2,81:1 di kabutGagal', () {
       final kabut = _rasio(PaletLab.garisKontrol, PaletLab.kabut);
       final gagal = _rasio(PaletLab.garisKontrol, PaletLab.kabutGagal);
-      expect(kabut, closeTo(2.90, 0.01));
-      expect(gagal, closeTo(2.70, 0.01));
+      expect(kabut, closeTo(2.95, 0.01));
+      expect(gagal, closeTo(2.81, 0.01));
       expect(kabut, lessThan(3.0));
       expect(gagal, lessThan(3.0));
       // Di atas putih tetap lolos; ini yang dijaga tes 3:1.

@@ -235,7 +235,6 @@ class MainShell extends ConsumerWidget {
                   selectedIndex: selected,
                   onSelected: pilihTab,
                   items: items,
-                  ragam: teknisi ? RagamDock.teknisi : RagamDock.admin,
                   aksiTengah: aksiMulai,
                 ),
         );
@@ -474,6 +473,8 @@ class _MenuUtama extends ConsumerWidget {
       width: lebarLaci,
       backgroundColor: m.kertas,
       shadowColor: m.terang ? m.tinta : m.meja,
+      // Bayangan sangat tipis (REVISI 16 Nov 2026; bawaan Drawer 16).
+      elevation: 1,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.horizontal(
           right: Radius.circular(BentukBiruAwan.lembarBawah),
@@ -585,8 +586,9 @@ class _MenuUtama extends ConsumerWidget {
   }
 }
 
-/// Stempel peran di kepala laci: pil kabut 30, kata 12/700 (`biruTinta` di atas
-/// kabut 7,18:1). Bukan tombol; nama peran dibaca sebagai teks biasa.
+/// Stempel peran di kepala laci: lencana kabut 24 bersudut 6, kata 12/600
+/// (`biruTinta` di atas kabut 7,31:1). Bukan tombol; nama peran dibaca sebagai
+/// teks biasa.
 class _PilPeran extends StatelessWidget {
   const _PilPeran(this.teks);
 
@@ -602,12 +604,12 @@ class _PilPeran extends StatelessWidget {
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: UkuranBiruAwan.stempel),
         child: DecoratedBox(
-          decoration: ShapeDecoration(
+          decoration: BoxDecoration(
             color: w.isi(IsiBiruAwan.kabut),
-            shape: const StadiumBorder(),
+            borderRadius: BorderRadius.circular(BentukBiruAwan.lencana),
           ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: JarakBiruAwan.blok),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
             child: Center(
               widthFactor: 1,
               child: Text(
@@ -622,9 +624,9 @@ class _PilPeran extends StatelessWidget {
   }
 }
 
-/// Satu butir laci (`LAYAR.md` A3): tinggi minimum 52, sudut pil, ikon 22 + label
-/// 15/600. TERPILIH = kabut + `biruTinta` 800 (penanda latar DAN bobot, bukan
-/// warna saja). [Lencana] koral di ujung bila ada angka.
+/// Satu butir laci (`LAYAR.md` A3): tinggi minimum 52, sudut 12, ikon 22 + label
+/// 15/500. TERPILIH = kabut + `biruTinta` 600 (penanda latar DAN bobot, bukan
+/// warna saja). [Lencana] merah di ujung bila ada angka.
 ///
 /// Seluruh baris menerima ketukan. Pembaca layar mendengar satu butir:
 /// "judul, jumlah" bila ada lencana, ditandai terpilih.
@@ -646,7 +648,7 @@ class _ButirLaci extends StatelessWidget {
     final warnaIsi = terpilih ? m.biruTinta : m.tinta;
     final gaya = HurufBiruAwan.tombol.copyWith(
       color: warnaIsi,
-      fontWeight: terpilih ? FontWeight.w800 : FontWeight.w600,
+      fontWeight: terpilih ? FontWeight.w600 : FontWeight.w500,
     );
 
     return Semantics(
@@ -660,7 +662,9 @@ class _ButirLaci extends StatelessWidget {
       child: TekanSkala(
         child: Material(
           color: terpilih ? m.biruTipis : Colors.transparent,
-          shape: const StadiumBorder(),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(BentukBiruAwan.saringan),
+          ),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
             onTap: onTap,
@@ -695,9 +699,9 @@ class _ButirLaci extends StatelessWidget {
   }
 }
 
-/// Lencana jumlah koral di ujung butir laci: pil >= 26, angka 12/800 navy
-/// (6,85:1 di koral). Lebih dari 99 ditulis "99+". Hanya angka dari provider;
-/// tidak menghitung apa pun.
+/// Lencana jumlah merah di ujung butir laci: kotak >= 26 bersudut 6, angka 12/600
+/// putih di atas merah galat (7,32:1). Lebih dari 99 ditulis "99+". Hanya angka
+/// dari provider; tidak menghitung apa pun.
 class _Lencana extends StatelessWidget {
   const _Lencana(this.jumlah);
 
@@ -705,7 +709,7 @@ class _Lencana extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final w = WarnaBiruAwan.of(context);
+    final m = SidikMaterial.of(context);
 
     return ConstrainedBox(
       constraints: const BoxConstraints(
@@ -713,9 +717,9 @@ class _Lencana extends StatelessWidget {
         minHeight: _ukuranLencana,
       ),
       child: DecoratedBox(
-        decoration: ShapeDecoration(
-          color: w.isi(IsiBiruAwan.koral),
-          shape: const StadiumBorder(),
+        decoration: BoxDecoration(
+          color: m.gagal,
+          borderRadius: BorderRadius.circular(BentukBiruAwan.lencana),
         ),
         child: Center(
           widthFactor: 1,
@@ -724,10 +728,7 @@ class _Lencana extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: _bantalanLencana),
             child: Text(
               jumlah > _lencanaMaks ? '$_lencanaMaks+' : '$jumlah',
-              style: HurufBiruAwan.stempel.copyWith(
-                fontWeight: FontWeight.w800,
-                color: w.tinta(IsiBiruAwan.koral),
-              ),
+              style: HurufBiruAwan.stempel.copyWith(color: m.teksDiGagal),
             ),
           ),
         ),

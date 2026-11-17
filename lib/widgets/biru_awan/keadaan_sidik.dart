@@ -258,12 +258,13 @@ class _BarisKerangka extends StatelessWidget {
   }
 }
 
-/// Keadaan kosong Biru Awan: ubin langit sudut 24 (min tinggi 260) dengan motif
-/// skala putih, judul 20/26 800, satu kalimat (maks 220 lebar), dan SATU aksi
-/// navy (pil 48; artboard 44, dinaikkan ke sasaran sentuh 48).
+/// Keadaan kosong Biru Awan (REVISI 16 Nov 2026): kartu putih bergaris halus
+/// sudut 16 (min tinggi 200) dengan motif skala biru langit sebagai ilustrasi
+/// kecil, judul 20/26 600, satu kalimat (maks 220 lebar), dan SATU aksi navy
+/// (48). Dulu ubin langit penuh setinggi 260: blok biru besar.
 ///
-/// Teks dan aksi dari pemanggil (l10n). Tanpa [aksi] ubinnya tidak membawa
-/// tombol. Teks navy di atas langit (putih DILARANG, 2,26:1); motif hiasan.
+/// Teks dan aksi dari pemanggil (l10n). Tanpa [aksi] kartunya tidak membawa
+/// tombol. Teks navy / tinta kedua di atas putih; motif hiasan.
 class KeadaanKosong extends StatelessWidget {
   const KeadaanKosong({
     super.key,
@@ -280,11 +281,13 @@ class KeadaanKosong extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final m = SidikMaterial.of(context);
     final lanjut = WarnaLanjutBiruAwan.of(context);
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: lanjut.isiHero,
+        color: m.kertas,
         borderRadius: BorderRadius.circular(BentukBiruAwan.kartu),
+        border: Border.all(color: m.kertasTepi),
       ),
       child: ConstrainedBox(
         constraints: const BoxConstraints(
@@ -306,7 +309,7 @@ class KeadaanKosong extends StatelessWidget {
                   child: AspectRatio(
                     aspectRatio: MotifSkala.lebar / MotifSkala.tinggi,
                     child: CustomPaint(
-                      painter: PelukisMotifSkala(warna: lanjut.motifHero),
+                      painter: PelukisMotifSkala(warna: lanjut.isiHero),
                     ),
                   ),
                 ),
@@ -322,9 +325,7 @@ class KeadaanKosong extends StatelessWidget {
                     Text(
                       judul,
                       textAlign: TextAlign.center,
-                      style: HurufBiruAwan.judulAnak.copyWith(
-                        color: lanjut.tintaHero,
-                      ),
+                      style: HurufBiruAwan.judulAnak.copyWith(color: m.tinta),
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     ConstrainedBox(
@@ -335,7 +336,7 @@ class KeadaanKosong extends StatelessWidget {
                         isi,
                         textAlign: TextAlign.center,
                         style: HurufBiruAwan.keterangan.copyWith(
-                          color: lanjut.tintaHero,
+                          color: m.tinta2,
                         ),
                       ),
                     ),
@@ -358,9 +359,9 @@ class KeadaanKosong extends StatelessWidget {
   }
 }
 
-/// Keadaan galat Biru Awan: ubin koral tipis sudut 24, ubin ikon koral 48,
-/// judul, kalimat (pesan server apa adanya bila ada, dari pemanggil) dan satu
-/// tombol navy "Coba lagi" (pil 48; artboard 44, dinaikkan ke sasaran 48).
+/// Keadaan galat Biru Awan: kartu merah muda sudut 16, ubin ikon 48, judul,
+/// kalimat (pesan server apa adanya bila ada, dari pemanggil) dan satu tombol
+/// navy "Coba lagi" (48).
 ///
 /// Pembaca layar: simpul live region "judul. isi" supaya galat yang muncul
 /// diumumkan; tombolnya simpul sendiri. Tanpa [aksi] tidak ada tombol.

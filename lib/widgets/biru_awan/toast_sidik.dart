@@ -162,7 +162,7 @@ class TombolTutupSidik extends StatelessWidget {
   }
 }
 
-/// Pil aksi kecil di toast dan banner ("Lihat", "Coba lagi", "Pasang"): gambar
+/// Aksi kecil (sudut 10) di toast dan banner ("Lihat", "Coba lagi", "Pasang"): gambar
 /// tinggi 40, sasaran >= 48. [isi] dan [tinta] dari pemanggil (primer di toast
 /// biasa, putih di kabar, navy di banner pembaruan); [cincin] harus >= 3:1
 /// terhadap latar tempat pil duduk.
@@ -188,11 +188,13 @@ class PilAksiSidik extends StatelessWidget {
       label: label,
       onPressed: onPressed,
       cincin: cincin,
-      bentuk: const StadiumBorder(),
+      bentuk: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(BentukBiruAwan.tombol),
+      ),
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: isi,
-          borderRadius: BorderRadius.circular(BentukBiruAwan.pil),
+          borderRadius: BorderRadius.circular(BentukBiruAwan.tombol),
         ),
         child: ConstrainedBox(
           constraints: const BoxConstraints(
@@ -219,7 +221,7 @@ class PilAksiSidik extends StatelessWidget {
   }
 }
 
-/// Ubin berwarna berisi ikon (toast 40/14, dialog 56/20, galat 48/16). Hiasan:
+/// Ubin berwarna berisi ikon (toast 40/10, dialog 48/12, galat 48/12). Hiasan:
 /// tidak masuk pohon semantik.
 class UbinUmpanBalik extends StatelessWidget {
   const UbinUmpanBalik({

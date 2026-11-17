@@ -315,18 +315,17 @@ void main() {
   });
 
   group('login: tata letak', () {
-    testWidgets('artboard 390 x 844: hero 330, kartu menumpang 36, tombol 56', (
-      tester,
-    ) async {
+    testWidgets('390 x 844 (REVISI 16 Nov): hero 190, kartu menumpang 24, '
+        'plat 72, tombol 48', (tester) async {
       layarUji(tester, lebar: 390, tinggi: 844);
       await _pasang(tester, const LoginScreen(), _AuthPalsu());
 
       final hero = tester.getRect(find.byKey(kunciHeroMasuk));
       expect(hero.top, 0);
       expect(hero.width, 390);
-      expect(hero.height, closeTo(330, 0.5));
+      expect(hero.height, closeTo(190, 0.5));
       final kartu = tester.getRect(find.byKey(kunciKartuMasuk));
-      expect(kartu.top, closeTo(hero.bottom - 36, 0.5));
+      expect(kartu.top, closeTo(hero.bottom - 24, 0.5));
       expect(kartu.left, 16);
       expect(kartu.right, 390 - 16);
       final plat = tester.getRect(
@@ -335,30 +334,37 @@ void main() {
           matching: find.byType(PlatLogo),
         ),
       );
-      expect(plat.width, 104);
-      expect(plat.height, 104);
+      expect(plat.width, 72);
+      expect(plat.height, 72);
       expect(plat.center.dx, closeTo(195, 0.5));
-      expect(tester.getSize(_tombolMaterial('MASUK')).height, 56);
+      expect(tester.getSize(_tombolMaterial('MASUK')).height, 48);
       // Kartu masuk di dalam layar: tombol terlihat tanpa menggulir.
       expect(tester.getRect(_tombolMasuk).bottom, lessThan(844));
     });
 
     // 800 x 600 = permukaan bawaan flutter_test yang dipakai `auth_test.dart`.
     for (final (lebar, tinggi) in [(800.0, 600.0)]) {
-      testWidgets('layar pendek ${lebar.toInt()} x ${tinggi.toInt()}: tombol Masuk terlihat dan bisa diketuk tanpa menggulir', (
-        tester,
-      ) async {
-        layarUji(tester, lebar: lebar, tinggi: tinggi);
-        final auth = _AuthPalsu();
-        await _pasang(tester, const LoginScreen(), auth);
-        expect(tester.getRect(_tombolMasuk).bottom, lessThanOrEqualTo(tinggi));
-        // Seperti `auth_test.dart`: ketuk langsung, tanpa ensureVisible.
-        await tester.tap(find.text('MASUK'));
-        await tester.pumpAndSettle();
-        expect(find.text('ID pegawai atau email wajib diisi.'), findsOneWidget);
-        expect(find.text('Password wajib diisi.'), findsOneWidget);
-        expect(auth.jumlahLogin, 0, reason: 'validasi lokal tidak ke server');
-      });
+      testWidgets(
+        'layar pendek ${lebar.toInt()} x ${tinggi.toInt()}: tombol Masuk terlihat dan bisa diketuk tanpa menggulir',
+        (tester) async {
+          layarUji(tester, lebar: lebar, tinggi: tinggi);
+          final auth = _AuthPalsu();
+          await _pasang(tester, const LoginScreen(), auth);
+          expect(
+            tester.getRect(_tombolMasuk).bottom,
+            lessThanOrEqualTo(tinggi),
+          );
+          // Seperti `auth_test.dart`: ketuk langsung, tanpa ensureVisible.
+          await tester.tap(find.text('MASUK'));
+          await tester.pumpAndSettle();
+          expect(
+            find.text('ID pegawai atau email wajib diisi.'),
+            findsOneWidget,
+          );
+          expect(find.text('Password wajib diisi.'), findsOneWidget);
+          expect(auth.jumlahLogin, 0, reason: 'validasi lokal tidak ke server');
+        },
+      );
     }
   });
 
@@ -437,15 +443,21 @@ void main() {
     });
 
     for (final gelap in [false, true]) {
-      testWidgets('sasaran sentuh >= 48 dan berlabel (${gelap ? 'gelap' : 'terang'})', (
-        tester,
-      ) async {
-        layarUji(tester);
-        final semantik = tester.ensureSemantics();
-        await _pasang(tester, const LoginScreen(), _AuthPalsu(), gelap: gelap);
-        await periksaPedomanSentuh(tester);
-        semantik.dispose();
-      });
+      testWidgets(
+        'sasaran sentuh >= 48 dan berlabel (${gelap ? 'gelap' : 'terang'})',
+        (tester) async {
+          layarUji(tester);
+          final semantik = tester.ensureSemantics();
+          await _pasang(
+            tester,
+            const LoginScreen(),
+            _AuthPalsu(),
+            gelap: gelap,
+          );
+          await periksaPedomanSentuh(tester);
+          semantik.dispose();
+        },
+      );
     }
   });
 
@@ -467,7 +479,9 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.text('Akun kamu belum disetujui admin. Tunggu konfirmasi dulu ya.'),
+        find.text(
+          'Akun kamu belum disetujui admin. Tunggu konfirmasi dulu ya.',
+        ),
         findsOneWidget,
       );
       expect(find.byType(PesanGalatMasuk), findsOneWidget);
@@ -654,7 +668,9 @@ void main() {
       expect(_aktif(tester, _tombolMaterial('KIRIM LINK RESET')), isFalse);
       expect(
         tester
-            .getSemantics(find.bySemanticsLabel('KIRIM LINK RESET, sedang diproses'))
+            .getSemantics(
+              find.bySemanticsLabel('KIRIM LINK RESET, sedang diproses'),
+            )
             .flagsCollection
             .isEnabled,
         Tristate.isFalse,
@@ -733,7 +749,9 @@ void main() {
 
         expect(find.text(namaMerekSidikLab), findsOneWidget);
         expect(
-          find.text('Akreditasi KAN ${LabProfile.nomorAkreditasi}, ISO/IEC 17025'),
+          find.text(
+            'Akreditasi KAN ${LabProfile.nomorAkreditasi}, ISO/IEC 17025',
+          ),
           findsOneWidget,
         );
         final logo = tester.widget<Image>(
@@ -746,27 +764,28 @@ void main() {
         expect((logo.image as AssetImage).assetName, LabProfile.logoAsset);
       });
 
-      testWidgets('login: semua teks terbaca >= 4,5:1, juga saat galat ($tema)', (
-        tester,
-      ) async {
-        layarUji(tester, tinggi: 1000);
-        final auth = _AuthPalsu()
-          ..tanggapiLogin = () async => throw const AuthException('Salah.');
-        await _pasang(tester, const LoginScreen(), auth, gelap: gelap);
-        expect(
-          pelanggaranKontrasTeks(tester, find.byType(LoginScreen)),
-          isEmpty,
-        );
+      testWidgets(
+        'login: semua teks terbaca >= 4,5:1, juga saat galat ($tema)',
+        (tester) async {
+          layarUji(tester, tinggi: 1000);
+          final auth = _AuthPalsu()
+            ..tanggapiLogin = () async => throw const AuthException('Salah.');
+          await _pasang(tester, const LoginScreen(), auth, gelap: gelap);
+          expect(
+            pelanggaranKontrasTeks(tester, find.byType(LoginScreen)),
+            isEmpty,
+          );
 
-        await _isiLogin(tester, 'SDK-0002', 'ngasal');
-        await _ketuk(tester, _tombolMasuk);
-        await tester.pumpAndSettle();
-        expect(find.byType(PesanGalatMasuk), findsOneWidget);
-        expect(
-          pelanggaranKontrasTeks(tester, find.byType(LoginScreen)),
-          isEmpty,
-        );
-      });
+          await _isiLogin(tester, 'SDK-0002', 'ngasal');
+          await _ketuk(tester, _tombolMasuk);
+          await tester.pumpAndSettle();
+          expect(find.byType(PesanGalatMasuk), findsOneWidget);
+          expect(
+            pelanggaranKontrasTeks(tester, find.byType(LoginScreen)),
+            isEmpty,
+          );
+        },
+      );
     }
   });
 }

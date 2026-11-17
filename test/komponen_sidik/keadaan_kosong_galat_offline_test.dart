@@ -105,7 +105,7 @@ void main() {
     });
 
     testWidgets(
-      'tindakan: tombol sekunder 48 dp; aksiUtama: tombol utama 56 dp',
+      'tindakan: tombol sekunder 48 dp; aksiUtama: tombol utama 48 dp',
       (tester) async {
         await tester.pumpWidget(aplikasiUji(_keadaan(RagamKeadaan.kosong)));
         expect(tester.getSize(find.byType(OutlinedButton)).height, 48);
@@ -113,7 +113,7 @@ void main() {
         await tester.pumpWidget(
           aplikasiUji(_keadaan(RagamKeadaan.kosong, utama: true)),
         );
-        expect(tester.getSize(find.byType(FilledButton)).height, 56);
+        expect(tester.getSize(find.byType(FilledButton)).height, 48);
         expect(find.byType(OutlinedButton), findsNothing);
       },
     );

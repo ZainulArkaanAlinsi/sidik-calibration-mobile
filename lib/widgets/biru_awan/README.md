@@ -1,5 +1,19 @@
 # Komponen Biru Awan (`lib/widgets/biru_awan/`)
 
+> **REVISI 16 Nov 2026 (R1) menang atas tabel di bawah bila bertentangan**
+> (`docs/desain-ulang/REVISI-16NOV.md`): tenang, formal, ringkas. Angka di
+> tabel ini adalah nilai SEBELUM revisi; nilai yang berlaku ada di token
+> (`BentukBiruAwan`, `UkuranBiruAwan`, `HurufBiruAwan`, `PaletLab`) dan di
+> tes. Ringkasnya: tombol 48 sudut 10 (bukan pil 56), isian/kolom cari 48 sudut
+> 12, kartu/hero/dialog/lembar bawah sudut 16 (bukan 24-32), lencana status 24
+> sudut 6 (bukan pil 30), saringan dan segmen terpilih = biru muda + tepi biru
+> (bukan blok navy), status = tinta GELAP di isi MUDA, Inter 400/500/600 (bukan
+> 800), tanpa bayangan di layar (garis 1 dp; toast/dialog/lembar/laci bayangan
+> sangat tipis), banner pembaruan dan keadaan kosong tanpa blok langit penuh,
+> dan bilah navigasi bawah solid (`FloatingNavBar`) menggantikan dock melayang.
+> Area beku (lembar kerja, "02 Pilih alat") TIDAK memakai komponen atau token
+> ini; dijaga `test/tema/token_beku_tak_bocor_test.dart`.
+
 Komponen dasar desain ulang SIDIK Lab (`docs/desain-ulang/`). Dibuat BARU; widget
 lama (`app_button`, `app_text_field`, `sidik_loader`, `status_badge`, dan
 `lib/widgets/sidik/*`) tidak diubah dan tetap dipakai area beku serta layar yang
@@ -18,14 +32,14 @@ UbinKpi, GrafikBatang, StepperTegak, GarisWaktu, AvatarInisial, Lencana (dan
 
 | Komponen | Berkas | Dipakai untuk | Pengganti |
 |---|---|---|---|
-| `TombolSidik` | `tombol_sidik.dart` | Semua tombol berlabel. Ragam: `utama` (56, satu per layar), `tegas` (navy), `sekunder` (tepi kontrol), `teks`, `bahaya`. Mati dengan `alasanMati`, `sibuk` | `AppButton`, `FilledButton`/`OutlinedButton` polos |
-| `TombolBulat` | `tombol_bulat.dart` | Tombol ikon: 44 (cari, tambah), 48 (kembali, lonceng, menu), 60 (Mulai di dock). `label` wajib; sentuh >= 48 | `IconButton`, FAB |
-| `IsianSidik` | `isian_sidik.dart` | Isian teks: label di atas, kotak 56, keadaan biasa, fokus, galat, mati; `wajib`, `mono`, `akhir` | `AppTextField`, `TextFormField` polos |
-| `StempelSidik` | `stempel_sidik.dart` | Status: pil 30, ikon + kata. Nada dari `StatusTampil` yang ada; FAIL navy pekat; `.keputusan(null)` netral | `StatusBadge`, `Stempel` lama |
-| `ChipSaring` | `chip_saring.dart` | Saring dengan jumlah (pil 44, bulatan 32) | `FilterChip`, `ChoiceChip` |
-| `SegmenPil<T>` | `segmen_pil.dart` | 2 sampai 3 pilihan saling meniadakan (peran, mode) | `SegmentedButton`, `TabBar` pendek |
-| `KartuSidik24` | `kartu_sidik24.dart` | Wadah kartu sudut 24, datar; bisa diketuk, terpilih, galat | `Card`, `KartuGradien` |
-| `PanelBaris` + `BarisMenu64` + `BarisDaftar72` | `panel_baris.dart` | Panel putih berisi baris menu (64, ubin bulat 44) atau baris daftar (72, ubin 48) dengan pemisah halus | `ListTile`, kartu per baris |
+| `TombolSidik` | `tombol_sidik.dart` | Semua tombol berlabel, semua 48 sudut 10. Ragam: `utama` (satu per layar), `tegas` (navy), `sekunder` (tepi kontrol), `teks`, `bahaya`. Mati dengan `alasanMati`, `sibuk` | `AppButton`, `FilledButton`/`OutlinedButton` polos |
+| `TombolBulat` | `tombol_bulat.dart` | Tombol ikon: 44 (cari, tambah), 48 (kembali, lonceng, menu, Mulai di bilah teknisi). Tanpa bayangan. `label` wajib; sentuh >= 48 | `IconButton`, FAB |
+| `IsianSidik` | `isian_sidik.dart` | Isian teks: label di atas, kotak 48 sudut 12, keadaan biasa, fokus, galat, mati; `wajib`, `mono`, `akhir` | `AppTextField`, `TextFormField` polos |
+| `StempelSidik` | `stempel_sidik.dart` | Status: lencana 24 sudut 6, ikon + kata, tinta gelap di isi muda. Nada dari `StatusTampil` yang ada; FAIL navy pekat; `.keputusan(null)` netral | `StatusBadge`, `Stempel` lama |
+| `ChipSaring` | `chip_saring.dart` | Saring dengan jumlah (kotak 44 sudut 12, bulatan 32); terpilih = biru muda + tepi biru | `FilterChip`, `ChoiceChip` |
+| `SegmenPil<T>` | `segmen_pil.dart` | 2 sampai 3 pilihan saling meniadakan (peran, mode), jalur 48 sudut 12; terpilih = biru muda + tepi biru | `SegmentedButton`, `TabBar` pendek |
+| `KartuSidik24` | `kartu_sidik24.dart` | Wadah kartu sudut 16 (nama kelas peninggalan), datar, garis halus 1 dp; bisa diketuk, terpilih, galat (merah muda), awas (krem, HANYA untuk "perlu diperiksa") | `Card`, `KartuGradien` |
+| `PanelBaris` + `BarisMenu64` + `BarisDaftar72` | `panel_baris.dart` | Panel putih bergaris halus berisi baris menu (64, ubin bulat 44) atau baris daftar (min 64, ubin 48; judul, nomor mono, keterangan, `catatan` kecil seperti waktu pembaruan, lencana status di kanan) dengan pemisah halus | `ListTile`, kartu per baris |
 | `UbinIkon` | `ubin_ikon.dart` | Ubin berwarna berisi ikon atau gambar kecil (bulat 44 atau persegi 48) | `CircleAvatar` hias |
 | `KepalaTab` + `KepalaAnak` | `kepala_layar.dart` | Kepala layar tab (logo, nama, peran, aksi bulat) dan layar anak (kembali, judul, nomor, aksi) | `AppBar` |
 | `HeroLangit` | `hero_langit.dart` | Bidang langit sudut 28 dengan motif skala (BUKAN awan; digambar `PelukisMotifSkala`), min 212; isi bebas, teks navy | `KartuGradien` hero lama |

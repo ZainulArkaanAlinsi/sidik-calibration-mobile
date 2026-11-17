@@ -4,21 +4,28 @@ import 'palet_lab.dart';
 import 'sidik_material.dart';
 
 /// Isi berwarna yang dipakai komponen Biru Awan (stempel, ubin ikon, bulatan
-/// jumlah di chip). Nama mengikuti `tokens.json`.
+/// jumlah di chip). Nama mengikuti `tokens.json`; sejak REVISI 16 Nov 2026
+/// status = isi MUDA + tinta GELAP (nama lama dipertahankan dengan arti baru,
+/// supaya tidak menyentuh puluhan pemakai).
 enum IsiBiruAwan {
-  /// Ubin terpilih, latar ikon. `kabut`.
+  /// Pilihan aktif, latar ikon. `kabut`.
   kabut,
 
-  /// Lulus, disetujui. `hijau`.
+  /// Lulus, disetujui. Hijau muda + hijau gelap.
   hijau,
 
-  /// Perlu dicek, revisi, segera. `kuning`.
+  /// Perlu dicek, revisi, segera. Krem + amber gelap. HANYA untuk "perlu
+  /// diperiksa".
   kuning,
 
-  /// Menunggu approval. `awan`.
+  /// Isi dekoratif biru langit muda (batang grafik, cincin langkah, ubin KPI
+  /// awan). BUKAN status.
   awan,
 
-  /// Ditolak, tak terbaca, lewat jadwal. `koral`.
+  /// Menunggu approval. Biru kelabu muda + biru tua.
+  tunggu,
+
+  /// Ditolak, tak terbaca, lewat jadwal. Merah muda + merah gelap.
   koral,
 
   /// Latar tipis galat (ubin ikon). `kabutGagal`.
@@ -33,13 +40,17 @@ enum IsiBiruAwan {
 /// dari [PaletLab] (terang) dan pasangan status [SidikMaterial] yang sudah ada
 /// (gelap). Tidak menulis nilai mentah; mengikuti pola `WarnaLajur`.
 ///
+/// REVISI 16 Nov 2026: status terang = tinta GELAP di atas isi MUDA (hijau gelap
+/// di hijau muda, amber gelap di krem, merah gelap di merah muda, biru tua di
+/// biru kelabu). Selalu ikon + kata. Tinta di atas kabut dan netral tetap navy.
+///
 /// Kenapa bukan field baru di [SidikMaterial]: konstruktornya dipakai
 /// `tema_beku.dart` (di-hash, `BEKU.md`), jadi menambah field wajib mengubah
 /// berkas beku.
 ///
 /// ## Terang
-/// Isi `tokens.json`; tinta di atasnya SELALU navy (`tinta`): 11,23 hijau,
-/// 10,59 kuning, 10,19 awan, 6,85 koral, 13,50 kabut.
+/// Isi dari [PaletLab]; tinta berwarna per status (lihat atas). Rasio: hijau
+/// 8,59, kuning 5,63, tunggu 10,77, koral 6,22, kabut 13,08 (navy), awan 9,69.
 ///
 /// ## Gelap (utang desain, `standar-kualitas-desain.md` §11 butir 1)
 /// `tokens.json` belum punya status gelap. Dipakai pasangan yang sudah ada
@@ -60,7 +71,6 @@ class WarnaBiruAwan {
     required this.tepiMati,
     required this.isiTombolMati,
     required this.tintaTombolMati,
-    required this.bayanganMulai,
   }) : _isi = isi,
        _tinta = tinta;
 
@@ -86,9 +96,6 @@ class WarnaBiruAwan {
   final Color isiTombolMati;
   final Color tintaTombolMati;
 
-  /// Bayangan tombol Mulai (primer; alfa dipasang pemakai).
-  final Color bayanganMulai;
-
   /// Isi dan tinta pasangannya untuk [n].
   Color isi(IsiBiruAwan n) => _isi[n]!;
   Color tinta(IsiBiruAwan n) => _tinta[n]!;
@@ -101,11 +108,21 @@ class WarnaBiruAwan {
           IsiBiruAwan.hijau: PaletLab.hijau,
           IsiBiruAwan.kuning: PaletLab.kuning,
           IsiBiruAwan.awan: PaletLab.awan,
+          IsiBiruAwan.tunggu: PaletLab.biruKelabu,
           IsiBiruAwan.koral: PaletLab.koral,
           IsiBiruAwan.koralTipis: PaletLab.kabutGagal,
           IsiBiruAwan.netral: PaletLab.netralStempel,
         },
-        tinta: {for (final n in IsiBiruAwan.values) n: m.tinta},
+        tinta: {
+          IsiBiruAwan.kabut: m.tinta,
+          IsiBiruAwan.hijau: m.lulus,
+          IsiBiruAwan.kuning: m.awas,
+          IsiBiruAwan.awan: m.tinta,
+          IsiBiruAwan.tunggu: m.tunggu,
+          IsiBiruAwan.koral: m.gagal,
+          IsiBiruAwan.koralTipis: m.tinta,
+          IsiBiruAwan.netral: m.tinta,
+        },
         isiFail: m.tinta,
         tintaFail: m.kertas,
         tepiGalat: PaletLab.koralBatang,
@@ -114,7 +131,6 @@ class WarnaBiruAwan {
         tepiMati: m.kertasTepi,
         isiTombolMati: PaletLab.netralStempel,
         tintaTombolMati: m.tinta2,
-        bayanganMulai: m.biru,
       );
     }
     return WarnaBiruAwan._(
@@ -123,6 +139,7 @@ class WarnaBiruAwan {
         IsiBiruAwan.hijau: m.lulusTipis,
         IsiBiruAwan.kuning: m.awasTipis,
         IsiBiruAwan.awan: m.tungguTipis,
+        IsiBiruAwan.tunggu: m.tungguTipis,
         IsiBiruAwan.koral: m.gagalTipis,
         IsiBiruAwan.koralTipis: m.gagalTipis,
         IsiBiruAwan.netral: m.kertasTepi,
@@ -132,6 +149,7 @@ class WarnaBiruAwan {
         IsiBiruAwan.hijau: m.lulus,
         IsiBiruAwan.kuning: m.awas,
         IsiBiruAwan.awan: m.tunggu,
+        IsiBiruAwan.tunggu: m.tunggu,
         IsiBiruAwan.koral: m.gagal,
         IsiBiruAwan.koralTipis: m.tinta,
         IsiBiruAwan.netral: m.tinta,
@@ -144,7 +162,6 @@ class WarnaBiruAwan {
       tepiMati: m.kertasTepi,
       isiTombolMati: m.kertasTepi,
       tintaTombolMati: m.tinta2,
-      bayanganMulai: m.biru,
     );
   }
 

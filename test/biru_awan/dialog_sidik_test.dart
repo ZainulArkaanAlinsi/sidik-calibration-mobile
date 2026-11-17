@@ -1,4 +1,4 @@
-// DialogSidik + tampilkanDialogSidik (L2): kartu 340/420, radius 28, ubin 56,
+// DialogSidik + tampilkanDialogSidik (L2): kartu 340/420, radius 16, ubin 48,
 // Batal kiri dan aksi kanan (bahaya merah), latar redup, hasil bool, Semantics,
 // tutup (Batal, ketuk latar, tombol kembali), kurangi gerak, cincin fokus,
 // sasaran 48, 320 dp x huruf 1,3.
@@ -80,9 +80,8 @@ void main() {
   setUpAll(muatFontUji);
 
   group('kartu: ukuran, bentuk, token', () {
-    testWidgets('lebar 340 (HP), radius 28, padding 24, ubin 56/20, bayangan', (
-      tester,
-    ) async {
+    testWidgets('lebar 340 (HP), radius 16, padding 24, ubin 48/12, bayangan '
+        'sangat tipis', (tester) async {
       await _buka(tester);
       final r = tester.getRect(_kartu);
       expect(r.width, 340);
@@ -94,12 +93,14 @@ void main() {
           .map((d) => d.decoration)
           .whereType<BoxDecoration>()
           .firstWhere((d) => d.boxShadow != null && d.boxShadow!.isNotEmpty);
-      expect(dekor.borderRadius, BorderRadius.circular(28));
+      expect(dekor.borderRadius, BorderRadius.circular(16));
       expect(dekor.color, bahan(tester).kertas);
-      expect(dekor.boxShadow!.single.offset, const Offset(0, 20));
-      expect(dekor.boxShadow!.single.blurRadius, 50);
+      // REVISI 16 Nov 2026: bayangan sangat tipis (0 4 16), bukan 0 20 50.
+      expect(dekor.boxShadow!.single.offset, const Offset(0, 4));
+      expect(dekor.boxShadow!.single.blurRadius, 16);
+      expect(dekor.boxShadow!.single.color.a, lessThan(0.2));
 
-      // Ubin 56 dengan sudut 20 di bantalan 24.
+      // Ubin 48 dengan sudut 12 di bantalan 24.
       final ubin = tester.getRect(
         find
             .ancestor(
@@ -108,7 +109,7 @@ void main() {
             )
             .first,
       );
-      expect(ubin.size, const Size(56, 56));
+      expect(ubin.size, const Size(48, 48));
       expect(ubin.left - r.left, 24);
       expect(ubin.top - r.top, 24);
       final dekorUbin = tester
@@ -117,7 +118,7 @@ void main() {
           )
           .map((d) => d.decoration)
           .whereType<BoxDecoration>()
-          .firstWhere((d) => d.borderRadius == BorderRadius.circular(20));
+          .firstWhere((d) => d.borderRadius == BorderRadius.circular(12));
       expect(dekorUbin.color, warna(tester).isi(IsiBiruAwan.kabut));
     });
 
@@ -126,12 +127,12 @@ void main() {
       expect(tester.getSize(_kartu).width, 420);
     });
 
-    testWidgets('judul 20/26 800 tinta; isi 14/20 tinta kedua', (tester) async {
+    testWidgets('judul 20/26 600 tinta; isi 14/20 tinta kedua', (tester) async {
       await _buka(tester);
       final judul = tester.widget<Text>(find.text(_judul)).style!;
       expect(judul.fontSize, 20);
       expect(judul.height, closeTo(26 / 20, 0.001));
-      expect(judul.fontWeight, FontWeight.w800);
+      expect(judul.fontWeight, FontWeight.w600);
       expect(judul.color, bahan(tester).tinta);
       final isi = tester.widget<Text>(find.text(_isi)).style!;
       expect(isi.fontSize, 14);
@@ -199,7 +200,7 @@ void main() {
             )
             .map((d) => d.decoration)
             .whereType<BoxDecoration>()
-            .firstWhere((d) => d.borderRadius == BorderRadius.circular(20));
+            .firstWhere((d) => d.borderRadius == BorderRadius.circular(12));
         expect(dekorUbin.color, warna(tester).isi(IsiBiruAwan.koralTipis));
       });
     }
