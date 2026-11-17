@@ -29,7 +29,7 @@ const _admin = <FloatingNavItem>[
   FloatingNavItem(
     icon: Icons.space_dashboard_outlined,
     activeIcon: Icons.space_dashboard,
-    label: 'Beranda',
+    label: 'Dashboard',
   ),
   FloatingNavItem(
     icon: Icons.straighten_outlined,

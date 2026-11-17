@@ -271,11 +271,10 @@ class _ButirState extends State<_Butir> {
       excludeSemantics: true,
       child: TekanSkala(
         child: Stack(
-          // Seluruh sel menerima ketukan: `expand` memberi Material ukuran sel
-          // penuh (Stack longgar menyusutkannya ke isi), dan `ColoredBox`
-          // transparan (hit-test opak) membuat bantalan kosong di sekitar
-          // kapsul dan kata ikut menanggapi (InkWell hanya menanggapi bagian
-          // yang berisi).
+          // Seluruh sel menerima ketukan: `expand` memberi Material (dan InkWell
+          // di dalamnya) ukuran sel penuh. Stack yang longgar menyusutkannya ke
+          // isi (kapsul 56 dp), dan ketukan di bantalan kiri-kanan dan atas
+          // jatuh ke luar butir.
           fit: StackFit.expand,
           children: [
             Material(
@@ -283,37 +282,34 @@ class _ButirState extends State<_Butir> {
               child: InkWell(
                 onTap: widget.onTap,
                 onFocusChange: (v) => setState(() => _fokus = v),
-                child: ColoredBox(
-                  color: Colors.transparent,
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      minHeight: UkuranBiruAwan.tinggiBilah,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    minHeight: UkuranBiruAwan.tinggiBilah,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.only(
+                      top: AppSpacing.sm,
+                      bottom: AppSpacing.sm,
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                        top: AppSpacing.sm,
-                        bottom: AppSpacing.sm,
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          kapsul,
-                          const SizedBox(height: AppSpacing.xs),
-                          // Tanpa jarak kiri-kanan: kata sudah dimuatkan ke
-                          // sel (lihat `_skalaLabel`); FittedBox hanya jaring
-                          // terakhir.
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              widget.item.label,
-                              maxLines: 1,
-                              softWrap: false,
-                              textScaler: TextScaler.linear(widget.skalaLabel),
-                              style: gayaLabel,
-                            ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        kapsul,
+                        const SizedBox(height: AppSpacing.xs),
+                        // Tanpa jarak kiri-kanan: kata sudah dimuatkan ke
+                        // sel (lihat `_skalaLabel`); FittedBox hanya jaring
+                        // terakhir.
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            widget.item.label,
+                            maxLines: 1,
+                            softWrap: false,
+                            textScaler: TextScaler.linear(widget.skalaLabel),
+                            style: gayaLabel,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
