@@ -38,8 +38,8 @@ UbinKpi, GrafikBatang, StepperTegak, GarisWaktu, AvatarInisial, Lencana (dan
 | `StempelSidik` | `stempel_sidik.dart` | Status: lencana 24 sudut 6, ikon + kata, tinta gelap di isi muda. Nada dari `StatusTampil` yang ada; FAIL navy pekat; `.keputusan(null)` netral | `StatusBadge`, `Stempel` lama |
 | `ChipSaring` | `chip_saring.dart` | Saring dengan jumlah (kotak 44 sudut 12, bulatan 32); terpilih = biru muda + tepi biru | `FilterChip`, `ChoiceChip` |
 | `SegmenPil<T>` | `segmen_pil.dart` | 2 sampai 3 pilihan saling meniadakan (peran, mode), jalur 48 sudut 12; terpilih = biru muda + tepi biru | `SegmentedButton`, `TabBar` pendek |
-| `KartuSidik24` | `kartu_sidik24.dart` | Wadah kartu sudut 16 (nama kelas peninggalan), datar; bisa diketuk, terpilih, galat | `Card`, `KartuGradien` |
-| `PanelBaris` + `BarisMenu64` + `BarisDaftar72` | `panel_baris.dart` | Panel putih berisi baris menu (64, ubin bulat 44) atau baris daftar (72, ubin 48) dengan pemisah halus | `ListTile`, kartu per baris |
+| `KartuSidik24` | `kartu_sidik24.dart` | Wadah kartu sudut 16 (nama kelas peninggalan), datar, garis halus 1 dp; bisa diketuk, terpilih, galat (merah muda), awas (krem, HANYA untuk "perlu diperiksa") | `Card`, `KartuGradien` |
+| `PanelBaris` + `BarisMenu64` + `BarisDaftar72` | `panel_baris.dart` | Panel putih bergaris halus berisi baris menu (64, ubin bulat 44) atau baris daftar (min 64, ubin 48; judul, nomor mono, keterangan, `catatan` kecil seperti waktu pembaruan, lencana status di kanan) dengan pemisah halus | `ListTile`, kartu per baris |
 | `UbinIkon` | `ubin_ikon.dart` | Ubin berwarna berisi ikon atau gambar kecil (bulat 44 atau persegi 48) | `CircleAvatar` hias |
 | `KepalaTab` + `KepalaAnak` | `kepala_layar.dart` | Kepala layar tab (logo, nama, peran, aksi bulat) dan layar anak (kembali, judul, nomor, aksi) | `AppBar` |
 | `HeroLangit` | `hero_langit.dart` | Bidang langit sudut 28 dengan motif skala (BUKAN awan; digambar `PelukisMotifSkala`), min 212; isi bebas, teks navy | `KartuGradien` hero lama |

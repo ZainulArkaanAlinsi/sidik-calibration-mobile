@@ -15,13 +15,17 @@ enum LatarKartu {
   /// Kabut: ubin yang disorot.
   kabut,
 
-  /// Koral tipis: peringatan galat (jatuh tempo, gagal).
+  /// Merah muda: peringatan galat (jatuh tempo, gagal).
   galat,
+
+  /// Krem: "perlu diperiksa" (revisi, segera). HANYA untuk itu (REVISI 16 Nov
+  /// 2026): krem di kartu yang tidak bermasalah adalah peringatan palsu.
+  awas,
 }
 
-/// Kartu Biru Awan: putih, sudut 24 (`BentukBiruAwan.kartu`), datar tanpa
-/// bayangan (`POLA.md`, `LAYAR.md`: kartu draf, antrean, ubin alat). Pengganti
-/// `Card` dan `KartuGradien` di layar yang didesain ulang.
+/// Kartu Biru Awan: putih, sudut 16 (`BentukBiruAwan.kartu`), datar, tanpa
+/// bayangan, dengan garis halus 1 dp (REVISI 16 Nov 2026; dulu sudut 24 tanpa
+/// garis). Pengganti `Card` dan `KartuGradien` di layar yang didesain ulang.
 ///
 /// - Tinggi kartu = minimum isinya; tumbuh bila huruf diperbesar.
 /// - [onTap] membuatnya bisa diketuk: riak, skala 0,97 saat ditekan, tinggi
@@ -61,6 +65,7 @@ class KartuSidik24 extends StatelessWidget {
             LatarKartu.kertas => m.kertas,
             LatarKartu.kabut => w.isi(IsiBiruAwan.kabut),
             LatarKartu.galat => w.isi(IsiBiruAwan.koralTipis),
+            LatarKartu.awas => w.isi(IsiBiruAwan.kuning),
           };
 
     final isiKartu = Padding(padding: padding, child: child);
@@ -70,7 +75,10 @@ class KartuSidik24 extends StatelessWidget {
         borderRadius: BorderRadius.circular(BentukBiruAwan.kartu),
         side: terpilih
             ? BorderSide(color: m.biru, width: AppUkuran.garisTebal)
-            : BorderSide.none,
+            // Kartu putih bergaris halus; kartu berisi warna tanpa garis.
+            : (latar == LatarKartu.kertas
+                  ? BorderSide(color: m.kertasTepi, width: AppUkuran.garis)
+                  : BorderSide.none),
       ),
       clipBehavior: Clip.antiAlias,
       child: bisaDiketuk

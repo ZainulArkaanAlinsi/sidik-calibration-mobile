@@ -8451,6 +8451,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get biruAwanMemuat => 'Loading';
 
   @override
+  String get tekPekerjaanSaya => 'My work';
+
+  @override
+  String get tekKalibrasiBaru => 'New calibration';
+
+  @override
+  String get tekLanjutkanPekerjaan => 'Continue working';
+
+  @override
+  String get tekAktivitasTerbaru => 'Recent activity';
+
+  @override
+  String get tekRingkasanMenunggu => 'Awaiting review';
+
+  @override
+  String tekRingkasanDariKiriman(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'from the latest $n submissions',
+      one: 'from the latest submission',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tekRingkasanBelumTerbaca => 'not loaded';
+
+  @override
+  String tekDiperbarui(String waktu) {
+    return 'Updated $waktu';
+  }
+
+  @override
   String get jlBertentangan =>
       'The printed code and the printed title point to different sheet types. Pick one yourself.';
 

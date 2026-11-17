@@ -282,7 +282,7 @@ void main() {
     );
 
     testWidgets('ada jenis yang boleh + saklar nyala: tombol tampil DI BAWAH '
-        'Mulai kalibrasi, lengkap dengan keterangannya', (tester) async {
+        'Kalibrasi baru, lengkap dengan keterangannya', (tester) async {
       await buka(
         tester,
         MockWorksheetScanService(daftar: [entriDaftar('ph_meter')]),
@@ -299,7 +299,7 @@ void main() {
         greaterThan(tester.getBottomLeft(mulai).dy),
       );
       // Tombol utama tidak tergeser/terganti.
-      expect(find.text('Mulai kalibrasi'), findsOneWidget);
+      expect(find.text('Kalibrasi baru'), findsOneWidget);
     });
 
     testWidgets('saklar pindai MATI: tidak ada tombol, dan server tidak '

@@ -69,11 +69,6 @@ abstract final class UkuranBiruAwan {
   static const double barisDaftar = 64;
   static const double barisMenu = 64;
 
-  /// Kartu draf geser mendatar (Beranda teknisi lama; hilang di PR 2 Beranda:
-  /// draf menjadi daftar vertikal).
-  static const double kartuDrafLebar = 196;
-  static const double kartuDrafTinggi = 148;
-
   /// Minimum, boleh tumbuh.
   static const double ubinPilihAlat = 164;
 

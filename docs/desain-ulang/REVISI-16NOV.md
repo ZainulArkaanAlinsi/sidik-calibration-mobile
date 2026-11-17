@@ -67,6 +67,27 @@ baru: `PaletLab.hijauTinta`, `kuningTinta`, `biruKelabu`, `biruKelabuTinta`,
 - **Masuk dan splash** (`KerangkaMasuk`): hero langit 190 (dulu 330), plat logo
   72, kartu menumpang 24 sudut 16 bergaris, tanpa bayangan; nama 22/600.
 
+## Beranda teknisi (PR 2; REVISI-1 §7)
+
+`lib/screens/teknisi/kalibrasi_teknisi_screen.dart`. Banner besar dan carousel
+draf diganti area kerja ringkas, dari atas: header identitas (logo, nama lab,
+lonceng), sapaan, judul "Pekerjaan saya", ringkasan tiga angka (draf, perlu
+revisi, menunggu pemeriksaan), tombol utama "Kalibrasi baru" (48), tombol
+"Pindai lembar kerja" (bila ada), "Perlu revisi" (kartu dengan catatan utuh),
+"Lanjutkan pekerjaan" (draf: DAFTAR VERTIKAL, bukan carousel) dan "Aktivitas
+terbaru" (kiriman terakhir). Tiap item draf/kiriman: nama alat, pelanggan,
+nomor kalibrasi, waktu pembaruan, status.
+
+Logika data yang sudah dibuktikan di L7a DIPERTAHANKAN: hitungan "menunggu
+pemeriksaan" dari kiriman terakhir yang dimuat (kartunya menyebut dasarnya,
+"dari {n} kiriman terakhir"); klaim "Semua lembar sudah terkirim." hanya bila
+ketiga daftar terbaca dan kosong DAN salinan lembar di HP terbaca dan kosong;
+daftar yang gagal atau masih memuat ditulis "–", bukan 0; `drafLokalProvider`
+tetap hanya penggerbang klaim. Yang berubah: kalimat 28/800 diganti judul tetap
++ kartu angka (tidak ada kalimat yang bisa terlalu yakin). Waktu pembaruan =
+`diubahPada` (atau `dikirimPada` bila itu satu-satunya); tanpa keduanya baris
+waktu tidak ditulis. Kartu "Perlu revisi" krem hanya bila ada isinya.
+
 ## Penjaga 02 dan 03 (BATAS KERAS pemilik)
 
 Mekanisme yang sudah ada: `TemaBeku`/`PaletBeku` (salinan), `BekuLembarKerja` di

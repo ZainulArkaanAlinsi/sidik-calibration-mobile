@@ -4426,6 +4426,30 @@
   "biruAwanJenisPeringatan": "Warning",
   "biruAwanJenisGalat": "Error",
   "biruAwanMemuat": "Loading",
+  "tekPekerjaanSaya": "My work",
+  "tekKalibrasiBaru": "New calibration",
+  "tekLanjutkanPekerjaan": "Continue working",
+  "tekAktivitasTerbaru": "Recent activity",
+  "tekRingkasanMenunggu": "Awaiting review",
+  "tekRingkasanDariKiriman": "{n, plural, =1{from the latest submission} other{from the latest {n} submissions}}",
+  "@tekRingkasanDariKiriman": {
+    "description": "Dasar hitungan 'Menunggu pemeriksaan' di Beranda teknisi: yang dihitung hanya kiriman terakhir yang sudah dimuat, bukan seluruh lab.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "tekRingkasanBelumTerbaca": "not loaded",
+  "tekDiperbarui": "Updated {waktu}",
+  "@tekDiperbarui": {
+    "description": "Waktu pembaruan satu pekerjaan di Beranda teknisi (\"5 minutes ago\").",
+    "placeholders": {
+      "waktu": {
+        "type": "String"
+      }
+    }
+  },
   "jlBertentangan": "The printed code and the printed title point to different sheet types. Pick one yourself.",
   "jlSamarCocok": "The print is a little blurry, but it matches one sheet type. Check it before using it.",
   "jlSamarUsulan": "The print is blurry. These are the closest suggestions, none is selected for you. Pick the one that matches your instrument."
