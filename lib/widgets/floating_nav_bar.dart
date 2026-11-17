@@ -292,7 +292,7 @@ class _ButirState extends State<_Butir> {
                     child: Padding(
                       padding: const EdgeInsets.only(
                         top: AppSpacing.sm,
-                        bottom: AppSpacing.xs,
+                        bottom: AppSpacing.sm,
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
