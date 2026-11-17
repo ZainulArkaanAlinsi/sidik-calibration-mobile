@@ -10,12 +10,11 @@ import 'package:sidik_calibration/widgets/sidik/sidik_status.dart';
 
 /// Gerbang desain Lab, pelengkap: aturan token yang bukan kontras.
 ///
-/// - Huruf: minimum 12 sp di semua slot, di HP maupun desktop (skala 0,9x);
-///   berat 400/500/600 saja, tanpa spasi huruf negatif (REVISI 16 Nov 2026).
-/// - Ukuran sentuh: aksi utama dan semua aksi lain 48 dp (desktop 44).
-/// - Bentuk (REVISI 16 Nov 2026, R1): tombol 10, chip 12, isian 12, kartu,
-///   dialog, lembar bawah 16 (`BentukBiruAwan`); snack, centang, tooltip masih
-///   `BentukLab` (4, 10). Nilai LAMA tema (tombol utama 16, dialog 20, isian
+/// - Huruf: minimum 12 sp di semua slot, di HP maupun desktop (skala 0,9x).
+/// - Ukuran sentuh: aksi utama 56 dp, semua aksi lain 48 dp (desktop 44).
+/// - Bentuk (Biru Awan, L1b): tombol dan chip pil, isian 16, dialog 28, lembar
+///   bawah 32 (`BentukBiruAwan`); kartu, snack, centang, tooltip masih
+///   `BentukLab` (4, 8, 10). Nilai LAMA tema (tombol utama 16, dialog 20, isian
 ///   garis bawah) kini dijaga untuk tema beku di `tema_beku_test.dart`.
 /// - Datar: resep permukaan tidak punya gradien dan tidak punya bayangan.
 /// - Status: tiap lencana membawa ikon DAN kata, tidak hanya warna.
@@ -72,48 +71,13 @@ void main() {
     });
   });
 
-  group('huruf: berat 400/500/600 dan tanpa spasi huruf negatif', () {
-    for (final (nama, bangun) in tema) {
-      test('tema $nama', () {
-        final t = bangun().textTheme;
-        for (final e in <String, TextStyle?>{
-          'displayLarge': t.displayLarge,
-          'headlineMedium': t.headlineMedium,
-          'titleLarge': t.titleLarge,
-          'titleMedium': t.titleMedium,
-          'titleSmall': t.titleSmall,
-          'bodyLarge': t.bodyLarge,
-          'bodyMedium': t.bodyMedium,
-          'bodySmall': t.bodySmall,
-          'labelLarge': t.labelLarge,
-          'labelMedium': t.labelMedium,
-        }.entries) {
-          final berat = e.value!.fontWeight!;
-          expect(
-            [FontWeight.w400, FontWeight.w500, FontWeight.w600],
-            contains(berat),
-            reason: '${e.key} berat $berat',
-          );
-          expect(
-            e.value!.letterSpacing ?? 0,
-            greaterThanOrEqualTo(0),
-            reason: '${e.key} spasi huruf negatif',
-          );
-        }
-        // Judul layar 24, judul bagian 16-18 (revisi: 22-24 / 16-18).
-        expect(t.displayLarge!.fontSize, 24);
-        expect(t.titleLarge!.fontSize, 18);
-      });
-    }
-  });
-
-  group('ukuran sentuh: aksi utama dan semua aksi lain 48', () {
+  group('ukuran sentuh: aksi utama 56, sisanya 48', () {
     for (final (nama, bangun) in tema) {
       test('tema $nama di HP', () {
         final t = bangun();
         double tinggi(ButtonStyle? s) => s!.minimumSize!.resolve({})!.height;
         expect(tinggi(t.filledButtonTheme.style), UkuranBiruAwan.tombolUtama);
-        expect(UkuranBiruAwan.tombolUtama, 48);
+        expect(UkuranBiruAwan.tombolUtama, 56);
         expect(tinggi(t.outlinedButtonTheme.style), UkuranBiruAwan.tombolTegas);
         expect(tinggi(t.textButtonTheme.style), UkuranBiruAwan.tombolTegas);
         expect(tinggi(t.iconButtonTheme.style), UkuranLab.aksi);
@@ -140,23 +104,21 @@ void main() {
 
   group('bentuk: radius hanya dari set Biru Awan + sudut kecil lama', () {
     // Biru Awan (`BentukBiruAwan`) ditambah sudut kecil `BentukLab` yang MASIH
-    // dipakai tema: snack 10, centang dan tooltip 4. Kartu, dialog, dan lembar
-    // bawah memakai `BentukBiruAwan` (16); tombol 10; chip dan isian 12. Tidak
-    // ada sudut ekstrem (> 16) di tema, kecuali lingkaran sungguhan (pil) yang
-    // tidak dipakai komponen tema mana pun.
-    // Daftar lalu `toSet()`: beberapa token bernilai sama (kartu = dialog =
-    // lembar bawah 16; isian = saringan 12; tombol = kontrol lama 10).
+    // dipakai tema: kartu 8 (kartu 24 dibawa layar yang didesain ulang), snack
+    // 10, centang dan tooltip 4. Tombol utama 16 dan dialog/lembar 20 milik
+    // `BentukLab` sudah tidak dipakai tema app.
+    // `ikonUbin` (16) dan `hero` (28) tidak ditulis: nilainya sama dengan
+    // `isian` dan `dialog`, dan set literal tidak boleh memuat nilai ganda.
     final set = <double>{
-      ...<double>[
-        BentukLab.sel,
-        BentukLab.kontrol,
-        BentukBiruAwan.isian,
-        BentukBiruAwan.kartu,
-        BentukBiruAwan.dialog,
-        BentukBiruAwan.lembarBawah,
-        BentukBiruAwan.tombol,
-        BentukBiruAwan.saringan,
-      ],
+      BentukLab.sel,
+      BentukLab.panel,
+      BentukLab.kontrol,
+      BentukBiruAwan.isian,
+      BentukBiruAwan.kartu,
+      BentukBiruAwan.dialog,
+      BentukBiruAwan.lembarBawah,
+      BentukBiruAwan.dock,
+      BentukBiruAwan.pil,
     };
 
     double radius(ShapeBorder? b, String apa) {
@@ -209,30 +171,17 @@ void main() {
             reason: '${e.key} memakai radius ${e.value}, di luar set Biru Awan',
           );
         }
-        expect(dipakai['FilledButton'], BentukBiruAwan.tombol);
-        expect(dipakai['OutlinedButton'], BentukBiruAwan.tombol);
-        expect(dipakai['TextButton'], BentukBiruAwan.tombol);
-        expect(dipakai['FAB'], BentukBiruAwan.tombol);
-        expect(dipakai['Chip'], BentukBiruAwan.saringan);
-        expect(dipakai['Card'], BentukBiruAwan.kartu);
+        expect(dipakai['FilledButton'], BentukBiruAwan.pil);
+        expect(dipakai['OutlinedButton'], BentukBiruAwan.pil);
+        expect(dipakai['TextButton'], BentukBiruAwan.pil);
+        expect(dipakai['Chip'], BentukBiruAwan.pil);
+        expect(dipakai['Card'], BentukLab.panel);
         expect(dipakai['Dialog'], BentukBiruAwan.dialog);
         expect(dipakai['BottomSheet'], BentukBiruAwan.lembarBawah);
         expect(dipakai['Isian (enabled)'], BentukBiruAwan.isian);
-        // Nilai revisi 16 Nov 2026 dikunci literal.
-        expect(BentukBiruAwan.tombol, 10);
-        expect(BentukBiruAwan.isian, 12);
-        expect(BentukBiruAwan.saringan, 12);
-        expect(BentukBiruAwan.kartu, 16);
-        expect(BentukBiruAwan.dialog, 16);
-        expect(BentukBiruAwan.lembarBawah, 16);
-        expect(BentukBiruAwan.lencana, 6);
-        // Kartu tema dipotong ke sudutnya (riak widget lama tidak keluar).
-        expect(t.cardTheme.clipBehavior, Clip.antiAlias);
-      });
-
-      test('tema $nama: ikon dialog terbaca (bukan secondary putih)', () {
-        final t = bangun();
-        expect(t.dialogTheme.iconColor, t.colorScheme.primary);
+        expect(BentukBiruAwan.dialog, 28);
+        expect(BentukBiruAwan.lembarBawah, 32);
+        expect(BentukBiruAwan.isian, 16);
       });
     }
   });
@@ -324,10 +273,6 @@ void main() {
       for (final (_, bangun) in tema) {
         final t = bangun();
         expect(t.cardTheme.elevation, 0);
-        // Dialog dan lembar bawah: bayangan sangat tipis (elevasi 1).
-        expect(t.dialogTheme.elevation, 1);
-        expect(t.bottomSheetTheme.elevation, 1);
-        expect(t.floatingActionButtonTheme.elevation, 1);
         expect(t.appBarTheme.elevation, 0);
         expect(t.appBarTheme.scrolledUnderElevation, 0);
         expect(t.navigationBarTheme.elevation, 0);

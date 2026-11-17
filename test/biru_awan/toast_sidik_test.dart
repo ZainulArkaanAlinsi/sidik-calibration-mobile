@@ -1,4 +1,4 @@
-// ToastSidik + tampilkanToast (L2): kartu 16, ubin 40, aksi, tutup, satu
+// ToastSidik + tampilkanToast (L2): kartu 22, ubin 40, aksi, tutup, satu
 // sekaligus, hilang sendiri (galat dan toast beraksi tidak), usap ke atas,
 // kurangi gerak, Semantics, cincin fokus >= 3:1, sasaran 48, 320 dp x huruf 1,3.
 import 'package:flutter/material.dart';
@@ -83,8 +83,9 @@ void main() {
   setUpAll(muatFontUji);
 
   group('kartu: ukuran, bentuk, token', () {
-    testWidgets('lebar layar - 32, 16 dp dari atas, radius 16, ubin 40/10, '
-        'bayangan sangat tipis', (tester) async {
+    testWidgets('lebar layar - 32, 16 dp dari atas, radius 22, ubin 40/14', (
+      tester,
+    ) async {
       await _tampil(tester, jenis: JenisToast.sukses);
       final r = tester.getRect(_kartu);
       expect(r.left, 16);
@@ -104,13 +105,12 @@ void main() {
           .map((d) => d.decoration)
           .whereType<BoxDecoration>()
           .firstWhere((d) => d.boxShadow != null && d.boxShadow!.isNotEmpty);
-      expect(dekor.borderRadius, BorderRadius.circular(16));
+      expect(dekor.borderRadius, BorderRadius.circular(22));
       expect(dekor.color, bahan(tester).kertas);
       final bayangan = dekor.boxShadow!.single;
-      // REVISI 16 Nov 2026: 0 2 8 @10 % (dulu 0 12 30 @16 %).
-      expect(bayangan.offset, const Offset(0, 2));
-      expect(bayangan.blurRadius, 8);
-      expect(bayangan.color.a, closeTo(0.10, 0.005));
+      expect(bayangan.offset, const Offset(0, 12));
+      expect(bayangan.blurRadius, 30);
+      expect(bayangan.color.a, closeTo(0.16, 0.005));
 
       final ubin = tester
           .widgetList<DecoratedBox>(
@@ -118,7 +118,7 @@ void main() {
           )
           .map((d) => d.decoration)
           .whereType<BoxDecoration>()
-          .firstWhere((d) => d.borderRadius == BorderRadius.circular(10));
+          .firstWhere((d) => d.borderRadius == BorderRadius.circular(14));
       expect(ubin.color, warna(tester).isi(IsiBiruAwan.hijau));
       final ubinUkuran = tester.getSize(
         find
@@ -136,11 +136,11 @@ void main() {
       expect(tester.getSize(_kartu).width, 420);
     });
 
-    testWidgets('judul 15/600 tinta, isi 13/18 tinta kedua', (tester) async {
+    testWidgets('judul 15/800 tinta, isi 13/18 tinta kedua', (tester) async {
       await _tampil(tester);
       final judul = tester.widget<Text>(find.text(_judul)).style!;
       expect(judul.fontSize, 15);
-      expect(judul.fontWeight, FontWeight.w600);
+      expect(judul.fontWeight, FontWeight.w800);
       expect(judul.color, bahan(tester).tinta);
       final isi = tester.widget<Text>(find.text(_isi)).style!;
       expect(isi.fontSize, 13);

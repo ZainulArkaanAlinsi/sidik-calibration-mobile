@@ -177,22 +177,9 @@ void main() {
     expect(chip.terpilih, isTrue);
     await tester.tap(find.text('Viewer'));
     await tester.pump();
-    // REVISI 16 Nov: terpilih = isi biru muda + tepi biru (kata tetap navy).
-    BoxDecoration penanda(String t) =>
-        tester
-                .widget<DecoratedBox>(
-                  find
-                      .ancestor(
-                        of: find.text(t),
-                        matching: find.byType(DecoratedBox),
-                      )
-                      .first,
-                )
-                .decoration
-            as BoxDecoration;
-    expect(penanda('Viewer').color, isNot(penanda('Admin').color));
-    expect(penanda('Viewer').border, isNotNull);
-    expect(penanda('Admin').border, isNull);
+    final dipilih = tester.widget<Text>(find.text('Viewer')).style!.color;
+    final lain = tester.widget<Text>(find.text('Admin')).style!.color;
+    expect(dipilih, isNot(lain));
   });
 
   group('pintu masuk: hanya dari galeri lama, hanya di debug', () {

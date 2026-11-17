@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../core/motion/gerak_bersama.dart';
 import '../../core/theme/app_spacing.dart';
-import '../../core/theme/app_ukuran.dart';
 import '../../core/theme/bentuk_lab.dart';
 import '../../core/theme/sidik_material.dart';
 import '../../core/theme/token_komponen_biru_awan.dart';
@@ -17,14 +16,13 @@ class SegmenPilItem<T> {
   final String label;
 }
 
-/// Segmen Biru Awan (`Formulir.dc.html`, "Peran", REVISI 16 Nov 2026): 2 sampai
-/// 3 pilihan yang saling meniadakan dalam satu jalur 48 sudut 12 berlatar
-/// `latar`; yang terpilih menjadi kotak biru muda bertepi biru berisi kata navy
-/// (bukan blok navy penuh).
+/// Segmen pil Biru Awan (`Formulir.dc.html`, "Peran"): 2 sampai 3 pilihan yang
+/// saling meniadakan dalam satu jalur 56 sudut 28 berlatar `latar`; yang
+/// terpilih menjadi pil navy berisi teks putih.
 ///
 /// - Pengganti `SegmentedButton` dan `TabBar` 2 sampai 3 tab. Untuk banyak
 ///   tab pakai `TabGaris` (L2b).
-/// - Tiap segmen adalah satu sasaran sentuh 48 dp penuh (penanda di dalamnya
+/// - Tiap segmen adalah satu sasaran sentuh 56 dp penuh (pil di dalamnya
 ///   lebih kecil, sisanya bidang sentuh) dan dibaca pembaca layar sebagai
 ///   tombol yang terpilih atau tidak, dalam satu kelompok bernama [label].
 /// - [onChanged] `null` = seluruh kelompok mati. Tombol yang tidak boleh dipakai
@@ -59,7 +57,7 @@ class SegmenPil<T> extends StatelessWidget {
       child: Material(
         color: m.meja,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(BentukBiruAwan.saringan),
+          borderRadius: BorderRadius.circular(BentukBiruAwan.hero),
         ),
         clipBehavior: Clip.antiAlias,
         child: ConstrainedBox(
@@ -112,7 +110,7 @@ class _Segmen extends StatelessWidget {
     final (Color isi, Color tinta) = !aktif
         ? (dipilih ? w.isiTombolMati : m.meja, w.tintaTombolMati)
         : dipilih
-        ? (m.biruTipis, m.tinta)
+        ? (m.tinta, m.kertas)
         : (m.meja, m.tinta);
 
     return Semantics(
@@ -137,13 +135,7 @@ class _Segmen extends StatelessWidget {
             child: DecoratedBox(
               decoration: BoxDecoration(
                 color: isi,
-                borderRadius: BorderRadius.circular(
-                  BentukBiruAwan.penandaSegmen,
-                ),
-                // Pilihan = biru muda + tepi biru (biru muda sendirian 1,1:1).
-                border: aktif && dipilih
-                    ? Border.all(color: m.biru, width: AppUkuran.garisTebal)
-                    : null,
+                borderRadius: BorderRadius.circular(BentukBiruAwan.pil),
               ),
               child: Center(
                 child: Padding(

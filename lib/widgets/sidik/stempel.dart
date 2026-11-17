@@ -41,7 +41,7 @@ class Stempel extends StatelessWidget {
       color: tinta,
       fontSize: UkuranTeksLab.stempel,
       height: UkuranTeksLab.stempelBaris / UkuranTeksLab.stempel,
-      fontWeight: FontWeight.w600,
+      fontWeight: FontWeight.w700,
     );
 
     return Semantics(

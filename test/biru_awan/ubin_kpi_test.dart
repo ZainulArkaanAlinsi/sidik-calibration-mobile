@@ -1,4 +1,4 @@
-// UbinKpi: ubin angka 2 x 2 beranda admin (min 112, sudut 16, angka 28/600).
+// UbinKpi: ubin angka 2 x 2 beranda admin (min 112, sudut 24, angka 36/800).
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -50,14 +50,14 @@ void main() {
         reason: 'angka duduk di dasar, bantalan 16',
       );
       final angka = tester.widget<Text>(find.text('128')).style!;
-      expect(angka.fontSize, 28);
-      expect(angka.fontWeight, FontWeight.w600);
+      expect(angka.fontSize, 36);
+      expect(angka.fontWeight, FontWeight.w800);
       final label = tester.widget<Text>(find.text('Total alat')).style!;
       expect(label.fontSize, 13);
-      expect(label.fontWeight, FontWeight.w500);
+      expect(label.fontWeight, FontWeight.w700);
     });
 
-    testWidgets('sudut 16; ragam navy sudut 16 (hero)', (tester) async {
+    testWidgets('sudut 24; ragam navy sudut 28', (tester) async {
       await pasang(tester, Center(child: _ubin()));
       expect(
         tester.widget<Material>(_material()).borderRadius,

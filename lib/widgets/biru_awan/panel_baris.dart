@@ -9,7 +9,7 @@ import '../../core/theme/ukuran_komponen.dart';
 import '../../core/theme/warna_biru_awan.dart';
 import 'ubin_ikon.dart';
 
-/// Panel putih sudut 16 bergaris halus yang memuat baris-baris ([BarisMenu64], [BarisDaftar72])
+/// Panel putih sudut 24 yang memuat baris-baris ([BarisMenu64], [BarisDaftar72])
 /// dipisah garis halus 1 dp (`POLA.md` §Daftar: daftar padat memakai panel
 /// berbaris, bukan kartu terpisah).
 ///
@@ -41,7 +41,6 @@ class PanelBaris extends StatelessWidget {
       color: m.kertas,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(BentukBiruAwan.kartu),
-        side: BorderSide(color: m.kertasTepi, width: AppUkuran.garis),
       ),
       clipBehavior: Clip.antiAlias,
       child: Padding(
@@ -173,13 +172,11 @@ class BarisMenu64 extends StatelessWidget {
   }
 }
 
-/// Baris daftar (`Jadwal`, `Kalibrasi` "lanjutkan pekerjaan" dan "aktivitas
-/// terbaru"): [awal] (biasanya [UbinIkon.baris] berisi visual alat), judul
-/// 16/600, [nomor] mono 12, keterangan 13, [catatan] 13 (mis. waktu pembaruan),
-/// dan [akhir] di kanan (lencana status, angka hari + tanggal).
+/// Baris daftar 72 (`Jadwal`, `Kalibrasi` "terkirim terakhir"): [awal] (biasanya
+/// [UbinIkon.baris] berisi visual alat), judul 16/800, [nomor] mono 12, keterangan
+/// 13, dan [akhir] di kanan (stempel, angka hari + tanggal).
 ///
-/// Minimum 64 dp (dulu 72; nama kelas peninggalan), tumbuh bila huruf
-/// diperbesar. [akhir] mendapat paling banyak
+/// Minimum 72 dp, tumbuh bila huruf diperbesar. [akhir] mendapat paling banyak
 /// 40 % lebar (`UkuranBaris.bagianStempel`) dan membungkus, tidak memotong.
 /// Taruh di dalam [PanelBaris.daftar]. Tanpa [onTap] baris hanya baca.
 class BarisDaftar72 extends StatelessWidget {
@@ -188,7 +185,6 @@ class BarisDaftar72 extends StatelessWidget {
     required this.judul,
     this.keterangan,
     this.nomor,
-    this.catatan,
     this.awal,
     this.akhir,
     this.onTap,
@@ -197,10 +193,6 @@ class BarisDaftar72 extends StatelessWidget {
 
   final String judul;
   final String? keterangan;
-
-  /// Baris terakhir kecil di bawah keterangan, mis. "Diperbarui 5 menit lalu".
-  /// Hanya ditulis bila ada isinya (tidak ada titik waktu yang dikarang).
-  final String? catatan;
 
   /// Nomor KAL/..., serial: IBM Plex Mono.
   final String? nomor;
@@ -244,15 +236,6 @@ class BarisDaftar72 extends StatelessWidget {
                     if (keterangan != null)
                       Text(
                         keterangan!,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: HurufBiruAwan.keteranganKecil.copyWith(
-                          color: m.tinta2,
-                        ),
-                      ),
-                    if (catatan != null)
-                      Text(
-                        catatan!,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: HurufBiruAwan.keteranganKecil.copyWith(

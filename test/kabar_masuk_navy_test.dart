@@ -91,7 +91,7 @@ void main() {
         .whereType<BoxDecoration>()
         .first;
     expect(dekor.color, u.kabarLatar);
-    expect(dekor.borderRadius, BorderRadius.circular(16));
+    expect(dekor.borderRadius, BorderRadius.circular(22));
     expect(
       find.descendant(of: _kartu, matching: find.byType(Image)),
       findsOneWidget,

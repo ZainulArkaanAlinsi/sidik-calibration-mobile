@@ -1,5 +1,4 @@
-// TombolBulat (44, 48, Mulai 48): gambar menurut ukuran, area sentuh >= 48,
-// tanpa bayangan (REVISI 16 Nov 2026).
+// TombolBulat (44, 48, 60): gambar menurut ukuran, area sentuh >= 48.
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -35,7 +34,7 @@ void main() {
     final peta = {
       UkuranTombolBulat.kecil: (gambar: 44.0, sentuh: 48.0),
       UkuranTombolBulat.standar: (gambar: 48.0, sentuh: 48.0),
-      UkuranTombolBulat.mulai: (gambar: 48.0, sentuh: 48.0),
+      UkuranTombolBulat.mulai: (gambar: 60.0, sentuh: 60.0),
     };
     for (final e in peta.entries) {
       testWidgets('${e.key.name}: gambar ${e.value.gambar}, sentuh '
@@ -89,9 +88,7 @@ void main() {
       expect((bahan.shape! as CircleBorder), isA<CircleBorder>());
     });
 
-    testWidgets('TANPA bayangan di ukuran mana pun (Mulai pun datar)', (
-      tester,
-    ) async {
+    testWidgets('bayangan HANYA pada Mulai (60)', (tester) async {
       bool adaBayangan() => tester
           .widgetList<DecoratedBox>(
             find.descendant(
@@ -111,7 +108,7 @@ void main() {
             ),
           ),
         );
-        expect(adaBayangan(), isFalse, reason: u.name);
+        expect(adaBayangan(), u == UkuranTombolBulat.mulai, reason: u.name);
       }
     });
   });

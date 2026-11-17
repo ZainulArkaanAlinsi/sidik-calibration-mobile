@@ -21,48 +21,33 @@ abstract final class BentukLab {
   static const double pil = 999;
 }
 
-/// Sudut Biru Awan, diselaraskan ke REVISI 16 Nov 2026
-/// (`docs/desain-ulang/REVISI-16NOV.md`): kartu 12-16, tombol dan isian 8-12,
-/// tanpa sudut ekstrem. Tambahan di samping [BentukLab] yang TIDAK diubah:
-/// `AppSpacing.radius*`, `SidikMaterial.sudut*` dan komponen lama (termasuk yang
-/// dipakai area beku) masih membacanya. Layar yang didesain ulang memakai set
-/// ini.
-///
-/// Pil (999) tinggal untuk bentuk yang memang lingkaran: avatar, titik,
-/// tombol bulat. Tombol, lencana status, kolom cari, dan saringan memakai sudut
-/// persegi di bawah.
+/// Sudut Biru Awan (`docs/desain-ulang/DESIGN.md` §Sudut), tambahan di samping
+/// [BentukLab] yang TIDAK diubah: `AppSpacing.radius*`, `SidikMaterial.sudut*`
+/// dan komponen lama masih membacanya. Layar yang didesain ulang memakai set
+/// ini; nilai dari `docs/desain-ulang/flutter/bentuk_ukuran_lab.dart`.
 abstract final class BentukBiruAwan {
   /// Ikon ubin.
-  static const double ikonUbin = 12;
+  static const double ikonUbin = 16;
 
-  /// Kotak isian.
-  static const double isian = 12;
+  /// Kotak isian (kotak 56, `ELEMEN.md` §Isian).
+  static const double isian = 16;
 
-  /// Kartu, baris-panel, antrean, ubin.
-  static const double kartu = 16;
+  /// Kartu draf, baris-panel, antrean.
+  static const double kartu = 24;
 
-  /// Panel kecil berilustrasi (hero, ubin KPI sorot) dan wadah segmen.
-  static const double hero = 16;
+  /// Hero, panel besar, segmen.
+  static const double hero = 28;
 
   /// Dialog.
-  static const double dialog = 16;
+  static const double dialog = 28;
 
-  /// Sudut ATAS lembar bawah dan sudut kanan laci.
-  static const double lembarBawah = 16;
+  /// Sudut ATAS lembar bawah.
+  static const double lembarBawah = 32;
 
-  /// Tombol berlabel (utama, tegas, sekunder, teks, bahaya).
-  static const double tombol = 10;
+  /// Dock.
+  static const double dock = 40;
 
-  /// Kolom cari, saringan (chip), dan wadah segmen.
-  static const double saringan = 12;
-
-  /// Butir terpilih di dalam segmen.
-  static const double penandaSegmen = 8;
-
-  /// Lencana status dan lencana jumlah (kotak kecil, bukan pil).
-  static const double lencana = 6;
-
-  /// Lingkaran sungguhan saja: avatar, titik, tombol bulat.
+  /// Tombol, stempel, kolom cari, chip.
   static const double pil = 999;
 }
 

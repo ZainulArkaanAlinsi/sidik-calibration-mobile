@@ -4,11 +4,11 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_ukuran.dart';
 import '../../core/theme/ukuran_komponen.dart';
 
-/// Aksi utama layar: tombol primer 48 dp, sudut 10, selebar induk. SATU per
+/// Aksi utama layar: tombol primer 56 dp, pil, selebar induk. SATU per
 /// layar; aksi lain memakai tombol sekunder 48 dp.
 ///
 /// Tinggi, sudut, dan warna datang dari `filledButtonTheme` di `SidikTheme`
-/// (48 dp di HP dan tablet, 44 di desktop Windows), bukan ditulis di sini.
+/// (56 dp di HP dan tablet, 44 di desktop Windows), bukan ditulis di sini.
 /// Label panjang membungkus ke baris berikutnya dan tombol ikut tumbuh, jadi
 /// huruf 1,3x tidak memotong.
 ///
@@ -66,7 +66,7 @@ class TombolUtama extends StatelessWidget {
     // aksi yang ditunda harus tetap bisa dibaca di bengkel.
     //
     // Bantalan atas-bawah supaya label yang membungkus (huruf 1,3x) tidak
-    // menempel ke tepi tombol; tinggi 48 dp tetap dijaga tema (minimum).
+    // menempel ke tepi tombol; tinggi 56 dp tetap dijaga tema (minimum).
     final gaya = FilledButton.styleFrom(
       disabledForegroundColor: s.onSurfaceVariant,
       padding: const EdgeInsets.symmetric(

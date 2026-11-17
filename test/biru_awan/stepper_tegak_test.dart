@@ -117,11 +117,11 @@ void main() {
             .widget<Text>(find.text('Perhitungan & approval'))
             .style!
             .fontWeight,
-        FontWeight.w600,
+        FontWeight.w800,
       );
       expect(
         tester.widget<Text>(find.text('Lembar kerja')).style!.fontWeight,
-        FontWeight.w500,
+        FontWeight.w600,
       );
       expect(find.text('Lagi di sini'), findsOneWidget, reason: 'penanda');
       expect(find.text('Beres'), findsOneWidget, reason: 'keterangan');

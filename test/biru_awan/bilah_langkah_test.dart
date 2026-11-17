@@ -71,9 +71,9 @@ void main() {
           expect(
             berat,
             i == aktif
-                ? FontWeight.w600
+                ? FontWeight.w800
                 : i < aktif
-                ? FontWeight.w500
+                ? FontWeight.w700
                 : FontWeight.w400,
             reason: 'aktif=$aktif label $i',
           );
