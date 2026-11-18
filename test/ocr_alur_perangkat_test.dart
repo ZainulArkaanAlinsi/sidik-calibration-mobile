@@ -233,6 +233,10 @@ void main() {
               // ketik (di atas tepi papan ketik).
               final cari = find.byKey(PilihAlatRingkasSheet.kunciCari);
               expect(cari, findsOneWidget);
+              // Teknisi mengetuk kotak cari: ia digulir ke area yang tidak
+              // tertutup papan ketik (huruf besar mendorongnya ke bawah).
+              await tester.ensureVisible(cari);
+              await tester.pumpAndSettle();
               final tepiPapan = ukuran.height - ukuran.height * 0.4;
               expect(
                 tester.getRect(cari).bottom,

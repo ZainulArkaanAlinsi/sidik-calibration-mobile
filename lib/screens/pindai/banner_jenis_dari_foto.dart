@@ -30,11 +30,47 @@ class BannerJenisDariFoto extends StatelessWidget {
   static const kunciGanti = ValueKey('banner-ganti-jenis');
   static const kunciPetunjukAlat = ValueKey('banner-petunjuk-alat');
 
+  /// Lebar minimal (dp) dan skala huruf maksimal yang masih memuat teks dan
+  /// tombol dalam SATU baris. Di bawahnya tombol turun ke bawah teks: baris
+  /// tunggal di HP sempit atau huruf besar menyisakan lebar teks nyaris nol
+  /// (teks pecah per huruf dan lembar meluap).
+  static const lebarSebaris = 520.0;
+  static const skalaSebaris = 1.3;
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final tema = Theme.of(context);
     final warna = tema.colorScheme;
+    final skala = MediaQuery.textScalerOf(context).scale(14) / 14;
+
+    final teks = Text(
+      info.otomatis
+          ? l10n.pindaiBannerOtomatis(info.jenis)
+          : l10n.pindaiBannerDipilih(info.jenis),
+      style: tema.textTheme.bodyMedium?.copyWith(
+        color: warna.onSecondaryContainer,
+      ),
+    );
+    final petunjuk = perluAlat
+        ? Text(
+            l10n.pindaiBannerPilihAlat,
+            key: kunciPetunjukAlat,
+            style: tema.textTheme.bodySmall?.copyWith(
+              color: warna.onSecondaryContainer,
+            ),
+          )
+        : null;
+    final ganti = TextButton(
+      key: kunciGanti,
+      onPressed: onGanti,
+      child: Text(l10n.pindaiGantiJenis),
+    );
+    final ikon = Icon(
+      Icons.document_scanner_outlined,
+      size: 20,
+      color: warna.onSecondaryContainer,
+    );
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(
@@ -47,49 +83,58 @@ class BannerJenisDariFoto extends StatelessWidget {
         key: kunciBanner,
         color: warna.secondaryContainer,
         borderRadius: BorderRadius.circular(AppSpacing.sm),
-        child: Padding(
-          padding: const EdgeInsets.only(left: AppSpacing.md),
-          child: Row(
-            children: [
-              Icon(
-                Icons.document_scanner_outlined,
-                size: 20,
-                color: warna.onSecondaryContainer,
+        child: LayoutBuilder(
+          builder: (context, c) {
+            final sebaris = c.maxWidth >= lebarSebaris && skala <= skalaSebaris;
+
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.sm,
+                AppSpacing.sm,
+                AppSpacing.sm,
               ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        info.otomatis
-                            ? l10n.pindaiBannerOtomatis(info.jenis)
-                            : l10n.pindaiBannerDipilih(info.jenis),
-                        style: tema.textTheme.bodyMedium?.copyWith(
-                          color: warna.onSecondaryContainer,
-                        ),
-                      ),
-                      if (perluAlat)
-                        Text(
-                          l10n.pindaiBannerPilihAlat,
-                          key: kunciPetunjukAlat,
-                          style: tema.textTheme.bodySmall?.copyWith(
-                            color: warna.onSecondaryContainer,
+              child: sebaris
+                  ? Row(
+                      children: [
+                        ikon,
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [teks, ?petunjuk],
                           ),
                         ),
-                    ],
-                  ),
-                ),
-              ),
-              TextButton(
-                key: kunciGanti,
-                onPressed: onGanti,
-                child: Text(l10n.pindaiGantiJenis),
-              ),
-            ],
-          ),
+                        ganti,
+                      ],
+                    )
+                  : Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(top: 2),
+                              child: ikon,
+                            ),
+                            const SizedBox(width: AppSpacing.sm),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [teks, ?petunjuk],
+                              ),
+                            ),
+                          ],
+                        ),
+                        Align(alignment: Alignment.centerRight, child: ganti),
+                      ],
+                    ),
+            );
+          },
         ),
       ),
     );
