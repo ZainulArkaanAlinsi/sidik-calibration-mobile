@@ -119,26 +119,29 @@ void main() {
   });
 
   group('kandidat ganda: satu ketukan, tidak pernah dipilihkan', () {
-    test('kode bersama 0504 (lima jenis): paling banyak TIGA kandidat satu '
-        'ketukan, tidak ada yang dibuka sendiri; sisanya lewat "Jenis lain"', () {
-      final k = _putuskan('Revise : 4 SIDIK-FM-CAL-0504');
+    test(
+      'kode bersama 0504 (lima jenis): paling banyak TIGA kandidat satu '
+      'ketukan, tidak ada yang dibuka sendiri; sisanya lewat "Jenis lain"',
+      () {
+        final k = _putuskan('Revise : 4 SIDIK-FM-CAL-0504');
 
-      expect(k, isA<PilihSatu>());
-      final p = k as PilihSatu;
-      expect(p.alasan, AlasanPilih.kodeBersama);
-      expect(p.kandidat.length, maksKandidatRingkas);
-      // Semuanya memang jenis sekode.
-      expect(
-        p.kandidat.map((e) => e.templateId).toSet().difference({
-          'oven',
-          'furnace',
-          'inkubator',
-          'bath',
-          'refrigerator',
-        }),
-        isEmpty,
-      );
-    });
+        expect(k, isA<PilihSatu>());
+        final p = k as PilihSatu;
+        expect(p.alasan, AlasanPilih.kodeBersama);
+        expect(p.kandidat.length, maksKandidatRingkas);
+        // Semuanya memang jenis sekode.
+        expect(
+          p.kandidat.map((e) => e.templateId).toSet().difference({
+            'oven',
+            'furnace',
+            'inkubator',
+            'bath',
+            'refrigerator',
+          }),
+          isEmpty,
+        );
+      },
+    );
 
     test('kode bersama: hanya jenis yang BOLEH dipindai yang ditawarkan', () {
       final k = _putuskan(
@@ -276,11 +279,15 @@ void main() {
 
             if (k is BukaOtomatis) {
               terbuka++;
+              // Pemisah yang berlebih ("FM--CAL") tidak mengubah identitas
+              // kode; yang dibandingkan huruf dan angkanya saja.
+              String padat(String x) =>
+                  x.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
               final kodeBuka = RegExp(
                 r'SIDIK-FM-CAL-\d{4}',
               ).firstMatch(k.formulir.kodeDokumen)!.group(0)!;
               expect(
-                teks.toUpperCase().contains(kodeBuka),
+                padat(teks).contains(padat(kodeBuka)),
                 isTrue,
                 reason: 'terbuka tanpa kodenya tertulis utuh: "$teks"',
               );

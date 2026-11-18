@@ -2629,14 +2629,15 @@ class _FormState extends ConsumerState<_Form> {
                     const KabarServerLambat(),
                   // SATU pintu foto per layar. Lembar dari foto beranda: foto
                   // dibaca otomatis, jadi tombol ini baru muncul sesudahnya
-                  // ("Foto ulang"), atau bila alat belum ada dan foto masih
-                  // menunggu ("Isi dari foto"). Lembar manual: tombol lamanya.
+                  // ("Foto ulang"), atau langsung bila alur tidak menentukan alat
+                  // dan foto masih menunggu ("Isi dari foto"). Lembar manual:
+                  // tombol lamanya.
                   if (_bolehFotoLembar(
                         ref.watch(formulirAsliProvider(_kunciAsli)).value,
                       ) &&
                       (widget.dariFoto == null ||
                           _autoFotoSelesai ||
-                          _isian.alat == null))
+                          widget.dariFoto!.alatAwal == null))
                     Padding(
                       padding: const EdgeInsets.fromLTRB(
                         AppSpacing.md,

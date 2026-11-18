@@ -93,7 +93,7 @@ const Map<String, String> _hashBeku = {
   // pemanggil di dalam berkas); lainnya masih hash L0. `lembar_kerja_screen`
   // berubah lagi 15 Nov 2026 (foto awal "Pindai lembar kerja", lihat atas).
   'lib/screens/calibration/lembar_kerja_screen.dart':
-      '6c0e57e775e30730b6acc0f636ae35f85861a4bc3e5210dfb0a97c59c13d94ee',
+      'dde86ae4abc8c0ea789d38bf72cbbcaf119dc896f3569beca402b5c612a581e9',
   'lib/screens/calibration/lembar_kerja_state.dart':
       '6e6005a486d13dfcc002fa339e38d0bee5c3b3054cbdf0e9ed843266c16cc093',
   'lib/screens/calibration/kinerja_lembar.dart':

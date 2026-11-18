@@ -916,7 +916,7 @@ void main() {
       final review = find.byType(FotoReviewScreen);
       await _tunggu(tester, () => review.evaluate().isNotEmpty);
       expect(review, findsOneWidget);
-      expect(find.byType(PanelGerbangCek), findsNothing);
+      expect(find.textContaining('bacaan kamera'), findsNothing);
       expect(
         ProviderScope.containerOf(
           tester.element(find.byType(LembarKerjaScreen, skipOffstage: false)),
@@ -966,6 +966,7 @@ void main() {
       // "Foto ulang" menggantikan jalan masuk foto.
       expect(find.byType(FotoReviewScreen), findsNothing);
       expect(find.byType(PanelGerbangCek), findsOneWidget);
+      expect(find.textContaining('bacaan kamera'), findsOneWidget);
       expect(find.text('7,01'), findsWidgets);
       expect(find.text('4,01'), findsWidgets);
       expect(_banner, findsOneWidget);
