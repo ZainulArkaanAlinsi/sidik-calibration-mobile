@@ -14,6 +14,11 @@ class Category {
     this.rentangUkur,
     this.ketidakpastianTerbaik,
     this.satuan,
+    this.aktif = true,
+    this.nonaktifPada,
+    this.jumlahAlat = 0,
+    this.jumlahKemampuan = 0,
+    this.jumlahTanpaCmc = 0,
   });
 
   /// Id numerik kategori. Dibutuhkan `equipment_category_id` di Terima
@@ -26,6 +31,22 @@ class Category {
   final double? ketidakpastianTerbaik;
   final String? satuan;
 
+  /// `false` bila dinonaktifkan (paket CRUD lengkap, field ADDITIVE). Server
+  /// lama tidak mengirimnya: dianggap aktif.
+  final bool aktif;
+  final DateTime? nonaktifPada;
+
+  /// Alat yang masih hidup di kategori ini (`jumlah_alat`) dan hitungan CMC.
+  /// Dasar tombol Hapus: tampil hanya bila `jumlahAlat == 0 &&
+  /// jumlahKemampuan == 0` (server tetap memeriksa penuh).
+  final int jumlahAlat;
+  final int jumlahKemampuan;
+  final int jumlahTanpaCmc;
+
+  /// Boleh dicoba hapus: tidak dipakai alat maupun kemampuan menurut hitungan
+  /// server. Bukan jaminan; `422 kategori_dipakai` tetap ditangani.
+  bool get bisaDihapus => jumlahAlat == 0 && jumlahKemampuan == 0;
+
   factory Category.fromJson(Map<String, dynamic> json) {
     return Category(
       id: (json['id'] as num?)?.toInt(),
@@ -35,6 +56,13 @@ class Category {
       ketidakpastianTerbaik: (json['ketidakpastian_terbaik'] as num?)
           ?.toDouble(),
       satuan: json['satuan'] as String?,
+      aktif: json['aktif'] as bool? ?? true,
+      nonaktifPada: DateTime.tryParse(
+        json['nonaktif_pada'] as String? ?? '',
+      ),
+      jumlahAlat: (json['jumlah_alat'] as num?)?.toInt() ?? 0,
+      jumlahKemampuan: (json['jumlah_kemampuan'] as num?)?.toInt() ?? 0,
+      jumlahTanpaCmc: (json['jumlah_tanpa_cmc'] as num?)?.toInt() ?? 0,
     );
   }
 }
