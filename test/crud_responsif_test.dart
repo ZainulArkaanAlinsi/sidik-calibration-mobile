@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:sidik_calibration/models/order.dart';
+import 'package:sidik_calibration/screens/crud_lab/order_detail_screen.dart';
 import 'package:sidik_calibration/screens/crud_lab/order_form_screen.dart';
 import 'package:sidik_calibration/screens/crud_lab/order_list_screen.dart';
 import 'package:sidik_calibration/services/order_kelola_service.dart';
@@ -340,7 +341,7 @@ void main() {
       aturLayar(tester, 320, 800);
       await tester.pumpWidget(
         bungkusCrud(
-          const OrderFormScreen(orderId: 801),
+          const OrderDetailScreen(orderId: 801),
           lapisan: LapisanUjiCrud(
             order: MockOrderKelolaService(awal: ordersBurukCrud),
           ),

@@ -484,12 +484,12 @@ Future<void> _batalPendek(WidgetTester tester) async {
 }
 
 Future<void> _ubahKosongkan(WidgetTester tester) async {
-  await tester.tap(find.byKey(const Key('teknisi-21')));
-  await tester.pump();
-  await tester.tap(find.byKey(const Key('teknisi-22')));
-  await tester.pump();
-  await tester.tap(find.byKey(const Key('teknisi-23')));
-  await tester.pump();
+  // Pada skala huruf besar baris teknisi di luar layar belum dibangun (daftar
+  // malas), jadi tiap ketukan menggulir dulu.
+  for (final id in const [21, 22, 23]) {
+    await ketukDi(tester, find.byKey(Key('teknisi-$id')));
+    await tester.pump();
+  }
   await ketukDi(tester, find.byKey(const Key('tambah-baris')));
   await tester.pumpAndSettle();
   await ketukDi(tester, find.byKey(const Key('simpan-penugasan')));
