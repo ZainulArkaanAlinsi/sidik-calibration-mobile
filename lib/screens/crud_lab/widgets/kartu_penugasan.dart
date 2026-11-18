@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/bentuk_lab.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../models/order_kelola.dart' show tanggalDariServer;
 import '../../../models/penugasan.dart';
@@ -138,7 +139,7 @@ class KartuPenugasan extends StatelessWidget {
               // Bilah hanya hiasan: angkanya dibacakan dari teks di bawahnya.
               child: ExcludeSemantics(
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(BentukLab.sel),
                   child: LinearProgressIndicator(
                     minHeight: 6,
                     value: (p.persenTuntas.clamp(0, 100)) / 100,
