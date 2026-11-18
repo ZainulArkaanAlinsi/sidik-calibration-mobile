@@ -26,6 +26,11 @@ Future<bool> arsipkanDrafCrud(
   VoidCallback? saatBasi,
 }) async {
   final l10n = AppLocalizations.of(context);
+  // Dibaca SEBELUM dialog dibuka: galat `bukan_draf`/404 menyegarkan daftar
+  // (kartu pemilik `ref` ini terbuang), lalu percobaan ulang di dialog yang
+  // masih terbuka tidak boleh memakai `ref` yang sudah mati.
+  final penyimpanToken = ref.read(tokenStorageProvider);
+  final layanan = ref.read(arsipDrafServiceProvider);
   final ok = await tampilkanDialogIsian(
     context,
     judul: l10n.crudDrafArsipkanJudul(nama),
@@ -40,11 +45,9 @@ Future<bool> arsipkanDrafCrud(
     pesanPanjang: l10n.crudAlasanPanjang,
     petakanGalat: (e) => pesanGalatCrud(l10n, e),
     aksi: (alasan) async {
-      final token = await ref.read(tokenStorageProvider).read();
+      final token = await penyimpanToken.read();
       if (token == null) throw const TokenHilangException();
-      await ref
-          .read(arsipDrafServiceProvider)
-          .arsipkan(token, id, alasan: alasan);
+      await layanan.arsipkan(token, id, alasan: alasan);
     },
     saatGalat: (e) {
       // Sesi sudah bukan draf / sudah hilang: daftar di layar basi.
