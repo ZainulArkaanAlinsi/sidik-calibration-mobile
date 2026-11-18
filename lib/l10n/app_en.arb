@@ -4287,7 +4287,7 @@
   "jlCatatan": "This is only a hint. You decide the sheet type; nothing is filled in until you confirm.",
   "jlDaftarManual": "All sheet types",
   "pindaiLembarTombol": "Scan worksheet",
-  "pindaiLembarKeterangan": "Photograph the sheet, the app suggests its type",
+  "pindaiLembarKeterangan": "Photograph the sheet: its type is recognized and its content is filled in as suggestions for you to check",
   "pindaiLembarMembaca": "Recognizing the sheet type...",
   "pindaiLembarButuhKoneksi": "The sheet type list needs a connection. Try again or start manually.",
   "gwJudul": "Archive timeline",
@@ -4428,5 +4428,1124 @@
   "biruAwanMemuat": "Loading",
   "jlBertentangan": "The printed code and the printed title point to different sheet types. Pick one yourself.",
   "jlSamarCocok": "The print is a little blurry, but it matches one sheet type. Check it before using it.",
-  "jlSamarUsulan": "The print is blurry. These are the closest suggestions, none is selected for you. Pick the one that matches your instrument."
+  "jlSamarUsulan": "The print is blurry. These are the closest suggestions, none is selected for you. Pick the one that matches your instrument.",
+  "saHubJudul": "Super Admin management",
+  "saHubKelolaSub": "Users, customer members, and your own password",
+  "saHubPenggunaJudul": "Users",
+  "saHubPenggunaSub": "Add, edit, reset password, deactivate accounts",
+  "saHubPelangganJudul": "Customers & members",
+  "saHubPelangganSub": "Members, invitations, and the contact person of each customer",
+  "saHubGantiSub": "Change the password of your own account",
+  "saHubKosong": "This account has no screen it can open here yet.",
+  "saTanpaIzin": "This screen is only for accounts the server has granted permission.",
+  "saBatal": "Cancel",
+  "saCobaLagi": "Try again",
+  "saMuatLagi": "Load more",
+  "saAksiUntuk": "Actions for {nama}",
+  "@saAksiUntuk": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
+  "saGalatUmum": "The action did not go through. Try again.",
+  "saGalatTidakAda": "That record was not found; it may have changed. The list is reloading.",
+  "saGantiJudul": "Change my password",
+  "saGantiIntro": "Enter your current password, then the new one twice. Other devices using this account are signed out; this device stays signed in.",
+  "saGantiLama": "Current password",
+  "saGantiBaru": "New password",
+  "saGantiUlang": "Repeat new password",
+  "saGantiHelper": "At least 10 characters. The server judges the strength.",
+  "saGantiLamaKosong": "The current password is required.",
+  "saGantiBaruKosong": "The new password is required.",
+  "saGantiBeda": "The new password and its repeat do not match.",
+  "saGantiSimpan": "Change password",
+  "saGantiBerhasil": "Password changed.",
+  "saGantiSesiLain": "{jumlah} other devices were signed out.",
+  "@saGantiSesiLain": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "saGantiGagal": "The password could not be changed. Try again.",
+  "saPenggunaJudul": "Users",
+  "saPenggunaCari": "Search name, email, or employee ID",
+  "saPeranSemua": "All roles",
+  "saPeranAdmin": "Admin",
+  "saPeranAdminMasterData": "Admin (Master Data)",
+  "saPeranTeknisi": "Technician",
+  "saPeranViewer": "Viewer",
+  "saPenggunaKosong": "No users match these filters.",
+  "saPenggunaGagal": "The user list could not be loaded.",
+  "saTambahPengguna": "Add user",
+  "saAksiUbah": "Edit details",
+  "saAksiSetelSandi": "Reset password",
+  "saAksiNonaktifkan": "Deactivate account",
+  "saAksiAktifkan": "Reactivate",
+  "saAksiSetujui": "Approve",
+  "saAksiTolak": "Reject",
+  "saNonaktifJudul": "Deactivate {nama}?",
+  "@saNonaktifJudul": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
+  "saNonaktifIsi": "This account can no longer sign in and all its devices are signed out on their next request. Calibration history and certificates in its name stay as they are. The account can be reactivated.",
+  "saNonaktifAksi": "Deactivate",
+  "saNonaktifBerhasil": "Account deactivated.",
+  "saAktifJudul": "Reactivate {nama}?",
+  "@saAktifJudul": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
+  "saAktifIsi": "They can sign in again with their old password. The role does not change. If a new password is needed, reset it afterwards.",
+  "saAktifAksi": "Reactivate",
+  "saAktifBerhasil": "Account reactivated.",
+  "saAlasanWajib": "Reason (required, 3 to 500 characters)",
+  "saAlasanOpsional": "Reason (optional)",
+  "saAlasanCatatan": "This reason is recorded in the change history under your name.",
+  "saAlasanPendek": "The reason needs at least 3 characters.",
+  "saAlasanPanjang": "The reason can be at most 500 characters.",
+  "saSetelJudul": "Reset password for {nama}",
+  "@saSetelJudul": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
+  "saSetelIsi": "All devices of this person are signed out. Hand the new password to them in person.",
+  "saSetelLabel": "New password",
+  "saSetelHelper": "At least 8 characters. Not shown again.",
+  "saSetelPendek": "The password needs at least 8 characters.",
+  "saSetelAksi": "Reset",
+  "saSetelBerhasil": "Password for {nama} was reset.",
+  "@saSetelBerhasil": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
+  "saSetujuiJudul": "Approve {nama}",
+  "@saSetujuiJudul": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
+  "saSetujuiIsi": "Choose the role of this account.",
+  "saSetujuiBerhasil": "Account approved.",
+  "saTolakJudul": "Reject {nama}?",
+  "@saTolakJudul": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
+  "saTolakIsi": "This account is deactivated and cannot sign in.",
+  "saTolakBerhasil": "Applicant rejected.",
+  "saGalatSudahNonaktif": "This account is already inactive. The list is reloading.",
+  "saGalatSudahAktif": "This account is already active. The list is reloading.",
+  "saGalatPerluPersetujuan": "This account is still awaiting approval. Use Approve.",
+  "saFormTambahJudul": "Add user",
+  "saFormUbahJudul": "Edit user",
+  "saFormPeran": "Account role",
+  "saFormIntroTambah": "The account is active right away. They sign in with their employee ID or email. Hand over the initial password in person.",
+  "saFormIntroUbah": "Only the fields you change are sent. The password is not changed here; use Reset password.",
+  "saFormBuat": "Create account",
+  "saFormSimpan": "Save changes",
+  "saFormBerhasilBuat": "Account {nama} created (employee ID {id}). Hand the initial password over in person and ask them to change it via Change password.",
+  "@saFormBerhasilBuat": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      },
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "saFormBerhasilUbah": "Changes saved.",
+  "saFormTanpaPerubahan": "Nothing has been changed.",
+  "saFormPeranTetap": "The {peran} role cannot be changed here.",
+  "@saFormPeranTetap": {
+    "placeholders": {
+      "peran": {
+        "type": "String"
+      }
+    }
+  },
+  "saPelJudul": "Customers & members",
+  "saPelCari": "Search customer name",
+  "saPelKosong": "No customers match.",
+  "saPelGagal": "The customer list could not be loaded.",
+  "saDetGagal": "The members of this customer could not be loaded.",
+  "saDetKuota": "{aktif} of at most {maks} active members",
+  "@saDetKuota": {
+    "placeholders": {
+      "aktif": {
+        "type": "int"
+      },
+      "maks": {
+        "type": "int"
+      }
+    }
+  },
+  "saDetPicAdmin": "Lab contact admin",
+  "saDetPicAdminKosong": "Not assigned. Notifications for this customer go to all admins.",
+  "saDetUbahPic": "Change contact admin",
+  "saPicJudul": "Choose contact admin",
+  "saPicIsi": "The contact admin receives the submission and equipment verification notifications of this customer.",
+  "saPicLepas": "Remove contact admin",
+  "saPicKosong": "There is no active admin in this lab yet.",
+  "saPicGagalMuat": "The admin list could not be loaded.",
+  "saPicBerhasil": "Contact admin updated.",
+  "saPicDilepas": "Contact admin removed.",
+  "saAnggotaJudul": "Members",
+  "saAnggotaKosong": "No members yet. Invite the first person with the button above.",
+  "saPeranPicUtama": "Main contact",
+  "saPeranStaf": "Staff",
+  "saTanpaNamaAnggota": "(account no longer exists)",
+  "saBergabung": "Joined {tanggal}",
+  "@saBergabung": {
+    "placeholders": {
+      "tanggal": {
+        "type": "String"
+      }
+    }
+  },
+  "saDinonaktifkanOleh": "Deactivated {tanggal} by {oleh}",
+  "@saDinonaktifkanOleh": {
+    "placeholders": {
+      "tanggal": {
+        "type": "String"
+      },
+      "oleh": {
+        "type": "String"
+      }
+    }
+  },
+  "saDinonaktifkanSaja": "Deactivated {tanggal}",
+  "@saDinonaktifkanSaja": {
+    "placeholders": {
+      "tanggal": {
+        "type": "String"
+      }
+    }
+  },
+  "saPicTerakhir": "Last main contact. Invite another main contact before removing this one.",
+  "saCabutAkses": "Remove access",
+  "saCabutJudul": "Remove access for {nama}?",
+  "@saCabutJudul": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
+  "saCabutIsi": "{nama} can no longer open the data of {perusahaan} and their sessions are revoked. A removed member stays on record as history. To restore, invite the same person again.",
+  "@saCabutIsi": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      },
+      "perusahaan": {
+        "type": "String"
+      }
+    }
+  },
+  "saCabutBerhasil": "Member access removed.",
+  "saGalatPicTerakhir": "This is the only active main contact, so access cannot be removed. Invite another main contact first.",
+  "saGalatSudahNonaktifAnggota": "This member is already inactive. The list is reloading.",
+  "saUndanganJudul": "Pending invitations",
+  "saUndanganKosong": "No invitations are waiting.",
+  "saUndanganBerlaku": "Valid until {tanggal}",
+  "@saUndanganBerlaku": {
+    "placeholders": {
+      "tanggal": {
+        "type": "String"
+      }
+    }
+  },
+  "saUndanganOleh": "Invited by {nama}",
+  "@saUndanganOleh": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
+  "saBatalkanUndangan": "Cancel invitation",
+  "saBatalkanJudul": "Cancel the invitation?",
+  "saBatalkanUntuk": "Invitation for {email}.",
+  "@saBatalkanUntuk": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "saBatalkanIsi": "The code stops working. To invite again, send a new invitation.",
+  "saBatalkanTidak": "Keep it",
+  "saBatalkanBerhasil": "Invitation cancelled.",
+  "saAlatJudul": "Customer equipment",
+  "saAlatKosong": "This customer has no equipment yet.",
+  "saAlatGagal": "The equipment list could not be loaded.",
+  "saAlatLanjutGagal": "The next equipment could not be loaded.",
+  "saAlatSeri": "Serial no. {seri}",
+  "@saAlatSeri": {
+    "placeholders": {
+      "seri": {
+        "type": "String"
+      }
+    }
+  },
+  "saAlatTanpaSeri": "No serial number",
+  "saAlatJadwal": "Next calibration {tanggal}",
+  "@saAlatJadwal": {
+    "placeholders": {
+      "tanggal": {
+        "type": "String"
+      }
+    }
+  },
+  "saAlatTanpaJadwal": "No recalibration scheduled",
+  "saAlatJumlahSert": "{jumlah} certificates",
+  "@saAlatJumlahSert": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "saMemuat": "Loading",
+  "saRiwayatJudul": "Certificate history",
+  "saRiwayatKosong": "This equipment has no certificates yet.",
+  "saRiwayatGagal": "The certificate history could not be loaded.",
+  "saRiwayatLanjutGagal": "The next certificates could not be loaded.",
+  "saRiwayatTanpaTanggal": "No issue date",
+  "saRiwayatTerbit": "Issued {tanggal}",
+  "@saRiwayatTerbit": {
+    "placeholders": {
+      "tanggal": {
+        "type": "String"
+      }
+    }
+  },
+  "saSertTerbit": "Issued",
+  "saSertDigantikan": "Superseded",
+  "saSertDitarik": "Withdrawn",
+  "saSertDibatalkan": "Cancelled",
+  "saSertGagal": "Failed",
+  "saSertMenunggu": "Awaiting issue",
+  "saSertBuka": "Open certificate preview",
+  "saAlatStatusTerkalibrasi": "Calibrated",
+  "saAlatStatusMendekati": "Due soon",
+  "saAlatStatusLewat": "Overdue",
+  "saAlatStatusBelum": "Never calibrated",
+  "saAlatStatusNonaktif": "Inactive",
+  "saAlatHariLagi": "in {hari} days",
+  "@saAlatHariLagi": {
+    "placeholders": {
+      "hari": {
+        "type": "int"
+      }
+    }
+  },
+  "saAlatHariIni": "today",
+  "saAlatTerlambat": "{hari} days late",
+  "@saAlatTerlambat": {
+    "placeholders": {
+      "hari": {
+        "type": "int"
+      }
+    }
+  },
+  "saAlatTerbaru": "Latest certificate {nomor}",
+  "@saAlatTerbaru": {
+    "placeholders": {
+      "nomor": {
+        "type": "String"
+      }
+    }
+  },
+  "saSertDigantikanOleh": "Superseded by {nomor}",
+  "@saSertDigantikanOleh": {
+    "placeholders": {
+      "nomor": {
+        "type": "String"
+      }
+    }
+  },
+  "saSertRevisiDari": "Revision of {nomor}",
+  "@saSertRevisiDari": {
+    "placeholders": {
+      "nomor": {
+        "type": "String"
+      }
+    }
+  },
+  "saSertDitarikPada": "Withdrawn {tanggal}",
+  "@saSertDitarikPada": {
+    "placeholders": {
+      "tanggal": {
+        "type": "String"
+      }
+    }
+  },
+  "saSertDibatalkanPada": "Cancelled {tanggal}",
+  "@saSertDibatalkanPada": {
+    "placeholders": {
+      "tanggal": {
+        "type": "String"
+      }
+    }
+  },
+  "saPelRingkas": "{alat} equipment · {sertifikat} certificates · {anggota} members",
+  "@saPelRingkas": {
+    "placeholders": {
+      "alat": {
+        "type": "int"
+      },
+      "sertifikat": {
+        "type": "int"
+      },
+      "anggota": {
+        "type": "int"
+      }
+    }
+  },
+  "saPelTanpaAkun": "No customer account yet",
+  "saDetTanpaAkunIsi": "This company has equipment or certificates, but nobody can see them yet. Invite the first member.",
+  "saDetNamaNormalKosong": "Duplicate-company detection does not work for this company yet. Save the company again in the Customers screen to fix it.",
+  "saPindahJudul": "Move equipment",
+  "saPindahTombol": "Move equipment",
+  "saPindahIntro": "Move equipment and its certificates to another company, for example when a company was misspelled or duplicated. Certificate numbers and contents do not change.",
+  "saPindahTujuan": "Destination company",
+  "saPindahTujuanKosong": "Not chosen yet",
+  "saPindahPilihTujuan": "Choose destination",
+  "saPindahGantiTujuan": "Change destination",
+  "saPindahAlatJudul": "Equipment to move",
+  "saPindahDipilih": "{n} equipment selected",
+  "@saPindahDipilih": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "saPindahPilihMuat": "Select all loaded",
+  "saPindahKosongkan": "Clear selection",
+  "saPindahMaks": "At most 100 items per move.",
+  "saPindahAlatKosong": "This company has no equipment to move.",
+  "saPindahLihatPratinjau": "Preview",
+  "saPilihPtJudul": "Choose destination company",
+  "saPilihPtCari": "Search company name",
+  "saPilihPtKosong": "No other company matches.",
+  "saPratinjauJudul": "Move preview",
+  "saPratinjauDari": "From",
+  "saPratinjauKe": "To",
+  "saPratinjauAnggotaPt": "{n} active members",
+  "@saPratinjauAnggotaPt": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "saPratinjauAlat": "{n} equipment moved",
+  "@saPratinjauAlat": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "saPratinjauSertTerdampak": "{n} certificates move along",
+  "@saPratinjauSertTerdampak": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "saPratinjauSertTerlihat": "{n} of them are visible in the customer app",
+  "@saPratinjauSertTerlihat": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "saPratinjauMulai": "Start seeing this equipment",
+  "saPratinjauBerhenti": "Stop seeing this equipment",
+  "saPratinjauTidakAda": "None",
+  "saPratinjauPaket": "{n} package/order lines point to this equipment and do NOT move.",
+  "@saPratinjauPaket": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "saPeringatanPaket": "Package/order lines pointing to this equipment do not move.",
+  "saPeringatanArsip": "Old archive files stay in the original company folder until the owner runs the archive tidy-up.",
+  "saPeringatanIsi": "Certificate numbers and contents, including the printed owner name, are not changed.",
+  "saPindahEksekusi": "Move {n} equipment",
+  "@saPindahEksekusi": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "saPindahKonfirmJudul": "Move {n} equipment to {pt}?",
+  "@saPindahKonfirmJudul": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "pt": {
+        "type": "String"
+      }
+    }
+  },
+  "saPindahKonfirmIsi": "{n} certificates move along. Certificates are not changed or deleted; equipment can be moved again if this was a mistake. It is recorded in the change history under your name.",
+  "@saPindahKonfirmIsi": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "saPindahAksi": "Move",
+  "saPindahBerhasil": "{n} equipment moved to {pt}.",
+  "@saPindahBerhasil": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "pt": {
+        "type": "String"
+      }
+    }
+  },
+  "saPindahBerhasilIsi": "{s} certificates moved along ({t} visible in the customer app).",
+  "@saPindahBerhasilIsi": {
+    "placeholders": {
+      "s": {
+        "type": "int"
+      },
+      "t": {
+        "type": "int"
+      }
+    }
+  },
+  "saPindahSelesai": "Done",
+  "saPratinjauGagal": "The preview could not be loaded.",
+  "saPratinjauUlang": "Repeat preview",
+  "saGalatAlatSudahPindah": "Another admin already moved the equipment. Repeat the preview to see the latest state.",
+  "saGalatAlatBukanMilik": "Some equipment no longer belongs to the original company. Repeat the preview.",
+  "saGalatPtSama": "The destination cannot be the original company.",
+  "crudGalatKategoriKembar": "A category with that name already exists.",
+  "crudGalatKategoriDipakai": "This category is still in use{rincian}. Deactivate it instead so it is no longer offered.",
+  "@crudGalatKategoriDipakai": {
+    "placeholders": {
+      "rincian": {
+        "type": "String"
+      }
+    }
+  },
+  "crudGalatKategoriNonaktif": "This category is inactive, so it cannot be used for new data.",
+  "crudGalatKodeBentrok": "Two people created a category at the same time. Please try again.",
+  "crudGalatBukanDraf": "Only drafts can be archived; this worksheet is {status}.",
+  "@crudGalatBukanDraf": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "crudGalatTidakDiarsipkan": "This draft is no longer archived. The list was reloaded.",
+  "crudGalatStatusBerubah": "The worksheet status changed (it may have been submitted from another device). Reload and try again.",
+  "crudGalatHanyaAdmin": "Only Master Data or Super Admin can open the draft archive.",
+  "crudGalatPenugasanTidakAktif": "This assignment is already {status}, so it can no longer be edited or cancelled.",
+  "@crudGalatPenugasanTidakAktif": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "crudGalatPenugasanSelesai": "This assignment is already complete, so it cannot be cancelled.",
+  "crudGalatItemSudahDikerjakan": "A row with recorded progress cannot be removed. Change its quantity instead.",
+  "crudGalat403": "Your account is not allowed to do this.",
+  "crudGalat409": "The data changed elsewhere. Reload and try again.",
+  "crudGalat429": "Too many requests. Wait a moment and try again.",
+  "crudGalat500": "The server is having trouble. Try again shortly; if it keeps happening, contact the system administrator.",
+  "crudGalatKoneksi": "Cannot reach the server. Check your connection and try again.",
+  "crudGalatKoneksiSimpan": "The connection dropped while saving. The data may already be saved; check the list before creating it again.",
+  "crudPemakaiAlat": "{n} equipment",
+  "@crudPemakaiAlat": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "crudPemakaiKemampuan": "{n} capabilities",
+  "@crudPemakaiKemampuan": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "crudPemakaiPenugasan": "{n} assignments",
+  "@crudPemakaiPenugasan": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "crudPemakaiMetode": "{n} methods",
+  "@crudPemakaiMetode": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "crudPemakaiRumus": "{n} formulas",
+  "@crudPemakaiRumus": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "crudTanpaIzin": "Your account has no permission for this section.",
+  "crudSimpan": "Save",
+  "crudAksiUbah": "Edit",
+  "crudAksiHapus": "Delete",
+  "crudBatalDialog": "Cancel",
+  "crudTutup": "Close",
+  "crudHubJudul": "Orders & lab data",
+  "crudHubKelolaSub": "Orders, assignments, equipment categories and the draft archive.",
+  "crudHubOrderJudul": "Orders",
+  "crudHubOrderSub": "Record, edit and delete customer equipment orders.",
+  "crudHubPenugasanJudul": "Assignments",
+  "crudHubPenugasanSub": "Edit or cancel assignments that are still active.",
+  "crudHubKategoriJudul": "Equipment categories",
+  "crudHubKategoriSub": "Add, rename, deactivate and delete categories.",
+  "crudHubArsipJudul": "Draft archive",
+  "crudHubArsipSub": "Archived worksheet drafts; restore them when needed.",
+  "crudHubKosong": "No menu is available for this account.",
+  "crudOrderJudul": "Orders",
+  "crudOrderCari": "Search order number or company",
+  "crudOrderSemua": "All",
+  "crudOrderKosong": "There are no orders yet.",
+  "crudOrderKosongCari": "No order matches this search.",
+  "crudOrderGagal": "The order list could not be loaded.",
+  "crudOrderBuat": "Create order",
+  "crudOrderAlat": "{n} equipment",
+  "@crudOrderAlat": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "crudOrderMasuk": "Received {tanggal}",
+  "@crudOrderMasuk": {
+    "placeholders": {
+      "tanggal": {
+        "type": "String"
+      }
+    }
+  },
+  "crudOrderJanji": "Due {tanggal}",
+  "@crudOrderJanji": {
+    "placeholders": {
+      "tanggal": {
+        "type": "String"
+      }
+    }
+  },
+  "crudOrderTelat": "Overdue",
+  "crudOrderDetailJudul": "Order details",
+  "crudOrderDiterima": "Received by {nama}",
+  "@crudOrderDiterima": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
+  "crudOrderCatatan": "Notes",
+  "crudOrderAlatJudul": "Equipment in this order",
+  "crudOrderAlatKosong": "This order has no equipment yet.",
+  "crudOrderBelumDibagi": "Not assigned",
+  "crudOrderTeknisiNama": "Technician: {nama}",
+  "@crudOrderTeknisiNama": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
+  "crudOrderKondisi": "Condition on receipt",
+  "crudOrderKelengkapan": "Accessories",
+  "crudOrderDetailGagal": "This order could not be loaded.",
+  "crudOrderFormBuat": "Create order",
+  "crudOrderFormUbah": "Edit order",
+  "crudOrderIntroBuat": "The order number is created automatically by the server on save.",
+  "crudOrderIntroUbah": "Number {nomor} does not change. The customer cannot be changed from here.",
+  "@crudOrderIntroUbah": {
+    "placeholders": {
+      "nomor": {
+        "type": "String"
+      }
+    }
+  },
+  "crudOrderPelanggan": "Customer (company)",
+  "crudOrderPilihPelanggan": "Choose a customer",
+  "crudOrderCariPelanggan": "Search customer name",
+  "crudOrderPelangganKosong": "No customer found.",
+  "crudOrderPelangganGagal": "The customer list could not be loaded.",
+  "crudOrderPelangganWajib": "Choose a customer first.",
+  "crudOrderTanggalMasuk": "Date received",
+  "crudOrderTanggalJanji": "Due date (optional)",
+  "crudOrderPilihTanggal": "Choose a date",
+  "crudOrderKosongkanTanggal": "Clear the due date",
+  "crudOrderTanggalMasukWajib": "The received date is required.",
+  "crudOrderJanjiSebelumMasuk": "The due date cannot be before the received date.",
+  "crudOrderStatus": "Status",
+  "crudOrderCatatanLabel": "Notes (optional)",
+  "crudOrderCatatanPanjang": "Notes can be at most 1000 characters.",
+  "crudOrderAlatBagian": "Equipment ({n})",
+  "@crudOrderAlatBagian": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "crudOrderTambahAlat": "Add equipment",
+  "crudOrderAlatWajib": "Add at least one piece of equipment.",
+  "crudOrderAlatPilihPtDulu": "Choose a customer first to add equipment of that company.",
+  "crudOrderBuangAlat": "Remove {nama} from the order",
+  "@crudOrderBuangAlat": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
+  "crudOrderCatatanSesi": "Equipment already in calibration stays in the order even if removed from this list.",
+  "crudOrderBerhasilBuat": "Order {nomor} created.",
+  "@crudOrderBerhasilBuat": {
+    "placeholders": {
+      "nomor": {
+        "type": "String"
+      }
+    }
+  },
+  "crudOrderBerhasilUbah": "Order updated.",
+  "crudOrderGalatUmum": "The order was not saved. Check the fields marked with errors.",
+  "crudItemTeknisi": "Technician",
+  "crudItemPilihTeknisi": "Choose a technician",
+  "crudItemTanpaTeknisi": "Not assigned",
+  "crudItemTeknisiKosong": "There are no active technicians.",
+  "crudItemTeknisiGagal": "The technician list could not be loaded.",
+  "crudItemRincian": "Receiving details",
+  "crudItemKondisi": "Condition on receipt",
+  "crudItemKelengkapan": "Accessories",
+  "crudItemCatatan": "Equipment notes",
+  "crudPilihAlatJudul": "Choose equipment of {pt}",
+  "@crudPilihAlatJudul": {
+    "placeholders": {
+      "pt": {
+        "type": "String"
+      }
+    }
+  },
+  "crudPilihAlatCari": "Search name or serial number",
+  "crudPilihAlatKosong": "No matching equipment for this company.",
+  "crudPilihAlatGagal": "The equipment could not be loaded.",
+  "crudPilihAlatSudah": "Already in the order",
+  "crudPilihAlatTambah": "Add {n} equipment",
+  "@crudPilihAlatTambah": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "crudPilihAlatPilihDulu": "Choose equipment first",
+  "crudOrderHapusJudul": "Delete order {nomor}?",
+  "@crudOrderHapusJudul": {
+    "placeholders": {
+      "nomor": {
+        "type": "String"
+      }
+    }
+  },
+  "crudOrderHapusIsi": "The order and its equipment list will be deleted. An order whose equipment is already in calibration cannot be deleted; set its status to Cancelled so the history stays intact.",
+  "crudOrderHapusAksi": "Delete order",
+  "crudOrderHapusBerhasil": "Order deleted.",
+  "crudOrderHapusDitolak": "This order has equipment that is already in calibration, so it cannot be deleted. Set its status to Cancelled so the history stays intact.",
+  "crudOrderAlatDikosongkan": "The equipment list was cleared because the customer changed.",
+  "crudAlasanWajib": "Reason",
+  "crudAlasanOpsional": "Reason (optional)",
+  "crudAlasanCatatan": "Reason of 5 to 400 characters; recorded in the audit trail.",
+  "crudAlasanCatatanOpsional": "At most 400 characters; recorded in the audit trail.",
+  "crudAlasanPendek": "The reason must be at least 5 characters.",
+  "crudAlasanPanjang": "The reason can be at most 400 characters.",
+  "crudPenugasanJudul": "Assignments",
+  "crudPenugasanKosong": "There are no assignments yet.",
+  "crudPenugasanKosongStatus": "No assignment has this status.",
+  "crudPenugasanGagal": "The assignment list could not be loaded.",
+  "crudPenugasanSemua": "All",
+  "crudPenugasanTim": "Team: {nama}",
+  "@crudPenugasanTim": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
+  "crudPenugasanTarget": "Target {tanggal}",
+  "@crudPenugasanTarget": {
+    "placeholders": {
+      "tanggal": {
+        "type": "String"
+      }
+    }
+  },
+  "crudPenugasanTerlambat": "Late",
+  "crudPenugasanProgres": "{persen}% complete",
+  "@crudPenugasanProgres": {
+    "placeholders": {
+      "persen": {
+        "type": "int"
+      }
+    }
+  },
+  "crudPenugasanBaris": "{n} equipment rows",
+  "@crudPenugasanBaris": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "crudPenugasanTipeGrup": "Group",
+  "crudPenugasanTipePersonal": "Personal",
+  "crudPenugasanBatalAlasan": "Reason: {alasan}",
+  "@crudPenugasanBatalAlasan": {
+    "placeholders": {
+      "alasan": {
+        "type": "String"
+      }
+    }
+  },
+  "crudPenugasanBatalOleh": "Cancelled by {nama}",
+  "@crudPenugasanBatalOleh": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
+  "crudPenugasanBatalPada": "Cancelled {tanggal}",
+  "@crudPenugasanBatalPada": {
+    "placeholders": {
+      "tanggal": {
+        "type": "String"
+      }
+    }
+  },
+  "crudPenugasanBatalOlehPada": "Cancelled by {nama}, {tanggal}",
+  "@crudPenugasanBatalOlehPada": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      },
+      "tanggal": {
+        "type": "String"
+      }
+    }
+  },
+  "crudPenugasanAksiBatalkan": "Cancel assignment",
+  "crudPenugasanBatalJudul": "Cancel the assignment \"{judul}\"?",
+  "@crudPenugasanBatalJudul": {
+    "placeholders": {
+      "judul": {
+        "type": "String"
+      }
+    }
+  },
+  "crudPenugasanBatalIsi": "The assignment is marked Cancelled. Members, equipment rows and progress stay readable as history, and members are notified.",
+  "crudPenugasanBatalAksi": "Cancel assignment",
+  "crudPenugasanBatalBerhasil": "Assignment cancelled.",
+  "crudPenugasanUbahJudul": "Edit assignment",
+  "crudPenugasanUbahIntro": "Only active assignments can be edited. Progress already reported by technicians does not change.",
+  "crudPenugasanJudulLabel": "Title",
+  "crudPenugasanJudulWajib": "The title is required.",
+  "crudPenugasanJudulPanjang": "The title can be at most 150 characters.",
+  "crudPenugasanTanggalTarget": "Target date (optional)",
+  "crudPenugasanKosongkanTarget": "Clear the target",
+  "crudPenugasanTanggalLewat": "A new target date cannot be before today.",
+  "crudPenugasanCatatanLabel": "Notes (optional)",
+  "crudPenugasanCatatanPanjang": "Notes can be at most 1000 characters.",
+  "crudPenugasanTeknisiBagian": "Technicians",
+  "crudPenugasanTeknisiIntro": "The first one chosen becomes the leader.",
+  "crudPenugasanKetua": "Leader",
+  "crudPenugasanTeknisiWajib": "Choose at least one technician.",
+  "crudPenugasanTeknisiMaks": "At most 20 technicians.",
+  "crudPenugasanTeknisiNonaktif": "{nama} (inactive)",
+  "@crudPenugasanTeknisiNonaktif": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
+  "crudPenugasanBarisBagian": "Equipment rows ({n})",
+  "@crudPenugasanBarisBagian": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "crudPenugasanBarisWajib": "Add at least one row.",
+  "crudPenugasanBarisMaks": "At most 50 rows.",
+  "crudPenugasanTambahBaris": "Add a row",
+  "crudPenugasanJenisAlat": "Equipment type",
+  "crudPenugasanJenisWajib": "The equipment type is required.",
+  "crudPenugasanJenisPanjang": "The equipment type can be at most 120 characters.",
+  "crudPenugasanJumlah": "Quantity",
+  "crudPenugasanJumlahSalah": "The quantity must be 1 to 999.",
+  "crudPenugasanSelesaiN": "Done {n}",
+  "@crudPenugasanSelesaiN": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "crudPenugasanPaket": "Package {nomor}",
+  "@crudPenugasanPaket": {
+    "placeholders": {
+      "nomor": {
+        "type": "String"
+      }
+    }
+  },
+  "crudPenugasanBarisCatatan": "Row notes (optional)",
+  "crudPenugasanBuangBaris": "Remove row {nama}",
+  "@crudPenugasanBuangBaris": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
+  "crudPenugasanBarisTerkunci": "Progress is recorded: this row cannot be removed.",
+  "crudPenugasanBerhasilUbah": "Assignment updated.",
+  "crudPenugasanGalatUmum": "The assignment was not saved. Check the fields marked with errors.",
+  "crudPenugasanTeknisiGagal": "The technician list could not be loaded.",
+  "crudKategoriJudul": "Equipment categories",
+  "crudKategoriKosong": "There are no categories yet.",
+  "crudKategoriKosongSaring": "No category has this status.",
+  "crudKategoriGagal": "The category list could not be loaded.",
+  "crudKategoriSemua": "All",
+  "crudKategoriTambah": "Add category",
+  "crudKategoriKode": "Code: {kode}",
+  "@crudKategoriKode": {
+    "placeholders": {
+      "kode": {
+        "type": "String"
+      }
+    }
+  },
+  "crudKategoriTanpaCmc": "{n} without CMC",
+  "@crudKategoriTanpaCmc": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "crudKategoriNonaktifSejak": "Inactive since {tanggal}",
+  "@crudKategoriNonaktifSejak": {
+    "placeholders": {
+      "tanggal": {
+        "type": "String"
+      }
+    }
+  },
+  "crudKategoriAksiUbahNama": "Rename",
+  "crudKategoriAksiNonaktifkan": "Deactivate",
+  "crudKategoriAksiAktifkan": "Reactivate",
+  "crudKategoriAksiHapus": "Delete",
+  "crudKategoriFormTambahJudul": "Add category",
+  "crudKategoriFormTambahIsi": "A category is a measurement group, e.g. Pressure or Mass.",
+  "crudKategoriFormUbahJudul": "Rename {nama}",
+  "@crudKategoriFormUbahJudul": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
+  "crudKategoriFormUbahIsi": "Only the name changes; the category code never changes.",
+  "crudKategoriNamaLabel": "Category name",
+  "crudKategoriNamaCatatan": "The code is created automatically from the name and does not change afterwards.",
+  "crudKategoriNamaPendek": "The name must be at least 2 characters.",
+  "crudKategoriNamaPanjang": "The name can be at most 100 characters.",
+  "crudKategoriSimpanTambah": "Add",
+  "crudKategoriSimpanUbah": "Save name",
+  "crudKategoriBerhasilBuat": "Category created.",
+  "crudKategoriBerhasilUbah": "Category renamed.",
+  "crudGalatKategoriKembarNonaktif": "A category with that name already exists but is inactive. Reactivate it from the list.",
+  "crudKategoriNonaktifJudul": "Deactivate {nama}?",
+  "@crudKategoriNonaktifJudul": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
+  "crudKategoriNonaktifIsi": "The category is no longer offered for new equipment, assignments and equipment names. Existing equipment still shows it. It can be reactivated.",
+  "crudKategoriNonaktifAksi": "Deactivate",
+  "crudKategoriNonaktifBerhasil": "Category deactivated.",
+  "crudKategoriAktifJudul": "Reactivate {nama}?",
+  "@crudKategoriAktifJudul": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
+  "crudKategoriAktifIsi": "The category is offered again for new data.",
+  "crudKategoriAktifAksi": "Reactivate",
+  "crudKategoriAktifBerhasil": "Category reactivated.",
+  "crudKategoriHapusJudul": "Delete {nama}?",
+  "@crudKategoriHapusJudul": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
+  "crudKategoriHapusIsi": "A category not used by anything is removed from the list and recorded in the audit. One still in use cannot be deleted; deactivate it instead.",
+  "crudKategoriHapusAksi": "Delete category",
+  "crudKategoriHapusBerhasil": "Category deleted.",
+  "crudArsipJudul": "Draft archive",
+  "crudArsipIntro": "Archived drafts disappear from the technician lists, but their readings and session numbers stay stored. Restore them when needed.",
+  "crudArsipCari": "Search session number, equipment or company",
+  "crudArsipKosong": "No drafts have been archived yet.",
+  "crudArsipKosongCari": "No archived draft matches this search.",
+  "crudArsipGagal": "The draft archive could not be loaded.",
+  "crudArsipAlasan": "Reason: {alasan}",
+  "@crudArsipAlasan": {
+    "placeholders": {
+      "alasan": {
+        "type": "String"
+      }
+    }
+  },
+  "crudArsipOleh": "Archived by {nama}, {tanggal}",
+  "@crudArsipOleh": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      },
+      "tanggal": {
+        "type": "String"
+      }
+    }
+  },
+  "crudArsipOlehTanpaNama": "Archived {tanggal}",
+  "@crudArsipOlehTanpaNama": {
+    "placeholders": {
+      "tanggal": {
+        "type": "String"
+      }
+    }
+  },
+  "crudArsipAksiPulihkan": "Restore",
+  "crudArsipPulihkanJudul": "Restore draft {nomor}?",
+  "@crudArsipPulihkanJudul": {
+    "placeholders": {
+      "nomor": {
+        "type": "String"
+      }
+    }
+  },
+  "crudArsipPulihkanIsi": "The draft returns to its owner's list with the same content as before it was archived.",
+  "crudArsipPulihkanAksi": "Restore draft",
+  "crudArsipPulihkanBerhasil": "Draft restored.",
+  "crudArsipTanpaNomor": "No session number",
+  "crudDrafArsipkanTooltip": "Archive draft {nama}",
+  "@crudDrafArsipkanTooltip": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
+  "crudDrafArsipkanJudul": "Archive draft {nama}?",
+  "@crudDrafArsipkanJudul": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
+  "crudDrafArsipkanIsi": "The draft disappears from lists, the dashboard and reports. Its readings, session number and results are not deleted, and Master Data can restore it.",
+  "crudDrafArsipkanAksi": "Archive",
+  "crudDrafArsipkanBerhasil": "Draft archived.",
+  "crudGalatPernahDikirim": "This draft comes from a worksheet that was once submitted and returned, so it cannot be archived. Continue the worksheet and submit it again.",
+  "pindaiPilihSatuJudul": "Pick one",
+  "pindaiJenisLain": "Other type...",
+  "pindaiTakDikenaliJudul": "Can't tell which sheet this is",
+  "pindaiTakDikenaliPesan": "The app is not sure which sheet this is, so it will not guess. Retake the photo with the title and form code at the top of the sheet clearly visible, or start from \"Start calibration\".",
+  "pindaiBelumBisaJudul": "Can't be read automatically yet",
+  "pindaiBelumBisaPesan": "The {jenis} sheet was recognized, but the app cannot read it automatically yet. Start from \"Start calibration\" and fill it in by hand.",
+  "@pindaiBelumBisaPesan": {"placeholders": {"jenis": {"type": "String"}}},
+  "pindaiPerluKonfirmasi": "The form code was read clearly, but the printed revision differs from the one the app holds. Make sure this is the right type.",
+  "pindaiPilihAlatJudul": "Pick the instrument",
+  "pindaiPilihAlatPesan": "There are {jumlah} {jenis} instruments. Pick the one being calibrated.",
+  "@pindaiPilihAlatPesan": {"placeholders": {"jenis": {"type": "String"}, "jumlah": {"type": "int"}}},
+  "pindaiCariAlat": "Search instruments",
+  "pindaiPilihAlatNanti": "Choose later on the sheet",
+  "pindaiMenyiapkanLembar": "Preparing the sheet...",
+  "pindaiBannerOtomatis": "Recognized automatically: {jenis} (from the photo). Wrong?",
+  "@pindaiBannerOtomatis": {"placeholders": {"jenis": {"type": "String"}}},
+  "pindaiBannerDipilih": "Sheet type: {jenis} (picked from the photo). Wrong?",
+  "@pindaiBannerDipilih": {"placeholders": {"jenis": {"type": "String"}}},
+  "pindaiGantiJenis": "Change type",
+  "pindaiBannerPilihAlat": "Pick the instrument below, then tap \"Fill from photo\".",
+  "pindaiGantiJenisJudul": "Change sheet type",
+  "pindaiGantiJenisPesan": "Now: {jenis}. Pick the right type and the same photo is read again. Entries that are not saved yet do not carry over.",
+  "@pindaiGantiJenisPesan": {"placeholders": {"jenis": {"type": "String"}}},
+  "lkIsiDariFoto": "Fill from photo",
+  "pindaiBannerRingkas": "{jenis} · from photo",
+  "@pindaiBannerRingkas": {"placeholders": {"jenis": {"type": "String"}}}
 }

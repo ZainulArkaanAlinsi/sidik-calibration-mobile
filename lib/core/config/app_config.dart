@@ -100,6 +100,16 @@ class AppConfig {
     defaultValue: true,
   );
 
+  /// Pintu foto PER TABEL/BLOK di dalam lembar kerja ("Foto tabel ini", kamera
+  /// grid Enclosure, kamera matriks Autoklaf): jalur ML Kit LAMA yang menjangkar
+  /// baris pada formulir tak bermarker, BUKAN pembacaan formulir asli. Sejak
+  /// keputusan pemilik 18 Nov 2026 foto lembar hanya punya SATU pintu ("Pindai
+  /// lembar kerja" di beranda, lalu dibaca otomatis di lembar), jadi pintu per
+  /// tabel DISEMBUNYIKAN bawaan. Kodenya utuh; menyalakannya lagi cukup
+  /// `--dart-define=FOTO_PER_TABEL=true`. Hanya berlaku bila
+  /// [pindaiLembarAktif] juga nyala.
+  static const bool fotoPerTabelAktif = bool.fromEnvironment('FOTO_PER_TABEL');
+
   /// Kunci app Reverb (protokol Pusher) buat realtime sync (spec poin 12D).
   /// **Kosong = realtime nonaktif** — app tetap jalan normal, cuma nggak ada
   /// push; data ketarik seperti biasa waktu layar dibuka. Diisi lewat

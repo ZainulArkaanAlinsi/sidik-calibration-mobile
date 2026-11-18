@@ -21,6 +21,8 @@ import '../../widgets/skeleton.dart';
 import '../calibration/instrument_picker_screen.dart'
     show profilLembarKerjaUntuk;
 import '../calibration/lembar_kerja_screen.dart';
+import '../crud_lab/aksi_arsipkan_draf.dart';
+import '../crud_lab/hak_crud_lab.dart';
 
 /// Layar Draf — lembar kerja yang disimpen setengah jadi, **dikelompokkan per
 /// jenis alat**.
@@ -356,13 +358,13 @@ class _Rak extends StatelessWidget {
   }
 }
 
-class _KartuDraf extends StatelessWidget {
+class _KartuDraf extends ConsumerWidget {
   const _KartuDraf({required this.item});
 
   final CalibrationHistoryItem item;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
     final locale = Localizations.localeOf(context).languageCode;
@@ -468,6 +470,24 @@ class _KartuDraf extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
+                // Arsipkan (paket CRUD): hanya bila server mengizinkan
+                // (`kalibrasi.arsipkan`). Bukan hapus; Master Data memulihkan.
+                if (ref.bolehArsipkanDraf)
+                  IconButton(
+                    key: Key('arsipkan-${item.id}'),
+                    tooltip: l10n.crudDrafArsipkanTooltip(item.namaAlat),
+                    icon: const Icon(Icons.archive_outlined),
+                    onPressed: () => arsipkanDrafCrud(
+                      context,
+                      ref,
+                      id: item.id,
+                      nama: item.namaAlat,
+                      saatSelesai: () =>
+                          ref.read(drafProvider.notifier).muatUlang(),
+                      saatBasi: () =>
+                          ref.read(drafProvider.notifier).muatUlang(),
+                    ),
+                  ),
                 Icon(
                   Icons.chevron_right,
                   color: theme.colorScheme.onSurfaceVariant,

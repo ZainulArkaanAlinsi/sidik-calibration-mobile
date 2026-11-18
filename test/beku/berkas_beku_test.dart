@@ -73,6 +73,19 @@ import 'package:flutter_test/flutter_test.dart';
 /// `_fotoLembar`, dan komentar. Golden `test/beku/goldens/` lolos TANPA
 /// diperbarui. Rinciannya di addendum `docs/desain-ulang/BEKU.md`. Hash
 /// sebelumnya (sesudah L1a): `032448f4…1c7f06`.
+///
+/// ## Perubahan hash lewat buka-kunci: foto OTOMATIS, satu pintu (18 Nov 2026)
+///
+/// STATUS PERSETUJUAN: arahan EKSPLISIT pemilik 18 Nov 2026 (setelah mencoba di
+/// HP): foto -> jenis dikenali otomatis -> lembar terbuka -> terisi sebagai saran
+/// kuning; hanya satu pintu foto. Membalik aturan 12 Nov 'pilih manual selalu
+/// tampil' untuk kode formulir unik. `lembar_kerja_screen.dart` berubah hash LAGI,
+/// hanya bagian foto: `fotoAwal` -> `dariFoto` (`DariFotoLembar`), dialog 'Mau
+/// diisi bagaimana?' dihapus, baca otomatis + banner 'Ganti jenis', satu tombol
+/// foto ('Foto ulang' / 'Isi dari foto'), dan saklar `FOTO_PER_TABEL` (bawaan
+/// mati) untuk pintu foto per tabel. Lembar tanpa `dariFoto` tampil identik, dan
+/// golden `test/beku/goldens/` TIDAK diperbarui. Rincian: addendum 18 Nov di
+/// `docs/desain-ulang/BEKU.md`. Hash sebelumnya: `8c337c08...`.
 const Map<String, String> _hashBeku = {
   // ── Lembar kerja (`lib/screens/calibration/`), 17 berkas dari BEKU.md ────────
   // Hash tiga layar (lembar_kerja_screen, temperatur_indikator_gerbang_screen,
@@ -80,7 +93,7 @@ const Map<String, String> _hashBeku = {
   // pemanggil di dalam berkas); lainnya masih hash L0. `lembar_kerja_screen`
   // berubah lagi 15 Nov 2026 (foto awal "Pindai lembar kerja", lihat atas).
   'lib/screens/calibration/lembar_kerja_screen.dart':
-      '8c337c085252f7c43d392dc7c3292895d3a58a0a24c7ee6356cd7194779c4e06',
+      'dde86ae4abc8c0ea789d38bf72cbbcaf119dc896f3569beca402b5c612a581e9',
   'lib/screens/calibration/lembar_kerja_state.dart':
       '6e6005a486d13dfcc002fa339e38d0bee5c3b3054cbdf0e9ed843266c16cc093',
   'lib/screens/calibration/kinerja_lembar.dart':

@@ -74,6 +74,9 @@ Widget _app(
       // Test yang emang nguji alur pindainya nyalain di sini — bukan biar
       // hijau, tapi biar jalur yang nanti dibuka lagi tetap ada penjaganya.
       pindaiLembarAktifProvider.overrideWithValue(pindaiAktif),
+      // Pintu foto per tabel (ML Kit lama) MATI bawaan sejak foto lembar hanya
+      // punya satu pintu; tes jalur lamanya menyalakannya lewat saklar.
+      fotoPerTabelAktifProvider.overrideWithValue(true),
       tokenStorageProvider.overrideWithValue(
         InMemoryTokenStorage('mock-token-1'),
       ),

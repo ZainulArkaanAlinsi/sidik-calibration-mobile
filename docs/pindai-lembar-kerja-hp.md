@@ -9,6 +9,37 @@ DIBACA AI") **sudah dicabut dari aplikasi** per 14 Agustus 2026. Endpoint
 `POST /api/raw-measurements/extract-from-photo` masih hidup di backend dan
 sengaja tidak disentuh — keputusan mematikannya ada di lab.
 
+## Alur foto otomatis (18 Nov 2026): SATU pintu
+
+Foto lembar punya satu pintu: "Pindai lembar kerja" di beranda
+(`lib/screens/pindai/pindai_lembar_flow.dart`). Urutannya:
+
+1. Foto -> ML Kit membaca halaman di HP (putaran 0/90/180/270) ->
+   `identifikasiLembar` (kode, judul, revisi).
+2. `putuskanPindaiLembar` (`lib/services/keputusan_pindai_lembar.dart`):
+   - kode formulir UNIK + terbaca bersih + skor >= 0,90 + jenisnya boleh
+     dipindai = lembar terbuka SENDIRI;
+   - kandidat lebih dari satu (kode bersama 0504 dst., bacaan samar,
+     kode-judul bertentangan) = lembar ringkas "Pilih salah satu", SATU ketukan;
+   - tidak yakin / tidak terbaca / kode tak dikenal = pesan jujur (Foto ulang,
+     Jenis lain, atau "Mulai kalibrasi"), tanpa tebakan.
+3. Alat: satu-satunya alat jenis itu (`GET /equipments?profil=`) dipilih
+   sendiri; beberapa = daftar pendek, satu ketukan; tidak ada = lembar yang
+   meminta.
+4. `LembarKerjaScreen(dariFoto:)` membaca foto yang SAMA sendiri (tanpa kamera
+   kedua, tanpa dialog); hasil lewat layar periksa, sel terisi KUNING (saran).
+   Banner "Dikenali otomatis: ... Salah? Ganti jenis" selalu ada.
+
+"Mulai kalibrasi" (kategori -> alat) tetap jalur manual: tanpa dialog foto,
+dengan satu tombol foto kecil. Pintu foto per tabel ("Foto tabel ini", jalur ML
+Kit lama) mati bawaan (`--dart-define=FOTO_PER_TABEL=true` menyalakannya).
+
+Ambang identifikasi BELUM dikalibrasi dengan foto nyata (target 26 Nov 2026);
+karena itu auto-buka hanya untuk kode bersih unik dan banner "Ganti jenis"
+wajib. Skor, kode cetak, dan keputusan dicatat LOKAL di HP
+(`identifikasi_lembar.jsonl` di folder dukungan aplikasi; tanpa citra, tidak
+diunggah) sebagai bahan kalibrasi.
+
 ## Aturan yang mengikat kode ini
 
 1. **Foto tidak pernah keluar dari perangkat ke pihak ketiga.** OCR dan

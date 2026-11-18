@@ -13919,7 +13919,7 @@ abstract class AppLocalizations {
   /// No description provided for @pindaiLembarKeterangan.
   ///
   /// In en, this message translates to:
-  /// **'Photograph the sheet, the app suggests its type'**
+  /// **'Photograph the sheet: its type is recognized and its content is filled in as suggestions for you to check'**
   String get pindaiLembarKeterangan;
 
   /// No description provided for @pindaiLembarMembaca.
@@ -14503,6 +14503,2748 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The print is blurry. These are the closest suggestions, none is selected for you. Pick the one that matches your instrument.'**
   String get jlSamarUsulan;
+
+  /// No description provided for @saHubJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Super Admin management'**
+  String get saHubJudul;
+
+  /// No description provided for @saHubKelolaSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Users, customer members, and your own password'**
+  String get saHubKelolaSub;
+
+  /// No description provided for @saHubPenggunaJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Users'**
+  String get saHubPenggunaJudul;
+
+  /// No description provided for @saHubPenggunaSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Add, edit, reset password, deactivate accounts'**
+  String get saHubPenggunaSub;
+
+  /// No description provided for @saHubPelangganJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Customers & members'**
+  String get saHubPelangganJudul;
+
+  /// No description provided for @saHubPelangganSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Members, invitations, and the contact person of each customer'**
+  String get saHubPelangganSub;
+
+  /// No description provided for @saHubGantiSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Change the password of your own account'**
+  String get saHubGantiSub;
+
+  /// No description provided for @saHubKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'This account has no screen it can open here yet.'**
+  String get saHubKosong;
+
+  /// No description provided for @saTanpaIzin.
+  ///
+  /// In en, this message translates to:
+  /// **'This screen is only for accounts the server has granted permission.'**
+  String get saTanpaIzin;
+
+  /// No description provided for @saBatal.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get saBatal;
+
+  /// No description provided for @saCobaLagi.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get saCobaLagi;
+
+  /// No description provided for @saMuatLagi.
+  ///
+  /// In en, this message translates to:
+  /// **'Load more'**
+  String get saMuatLagi;
+
+  /// No description provided for @saAksiUntuk.
+  ///
+  /// In en, this message translates to:
+  /// **'Actions for {nama}'**
+  String saAksiUntuk(String nama);
+
+  /// No description provided for @saGalatUmum.
+  ///
+  /// In en, this message translates to:
+  /// **'The action did not go through. Try again.'**
+  String get saGalatUmum;
+
+  /// No description provided for @saGalatTidakAda.
+  ///
+  /// In en, this message translates to:
+  /// **'That record was not found; it may have changed. The list is reloading.'**
+  String get saGalatTidakAda;
+
+  /// No description provided for @saGantiJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Change my password'**
+  String get saGantiJudul;
+
+  /// No description provided for @saGantiIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your current password, then the new one twice. Other devices using this account are signed out; this device stays signed in.'**
+  String get saGantiIntro;
+
+  /// No description provided for @saGantiLama.
+  ///
+  /// In en, this message translates to:
+  /// **'Current password'**
+  String get saGantiLama;
+
+  /// No description provided for @saGantiBaru.
+  ///
+  /// In en, this message translates to:
+  /// **'New password'**
+  String get saGantiBaru;
+
+  /// No description provided for @saGantiUlang.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat new password'**
+  String get saGantiUlang;
+
+  /// No description provided for @saGantiHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 10 characters. The server judges the strength.'**
+  String get saGantiHelper;
+
+  /// No description provided for @saGantiLamaKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'The current password is required.'**
+  String get saGantiLamaKosong;
+
+  /// No description provided for @saGantiBaruKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'The new password is required.'**
+  String get saGantiBaruKosong;
+
+  /// No description provided for @saGantiBeda.
+  ///
+  /// In en, this message translates to:
+  /// **'The new password and its repeat do not match.'**
+  String get saGantiBeda;
+
+  /// No description provided for @saGantiSimpan.
+  ///
+  /// In en, this message translates to:
+  /// **'Change password'**
+  String get saGantiSimpan;
+
+  /// No description provided for @saGantiBerhasil.
+  ///
+  /// In en, this message translates to:
+  /// **'Password changed.'**
+  String get saGantiBerhasil;
+
+  /// No description provided for @saGantiSesiLain.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} other devices were signed out.'**
+  String saGantiSesiLain(int jumlah);
+
+  /// No description provided for @saGantiGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'The password could not be changed. Try again.'**
+  String get saGantiGagal;
+
+  /// No description provided for @saPenggunaJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Users'**
+  String get saPenggunaJudul;
+
+  /// No description provided for @saPenggunaCari.
+  ///
+  /// In en, this message translates to:
+  /// **'Search name, email, or employee ID'**
+  String get saPenggunaCari;
+
+  /// No description provided for @saPeranSemua.
+  ///
+  /// In en, this message translates to:
+  /// **'All roles'**
+  String get saPeranSemua;
+
+  /// No description provided for @saPeranAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin'**
+  String get saPeranAdmin;
+
+  /// No description provided for @saPeranAdminMasterData.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin (Master Data)'**
+  String get saPeranAdminMasterData;
+
+  /// No description provided for @saPeranTeknisi.
+  ///
+  /// In en, this message translates to:
+  /// **'Technician'**
+  String get saPeranTeknisi;
+
+  /// No description provided for @saPeranViewer.
+  ///
+  /// In en, this message translates to:
+  /// **'Viewer'**
+  String get saPeranViewer;
+
+  /// No description provided for @saPenggunaKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No users match these filters.'**
+  String get saPenggunaKosong;
+
+  /// No description provided for @saPenggunaGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'The user list could not be loaded.'**
+  String get saPenggunaGagal;
+
+  /// No description provided for @saTambahPengguna.
+  ///
+  /// In en, this message translates to:
+  /// **'Add user'**
+  String get saTambahPengguna;
+
+  /// No description provided for @saAksiUbah.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit details'**
+  String get saAksiUbah;
+
+  /// No description provided for @saAksiSetelSandi.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset password'**
+  String get saAksiSetelSandi;
+
+  /// No description provided for @saAksiNonaktifkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate account'**
+  String get saAksiNonaktifkan;
+
+  /// No description provided for @saAksiAktifkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Reactivate'**
+  String get saAksiAktifkan;
+
+  /// No description provided for @saAksiSetujui.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve'**
+  String get saAksiSetujui;
+
+  /// No description provided for @saAksiTolak.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get saAksiTolak;
+
+  /// No description provided for @saNonaktifJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate {nama}?'**
+  String saNonaktifJudul(String nama);
+
+  /// No description provided for @saNonaktifIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'This account can no longer sign in and all its devices are signed out on their next request. Calibration history and certificates in its name stay as they are. The account can be reactivated.'**
+  String get saNonaktifIsi;
+
+  /// No description provided for @saNonaktifAksi.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate'**
+  String get saNonaktifAksi;
+
+  /// No description provided for @saNonaktifBerhasil.
+  ///
+  /// In en, this message translates to:
+  /// **'Account deactivated.'**
+  String get saNonaktifBerhasil;
+
+  /// No description provided for @saAktifJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Reactivate {nama}?'**
+  String saAktifJudul(String nama);
+
+  /// No description provided for @saAktifIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'They can sign in again with their old password. The role does not change. If a new password is needed, reset it afterwards.'**
+  String get saAktifIsi;
+
+  /// No description provided for @saAktifAksi.
+  ///
+  /// In en, this message translates to:
+  /// **'Reactivate'**
+  String get saAktifAksi;
+
+  /// No description provided for @saAktifBerhasil.
+  ///
+  /// In en, this message translates to:
+  /// **'Account reactivated.'**
+  String get saAktifBerhasil;
+
+  /// No description provided for @saAlasanWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason (required, 3 to 500 characters)'**
+  String get saAlasanWajib;
+
+  /// No description provided for @saAlasanOpsional.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason (optional)'**
+  String get saAlasanOpsional;
+
+  /// No description provided for @saAlasanCatatan.
+  ///
+  /// In en, this message translates to:
+  /// **'This reason is recorded in the change history under your name.'**
+  String get saAlasanCatatan;
+
+  /// No description provided for @saAlasanPendek.
+  ///
+  /// In en, this message translates to:
+  /// **'The reason needs at least 3 characters.'**
+  String get saAlasanPendek;
+
+  /// No description provided for @saAlasanPanjang.
+  ///
+  /// In en, this message translates to:
+  /// **'The reason can be at most 500 characters.'**
+  String get saAlasanPanjang;
+
+  /// No description provided for @saSetelJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset password for {nama}'**
+  String saSetelJudul(String nama);
+
+  /// No description provided for @saSetelIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'All devices of this person are signed out. Hand the new password to them in person.'**
+  String get saSetelIsi;
+
+  /// No description provided for @saSetelLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'New password'**
+  String get saSetelLabel;
+
+  /// No description provided for @saSetelHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 8 characters. Not shown again.'**
+  String get saSetelHelper;
+
+  /// No description provided for @saSetelPendek.
+  ///
+  /// In en, this message translates to:
+  /// **'The password needs at least 8 characters.'**
+  String get saSetelPendek;
+
+  /// No description provided for @saSetelAksi.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get saSetelAksi;
+
+  /// No description provided for @saSetelBerhasil.
+  ///
+  /// In en, this message translates to:
+  /// **'Password for {nama} was reset.'**
+  String saSetelBerhasil(String nama);
+
+  /// No description provided for @saSetujuiJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve {nama}'**
+  String saSetujuiJudul(String nama);
+
+  /// No description provided for @saSetujuiIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the role of this account.'**
+  String get saSetujuiIsi;
+
+  /// No description provided for @saSetujuiBerhasil.
+  ///
+  /// In en, this message translates to:
+  /// **'Account approved.'**
+  String get saSetujuiBerhasil;
+
+  /// No description provided for @saTolakJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject {nama}?'**
+  String saTolakJudul(String nama);
+
+  /// No description provided for @saTolakIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'This account is deactivated and cannot sign in.'**
+  String get saTolakIsi;
+
+  /// No description provided for @saTolakBerhasil.
+  ///
+  /// In en, this message translates to:
+  /// **'Applicant rejected.'**
+  String get saTolakBerhasil;
+
+  /// No description provided for @saGalatSudahNonaktif.
+  ///
+  /// In en, this message translates to:
+  /// **'This account is already inactive. The list is reloading.'**
+  String get saGalatSudahNonaktif;
+
+  /// No description provided for @saGalatSudahAktif.
+  ///
+  /// In en, this message translates to:
+  /// **'This account is already active. The list is reloading.'**
+  String get saGalatSudahAktif;
+
+  /// No description provided for @saGalatPerluPersetujuan.
+  ///
+  /// In en, this message translates to:
+  /// **'This account is still awaiting approval. Use Approve.'**
+  String get saGalatPerluPersetujuan;
+
+  /// No description provided for @saFormTambahJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Add user'**
+  String get saFormTambahJudul;
+
+  /// No description provided for @saFormUbahJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit user'**
+  String get saFormUbahJudul;
+
+  /// No description provided for @saFormPeran.
+  ///
+  /// In en, this message translates to:
+  /// **'Account role'**
+  String get saFormPeran;
+
+  /// No description provided for @saFormIntroTambah.
+  ///
+  /// In en, this message translates to:
+  /// **'The account is active right away. They sign in with their employee ID or email. Hand over the initial password in person.'**
+  String get saFormIntroTambah;
+
+  /// No description provided for @saFormIntroUbah.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the fields you change are sent. The password is not changed here; use Reset password.'**
+  String get saFormIntroUbah;
+
+  /// No description provided for @saFormBuat.
+  ///
+  /// In en, this message translates to:
+  /// **'Create account'**
+  String get saFormBuat;
+
+  /// No description provided for @saFormSimpan.
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes'**
+  String get saFormSimpan;
+
+  /// No description provided for @saFormBerhasilBuat.
+  ///
+  /// In en, this message translates to:
+  /// **'Account {nama} created (employee ID {id}). Hand the initial password over in person and ask them to change it via Change password.'**
+  String saFormBerhasilBuat(String nama, String id);
+
+  /// No description provided for @saFormBerhasilUbah.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes saved.'**
+  String get saFormBerhasilUbah;
+
+  /// No description provided for @saFormTanpaPerubahan.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing has been changed.'**
+  String get saFormTanpaPerubahan;
+
+  /// No description provided for @saFormPeranTetap.
+  ///
+  /// In en, this message translates to:
+  /// **'The {peran} role cannot be changed here.'**
+  String saFormPeranTetap(String peran);
+
+  /// No description provided for @saPelJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Customers & members'**
+  String get saPelJudul;
+
+  /// No description provided for @saPelCari.
+  ///
+  /// In en, this message translates to:
+  /// **'Search customer name'**
+  String get saPelCari;
+
+  /// No description provided for @saPelKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No customers match.'**
+  String get saPelKosong;
+
+  /// No description provided for @saPelGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'The customer list could not be loaded.'**
+  String get saPelGagal;
+
+  /// No description provided for @saDetGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'The members of this customer could not be loaded.'**
+  String get saDetGagal;
+
+  /// No description provided for @saDetKuota.
+  ///
+  /// In en, this message translates to:
+  /// **'{aktif} of at most {maks} active members'**
+  String saDetKuota(int aktif, int maks);
+
+  /// No description provided for @saDetPicAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Lab contact admin'**
+  String get saDetPicAdmin;
+
+  /// No description provided for @saDetPicAdminKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Not assigned. Notifications for this customer go to all admins.'**
+  String get saDetPicAdminKosong;
+
+  /// No description provided for @saDetUbahPic.
+  ///
+  /// In en, this message translates to:
+  /// **'Change contact admin'**
+  String get saDetUbahPic;
+
+  /// No description provided for @saPicJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose contact admin'**
+  String get saPicJudul;
+
+  /// No description provided for @saPicIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'The contact admin receives the submission and equipment verification notifications of this customer.'**
+  String get saPicIsi;
+
+  /// No description provided for @saPicLepas.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove contact admin'**
+  String get saPicLepas;
+
+  /// No description provided for @saPicKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'There is no active admin in this lab yet.'**
+  String get saPicKosong;
+
+  /// No description provided for @saPicGagalMuat.
+  ///
+  /// In en, this message translates to:
+  /// **'The admin list could not be loaded.'**
+  String get saPicGagalMuat;
+
+  /// No description provided for @saPicBerhasil.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact admin updated.'**
+  String get saPicBerhasil;
+
+  /// No description provided for @saPicDilepas.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact admin removed.'**
+  String get saPicDilepas;
+
+  /// No description provided for @saAnggotaJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Members'**
+  String get saAnggotaJudul;
+
+  /// No description provided for @saAnggotaKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No members yet. Invite the first person with the button above.'**
+  String get saAnggotaKosong;
+
+  /// No description provided for @saPeranPicUtama.
+  ///
+  /// In en, this message translates to:
+  /// **'Main contact'**
+  String get saPeranPicUtama;
+
+  /// No description provided for @saPeranStaf.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff'**
+  String get saPeranStaf;
+
+  /// No description provided for @saTanpaNamaAnggota.
+  ///
+  /// In en, this message translates to:
+  /// **'(account no longer exists)'**
+  String get saTanpaNamaAnggota;
+
+  /// No description provided for @saBergabung.
+  ///
+  /// In en, this message translates to:
+  /// **'Joined {tanggal}'**
+  String saBergabung(String tanggal);
+
+  /// No description provided for @saDinonaktifkanOleh.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivated {tanggal} by {oleh}'**
+  String saDinonaktifkanOleh(String tanggal, String oleh);
+
+  /// No description provided for @saDinonaktifkanSaja.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivated {tanggal}'**
+  String saDinonaktifkanSaja(String tanggal);
+
+  /// No description provided for @saPicTerakhir.
+  ///
+  /// In en, this message translates to:
+  /// **'Last main contact. Invite another main contact before removing this one.'**
+  String get saPicTerakhir;
+
+  /// No description provided for @saCabutAkses.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove access'**
+  String get saCabutAkses;
+
+  /// No description provided for @saCabutJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove access for {nama}?'**
+  String saCabutJudul(String nama);
+
+  /// No description provided for @saCabutIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'{nama} can no longer open the data of {perusahaan} and their sessions are revoked. A removed member stays on record as history. To restore, invite the same person again.'**
+  String saCabutIsi(String nama, String perusahaan);
+
+  /// No description provided for @saCabutBerhasil.
+  ///
+  /// In en, this message translates to:
+  /// **'Member access removed.'**
+  String get saCabutBerhasil;
+
+  /// No description provided for @saGalatPicTerakhir.
+  ///
+  /// In en, this message translates to:
+  /// **'This is the only active main contact, so access cannot be removed. Invite another main contact first.'**
+  String get saGalatPicTerakhir;
+
+  /// No description provided for @saGalatSudahNonaktifAnggota.
+  ///
+  /// In en, this message translates to:
+  /// **'This member is already inactive. The list is reloading.'**
+  String get saGalatSudahNonaktifAnggota;
+
+  /// No description provided for @saUndanganJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending invitations'**
+  String get saUndanganJudul;
+
+  /// No description provided for @saUndanganKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No invitations are waiting.'**
+  String get saUndanganKosong;
+
+  /// No description provided for @saUndanganBerlaku.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid until {tanggal}'**
+  String saUndanganBerlaku(String tanggal);
+
+  /// No description provided for @saUndanganOleh.
+  ///
+  /// In en, this message translates to:
+  /// **'Invited by {nama}'**
+  String saUndanganOleh(String nama);
+
+  /// No description provided for @saBatalkanUndangan.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel invitation'**
+  String get saBatalkanUndangan;
+
+  /// No description provided for @saBatalkanJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel the invitation?'**
+  String get saBatalkanJudul;
+
+  /// No description provided for @saBatalkanUntuk.
+  ///
+  /// In en, this message translates to:
+  /// **'Invitation for {email}.'**
+  String saBatalkanUntuk(String email);
+
+  /// No description provided for @saBatalkanIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'The code stops working. To invite again, send a new invitation.'**
+  String get saBatalkanIsi;
+
+  /// No description provided for @saBatalkanTidak.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep it'**
+  String get saBatalkanTidak;
+
+  /// No description provided for @saBatalkanBerhasil.
+  ///
+  /// In en, this message translates to:
+  /// **'Invitation cancelled.'**
+  String get saBatalkanBerhasil;
+
+  /// No description provided for @saAlatJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer equipment'**
+  String get saAlatJudul;
+
+  /// No description provided for @saAlatKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'This customer has no equipment yet.'**
+  String get saAlatKosong;
+
+  /// No description provided for @saAlatGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'The equipment list could not be loaded.'**
+  String get saAlatGagal;
+
+  /// No description provided for @saAlatLanjutGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'The next equipment could not be loaded.'**
+  String get saAlatLanjutGagal;
+
+  /// No description provided for @saAlatSeri.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial no. {seri}'**
+  String saAlatSeri(String seri);
+
+  /// No description provided for @saAlatTanpaSeri.
+  ///
+  /// In en, this message translates to:
+  /// **'No serial number'**
+  String get saAlatTanpaSeri;
+
+  /// No description provided for @saAlatJadwal.
+  ///
+  /// In en, this message translates to:
+  /// **'Next calibration {tanggal}'**
+  String saAlatJadwal(String tanggal);
+
+  /// No description provided for @saAlatTanpaJadwal.
+  ///
+  /// In en, this message translates to:
+  /// **'No recalibration scheduled'**
+  String get saAlatTanpaJadwal;
+
+  /// No description provided for @saAlatJumlahSert.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} certificates'**
+  String saAlatJumlahSert(int jumlah);
+
+  /// No description provided for @saMemuat.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading'**
+  String get saMemuat;
+
+  /// No description provided for @saRiwayatJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate history'**
+  String get saRiwayatJudul;
+
+  /// No description provided for @saRiwayatKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'This equipment has no certificates yet.'**
+  String get saRiwayatKosong;
+
+  /// No description provided for @saRiwayatGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'The certificate history could not be loaded.'**
+  String get saRiwayatGagal;
+
+  /// No description provided for @saRiwayatLanjutGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'The next certificates could not be loaded.'**
+  String get saRiwayatLanjutGagal;
+
+  /// No description provided for @saRiwayatTanpaTanggal.
+  ///
+  /// In en, this message translates to:
+  /// **'No issue date'**
+  String get saRiwayatTanpaTanggal;
+
+  /// No description provided for @saRiwayatTerbit.
+  ///
+  /// In en, this message translates to:
+  /// **'Issued {tanggal}'**
+  String saRiwayatTerbit(String tanggal);
+
+  /// No description provided for @saSertTerbit.
+  ///
+  /// In en, this message translates to:
+  /// **'Issued'**
+  String get saSertTerbit;
+
+  /// No description provided for @saSertDigantikan.
+  ///
+  /// In en, this message translates to:
+  /// **'Superseded'**
+  String get saSertDigantikan;
+
+  /// No description provided for @saSertDitarik.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdrawn'**
+  String get saSertDitarik;
+
+  /// No description provided for @saSertDibatalkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get saSertDibatalkan;
+
+  /// No description provided for @saSertGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get saSertGagal;
+
+  /// No description provided for @saSertMenunggu.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting issue'**
+  String get saSertMenunggu;
+
+  /// No description provided for @saSertBuka.
+  ///
+  /// In en, this message translates to:
+  /// **'Open certificate preview'**
+  String get saSertBuka;
+
+  /// No description provided for @saAlatStatusTerkalibrasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibrated'**
+  String get saAlatStatusTerkalibrasi;
+
+  /// No description provided for @saAlatStatusMendekati.
+  ///
+  /// In en, this message translates to:
+  /// **'Due soon'**
+  String get saAlatStatusMendekati;
+
+  /// No description provided for @saAlatStatusLewat.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get saAlatStatusLewat;
+
+  /// No description provided for @saAlatStatusBelum.
+  ///
+  /// In en, this message translates to:
+  /// **'Never calibrated'**
+  String get saAlatStatusBelum;
+
+  /// No description provided for @saAlatStatusNonaktif.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get saAlatStatusNonaktif;
+
+  /// No description provided for @saAlatHariLagi.
+  ///
+  /// In en, this message translates to:
+  /// **'in {hari} days'**
+  String saAlatHariLagi(int hari);
+
+  /// No description provided for @saAlatHariIni.
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get saAlatHariIni;
+
+  /// No description provided for @saAlatTerlambat.
+  ///
+  /// In en, this message translates to:
+  /// **'{hari} days late'**
+  String saAlatTerlambat(int hari);
+
+  /// No description provided for @saAlatTerbaru.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest certificate {nomor}'**
+  String saAlatTerbaru(String nomor);
+
+  /// No description provided for @saSertDigantikanOleh.
+  ///
+  /// In en, this message translates to:
+  /// **'Superseded by {nomor}'**
+  String saSertDigantikanOleh(String nomor);
+
+  /// No description provided for @saSertRevisiDari.
+  ///
+  /// In en, this message translates to:
+  /// **'Revision of {nomor}'**
+  String saSertRevisiDari(String nomor);
+
+  /// No description provided for @saSertDitarikPada.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdrawn {tanggal}'**
+  String saSertDitarikPada(String tanggal);
+
+  /// No description provided for @saSertDibatalkanPada.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled {tanggal}'**
+  String saSertDibatalkanPada(String tanggal);
+
+  /// No description provided for @saPelRingkas.
+  ///
+  /// In en, this message translates to:
+  /// **'{alat} equipment · {sertifikat} certificates · {anggota} members'**
+  String saPelRingkas(int alat, int sertifikat, int anggota);
+
+  /// No description provided for @saPelTanpaAkun.
+  ///
+  /// In en, this message translates to:
+  /// **'No customer account yet'**
+  String get saPelTanpaAkun;
+
+  /// No description provided for @saDetTanpaAkunIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'This company has equipment or certificates, but nobody can see them yet. Invite the first member.'**
+  String get saDetTanpaAkunIsi;
+
+  /// No description provided for @saDetNamaNormalKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate-company detection does not work for this company yet. Save the company again in the Customers screen to fix it.'**
+  String get saDetNamaNormalKosong;
+
+  /// No description provided for @saPindahJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Move equipment'**
+  String get saPindahJudul;
+
+  /// No description provided for @saPindahTombol.
+  ///
+  /// In en, this message translates to:
+  /// **'Move equipment'**
+  String get saPindahTombol;
+
+  /// No description provided for @saPindahIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Move equipment and its certificates to another company, for example when a company was misspelled or duplicated. Certificate numbers and contents do not change.'**
+  String get saPindahIntro;
+
+  /// No description provided for @saPindahTujuan.
+  ///
+  /// In en, this message translates to:
+  /// **'Destination company'**
+  String get saPindahTujuan;
+
+  /// No description provided for @saPindahTujuanKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Not chosen yet'**
+  String get saPindahTujuanKosong;
+
+  /// No description provided for @saPindahPilihTujuan.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose destination'**
+  String get saPindahPilihTujuan;
+
+  /// No description provided for @saPindahGantiTujuan.
+  ///
+  /// In en, this message translates to:
+  /// **'Change destination'**
+  String get saPindahGantiTujuan;
+
+  /// No description provided for @saPindahAlatJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment to move'**
+  String get saPindahAlatJudul;
+
+  /// No description provided for @saPindahDipilih.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} equipment selected'**
+  String saPindahDipilih(int n);
+
+  /// No description provided for @saPindahPilihMuat.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all loaded'**
+  String get saPindahPilihMuat;
+
+  /// No description provided for @saPindahKosongkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear selection'**
+  String get saPindahKosongkan;
+
+  /// No description provided for @saPindahMaks.
+  ///
+  /// In en, this message translates to:
+  /// **'At most 100 items per move.'**
+  String get saPindahMaks;
+
+  /// No description provided for @saPindahAlatKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'This company has no equipment to move.'**
+  String get saPindahAlatKosong;
+
+  /// No description provided for @saPindahLihatPratinjau.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get saPindahLihatPratinjau;
+
+  /// No description provided for @saPilihPtJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose destination company'**
+  String get saPilihPtJudul;
+
+  /// No description provided for @saPilihPtCari.
+  ///
+  /// In en, this message translates to:
+  /// **'Search company name'**
+  String get saPilihPtCari;
+
+  /// No description provided for @saPilihPtKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No other company matches.'**
+  String get saPilihPtKosong;
+
+  /// No description provided for @saPratinjauJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Move preview'**
+  String get saPratinjauJudul;
+
+  /// No description provided for @saPratinjauDari.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get saPratinjauDari;
+
+  /// No description provided for @saPratinjauKe.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get saPratinjauKe;
+
+  /// No description provided for @saPratinjauAnggotaPt.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} active members'**
+  String saPratinjauAnggotaPt(int n);
+
+  /// No description provided for @saPratinjauAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} equipment moved'**
+  String saPratinjauAlat(int n);
+
+  /// No description provided for @saPratinjauSertTerdampak.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} certificates move along'**
+  String saPratinjauSertTerdampak(int n);
+
+  /// No description provided for @saPratinjauSertTerlihat.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} of them are visible in the customer app'**
+  String saPratinjauSertTerlihat(int n);
+
+  /// No description provided for @saPratinjauMulai.
+  ///
+  /// In en, this message translates to:
+  /// **'Start seeing this equipment'**
+  String get saPratinjauMulai;
+
+  /// No description provided for @saPratinjauBerhenti.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop seeing this equipment'**
+  String get saPratinjauBerhenti;
+
+  /// No description provided for @saPratinjauTidakAda.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get saPratinjauTidakAda;
+
+  /// No description provided for @saPratinjauPaket.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} package/order lines point to this equipment and do NOT move.'**
+  String saPratinjauPaket(int n);
+
+  /// No description provided for @saPeringatanPaket.
+  ///
+  /// In en, this message translates to:
+  /// **'Package/order lines pointing to this equipment do not move.'**
+  String get saPeringatanPaket;
+
+  /// No description provided for @saPeringatanArsip.
+  ///
+  /// In en, this message translates to:
+  /// **'Old archive files stay in the original company folder until the owner runs the archive tidy-up.'**
+  String get saPeringatanArsip;
+
+  /// No description provided for @saPeringatanIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate numbers and contents, including the printed owner name, are not changed.'**
+  String get saPeringatanIsi;
+
+  /// No description provided for @saPindahEksekusi.
+  ///
+  /// In en, this message translates to:
+  /// **'Move {n} equipment'**
+  String saPindahEksekusi(int n);
+
+  /// No description provided for @saPindahKonfirmJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Move {n} equipment to {pt}?'**
+  String saPindahKonfirmJudul(int n, String pt);
+
+  /// No description provided for @saPindahKonfirmIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} certificates move along. Certificates are not changed or deleted; equipment can be moved again if this was a mistake. It is recorded in the change history under your name.'**
+  String saPindahKonfirmIsi(int n);
+
+  /// No description provided for @saPindahAksi.
+  ///
+  /// In en, this message translates to:
+  /// **'Move'**
+  String get saPindahAksi;
+
+  /// No description provided for @saPindahBerhasil.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} equipment moved to {pt}.'**
+  String saPindahBerhasil(int n, String pt);
+
+  /// No description provided for @saPindahBerhasilIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'{s} certificates moved along ({t} visible in the customer app).'**
+  String saPindahBerhasilIsi(int s, int t);
+
+  /// No description provided for @saPindahSelesai.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get saPindahSelesai;
+
+  /// No description provided for @saPratinjauGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'The preview could not be loaded.'**
+  String get saPratinjauGagal;
+
+  /// No description provided for @saPratinjauUlang.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat preview'**
+  String get saPratinjauUlang;
+
+  /// No description provided for @saGalatAlatSudahPindah.
+  ///
+  /// In en, this message translates to:
+  /// **'Another admin already moved the equipment. Repeat the preview to see the latest state.'**
+  String get saGalatAlatSudahPindah;
+
+  /// No description provided for @saGalatAlatBukanMilik.
+  ///
+  /// In en, this message translates to:
+  /// **'Some equipment no longer belongs to the original company. Repeat the preview.'**
+  String get saGalatAlatBukanMilik;
+
+  /// No description provided for @saGalatPtSama.
+  ///
+  /// In en, this message translates to:
+  /// **'The destination cannot be the original company.'**
+  String get saGalatPtSama;
+
+  /// No description provided for @crudGalatKategoriKembar.
+  ///
+  /// In en, this message translates to:
+  /// **'A category with that name already exists.'**
+  String get crudGalatKategoriKembar;
+
+  /// No description provided for @crudGalatKategoriDipakai.
+  ///
+  /// In en, this message translates to:
+  /// **'This category is still in use{rincian}. Deactivate it instead so it is no longer offered.'**
+  String crudGalatKategoriDipakai(String rincian);
+
+  /// No description provided for @crudGalatKategoriNonaktif.
+  ///
+  /// In en, this message translates to:
+  /// **'This category is inactive, so it cannot be used for new data.'**
+  String get crudGalatKategoriNonaktif;
+
+  /// No description provided for @crudGalatKodeBentrok.
+  ///
+  /// In en, this message translates to:
+  /// **'Two people created a category at the same time. Please try again.'**
+  String get crudGalatKodeBentrok;
+
+  /// No description provided for @crudGalatBukanDraf.
+  ///
+  /// In en, this message translates to:
+  /// **'Only drafts can be archived; this worksheet is {status}.'**
+  String crudGalatBukanDraf(String status);
+
+  /// No description provided for @crudGalatTidakDiarsipkan.
+  ///
+  /// In en, this message translates to:
+  /// **'This draft is no longer archived. The list was reloaded.'**
+  String get crudGalatTidakDiarsipkan;
+
+  /// No description provided for @crudGalatStatusBerubah.
+  ///
+  /// In en, this message translates to:
+  /// **'The worksheet status changed (it may have been submitted from another device). Reload and try again.'**
+  String get crudGalatStatusBerubah;
+
+  /// No description provided for @crudGalatHanyaAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Only Master Data or Super Admin can open the draft archive.'**
+  String get crudGalatHanyaAdmin;
+
+  /// No description provided for @crudGalatPenugasanTidakAktif.
+  ///
+  /// In en, this message translates to:
+  /// **'This assignment is already {status}, so it can no longer be edited or cancelled.'**
+  String crudGalatPenugasanTidakAktif(String status);
+
+  /// No description provided for @crudGalatPenugasanSelesai.
+  ///
+  /// In en, this message translates to:
+  /// **'This assignment is already complete, so it cannot be cancelled.'**
+  String get crudGalatPenugasanSelesai;
+
+  /// No description provided for @crudGalatItemSudahDikerjakan.
+  ///
+  /// In en, this message translates to:
+  /// **'A row with recorded progress cannot be removed. Change its quantity instead.'**
+  String get crudGalatItemSudahDikerjakan;
+
+  /// No description provided for @crudGalat403.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account is not allowed to do this.'**
+  String get crudGalat403;
+
+  /// No description provided for @crudGalat409.
+  ///
+  /// In en, this message translates to:
+  /// **'The data changed elsewhere. Reload and try again.'**
+  String get crudGalat409;
+
+  /// No description provided for @crudGalat429.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many requests. Wait a moment and try again.'**
+  String get crudGalat429;
+
+  /// No description provided for @crudGalat500.
+  ///
+  /// In en, this message translates to:
+  /// **'The server is having trouble. Try again shortly; if it keeps happening, contact the system administrator.'**
+  String get crudGalat500;
+
+  /// No description provided for @crudGalatKoneksi.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot reach the server. Check your connection and try again.'**
+  String get crudGalatKoneksi;
+
+  /// No description provided for @crudGalatKoneksiSimpan.
+  ///
+  /// In en, this message translates to:
+  /// **'The connection dropped while saving. The data may already be saved; check the list before creating it again.'**
+  String get crudGalatKoneksiSimpan;
+
+  /// No description provided for @crudPemakaiAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} equipment'**
+  String crudPemakaiAlat(int n);
+
+  /// No description provided for @crudPemakaiKemampuan.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} capabilities'**
+  String crudPemakaiKemampuan(int n);
+
+  /// No description provided for @crudPemakaiPenugasan.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} assignments'**
+  String crudPemakaiPenugasan(int n);
+
+  /// No description provided for @crudPemakaiMetode.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} methods'**
+  String crudPemakaiMetode(int n);
+
+  /// No description provided for @crudPemakaiRumus.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} formulas'**
+  String crudPemakaiRumus(int n);
+
+  /// No description provided for @crudTanpaIzin.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account has no permission for this section.'**
+  String get crudTanpaIzin;
+
+  /// No description provided for @crudSimpan.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get crudSimpan;
+
+  /// No description provided for @crudAksiUbah.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get crudAksiUbah;
+
+  /// No description provided for @crudAksiHapus.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get crudAksiHapus;
+
+  /// No description provided for @crudBatalDialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get crudBatalDialog;
+
+  /// No description provided for @crudTutup.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get crudTutup;
+
+  /// No description provided for @crudHubJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders & lab data'**
+  String get crudHubJudul;
+
+  /// No description provided for @crudHubKelolaSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders, assignments, equipment categories and the draft archive.'**
+  String get crudHubKelolaSub;
+
+  /// No description provided for @crudHubOrderJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders'**
+  String get crudHubOrderJudul;
+
+  /// No description provided for @crudHubOrderSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Record, edit and delete customer equipment orders.'**
+  String get crudHubOrderSub;
+
+  /// No description provided for @crudHubPenugasanJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Assignments'**
+  String get crudHubPenugasanJudul;
+
+  /// No description provided for @crudHubPenugasanSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit or cancel assignments that are still active.'**
+  String get crudHubPenugasanSub;
+
+  /// No description provided for @crudHubKategoriJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment categories'**
+  String get crudHubKategoriJudul;
+
+  /// No description provided for @crudHubKategoriSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Add, rename, deactivate and delete categories.'**
+  String get crudHubKategoriSub;
+
+  /// No description provided for @crudHubArsipJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft archive'**
+  String get crudHubArsipJudul;
+
+  /// No description provided for @crudHubArsipSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived worksheet drafts; restore them when needed.'**
+  String get crudHubArsipSub;
+
+  /// No description provided for @crudHubKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No menu is available for this account.'**
+  String get crudHubKosong;
+
+  /// No description provided for @crudOrderJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders'**
+  String get crudOrderJudul;
+
+  /// No description provided for @crudOrderCari.
+  ///
+  /// In en, this message translates to:
+  /// **'Search order number or company'**
+  String get crudOrderCari;
+
+  /// No description provided for @crudOrderSemua.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get crudOrderSemua;
+
+  /// No description provided for @crudOrderKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no orders yet.'**
+  String get crudOrderKosong;
+
+  /// No description provided for @crudOrderKosongCari.
+  ///
+  /// In en, this message translates to:
+  /// **'No order matches this search.'**
+  String get crudOrderKosongCari;
+
+  /// No description provided for @crudOrderGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'The order list could not be loaded.'**
+  String get crudOrderGagal;
+
+  /// No description provided for @crudOrderBuat.
+  ///
+  /// In en, this message translates to:
+  /// **'Create order'**
+  String get crudOrderBuat;
+
+  /// No description provided for @crudOrderAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} equipment'**
+  String crudOrderAlat(int n);
+
+  /// No description provided for @crudOrderMasuk.
+  ///
+  /// In en, this message translates to:
+  /// **'Received {tanggal}'**
+  String crudOrderMasuk(String tanggal);
+
+  /// No description provided for @crudOrderJanji.
+  ///
+  /// In en, this message translates to:
+  /// **'Due {tanggal}'**
+  String crudOrderJanji(String tanggal);
+
+  /// No description provided for @crudOrderTelat.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get crudOrderTelat;
+
+  /// No description provided for @crudOrderDetailJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Order details'**
+  String get crudOrderDetailJudul;
+
+  /// No description provided for @crudOrderDiterima.
+  ///
+  /// In en, this message translates to:
+  /// **'Received by {nama}'**
+  String crudOrderDiterima(String nama);
+
+  /// No description provided for @crudOrderCatatan.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get crudOrderCatatan;
+
+  /// No description provided for @crudOrderAlatJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment in this order'**
+  String get crudOrderAlatJudul;
+
+  /// No description provided for @crudOrderAlatKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'This order has no equipment yet.'**
+  String get crudOrderAlatKosong;
+
+  /// No description provided for @crudOrderBelumDibagi.
+  ///
+  /// In en, this message translates to:
+  /// **'Not assigned'**
+  String get crudOrderBelumDibagi;
+
+  /// No description provided for @crudOrderTeknisiNama.
+  ///
+  /// In en, this message translates to:
+  /// **'Technician: {nama}'**
+  String crudOrderTeknisiNama(String nama);
+
+  /// No description provided for @crudOrderKondisi.
+  ///
+  /// In en, this message translates to:
+  /// **'Condition on receipt'**
+  String get crudOrderKondisi;
+
+  /// No description provided for @crudOrderKelengkapan.
+  ///
+  /// In en, this message translates to:
+  /// **'Accessories'**
+  String get crudOrderKelengkapan;
+
+  /// No description provided for @crudOrderDetailGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'This order could not be loaded.'**
+  String get crudOrderDetailGagal;
+
+  /// No description provided for @crudOrderFormBuat.
+  ///
+  /// In en, this message translates to:
+  /// **'Create order'**
+  String get crudOrderFormBuat;
+
+  /// No description provided for @crudOrderFormUbah.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit order'**
+  String get crudOrderFormUbah;
+
+  /// No description provided for @crudOrderIntroBuat.
+  ///
+  /// In en, this message translates to:
+  /// **'The order number is created automatically by the server on save.'**
+  String get crudOrderIntroBuat;
+
+  /// No description provided for @crudOrderIntroUbah.
+  ///
+  /// In en, this message translates to:
+  /// **'Number {nomor} does not change. The customer cannot be changed from here.'**
+  String crudOrderIntroUbah(String nomor);
+
+  /// No description provided for @crudOrderPelanggan.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer (company)'**
+  String get crudOrderPelanggan;
+
+  /// No description provided for @crudOrderPilihPelanggan.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a customer'**
+  String get crudOrderPilihPelanggan;
+
+  /// No description provided for @crudOrderCariPelanggan.
+  ///
+  /// In en, this message translates to:
+  /// **'Search customer name'**
+  String get crudOrderCariPelanggan;
+
+  /// No description provided for @crudOrderPelangganKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No customer found.'**
+  String get crudOrderPelangganKosong;
+
+  /// No description provided for @crudOrderPelangganGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'The customer list could not be loaded.'**
+  String get crudOrderPelangganGagal;
+
+  /// No description provided for @crudOrderPelangganWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a customer first.'**
+  String get crudOrderPelangganWajib;
+
+  /// No description provided for @crudOrderTanggalMasuk.
+  ///
+  /// In en, this message translates to:
+  /// **'Date received'**
+  String get crudOrderTanggalMasuk;
+
+  /// No description provided for @crudOrderTanggalJanji.
+  ///
+  /// In en, this message translates to:
+  /// **'Due date (optional)'**
+  String get crudOrderTanggalJanji;
+
+  /// No description provided for @crudOrderPilihTanggal.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a date'**
+  String get crudOrderPilihTanggal;
+
+  /// No description provided for @crudOrderKosongkanTanggal.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear the due date'**
+  String get crudOrderKosongkanTanggal;
+
+  /// No description provided for @crudOrderTanggalMasukWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'The received date is required.'**
+  String get crudOrderTanggalMasukWajib;
+
+  /// No description provided for @crudOrderJanjiSebelumMasuk.
+  ///
+  /// In en, this message translates to:
+  /// **'The due date cannot be before the received date.'**
+  String get crudOrderJanjiSebelumMasuk;
+
+  /// No description provided for @crudOrderStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get crudOrderStatus;
+
+  /// No description provided for @crudOrderCatatanLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes (optional)'**
+  String get crudOrderCatatanLabel;
+
+  /// No description provided for @crudOrderCatatanPanjang.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes can be at most 1000 characters.'**
+  String get crudOrderCatatanPanjang;
+
+  /// No description provided for @crudOrderAlatBagian.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment ({n})'**
+  String crudOrderAlatBagian(int n);
+
+  /// No description provided for @crudOrderTambahAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Add equipment'**
+  String get crudOrderTambahAlat;
+
+  /// No description provided for @crudOrderAlatWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'Add at least one piece of equipment.'**
+  String get crudOrderAlatWajib;
+
+  /// No description provided for @crudOrderAlatPilihPtDulu.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a customer first to add equipment of that company.'**
+  String get crudOrderAlatPilihPtDulu;
+
+  /// No description provided for @crudOrderBuangAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {nama} from the order'**
+  String crudOrderBuangAlat(String nama);
+
+  /// No description provided for @crudOrderCatatanSesi.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment already in calibration stays in the order even if removed from this list.'**
+  String get crudOrderCatatanSesi;
+
+  /// No description provided for @crudOrderBerhasilBuat.
+  ///
+  /// In en, this message translates to:
+  /// **'Order {nomor} created.'**
+  String crudOrderBerhasilBuat(String nomor);
+
+  /// No description provided for @crudOrderBerhasilUbah.
+  ///
+  /// In en, this message translates to:
+  /// **'Order updated.'**
+  String get crudOrderBerhasilUbah;
+
+  /// No description provided for @crudOrderGalatUmum.
+  ///
+  /// In en, this message translates to:
+  /// **'The order was not saved. Check the fields marked with errors.'**
+  String get crudOrderGalatUmum;
+
+  /// No description provided for @crudItemTeknisi.
+  ///
+  /// In en, this message translates to:
+  /// **'Technician'**
+  String get crudItemTeknisi;
+
+  /// No description provided for @crudItemPilihTeknisi.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a technician'**
+  String get crudItemPilihTeknisi;
+
+  /// No description provided for @crudItemTanpaTeknisi.
+  ///
+  /// In en, this message translates to:
+  /// **'Not assigned'**
+  String get crudItemTanpaTeknisi;
+
+  /// No description provided for @crudItemTeknisiKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no active technicians.'**
+  String get crudItemTeknisiKosong;
+
+  /// No description provided for @crudItemTeknisiGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'The technician list could not be loaded.'**
+  String get crudItemTeknisiGagal;
+
+  /// No description provided for @crudItemRincian.
+  ///
+  /// In en, this message translates to:
+  /// **'Receiving details'**
+  String get crudItemRincian;
+
+  /// No description provided for @crudItemKondisi.
+  ///
+  /// In en, this message translates to:
+  /// **'Condition on receipt'**
+  String get crudItemKondisi;
+
+  /// No description provided for @crudItemKelengkapan.
+  ///
+  /// In en, this message translates to:
+  /// **'Accessories'**
+  String get crudItemKelengkapan;
+
+  /// No description provided for @crudItemCatatan.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment notes'**
+  String get crudItemCatatan;
+
+  /// No description provided for @crudPilihAlatJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose equipment of {pt}'**
+  String crudPilihAlatJudul(String pt);
+
+  /// No description provided for @crudPilihAlatCari.
+  ///
+  /// In en, this message translates to:
+  /// **'Search name or serial number'**
+  String get crudPilihAlatCari;
+
+  /// No description provided for @crudPilihAlatKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching equipment for this company.'**
+  String get crudPilihAlatKosong;
+
+  /// No description provided for @crudPilihAlatGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'The equipment could not be loaded.'**
+  String get crudPilihAlatGagal;
+
+  /// No description provided for @crudPilihAlatSudah.
+  ///
+  /// In en, this message translates to:
+  /// **'Already in the order'**
+  String get crudPilihAlatSudah;
+
+  /// No description provided for @crudPilihAlatTambah.
+  ///
+  /// In en, this message translates to:
+  /// **'Add {n} equipment'**
+  String crudPilihAlatTambah(int n);
+
+  /// No description provided for @crudPilihAlatPilihDulu.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose equipment first'**
+  String get crudPilihAlatPilihDulu;
+
+  /// No description provided for @crudOrderHapusJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete order {nomor}?'**
+  String crudOrderHapusJudul(String nomor);
+
+  /// No description provided for @crudOrderHapusIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'The order and its equipment list will be deleted. An order whose equipment is already in calibration cannot be deleted; set its status to Cancelled so the history stays intact.'**
+  String get crudOrderHapusIsi;
+
+  /// No description provided for @crudOrderHapusAksi.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete order'**
+  String get crudOrderHapusAksi;
+
+  /// No description provided for @crudOrderHapusBerhasil.
+  ///
+  /// In en, this message translates to:
+  /// **'Order deleted.'**
+  String get crudOrderHapusBerhasil;
+
+  /// No description provided for @crudOrderHapusDitolak.
+  ///
+  /// In en, this message translates to:
+  /// **'This order has equipment that is already in calibration, so it cannot be deleted. Set its status to Cancelled so the history stays intact.'**
+  String get crudOrderHapusDitolak;
+
+  /// No description provided for @crudOrderAlatDikosongkan.
+  ///
+  /// In en, this message translates to:
+  /// **'The equipment list was cleared because the customer changed.'**
+  String get crudOrderAlatDikosongkan;
+
+  /// No description provided for @crudAlasanWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get crudAlasanWajib;
+
+  /// No description provided for @crudAlasanOpsional.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason (optional)'**
+  String get crudAlasanOpsional;
+
+  /// No description provided for @crudAlasanCatatan.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason of 5 to 400 characters; recorded in the audit trail.'**
+  String get crudAlasanCatatan;
+
+  /// No description provided for @crudAlasanCatatanOpsional.
+  ///
+  /// In en, this message translates to:
+  /// **'At most 400 characters; recorded in the audit trail.'**
+  String get crudAlasanCatatanOpsional;
+
+  /// No description provided for @crudAlasanPendek.
+  ///
+  /// In en, this message translates to:
+  /// **'The reason must be at least 5 characters.'**
+  String get crudAlasanPendek;
+
+  /// No description provided for @crudAlasanPanjang.
+  ///
+  /// In en, this message translates to:
+  /// **'The reason can be at most 400 characters.'**
+  String get crudAlasanPanjang;
+
+  /// No description provided for @crudPenugasanJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Assignments'**
+  String get crudPenugasanJudul;
+
+  /// No description provided for @crudPenugasanKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no assignments yet.'**
+  String get crudPenugasanKosong;
+
+  /// No description provided for @crudPenugasanKosongStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'No assignment has this status.'**
+  String get crudPenugasanKosongStatus;
+
+  /// No description provided for @crudPenugasanGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'The assignment list could not be loaded.'**
+  String get crudPenugasanGagal;
+
+  /// No description provided for @crudPenugasanSemua.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get crudPenugasanSemua;
+
+  /// No description provided for @crudPenugasanTim.
+  ///
+  /// In en, this message translates to:
+  /// **'Team: {nama}'**
+  String crudPenugasanTim(String nama);
+
+  /// No description provided for @crudPenugasanTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Target {tanggal}'**
+  String crudPenugasanTarget(String tanggal);
+
+  /// No description provided for @crudPenugasanTerlambat.
+  ///
+  /// In en, this message translates to:
+  /// **'Late'**
+  String get crudPenugasanTerlambat;
+
+  /// No description provided for @crudPenugasanProgres.
+  ///
+  /// In en, this message translates to:
+  /// **'{persen}% complete'**
+  String crudPenugasanProgres(int persen);
+
+  /// No description provided for @crudPenugasanBaris.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} equipment rows'**
+  String crudPenugasanBaris(int n);
+
+  /// No description provided for @crudPenugasanTipeGrup.
+  ///
+  /// In en, this message translates to:
+  /// **'Group'**
+  String get crudPenugasanTipeGrup;
+
+  /// No description provided for @crudPenugasanTipePersonal.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal'**
+  String get crudPenugasanTipePersonal;
+
+  /// No description provided for @crudPenugasanBatalAlasan.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason: {alasan}'**
+  String crudPenugasanBatalAlasan(String alasan);
+
+  /// No description provided for @crudPenugasanBatalOleh.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled by {nama}'**
+  String crudPenugasanBatalOleh(String nama);
+
+  /// No description provided for @crudPenugasanBatalPada.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled {tanggal}'**
+  String crudPenugasanBatalPada(String tanggal);
+
+  /// No description provided for @crudPenugasanBatalOlehPada.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled by {nama}, {tanggal}'**
+  String crudPenugasanBatalOlehPada(String nama, String tanggal);
+
+  /// No description provided for @crudPenugasanAksiBatalkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel assignment'**
+  String get crudPenugasanAksiBatalkan;
+
+  /// No description provided for @crudPenugasanBatalJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel the assignment \"{judul}\"?'**
+  String crudPenugasanBatalJudul(String judul);
+
+  /// No description provided for @crudPenugasanBatalIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'The assignment is marked Cancelled. Members, equipment rows and progress stay readable as history, and members are notified.'**
+  String get crudPenugasanBatalIsi;
+
+  /// No description provided for @crudPenugasanBatalAksi.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel assignment'**
+  String get crudPenugasanBatalAksi;
+
+  /// No description provided for @crudPenugasanBatalBerhasil.
+  ///
+  /// In en, this message translates to:
+  /// **'Assignment cancelled.'**
+  String get crudPenugasanBatalBerhasil;
+
+  /// No description provided for @crudPenugasanUbahJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit assignment'**
+  String get crudPenugasanUbahJudul;
+
+  /// No description provided for @crudPenugasanUbahIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Only active assignments can be edited. Progress already reported by technicians does not change.'**
+  String get crudPenugasanUbahIntro;
+
+  /// No description provided for @crudPenugasanJudulLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get crudPenugasanJudulLabel;
+
+  /// No description provided for @crudPenugasanJudulWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'The title is required.'**
+  String get crudPenugasanJudulWajib;
+
+  /// No description provided for @crudPenugasanJudulPanjang.
+  ///
+  /// In en, this message translates to:
+  /// **'The title can be at most 150 characters.'**
+  String get crudPenugasanJudulPanjang;
+
+  /// No description provided for @crudPenugasanTanggalTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Target date (optional)'**
+  String get crudPenugasanTanggalTarget;
+
+  /// No description provided for @crudPenugasanKosongkanTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear the target'**
+  String get crudPenugasanKosongkanTarget;
+
+  /// No description provided for @crudPenugasanTanggalLewat.
+  ///
+  /// In en, this message translates to:
+  /// **'A new target date cannot be before today.'**
+  String get crudPenugasanTanggalLewat;
+
+  /// No description provided for @crudPenugasanCatatanLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes (optional)'**
+  String get crudPenugasanCatatanLabel;
+
+  /// No description provided for @crudPenugasanCatatanPanjang.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes can be at most 1000 characters.'**
+  String get crudPenugasanCatatanPanjang;
+
+  /// No description provided for @crudPenugasanTeknisiBagian.
+  ///
+  /// In en, this message translates to:
+  /// **'Technicians'**
+  String get crudPenugasanTeknisiBagian;
+
+  /// No description provided for @crudPenugasanTeknisiIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'The first one chosen becomes the leader.'**
+  String get crudPenugasanTeknisiIntro;
+
+  /// No description provided for @crudPenugasanKetua.
+  ///
+  /// In en, this message translates to:
+  /// **'Leader'**
+  String get crudPenugasanKetua;
+
+  /// No description provided for @crudPenugasanTeknisiWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose at least one technician.'**
+  String get crudPenugasanTeknisiWajib;
+
+  /// No description provided for @crudPenugasanTeknisiMaks.
+  ///
+  /// In en, this message translates to:
+  /// **'At most 20 technicians.'**
+  String get crudPenugasanTeknisiMaks;
+
+  /// No description provided for @crudPenugasanTeknisiNonaktif.
+  ///
+  /// In en, this message translates to:
+  /// **'{nama} (inactive)'**
+  String crudPenugasanTeknisiNonaktif(String nama);
+
+  /// No description provided for @crudPenugasanBarisBagian.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment rows ({n})'**
+  String crudPenugasanBarisBagian(int n);
+
+  /// No description provided for @crudPenugasanBarisWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'Add at least one row.'**
+  String get crudPenugasanBarisWajib;
+
+  /// No description provided for @crudPenugasanBarisMaks.
+  ///
+  /// In en, this message translates to:
+  /// **'At most 50 rows.'**
+  String get crudPenugasanBarisMaks;
+
+  /// No description provided for @crudPenugasanTambahBaris.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a row'**
+  String get crudPenugasanTambahBaris;
+
+  /// No description provided for @crudPenugasanJenisAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment type'**
+  String get crudPenugasanJenisAlat;
+
+  /// No description provided for @crudPenugasanJenisWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'The equipment type is required.'**
+  String get crudPenugasanJenisWajib;
+
+  /// No description provided for @crudPenugasanJenisPanjang.
+  ///
+  /// In en, this message translates to:
+  /// **'The equipment type can be at most 120 characters.'**
+  String get crudPenugasanJenisPanjang;
+
+  /// No description provided for @crudPenugasanJumlah.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity'**
+  String get crudPenugasanJumlah;
+
+  /// No description provided for @crudPenugasanJumlahSalah.
+  ///
+  /// In en, this message translates to:
+  /// **'The quantity must be 1 to 999.'**
+  String get crudPenugasanJumlahSalah;
+
+  /// No description provided for @crudPenugasanSelesaiN.
+  ///
+  /// In en, this message translates to:
+  /// **'Done {n}'**
+  String crudPenugasanSelesaiN(int n);
+
+  /// No description provided for @crudPenugasanPaket.
+  ///
+  /// In en, this message translates to:
+  /// **'Package {nomor}'**
+  String crudPenugasanPaket(String nomor);
+
+  /// No description provided for @crudPenugasanBarisCatatan.
+  ///
+  /// In en, this message translates to:
+  /// **'Row notes (optional)'**
+  String get crudPenugasanBarisCatatan;
+
+  /// No description provided for @crudPenugasanBuangBaris.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove row {nama}'**
+  String crudPenugasanBuangBaris(String nama);
+
+  /// No description provided for @crudPenugasanBarisTerkunci.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress is recorded: this row cannot be removed.'**
+  String get crudPenugasanBarisTerkunci;
+
+  /// No description provided for @crudPenugasanBerhasilUbah.
+  ///
+  /// In en, this message translates to:
+  /// **'Assignment updated.'**
+  String get crudPenugasanBerhasilUbah;
+
+  /// No description provided for @crudPenugasanGalatUmum.
+  ///
+  /// In en, this message translates to:
+  /// **'The assignment was not saved. Check the fields marked with errors.'**
+  String get crudPenugasanGalatUmum;
+
+  /// No description provided for @crudPenugasanTeknisiGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'The technician list could not be loaded.'**
+  String get crudPenugasanTeknisiGagal;
+
+  /// No description provided for @crudKategoriJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment categories'**
+  String get crudKategoriJudul;
+
+  /// No description provided for @crudKategoriKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no categories yet.'**
+  String get crudKategoriKosong;
+
+  /// No description provided for @crudKategoriKosongSaring.
+  ///
+  /// In en, this message translates to:
+  /// **'No category has this status.'**
+  String get crudKategoriKosongSaring;
+
+  /// No description provided for @crudKategoriGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'The category list could not be loaded.'**
+  String get crudKategoriGagal;
+
+  /// No description provided for @crudKategoriSemua.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get crudKategoriSemua;
+
+  /// No description provided for @crudKategoriTambah.
+  ///
+  /// In en, this message translates to:
+  /// **'Add category'**
+  String get crudKategoriTambah;
+
+  /// No description provided for @crudKategoriKode.
+  ///
+  /// In en, this message translates to:
+  /// **'Code: {kode}'**
+  String crudKategoriKode(String kode);
+
+  /// No description provided for @crudKategoriTanpaCmc.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} without CMC'**
+  String crudKategoriTanpaCmc(int n);
+
+  /// No description provided for @crudKategoriNonaktifSejak.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive since {tanggal}'**
+  String crudKategoriNonaktifSejak(String tanggal);
+
+  /// No description provided for @crudKategoriAksiUbahNama.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get crudKategoriAksiUbahNama;
+
+  /// No description provided for @crudKategoriAksiNonaktifkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate'**
+  String get crudKategoriAksiNonaktifkan;
+
+  /// No description provided for @crudKategoriAksiAktifkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Reactivate'**
+  String get crudKategoriAksiAktifkan;
+
+  /// No description provided for @crudKategoriAksiHapus.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get crudKategoriAksiHapus;
+
+  /// No description provided for @crudKategoriFormTambahJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Add category'**
+  String get crudKategoriFormTambahJudul;
+
+  /// No description provided for @crudKategoriFormTambahIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'A category is a measurement group, e.g. Pressure or Mass.'**
+  String get crudKategoriFormTambahIsi;
+
+  /// No description provided for @crudKategoriFormUbahJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename {nama}'**
+  String crudKategoriFormUbahJudul(String nama);
+
+  /// No description provided for @crudKategoriFormUbahIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the name changes; the category code never changes.'**
+  String get crudKategoriFormUbahIsi;
+
+  /// No description provided for @crudKategoriNamaLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Category name'**
+  String get crudKategoriNamaLabel;
+
+  /// No description provided for @crudKategoriNamaCatatan.
+  ///
+  /// In en, this message translates to:
+  /// **'The code is created automatically from the name and does not change afterwards.'**
+  String get crudKategoriNamaCatatan;
+
+  /// No description provided for @crudKategoriNamaPendek.
+  ///
+  /// In en, this message translates to:
+  /// **'The name must be at least 2 characters.'**
+  String get crudKategoriNamaPendek;
+
+  /// No description provided for @crudKategoriNamaPanjang.
+  ///
+  /// In en, this message translates to:
+  /// **'The name can be at most 100 characters.'**
+  String get crudKategoriNamaPanjang;
+
+  /// No description provided for @crudKategoriSimpanTambah.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get crudKategoriSimpanTambah;
+
+  /// No description provided for @crudKategoriSimpanUbah.
+  ///
+  /// In en, this message translates to:
+  /// **'Save name'**
+  String get crudKategoriSimpanUbah;
+
+  /// No description provided for @crudKategoriBerhasilBuat.
+  ///
+  /// In en, this message translates to:
+  /// **'Category created.'**
+  String get crudKategoriBerhasilBuat;
+
+  /// No description provided for @crudKategoriBerhasilUbah.
+  ///
+  /// In en, this message translates to:
+  /// **'Category renamed.'**
+  String get crudKategoriBerhasilUbah;
+
+  /// No description provided for @crudGalatKategoriKembarNonaktif.
+  ///
+  /// In en, this message translates to:
+  /// **'A category with that name already exists but is inactive. Reactivate it from the list.'**
+  String get crudGalatKategoriKembarNonaktif;
+
+  /// No description provided for @crudKategoriNonaktifJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate {nama}?'**
+  String crudKategoriNonaktifJudul(String nama);
+
+  /// No description provided for @crudKategoriNonaktifIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'The category is no longer offered for new equipment, assignments and equipment names. Existing equipment still shows it. It can be reactivated.'**
+  String get crudKategoriNonaktifIsi;
+
+  /// No description provided for @crudKategoriNonaktifAksi.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate'**
+  String get crudKategoriNonaktifAksi;
+
+  /// No description provided for @crudKategoriNonaktifBerhasil.
+  ///
+  /// In en, this message translates to:
+  /// **'Category deactivated.'**
+  String get crudKategoriNonaktifBerhasil;
+
+  /// No description provided for @crudKategoriAktifJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Reactivate {nama}?'**
+  String crudKategoriAktifJudul(String nama);
+
+  /// No description provided for @crudKategoriAktifIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'The category is offered again for new data.'**
+  String get crudKategoriAktifIsi;
+
+  /// No description provided for @crudKategoriAktifAksi.
+  ///
+  /// In en, this message translates to:
+  /// **'Reactivate'**
+  String get crudKategoriAktifAksi;
+
+  /// No description provided for @crudKategoriAktifBerhasil.
+  ///
+  /// In en, this message translates to:
+  /// **'Category reactivated.'**
+  String get crudKategoriAktifBerhasil;
+
+  /// No description provided for @crudKategoriHapusJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {nama}?'**
+  String crudKategoriHapusJudul(String nama);
+
+  /// No description provided for @crudKategoriHapusIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'A category not used by anything is removed from the list and recorded in the audit. One still in use cannot be deleted; deactivate it instead.'**
+  String get crudKategoriHapusIsi;
+
+  /// No description provided for @crudKategoriHapusAksi.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete category'**
+  String get crudKategoriHapusAksi;
+
+  /// No description provided for @crudKategoriHapusBerhasil.
+  ///
+  /// In en, this message translates to:
+  /// **'Category deleted.'**
+  String get crudKategoriHapusBerhasil;
+
+  /// No description provided for @crudArsipJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft archive'**
+  String get crudArsipJudul;
+
+  /// No description provided for @crudArsipIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived drafts disappear from the technician lists, but their readings and session numbers stay stored. Restore them when needed.'**
+  String get crudArsipIntro;
+
+  /// No description provided for @crudArsipCari.
+  ///
+  /// In en, this message translates to:
+  /// **'Search session number, equipment or company'**
+  String get crudArsipCari;
+
+  /// No description provided for @crudArsipKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No drafts have been archived yet.'**
+  String get crudArsipKosong;
+
+  /// No description provided for @crudArsipKosongCari.
+  ///
+  /// In en, this message translates to:
+  /// **'No archived draft matches this search.'**
+  String get crudArsipKosongCari;
+
+  /// No description provided for @crudArsipGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'The draft archive could not be loaded.'**
+  String get crudArsipGagal;
+
+  /// No description provided for @crudArsipAlasan.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason: {alasan}'**
+  String crudArsipAlasan(String alasan);
+
+  /// No description provided for @crudArsipOleh.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived by {nama}, {tanggal}'**
+  String crudArsipOleh(String nama, String tanggal);
+
+  /// No description provided for @crudArsipOlehTanpaNama.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived {tanggal}'**
+  String crudArsipOlehTanpaNama(String tanggal);
+
+  /// No description provided for @crudArsipAksiPulihkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get crudArsipAksiPulihkan;
+
+  /// No description provided for @crudArsipPulihkanJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore draft {nomor}?'**
+  String crudArsipPulihkanJudul(String nomor);
+
+  /// No description provided for @crudArsipPulihkanIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'The draft returns to its owner\'s list with the same content as before it was archived.'**
+  String get crudArsipPulihkanIsi;
+
+  /// No description provided for @crudArsipPulihkanAksi.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore draft'**
+  String get crudArsipPulihkanAksi;
+
+  /// No description provided for @crudArsipPulihkanBerhasil.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft restored.'**
+  String get crudArsipPulihkanBerhasil;
+
+  /// No description provided for @crudArsipTanpaNomor.
+  ///
+  /// In en, this message translates to:
+  /// **'No session number'**
+  String get crudArsipTanpaNomor;
+
+  /// No description provided for @crudDrafArsipkanTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive draft {nama}'**
+  String crudDrafArsipkanTooltip(String nama);
+
+  /// No description provided for @crudDrafArsipkanJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive draft {nama}?'**
+  String crudDrafArsipkanJudul(String nama);
+
+  /// No description provided for @crudDrafArsipkanIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'The draft disappears from lists, the dashboard and reports. Its readings, session number and results are not deleted, and Master Data can restore it.'**
+  String get crudDrafArsipkanIsi;
+
+  /// No description provided for @crudDrafArsipkanAksi.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive'**
+  String get crudDrafArsipkanAksi;
+
+  /// No description provided for @crudDrafArsipkanBerhasil.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft archived.'**
+  String get crudDrafArsipkanBerhasil;
+
+  /// No description provided for @crudGalatPernahDikirim.
+  ///
+  /// In en, this message translates to:
+  /// **'This draft comes from a worksheet that was once submitted and returned, so it cannot be archived. Continue the worksheet and submit it again.'**
+  String get crudGalatPernahDikirim;
+
+  /// No description provided for @pindaiPilihSatuJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick one'**
+  String get pindaiPilihSatuJudul;
+
+  /// No description provided for @pindaiJenisLain.
+  ///
+  /// In en, this message translates to:
+  /// **'Other type...'**
+  String get pindaiJenisLain;
+
+  /// No description provided for @pindaiTakDikenaliJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t tell which sheet this is'**
+  String get pindaiTakDikenaliJudul;
+
+  /// No description provided for @pindaiTakDikenaliPesan.
+  ///
+  /// In en, this message translates to:
+  /// **'The app is not sure which sheet this is, so it will not guess. Retake the photo with the title and form code at the top of the sheet clearly visible, or start from \"Start calibration\".'**
+  String get pindaiTakDikenaliPesan;
+
+  /// No description provided for @pindaiBelumBisaJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t be read automatically yet'**
+  String get pindaiBelumBisaJudul;
+
+  /// No description provided for @pindaiBelumBisaPesan.
+  ///
+  /// In en, this message translates to:
+  /// **'The {jenis} sheet was recognized, but the app cannot read it automatically yet. Start from \"Start calibration\" and fill it in by hand.'**
+  String pindaiBelumBisaPesan(String jenis);
+
+  /// No description provided for @pindaiPerluKonfirmasi.
+  ///
+  /// In en, this message translates to:
+  /// **'The form code was read clearly, but the printed revision differs from the one the app holds. Make sure this is the right type.'**
+  String get pindaiPerluKonfirmasi;
+
+  /// No description provided for @pindaiPilihAlatJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the instrument'**
+  String get pindaiPilihAlatJudul;
+
+  /// No description provided for @pindaiPilihAlatPesan.
+  ///
+  /// In en, this message translates to:
+  /// **'There are {jumlah} {jenis} instruments. Pick the one being calibrated.'**
+  String pindaiPilihAlatPesan(String jenis, int jumlah);
+
+  /// No description provided for @pindaiCariAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Search instruments'**
+  String get pindaiCariAlat;
+
+  /// No description provided for @pindaiPilihAlatNanti.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose later on the sheet'**
+  String get pindaiPilihAlatNanti;
+
+  /// No description provided for @pindaiMenyiapkanLembar.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing the sheet...'**
+  String get pindaiMenyiapkanLembar;
+
+  /// No description provided for @pindaiBannerOtomatis.
+  ///
+  /// In en, this message translates to:
+  /// **'Recognized automatically: {jenis} (from the photo). Wrong?'**
+  String pindaiBannerOtomatis(String jenis);
+
+  /// No description provided for @pindaiBannerDipilih.
+  ///
+  /// In en, this message translates to:
+  /// **'Sheet type: {jenis} (picked from the photo). Wrong?'**
+  String pindaiBannerDipilih(String jenis);
+
+  /// No description provided for @pindaiGantiJenis.
+  ///
+  /// In en, this message translates to:
+  /// **'Change type'**
+  String get pindaiGantiJenis;
+
+  /// No description provided for @pindaiBannerPilihAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the instrument below, then tap \"Fill from photo\".'**
+  String get pindaiBannerPilihAlat;
+
+  /// No description provided for @pindaiGantiJenisJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Change sheet type'**
+  String get pindaiGantiJenisJudul;
+
+  /// No description provided for @pindaiGantiJenisPesan.
+  ///
+  /// In en, this message translates to:
+  /// **'Now: {jenis}. Pick the right type and the same photo is read again. Entries that are not saved yet do not carry over.'**
+  String pindaiGantiJenisPesan(String jenis);
+
+  /// No description provided for @lkIsiDariFoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill from photo'**
+  String get lkIsiDariFoto;
+
+  /// No description provided for @pindaiBannerRingkas.
+  ///
+  /// In en, this message translates to:
+  /// **'{jenis} · from photo'**
+  String pindaiBannerRingkas(String jenis);
 }
 
 class _AppLocalizationsDelegate

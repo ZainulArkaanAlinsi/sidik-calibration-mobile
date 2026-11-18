@@ -14,6 +14,7 @@ class Penugasan {
     required this.persenTuntas,
     this.catatan,
     this.dibuatOleh,
+    this.batal,
     this.teknisi = const [],
     this.baris = const [],
   });
@@ -33,6 +34,11 @@ class Penugasan {
   final int persenTuntas;
   final String? catatan;
   final String? dibuatOleh;
+
+  /// Jejak pembatalan (kontrak CRUD lengkap §4, field ADDITIVE): `null`
+  /// selama belum dibatalkan. Penugasan lama yang dibatalkan lewat panel
+  /// berisi alasan `null`.
+  final PenugasanBatal? batal;
   final List<AnggotaPenugasan> teknisi;
   final List<BarisPenugasan> baris;
 
@@ -51,6 +57,11 @@ class Penugasan {
     persenTuntas: (json['persen_tuntas'] as num?)?.toInt() ?? 0,
     catatan: json['catatan'] as String?,
     dibuatOleh: json['dibuat_oleh'] as String?,
+    batal: switch (json['batal']) {
+      final Map<String, dynamic> m => PenugasanBatal.fromJson(m),
+      final Map m => PenugasanBatal.fromJson(Map<String, dynamic>.from(m)),
+      _ => null,
+    },
     teknisi: [
       for (final t in (json['teknisi'] as List<dynamic>? ?? const [])
           .whereType<Map<String, dynamic>>())
@@ -61,6 +72,23 @@ class Penugasan {
           .whereType<Map<String, dynamic>>())
         BarisPenugasan.fromJson(b),
     ],
+  );
+}
+
+/// Siapa membatalkan penugasan, kapan, dan kenapa (`batal` di respons).
+class PenugasanBatal {
+  const PenugasanBatal({this.alasan, this.oleh, this.pada});
+
+  final String? alasan;
+
+  /// NAMA pembatal (string), sama bentuknya dengan `dibuat_oleh`.
+  final String? oleh;
+  final DateTime? pada;
+
+  factory PenugasanBatal.fromJson(Map<String, dynamic> json) => PenugasanBatal(
+    alasan: json['alasan'] as String?,
+    oleh: json['oleh'] as String?,
+    pada: DateTime.tryParse(json['pada'] as String? ?? ''),
   );
 }
 
