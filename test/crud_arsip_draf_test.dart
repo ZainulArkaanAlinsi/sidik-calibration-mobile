@@ -185,6 +185,14 @@ void main() {
         {'message': 'Hanya draf.', 'kode': 'bukan_draf', 'status': 'menunggu_approval'},
       ),
       (
+        '422 pernah_dikirim',
+        422,
+        {
+          'message': 'Draf ini berasal dari lembar yang pernah dikirim.',
+          'kode': 'pernah_dikirim',
+        },
+      ),
+      (
         '422 tidak_diarsipkan',
         422,
         {'message': 'Tidak diarsipkan.', 'kode': 'tidak_diarsipkan'},
@@ -490,6 +498,26 @@ void main() {
       expect(find.byKey(const Key('aksi-dialog')), findsOneWidget);
     });
 
+    testWidgets('draf yang pernah dikirim (pernah_dikirim): jalan koreksinya disebut', (
+      tester,
+    ) async {
+      await buka(tester, layanan: _PernahDikirim());
+
+      await tester.tap(tombol().first);
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('isian-dialog')), 'alasan yang sah');
+      await tester.tap(find.byKey(const Key('aksi-dialog')));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          'Draf ini berasal dari lembar yang pernah dikirim lalu dikembalikan, jadi tidak bisa diarsipkan. Lanjutkan lembarnya dan kirim ulang.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('aksi-dialog')), findsOneWidget);
+    });
+
     testWidgets('teknisi lain / lab lain (404): kalimat "mungkin sudah berubah"', (
       tester,
     ) async {
@@ -523,6 +551,16 @@ class _BukanDraf extends MockArsipDrafService {
         'x',
         status: 422,
         body: {'message': 'x', 'kode': 'bukan_draf', 'status': 'menunggu_approval'},
+      );
+}
+
+class _PernahDikirim extends MockArsipDrafService {
+  @override
+  Future<HasilArsipDraf> arsipkan(String token, int id, {required String alasan}) async =>
+      throw const ApiException(
+        'x',
+        status: 422,
+        body: {'message': 'x', 'kode': 'pernah_dikirim'},
       );
 }
 
