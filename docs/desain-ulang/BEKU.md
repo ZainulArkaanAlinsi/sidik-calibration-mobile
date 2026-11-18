@@ -133,3 +133,49 @@ butuh pemegang sekali-ambil yang mengubah tipe parameter; ditunda.
 Golden `test/beku/goldens/` lolos TANPA diperbarui (bawaan `null` = tampilan
 identik). Tes perilaku: `test/pindai_lembar_foto_awal_test.dart`,
 `test/pindai_lembar_flow_test.dart`.
+
+
+## Addendum — buka-kunci `lembar_kerja_screen.dart` untuk foto OTOMATIS, satu pintu (18 Nov 2026)
+
+**Persetujuan.** Keputusan pemilik 18 Nov 2026 (arahan eksplisit, setelah
+mencoba di HP): foto -> jenis lembar dikenali otomatis -> lembar yang tepat
+terbuka -> terisi sebagai saran kuning -> teknisi memeriksa; hanya SATU pintu
+foto. Ini MEMBALIK aturan 12 Nov "pilih jenis manual selalu tampil" untuk kode
+formulir yang unik, dan menggantikan addendum 15 Nov di atas.
+
+**Yang berubah (hanya bagian foto).**
+
+- `fotoAwal` (byte) diganti `dariFoto` (`DariFotoLembar`:
+  `lib/screens/pindai/dari_foto_lembar.dart`) di `LembarKerjaScreen` dan
+  `_Form`. `null` (bawaan, jalur "Mulai kalibrasi") = lembar manual.
+- Dialog "Mau diisi bagaimana?" (`_tanyaCara`) DIHAPUS untuk semua lembar.
+- Lembar dari foto: alat yang ditentukan alur ikut kunci bentuk sejak awal;
+  begitu formulir terpasang, foto yang sama dibaca OTOMATIS lewat
+  `_fotoLembar` yang sama (layar periksa yang sudah ada, sel terisi sebagai
+  saran kuning, gerbang wajib-cek tetap). Tombol foto di lembar itu baru muncul
+  SESUDAH percobaan pertama ("Foto ulang"), atau "Isi dari foto" bila alat belum
+  ada. Lembar manual: tombol lama "Foto worksheet" apa adanya.
+- Banner jenis di atas lembar (`banner_jenis_dari_foto.dart`) + "Ganti jenis"
+  (`_gantiJenis`: pilihan jenis lain, lalu `pushReplacement` dengan foto yang
+  sama; isian yang belum disimpan dijaga dialog keluar yang sudah ada).
+- Pintu foto PER TABEL/BLOK ("Foto tabel ini", kamera grid, kamera matriks;
+  jalur ML Kit lama) disembunyikan lewat saklar baru `FOTO_PER_TABEL`
+  (`AppConfig.fotoPerTabelAktif`, bawaan mati). Kodenya utuh.
+
+**Yang TIDAK berubah.** Aturan OCR: hanya di perangkat, hasil = saran, tanpa
+"terima semua", sel kosong tetap kosong, tulisan tangan tidak pernah hijau,
+`_kenali` tetap memeriksa ulang kode FM terhadap jenis yang dibuka, gerbang
+wajib-cek (#241), pemisahan wewenang, `siap_pindai` / mode uji /
+`perlu_konfirmasi_lab` / Temperatur Indikator. Mesin identifikasi dan
+ambangnya tidak disentuh (hanya dicatat lokal, tanpa citra).
+
+**Golden.** `test/beku/goldens/` TIDAK diperbarui. Lembar tanpa `dariFoto`
+identik, tetapi pintu foto per tabel kini mati bawaan di produksi sementara
+golden beku masih menggambarnya; tes golden mematok saklarnya NYALA supaya
+gambar acuan tidak bergeser. Menurunkan patokan itu butuh golden baru lewat
+`golden-baru.yml` dan keputusan pemilik.
+
+**Bukti.** Hash baru di `test/beku/berkas_beku_test.dart` (PR yang sama). Tes:
+`test/pindai_lembar_flow_test.dart`, `test/pindai_lembar_foto_awal_test.dart`,
+`test/lembar_kerja_cara_isi_test.dart`, `test/keputusan_pindai_lembar_test.dart`,
+`test/ocr_alur_perangkat_test.dart`.

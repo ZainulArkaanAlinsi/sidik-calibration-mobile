@@ -13919,7 +13919,7 @@ abstract class AppLocalizations {
   /// No description provided for @pindaiLembarKeterangan.
   ///
   /// In en, this message translates to:
-  /// **'Photograph the sheet, the app suggests its type'**
+  /// **'Photograph the sheet: its type is recognized and its content is filled in as suggestions for you to check'**
   String get pindaiLembarKeterangan;
 
   /// No description provided for @pindaiLembarMembaca.
@@ -17125,6 +17125,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This draft comes from a worksheet that was once submitted and returned, so it cannot be archived. Continue the worksheet and submit it again.'**
   String get crudGalatPernahDikirim;
+
+  /// No description provided for @pindaiPilihSatuJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick one'**
+  String get pindaiPilihSatuJudul;
+
+  /// No description provided for @pindaiJenisLain.
+  ///
+  /// In en, this message translates to:
+  /// **'Other type...'**
+  String get pindaiJenisLain;
+
+  /// No description provided for @pindaiTakDikenaliJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t tell which sheet this is'**
+  String get pindaiTakDikenaliJudul;
+
+  /// No description provided for @pindaiTakDikenaliPesan.
+  ///
+  /// In en, this message translates to:
+  /// **'The app is not sure which sheet this is, so it will not guess. Retake the photo with the title and form code at the top of the sheet clearly visible, or start from \"Start calibration\".'**
+  String get pindaiTakDikenaliPesan;
+
+  /// No description provided for @pindaiBelumBisaJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t be read automatically yet'**
+  String get pindaiBelumBisaJudul;
+
+  /// No description provided for @pindaiBelumBisaPesan.
+  ///
+  /// In en, this message translates to:
+  /// **'The {jenis} sheet was recognized, but the app cannot read it automatically yet. Start from \"Start calibration\" and fill it in by hand.'**
+  String pindaiBelumBisaPesan(String jenis);
+
+  /// No description provided for @pindaiPerluKonfirmasi.
+  ///
+  /// In en, this message translates to:
+  /// **'The form code was read clearly, but the printed revision differs from the one the app holds. Make sure this is the right type.'**
+  String get pindaiPerluKonfirmasi;
+
+  /// No description provided for @pindaiPilihAlatJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the instrument'**
+  String get pindaiPilihAlatJudul;
+
+  /// No description provided for @pindaiPilihAlatPesan.
+  ///
+  /// In en, this message translates to:
+  /// **'There are {jumlah} {jenis} instruments. Pick the one being calibrated.'**
+  String pindaiPilihAlatPesan(String jenis, int jumlah);
+
+  /// No description provided for @pindaiCariAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Search instruments'**
+  String get pindaiCariAlat;
+
+  /// No description provided for @pindaiPilihAlatNanti.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose later on the sheet'**
+  String get pindaiPilihAlatNanti;
+
+  /// No description provided for @pindaiMenyiapkanLembar.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing the sheet...'**
+  String get pindaiMenyiapkanLembar;
+
+  /// No description provided for @pindaiBannerOtomatis.
+  ///
+  /// In en, this message translates to:
+  /// **'Recognized automatically: {jenis} (from the photo). Wrong?'**
+  String pindaiBannerOtomatis(String jenis);
+
+  /// No description provided for @pindaiBannerDipilih.
+  ///
+  /// In en, this message translates to:
+  /// **'Sheet type: {jenis} (picked from the photo). Wrong?'**
+  String pindaiBannerDipilih(String jenis);
+
+  /// No description provided for @pindaiGantiJenis.
+  ///
+  /// In en, this message translates to:
+  /// **'Change type'**
+  String get pindaiGantiJenis;
+
+  /// No description provided for @pindaiBannerPilihAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the instrument below, then tap \"Fill from photo\".'**
+  String get pindaiBannerPilihAlat;
+
+  /// No description provided for @pindaiGantiJenisJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Change sheet type'**
+  String get pindaiGantiJenisJudul;
+
+  /// No description provided for @pindaiGantiJenisPesan.
+  ///
+  /// In en, this message translates to:
+  /// **'Now: {jenis}. Pick the right type and the same photo is read again. Entries that are not saved yet do not carry over.'**
+  String pindaiGantiJenisPesan(String jenis);
+
+  /// No description provided for @lkIsiDariFoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill from photo'**
+  String get lkIsiDariFoto;
+
+  /// No description provided for @pindaiBannerRingkas.
+  ///
+  /// In en, this message translates to:
+  /// **'{jenis} · from photo'**
+  String pindaiBannerRingkas(String jenis);
 }
 
 class _AppLocalizationsDelegate
