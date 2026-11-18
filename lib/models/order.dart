@@ -12,6 +12,8 @@ class OrderKalibrasi {
     required this.status,
     required this.namaPelanggan,
     required this.jumlahAlat,
+    this.pelangganId,
+    this.diterimaOleh,
     this.tanggalMasuk,
     this.tanggalJanjiSelesai,
     this.catatan,
@@ -22,6 +24,13 @@ class OrderKalibrasi {
   final String nomor;
   final String status;
   final String namaPelanggan;
+
+  /// `pelanggan.id` dari server (`customers.id`). Dipakai form ubah order dan
+  /// pemilih alat milik PT itu. Null di data lama yang tidak memuatnya.
+  final int? pelangganId;
+
+  /// Nama penerima di meja depan (`diterima_oleh.nama`), hanya ada di detail.
+  final String? diterimaOleh;
 
   /// Dikirim backend sebagai hitungan (`jumlah_alat`) di daftar, biar kartu
   /// nggak perlu muat semua item cuma buat nulis "5 alat".
@@ -50,12 +59,15 @@ class OrderKalibrasi {
     }
 
     final pelanggan = json['pelanggan'] as Map<String, dynamic>?;
+    final penerima = json['diterima_oleh'];
 
     return OrderKalibrasi(
       id: (json['id'] as num?)?.toInt() ?? 0,
       nomor: json['nomor']?.toString() ?? '',
       status: json['status']?.toString() ?? '',
       namaPelanggan: pelanggan?['nama']?.toString() ?? '',
+      pelangganId: (pelanggan?['id'] as num?)?.toInt(),
+      diterimaOleh: penerima is Map ? penerima['nama']?.toString() : null,
       jumlahAlat:
           (json['jumlah_alat'] as num?)?.toInt() ??
           (json['items'] as List<dynamic>?)?.length ??
@@ -82,6 +94,7 @@ class OrderItem {
     required this.id,
     required this.namaAlat,
     required this.serialNumber,
+    this.alatId,
     this.teknisiId,
     this.namaTeknisi,
     this.kondisiTerima,
@@ -93,6 +106,9 @@ class OrderItem {
   final int id;
   final String namaAlat;
   final String serialNumber;
+
+  /// `alat.id` (`equipments.id`) — yang dikirim balik saat order diubah.
+  final int? alatId;
 
   /// null = belum dibagi ke siapa pun.
   final int? teknisiId;
@@ -115,6 +131,7 @@ class OrderItem {
       id: (json['id'] as num?)?.toInt() ?? 0,
       namaAlat: alat?['nama_alat']?.toString() ?? '',
       serialNumber: alat?['serial_number']?.toString() ?? '',
+      alatId: (alat?['id'] as num?)?.toInt(),
       teknisiId: (teknisi?['id'] as num?)?.toInt(),
       namaTeknisi: teknisi?['nama']?.toString(),
       kondisiTerima: json['kondisi_terima']?.toString(),
