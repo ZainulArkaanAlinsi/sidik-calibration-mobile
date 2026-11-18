@@ -37,6 +37,9 @@ Future<bool> tampilkanDialogIsian(
   bool destruktif = false,
   bool untukAnggota = false,
   void Function(Object galat)? saatGalat,
+  String Function(Object galat)? petakanGalat,
+  bool satuBaris = false,
+  String nilaiAwal = '',
 }) async {
   final hasil = await showDialog<bool>(
     context: context,
@@ -62,6 +65,9 @@ Future<bool> tampilkanDialogIsian(
       destruktif: destruktif,
       untukAnggota: untukAnggota,
       saatGalat: saatGalat,
+      petakanGalat: petakanGalat,
+      satuBaris: satuBaris,
+      nilaiAwal: nilaiAwal,
     ),
   );
   return hasil ?? false;
@@ -87,6 +93,9 @@ class _DialogIsian extends StatefulWidget {
     required this.destruktif,
     required this.untukAnggota,
     required this.saatGalat,
+    required this.petakanGalat,
+    required this.satuBaris,
+    required this.nilaiAwal,
   });
 
   final String judul;
@@ -107,13 +116,21 @@ class _DialogIsian extends StatefulWidget {
   final bool destruktif;
   final bool untukAnggota;
   final void Function(Object galat)? saatGalat;
+  final String Function(Object galat)? petakanGalat;
+
+  /// Isian satu baris (mis. nama): tombol Selesai di papan ketik menjalankan
+  /// aksinya. Bawaan `false`: kotak alasan banyak baris.
+  final bool satuBaris;
+
+  /// Isi awal kotak (mis. nama sekarang saat mengubah nama).
+  final String nilaiAwal;
 
   @override
   State<_DialogIsian> createState() => _DialogIsianState();
 }
 
 class _DialogIsianState extends State<_DialogIsian> {
-  final _kontrol = TextEditingController();
+  late final _kontrol = TextEditingController(text: widget.nilaiAwal);
   String? _galatKolom;
   String? _galatUmum;
   bool _mengirim = false;
@@ -163,14 +180,20 @@ class _DialogIsianState extends State<_DialogIsian> {
       if (!mounted) return;
       widget.saatGalat?.call(e);
       final l10n = AppLocalizations.of(context);
-      final dikolom = e is ApiException && e.status == 422
+      // Pemeta galat milik pemanggil memegang SEMUA galat (kalimatnya sudah
+      // memilih kode bisnis dulu, mis. nama kembar); tanpa pemeta, kolom
+      // `errors.<kunci>` server dipakai.
+      final dikolom = widget.petakanGalat == null &&
+              e is ApiException &&
+              e.status == 422
           ? pesanKolomServer(e, widget.kunciGalatServer)
           : null;
       setState(() {
         _mengirim = false;
         _galatKolom = dikolom;
         _galatUmum = dikolom == null
-            ? pesanGalatSa(l10n, e, untukAnggota: widget.untukAnggota)
+            ? (widget.petakanGalat?.call(e) ??
+                  pesanGalatSa(l10n, e, untukAnggota: widget.untukAnggota))
             : null;
       });
     }
@@ -211,10 +234,15 @@ class _DialogIsianState extends State<_DialogIsian> {
                     key: const Key('isian-dialog'),
                     controller: _kontrol,
                     enabled: !_mengirim,
-                    minLines: 2,
-                    maxLines: 4,
-                    keyboardType: TextInputType.multiline,
-                    textInputAction: TextInputAction.newline,
+                    minLines: widget.satuBaris ? 1 : 2,
+                    maxLines: widget.satuBaris ? 1 : 4,
+                    keyboardType: widget.satuBaris
+                        ? TextInputType.text
+                        : TextInputType.multiline,
+                    textInputAction: widget.satuBaris
+                        ? TextInputAction.done
+                        : TextInputAction.newline,
+                    onSubmitted: widget.satuBaris ? (_) => _jalankan() : null,
                     inputFormatters: [
                       // Batas keras supaya tempelan panjang tidak lolos; pesan
                       // "terlalu panjang" tetap ada untuk jalur validasi.
