@@ -237,4 +237,13 @@ abstract final class NamaIzin {
 
   // Pindahkan alat (beserta sertifikatnya) ke PT lain (kontrak §3.7).
   static const pelangganPindahAlat = 'pelanggan.pindah-alat';
+
+  // CRUD lengkap (`docs/perintah-frontend-crud-lengkap.md` §1, API 18 Nov
+  // 2026). Kelimanya BARU di server: dipertanyakan dengan `cadangan: false`,
+  // jadi aturan peran lama tidak boleh menyalakan tombolnya.
+  static const kategoriKelola = 'kategori.kelola';
+  static const kalibrasiArsipkan = 'kalibrasi.arsipkan';
+  static const kalibrasiPulihkan = 'kalibrasi.pulihkan';
+  static const penugasanUbah = 'penugasan.ubah';
+  static const penugasanBatalkan = 'penugasan.batalkan';
 }
