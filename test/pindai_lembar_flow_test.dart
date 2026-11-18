@@ -967,8 +967,13 @@ void main() {
       expect(find.byType(FotoReviewScreen), findsNothing);
       expect(find.byType(PanelGerbangCek), findsOneWidget);
       expect(find.textContaining('bacaan kamera'), findsOneWidget);
-      expect(find.text('7,01'), findsWidgets);
-      expect(find.text('4,01'), findsWidgets);
+      // Dua sel masuk (saran kuning + yang diketik teknisi). Tabelnya ada di
+      // halaman 2 lembar, jadi buktinya pemberitahuan dan penanda isian kotor,
+      // bukan teks selnya.
+      expect(
+        find.textContaining(RegExp(r'2 (isian|sel) terisi dari foto')),
+        findsOneWidget,
+      );
       expect(_banner, findsOneWidget);
       expect(_fotoLembar, findsOneWidget);
       expect(find.text('Foto ulang'), findsOneWidget);
