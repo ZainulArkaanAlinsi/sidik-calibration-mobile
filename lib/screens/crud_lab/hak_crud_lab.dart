@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/izin.dart';
-import '../../providers/auth_provider.dart';
 import '../../providers/izin_provider.dart';
 
 /// Gerbang layar CRUD lab (Order, Penugasan, Kategori alat, Arsip draf) —
@@ -15,15 +14,14 @@ import '../../providers/izin_provider.dart';
 ///   dengan `cadangan: false`: bila server tidak menyebutnya, jawabannya TIDAK.
 /// - **Order** belum punya kunci izin sendiri di `MatriksIzin::PETA`. Rute
 ///   tulisnya (`POST/PUT/DELETE /orders`) satu grup `role:admin` dengan
-///   `POST /customers`, jadi bertanya ke `pelanggan.kelola` dengan cadangan
-///   "hak admin" (admin dan super admin) — pola yang sama dengan Audit yang
-///   menumpang `pengguna.kelola`. Bila server menambah `order.kelola`, ganti
-///   di SATU tempat ini.
+///   `POST /customers`, jadi bertanya ke `pelanggan.kelola` — pola yang sama
+///   dengan Audit yang menumpang `pengguna.kelola`. Cadangannya juga `false`:
+///   baris baru di Kelola lab tidak boleh muncul dari tebakan peran selama
+///   jawaban `/me/permissions` belum ada. Bila server menambah `order.kelola`,
+///   ganti di SATU tempat ini.
 extension HakCrudLab on WidgetRef {
-  bool get _hakAdmin => watch(authProvider).value?.role.hakAdmin ?? false;
-
   bool get bolehKelolaOrder =>
-      bolehkah(NamaIzin.pelangganKelola, cadangan: _hakAdmin);
+      bolehkah(NamaIzin.pelangganKelola, cadangan: false);
 
   bool get bolehKelolaKategori =>
       bolehkah(NamaIzin.kategoriKelola, cadangan: false);
