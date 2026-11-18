@@ -12,6 +12,8 @@ import '../admin/import_excel_screen.dart';
 import '../audit/audit_log_screen.dart';
 import '../data_acuan/paket_alur_acuan_screen.dart';
 import '../data_acuan/widgets/hak_alur_acuan.dart';
+import '../super_admin/hak_super_admin.dart';
+import '../super_admin/pengelolaan_super_admin_screen.dart';
 import 'buat_teknisi_screen.dart';
 import 'customer_list_screen.dart';
 import 'logo_organisasi_screen.dart';
@@ -61,6 +63,8 @@ class KelolaLabScreen extends ConsumerWidget {
       cadangan: hakAdmin,
     );
 
+    final bolehPengelolaanSa = ref.bolehPengelolaanSa;
+
     final grup = <(String, List<_Pintu>)>[
       (
         l10n.kelolaGrupDataMaster,
@@ -77,6 +81,13 @@ class KelolaLabScreen extends ConsumerWidget {
               l10n.buatTekJudul,
               l10n.buatTekSub,
               () => const BuatTeknisiScreen(),
+            ),
+          if (bolehPengelolaanSa)
+            _Pintu(
+              Icons.admin_panel_settings_outlined,
+              l10n.saHubJudul,
+              l10n.saHubKelolaSub,
+              () => const PengelolaanSuperAdminScreen(),
             ),
         ],
       ),
