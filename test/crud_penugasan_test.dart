@@ -250,6 +250,31 @@ void main() {
         isFalse,
       );
     });
+
+    test('catatan baris: baris lama TIDAK pernah dikirim, baris baru hanya bila '
+        'diisi', () {
+      const lama = BarisUbahPenugasan(
+        id: 31,
+        jenisAlat: 'Autoklaf',
+        jumlah: 12,
+        catatan: 'catatan teknisi',
+      );
+      expect(lama.toJson().containsKey('catatan'), isFalse);
+
+      const baruIsi = BarisUbahPenugasan(
+        jenisAlat: 'Oven',
+        jumlah: 1,
+        catatan: '  jangan dibanting  ',
+      );
+      expect(baruIsi.toJson()['catatan'], 'jangan dibanting');
+
+      const baruKosong = BarisUbahPenugasan(
+        jenisAlat: 'Oven',
+        jumlah: 1,
+        catatan: '   ',
+      );
+      expect(baruKosong.toJson().containsKey('catatan'), isFalse);
+    });
   });
 
   group('service API', () {
