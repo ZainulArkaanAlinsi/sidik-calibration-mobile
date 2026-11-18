@@ -56,7 +56,10 @@ class OrderKelolaController
 
     // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut,
     // termasuk saringan/kata cari akun sebelumnya.
-    ref.watch(authProvider);
+    // Hanya identitas akun yang memicu bangun ulang: emisi auth lain (mis.
+    // sesudah pendaftaran push) tidak boleh membuang saringan yang sedang
+    // dipakai. Ganti akun (id berubah, termasuk lewat logout) tetap bangun ulang.
+    ref.watch(authProvider.select((a) => a.value?.id));
     _filter = const FilterOrder();
 
     return _muat(1);
@@ -113,16 +116,18 @@ class OrderKelolaController
 }
 
 /// Satu order lengkap (dengan `items`) buat layar detail dan form ubah.
-final orderKelolaDetailProvider = FutureProvider.family<OrderKalibrasi, int>((
-  ref,
-  id,
-) async {
-  ref.watch(authProvider);
-  final token = await ref.read(tokenStorageProvider).read();
-  if (token == null) throw const TokenHilangException();
+final orderKelolaDetailProvider = FutureProvider.family<OrderKalibrasi, int>(
+  (ref, id) async {
+    ref.watch(authProvider);
+    final token = await ref.read(tokenStorageProvider).read();
+    if (token == null) throw const TokenHilangException();
 
-  return ref.read(orderKelolaServiceProvider).detail(token, id);
-});
+    return ref.read(orderKelolaServiceProvider).detail(token, id);
+  },
+  // Tanpa ini Riverpod 3 mengulang provider yang gagal berkali-kali dengan
+  // jeda membesar, dan layar tetap "memuat" alih-alih menampilkan galat.
+  retry: (retryCount, error) => null,
+);
 
 /// Teknisi AKTIF lab untuk pemilih teknisi di baris order/penugasan. Server
 /// yang menolak teknisi nonaktif (`422`); daftar ini hanya menawarkan yang sah.
@@ -145,4 +150,4 @@ final teknisiAktifProvider = FutureProvider<List<User>>((ref) async {
     if (!h.adaLagi) break;
   }
   return hasil;
-});
+}, retry: (retryCount, error) => null);

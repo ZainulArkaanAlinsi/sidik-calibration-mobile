@@ -28,7 +28,10 @@ class KategoriKelolaController extends AsyncNotifier<List<Category>>
   @override
   Future<List<Category>> build() async {
     mulaiPermintaan();
-    ref.watch(authProvider);
+    // Hanya identitas akun yang memicu bangun ulang: emisi auth lain (mis.
+    // sesudah pendaftaran push) tidak boleh membuang saringan yang sedang
+    // dipakai. Ganti akun (id berubah, termasuk lewat logout) tetap bangun ulang.
+    ref.watch(authProvider.select((a) => a.value?.id));
     return _muat();
   }
 

@@ -33,7 +33,10 @@ class ArsipDrafController extends AsyncNotifier<DaftarBerhalaman<DrafArsipan>>
     // Daftarkan build ini sebagai permintaan terbaru SEBELUM apa pun (lihat
     // `OrderKelolaController.build`).
     mulaiPermintaan();
-    ref.watch(authProvider);
+    // Hanya identitas akun yang memicu bangun ulang: emisi auth lain (mis.
+    // sesudah pendaftaran push) tidak boleh membuang saringan yang sedang
+    // dipakai. Ganti akun (id berubah, termasuk lewat logout) tetap bangun ulang.
+    ref.watch(authProvider.select((a) => a.value?.id));
     _cari = '';
     return _muat(1);
   }

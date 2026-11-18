@@ -45,7 +45,10 @@ class PenugasanKelolaController
     // `OrderKelolaController.build`): halaman 2 akun lama tidak boleh
     // menempel ke daftar akun baru.
     mulaiPermintaan();
-    ref.watch(authProvider);
+    // Hanya identitas akun yang memicu bangun ulang: emisi auth lain (mis.
+    // sesudah pendaftaran push) tidak boleh membuang saringan yang sedang
+    // dipakai. Ganti akun (id berubah, termasuk lewat logout) tetap bangun ulang.
+    ref.watch(authProvider.select((a) => a.value?.id));
     _status = StatusPenugasan.aktif;
     return _muat(1);
   }
