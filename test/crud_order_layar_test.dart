@@ -197,7 +197,8 @@ void main() {
         lapisan: LapisanUjiCrud(order: layanan),
       );
 
-      await tester.tap(find.byKey(const Key('saring-selesai')));
+      // Cip Selesai ada di ujung baris cip yang bisa digeser; ketukDi memunculkannya.
+      await ketukDi(tester, find.byKey(const Key('saring-selesai')));
       await selesaikan(tester);
 
       expect(layanan.catatan.last, contains('status=selesai'));
