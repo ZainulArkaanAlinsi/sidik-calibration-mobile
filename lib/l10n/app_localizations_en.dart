@@ -10029,4 +10029,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get crudDrafArsipkanBerhasil => 'Draft archived.';
+
+  @override
+  String get crudGalatPernahDikirim =>
+      'This draft comes from a worksheet that was once submitted and returned, so it cannot be archived. Continue the worksheet and submit it again.';
 }

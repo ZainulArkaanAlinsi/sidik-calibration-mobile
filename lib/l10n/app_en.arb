@@ -5520,5 +5520,6 @@
   },
   "crudDrafArsipkanIsi": "The draft disappears from lists, the dashboard and reports. Its readings, session number and results are not deleted, and Master Data can restore it.",
   "crudDrafArsipkanAksi": "Archive",
-  "crudDrafArsipkanBerhasil": "Draft archived."
+  "crudDrafArsipkanBerhasil": "Draft archived.",
+  "crudGalatPernahDikirim": "This draft comes from a worksheet that was once submitted and returned, so it cannot be archived. Continue the worksheet and submit it again."
 }

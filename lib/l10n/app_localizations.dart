@@ -17119,6 +17119,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Draft archived.'**
   String get crudDrafArsipkanBerhasil;
+
+  /// No description provided for @crudGalatPernahDikirim.
+  ///
+  /// In en, this message translates to:
+  /// **'This draft comes from a worksheet that was once submitted and returned, so it cannot be archived. Continue the worksheet and submit it again.'**
+  String get crudGalatPernahDikirim;
 }
 
 class _AppLocalizationsDelegate

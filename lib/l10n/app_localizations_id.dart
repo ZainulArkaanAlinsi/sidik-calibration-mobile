@@ -9877,4 +9877,8 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get crudDrafArsipkanBerhasil => 'Draf diarsipkan.';
+
+  @override
+  String get crudGalatPernahDikirim =>
+      'Draf ini berasal dari lembar yang pernah dikirim lalu dikembalikan, jadi tidak bisa diarsipkan. Lanjutkan lembarnya dan kirim ulang.';
 }

@@ -14,6 +14,7 @@ abstract final class KodeCrud {
   static const kategoriNonaktif = 'kategori_nonaktif';
   static const kodeKategoriBentrok = 'kode_kategori_bentrok';
   static const bukanDraf = 'bukan_draf';
+  static const pernahDikirim = 'pernah_dikirim';
   static const tidakDiarsipkan = 'tidak_diarsipkan';
   static const statusBerubah = 'status_berubah';
   static const hanyaAdmin = 'hanya_admin';
@@ -58,6 +59,8 @@ String pesanGalatCrud(
         return l10n.crudGalatKodeBentrok;
       case KodeCrud.bukanDraf:
         return l10n.crudGalatBukanDraf(_statusTeks(l10n, badan['status']));
+      case KodeCrud.pernahDikirim:
+        return l10n.crudGalatPernahDikirim;
       case KodeCrud.tidakDiarsipkan:
         return l10n.crudGalatTidakDiarsipkan;
       case KodeCrud.statusBerubah:

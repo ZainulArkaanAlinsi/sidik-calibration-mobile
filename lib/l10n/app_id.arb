@@ -3890,5 +3890,6 @@
   "crudDrafArsipkanJudul": "Arsipkan draf {nama}?",
   "crudDrafArsipkanIsi": "Draf hilang dari daftar, dashboard, dan laporan. Pembacaan, nomor sesi, dan hasil hitungnya tidak dihapus, dan Master Data bisa memulihkannya.",
   "crudDrafArsipkanAksi": "Arsipkan",
-  "crudDrafArsipkanBerhasil": "Draf diarsipkan."
+  "crudDrafArsipkanBerhasil": "Draf diarsipkan.",
+  "crudGalatPernahDikirim": "Draf ini berasal dari lembar yang pernah dikirim lalu dikembalikan, jadi tidak bisa diarsipkan. Lanjutkan lembarnya dan kirim ulang."
 }
