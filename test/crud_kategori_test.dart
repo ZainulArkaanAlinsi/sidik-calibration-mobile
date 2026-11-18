@@ -33,7 +33,8 @@ http.Response _json(Object badan, [int status = 200]) => http.Response(
 
 KategoriKelolaService _layanan(
   Future<http.Response> Function(http.Request) h,
-) => ApiKategoriKelolaService(ApiClient(client: MockClient(h), baseUrl: _dasar));
+) =>
+    ApiKategoriKelolaService(ApiClient(client: MockClient(h), baseUrl: _dasar));
 
 Map<String, dynamic> _badan(http.Request r) =>
     jsonDecode(r.body) as Map<String, dynamic>;
@@ -102,7 +103,10 @@ void main() {
       final s = _layanan((r) async {
         terkirim = r;
         return _json({
-          'data': [_kat(), _kat(id: 22, kode: 'lama', nama: 'Lama', aktif: false)],
+          'data': [
+            _kat(),
+            _kat(id: 22, kode: 'lama', nama: 'Lama', aktif: false),
+          ],
         });
       });
       final daftar = await s.daftar('tkn');
@@ -131,7 +135,10 @@ void main() {
       late http.Request terkirim;
       final s = _layanan((r) async {
         terkirim = r;
-        return _json({'message': 'Kategori diubah.', 'data': _kat(nama: 'Baru')});
+        return _json({
+          'message': 'Kategori diubah.',
+          'data': _kat(nama: 'Baru'),
+        });
       });
       final k = await s.ubahNama('t', 'tekanan-vakum', nama: 'Baru');
 
@@ -157,20 +164,23 @@ void main() {
       expect(badan.last, {'alasan': 'Tidak dipakai lagi'});
     });
 
-    test('aktifkan: POST .../aktifkan; hapus: DELETE /categories/{kode}', () async {
-      final dipanggil = <String>[];
-      final s = _layanan((r) async {
-        dipanggil.add('${r.method} ${r.url.path}');
-        return _json({'message': 'ok', 'data': _kat()});
-      });
-      await s.aktifkan('t', 'tekanan-vakum');
-      await s.hapus('t', 'tekanan-vakum');
+    test(
+      'aktifkan: POST .../aktifkan; hapus: DELETE /categories/{kode}',
+      () async {
+        final dipanggil = <String>[];
+        final s = _layanan((r) async {
+          dipanggil.add('${r.method} ${r.url.path}');
+          return _json({'message': 'ok', 'data': _kat()});
+        });
+        await s.aktifkan('t', 'tekanan-vakum');
+        await s.hapus('t', 'tekanan-vakum');
 
-      expect(dipanggil, [
-        'POST /api/categories/tekanan-vakum/aktifkan',
-        'DELETE /api/categories/tekanan-vakum',
-      ]);
-    });
+        expect(dipanggil, [
+          'POST /api/categories/tekanan-vakum/aktifkan',
+          'DELETE /api/categories/tekanan-vakum',
+        ]);
+      },
+    );
 
     // Badan galat disalin dari §2.3, §2.7, §7.
     final galat = <(String, int, Map<String, dynamic>)>[
@@ -186,7 +196,11 @@ void main() {
           'errors': {
             'nama': ['Sudah ada kategori bernama itu.'],
           },
-          'kategori': {'kode': 'tekanan-vakum', 'nama': 'Tekanan Vakum', 'aktif': false},
+          'kategori': {
+            'kode': 'tekanan-vakum',
+            'nama': 'Tekanan Vakum',
+            'aktif': false,
+          },
         },
       ),
       (
@@ -195,7 +209,13 @@ void main() {
         {
           'message': 'Kategori ini masih dipakai (3 alat).',
           'kode': 'kategori_dipakai',
-          'pemakai': {'alat': 3, 'kemampuan': 0, 'penugasan': 0, 'metode': 0, 'rumus': 0},
+          'pemakai': {
+            'alat': 3,
+            'kemampuan': 0,
+            'penugasan': 0,
+            'metode': 0,
+            'rumus': 0,
+          },
         },
       ),
       (
@@ -303,7 +323,9 @@ void main() {
       });
     }
 
-    testWidgets('saring Nonaktif / Aktif bekerja di sisi aplikasi', (tester) async {
+    testWidgets('saring Nonaktif / Aktif bekerja di sisi aplikasi', (
+      tester,
+    ) async {
       await buka(tester);
 
       await tester.tap(find.byKey(const Key('saring-kategori-nonaktif')));
@@ -334,59 +356,78 @@ void main() {
       expect(find.text('Hapus'), findsOneWidget);
     });
 
-    testWidgets('menu kategori nonaktif menawarkan Aktifkan kembali, bukan Nonaktifkan', (
-      tester,
-    ) async {
-      await buka(tester);
-      await ketukDi(tester, find.byKey(const Key('menu-kategori-suhu-lama')));
-      await tester.pumpAndSettle();
+    testWidgets(
+      'menu kategori nonaktif menawarkan Aktifkan kembali, bukan Nonaktifkan',
+      (tester) async {
+        await buka(tester);
+        await ketukDi(tester, find.byKey(const Key('menu-kategori-suhu-lama')));
+        await tester.pumpAndSettle();
 
-      expect(find.text('Aktifkan kembali'), findsOneWidget);
-      expect(find.text('Nonaktifkan'), findsNothing);
-    });
+        expect(find.text('Aktifkan kembali'), findsOneWidget);
+        expect(find.text('Nonaktifkan'), findsNothing);
+      },
+    );
 
-    testWidgets('tambah: nama pendek ditolak di klien; sah → kode dari server', (
-      tester,
-    ) async {
-      final l = await buka(tester);
+    testWidgets(
+      'tambah: nama pendek ditolak di klien; sah → kode dari server',
+      (tester) async {
+        final l = await buka(tester);
 
-      await ketukDi(tester, find.byKey(const Key('tambah-kategori')));
-      await tester.pumpAndSettle();
-      await tester.enterText(find.byKey(const Key('isian-dialog')), 'a');
-      await tester.tap(find.byKey(const Key('aksi-dialog')));
-      await tester.pumpAndSettle();
-      expect(find.text('Nama minimal 2 karakter.'), findsOneWidget);
-      expect(l.catatan.where((c) => c.startsWith('buat')), isEmpty);
+        await ketukDi(tester, find.byKey(const Key('tambah-kategori')));
+        await tester.pumpAndSettle();
+        await tester.enterText(find.byKey(const Key('isian-dialog')), 'a');
+        await tester.tap(find.byKey(const Key('aksi-dialog')));
+        await tester.pumpAndSettle();
+        expect(find.text('Nama minimal 2 karakter.'), findsOneWidget);
+        expect(l.catatan.where((c) => c.startsWith('buat')), isEmpty);
 
-      await tester.enterText(find.byKey(const Key('isian-dialog')), 'Tekanan Vakum');
-      await tester.tap(find.byKey(const Key('aksi-dialog')));
-      await tester.pumpAndSettle();
+        await tester.enterText(
+          find.byKey(const Key('isian-dialog')),
+          'Tekanan Vakum',
+        );
+        await tester.tap(find.byKey(const Key('aksi-dialog')));
+        await tester.pumpAndSettle();
 
-      expect(l.catatan, contains('buat "Tekanan Vakum"'));
-      expect(find.text('Kategori dibuat.'), findsOneWidget);
-      expect(find.text('Kode: tekanan-vakum'), findsOneWidget);
-    });
+        expect(l.catatan, contains('buat "Tekanan Vakum"'));
+        expect(find.text('Kategori dibuat.'), findsOneWidget);
+        // Kartu baru bisa di bawah lipatan (daftar dibangun malas).
+        await tester.scrollUntilVisible(
+          find.text('Kode: tekanan-vakum'),
+          250,
+          scrollable: find
+              .byWidgetPredicate(
+                (w) => w is Scrollable && w.axis == Axis.vertical,
+              )
+              .first,
+        );
+        expect(find.text('Kode: tekanan-vakum'), findsOneWidget);
+      },
+    );
 
-    testWidgets('tambah dengan nama kembar milik yang NONAKTIF: arahkan ke Aktifkan', (
-      tester,
-    ) async {
-      await buka(tester);
+    testWidgets(
+      'tambah dengan nama kembar milik yang NONAKTIF: arahkan ke Aktifkan',
+      (tester) async {
+        await buka(tester);
 
-      await ketukDi(tester, find.byKey(const Key('tambah-kategori')));
-      await tester.pumpAndSettle();
-      await tester.enterText(find.byKey(const Key('isian-dialog')), 'suhu lama');
-      await tester.tap(find.byKey(const Key('aksi-dialog')));
-      await tester.pumpAndSettle();
+        await ketukDi(tester, find.byKey(const Key('tambah-kategori')));
+        await tester.pumpAndSettle();
+        await tester.enterText(
+          find.byKey(const Key('isian-dialog')),
+          'suhu lama',
+        );
+        await tester.tap(find.byKey(const Key('aksi-dialog')));
+        await tester.pumpAndSettle();
 
-      expect(
-        find.text(
-          'Sudah ada kategori dengan nama itu, tetapi nonaktif. Aktifkan kembali dari daftar.',
-        ),
-        findsOneWidget,
-      );
-      // Dialog tetap terbuka dengan isian yang sama.
-      expect(find.byKey(const Key('aksi-dialog')), findsOneWidget);
-    });
+        expect(
+          find.text(
+            'Sudah ada kategori dengan nama itu, tetapi nonaktif. Aktifkan kembali dari daftar.',
+          ),
+          findsOneWidget,
+        );
+        // Dialog tetap terbuka dengan isian yang sama.
+        expect(find.byKey(const Key('aksi-dialog')), findsOneWidget);
+      },
+    );
 
     testWidgets('tambah dengan nama kembar milik yang aktif: kalimat biasa', (
       tester,
@@ -408,10 +449,15 @@ void main() {
       final l = await buka(tester);
 
       await menu(tester, 'tekanan', 'Ubah nama');
-      final kotak = tester.widget<TextField>(find.byKey(const Key('isian-dialog')));
+      final kotak = tester.widget<TextField>(
+        find.byKey(const Key('isian-dialog')),
+      );
       expect(kotak.controller!.text, 'Tekanan');
 
-      await tester.enterText(find.byKey(const Key('isian-dialog')), 'Tekanan Gas');
+      await tester.enterText(
+        find.byKey(const Key('isian-dialog')),
+        'Tekanan Gas',
+      );
       await tester.tap(find.byKey(const Key('aksi-dialog')));
       await tester.pumpAndSettle();
 
@@ -420,21 +466,22 @@ void main() {
       expect(find.text('Kode: tekanan'), findsOneWidget);
     });
 
-    testWidgets('nonaktifkan: alasan opsional; kategori berpindah ke status nonaktif', (
-      tester,
-    ) async {
-      final l = await buka(tester);
+    testWidgets(
+      'nonaktifkan: alasan opsional; kategori berpindah ke status nonaktif',
+      (tester) async {
+        final l = await buka(tester);
 
-      await menu(tester, 'massa', 'Nonaktifkan');
-      await tester.tap(find.byKey(const Key('aksi-dialog'))); // tanpa alasan
-      await tester.pumpAndSettle();
+        await menu(tester, 'massa', 'Nonaktifkan');
+        await tester.tap(find.byKey(const Key('aksi-dialog'))); // tanpa alasan
+        await tester.pumpAndSettle();
 
-      expect(l.catatan.any((c) => c.startsWith('nonaktifkan massa')), isTrue);
-      expect(find.text('Kategori dinonaktifkan.'), findsOneWidget);
-      await tester.tap(find.byKey(const Key('saring-kategori-nonaktif')));
-      await tester.pumpAndSettle();
-      expect(find.text('Massa'), findsOneWidget);
-    });
+        expect(l.catatan.any((c) => c.startsWith('nonaktifkan massa')), isTrue);
+        expect(find.text('Kategori dinonaktifkan.'), findsOneWidget);
+        await tester.tap(find.byKey(const Key('saring-kategori-nonaktif')));
+        await tester.pumpAndSettle();
+        expect(find.text('Massa'), findsOneWidget);
+      },
+    );
 
     testWidgets('aktifkan kembali lewat konfirmasi', (tester) async {
       final l = await buka(tester);
@@ -448,7 +495,9 @@ void main() {
       expect(find.text('Kategori diaktifkan.'), findsOneWidget);
     });
 
-    testWidgets('hapus: konfirmasi tegas, lalu hilang dari daftar', (tester) async {
+    testWidgets('hapus: konfirmasi tegas, lalu hilang dari daftar', (
+      tester,
+    ) async {
       final l = await buka(tester);
 
       await menu(tester, 'tekanan', 'Hapus');
@@ -461,25 +510,26 @@ void main() {
       expect(find.text('Kode: tekanan'), findsNothing);
     });
 
-    testWidgets('hapus ditolak server (kategori_dipakai): rincian pemakai, dialog tetap', (
-      tester,
-    ) async {
-      // Hitungan di layar basi: server tahu kategori itu dipakai 3 alat.
-      final l = _DipakaiSaatHapus();
-      await buka(tester, layanan: l);
+    testWidgets(
+      'hapus ditolak server (kategori_dipakai): rincian pemakai, dialog tetap',
+      (tester) async {
+        // Hitungan di layar basi: server tahu kategori itu dipakai 3 alat.
+        final l = _DipakaiSaatHapus();
+        await buka(tester, layanan: l);
 
-      await menu(tester, 'tekanan', 'Hapus');
-      await tester.tap(find.byKey(const Key('aksi-dialog')));
-      await tester.pumpAndSettle();
+        await menu(tester, 'tekanan', 'Hapus');
+        await tester.tap(find.byKey(const Key('aksi-dialog')));
+        await tester.pumpAndSettle();
 
-      expect(
-        find.text(
-          'Kategori ini masih dipakai (3 alat). Nonaktifkan saja supaya tidak ditawarkan lagi.',
-        ),
-        findsOneWidget,
-      );
-      expect(find.byKey(const Key('aksi-dialog')), findsOneWidget);
-    });
+        expect(
+          find.text(
+            'Kategori ini masih dipakai (3 alat). Nonaktifkan saja supaya tidak ditawarkan lagi.',
+          ),
+          findsOneWidget,
+        );
+        expect(find.byKey(const Key('aksi-dialog')), findsOneWidget);
+      },
+    );
 
     testWidgets('kosong dan galat memuat', (tester) async {
       await buka(tester, layanan: MockKategoriKelolaService(awal: const []));
@@ -522,13 +572,20 @@ void main() {
 /// Server yang menolak hapus karena kategori dipakai 3 alat.
 class _DipakaiSaatHapus extends MockKategoriKelolaService {
   @override
-  Future<void> hapus(String token, String kode) async => throw const ApiException(
-    'Kategori ini masih dipakai (3 alat).',
-    status: 422,
-    body: {
-      'message': 'Kategori ini masih dipakai (3 alat).',
-      'kode': 'kategori_dipakai',
-      'pemakai': {'alat': 3, 'kemampuan': 0, 'penugasan': 0, 'metode': 0, 'rumus': 0},
-    },
-  );
+  Future<void> hapus(String token, String kode) async =>
+      throw const ApiException(
+        'Kategori ini masih dipakai (3 alat).',
+        status: 422,
+        body: {
+          'message': 'Kategori ini masih dipakai (3 alat).',
+          'kode': 'kategori_dipakai',
+          'pemakai': {
+            'alat': 3,
+            'kemampuan': 0,
+            'penugasan': 0,
+            'metode': 0,
+            'rumus': 0,
+          },
+        },
+      );
 }

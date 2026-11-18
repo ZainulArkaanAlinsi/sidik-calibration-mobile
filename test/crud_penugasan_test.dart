@@ -45,7 +45,9 @@ http.Response _json(Object badan, [int status = 200]) => http.Response(
 
 PenugasanKelolaService _layanan(
   Future<http.Response> Function(http.Request) h,
-) => ApiPenugasanKelolaService(ApiClient(client: MockClient(h), baseUrl: _dasar));
+) => ApiPenugasanKelolaService(
+  ApiClient(client: MockClient(h), baseUrl: _dasar),
+);
 
 Map<String, dynamic> _badan(http.Request r) =>
     jsonDecode(r.body) as Map<String, dynamic>;
@@ -62,8 +64,20 @@ Map<String, dynamic> _json14({String status = 'aktif', Object? batal}) => {
   'dibuat_oleh': 'Rina',
   'batal': batal,
   'teknisi': [
-    {'id': 21, 'nama': 'Dedi', 'kode': 'DDT', 'peran': 'ketua', 'dilihat_pada': null},
-    {'id': 22, 'nama': 'Eko', 'kode': 'EKP', 'peran': 'anggota', 'dilihat_pada': null},
+    {
+      'id': 21,
+      'nama': 'Dedi',
+      'kode': 'DDT',
+      'peran': 'ketua',
+      'dilihat_pada': null,
+    },
+    {
+      'id': 22,
+      'nama': 'Eko',
+      'kode': 'EKP',
+      'peran': 'anggota',
+      'dilihat_pada': null,
+    },
   ],
   'item': [
     {
@@ -91,9 +105,8 @@ Penugasan _p14() => Penugasan.fromJson(_json14());
 
 /// Kolom isian yang isinya persis [teks] (isi TextField bukan `Text`, jadi
 /// `widgetWithText` tidak menemukannya).
-Finder _kolomDengan(String teks) => find.byWidgetPredicate(
-  (w) => w is TextField && w.controller?.text == teks,
-);
+Finder _kolomDengan(String teks) =>
+    find.byWidgetPredicate((w) => w is TextField && w.controller?.text == teks);
 
 void main() {
   group('model Penugasan.batal (aditif)', () {
@@ -115,16 +128,19 @@ void main() {
       expect(p.batal!.pada, isNotNull);
     });
 
-    test('penugasan lama dibatalkan lewat panel: alasan null tidak melempar', () {
-      final p = Penugasan.fromJson(
-        _json14(
-          status: 'dibatalkan',
-          batal: {'alasan': null, 'oleh': null, 'pada': null},
-        ),
-      );
-      expect(p.batal, isNotNull);
-      expect(p.batal!.alasan, isNull);
-    });
+    test(
+      'penugasan lama dibatalkan lewat panel: alasan null tidak melempar',
+      () {
+        final p = Penugasan.fromJson(
+          _json14(
+            status: 'dibatalkan',
+            batal: {'alasan': null, 'oleh': null, 'pada': null},
+          ),
+        );
+        expect(p.batal, isNotNull);
+        expect(p.batal!.alasan, isNull);
+      },
+    );
 
     test('server tanpa field batal (versi lama) dibaca null', () {
       final j = _json14()..remove('batal');
@@ -143,20 +159,22 @@ void main() {
       judul: judul,
       teknisi: teknisi,
       baris:
-          baris ??
-          [for (final b in _p14().baris) BarisUbahPenugasan.dari(b)],
+          baris ?? [for (final b in _p14().baris) BarisUbahPenugasan.dari(b)],
       tanggalTarget: target ?? DateTime(2026, 11, 30),
       catatan: catatan,
       awal: _p14(),
     );
 
-    test('tanpa perubahan: target & catatan TIDAK dikirim (dibiarkan server)', () {
-      final b = form().toJson();
+    test(
+      'tanpa perubahan: target & catatan TIDAK dikirim (dibiarkan server)',
+      () {
+        final b = form().toJson();
 
-      expect(b.containsKey('tanggal_target'), isFalse);
-      expect(b.containsKey('catatan'), isFalse);
-      expect(b['teknisi'], [21, 22]);
-    });
+        expect(b.containsKey('tanggal_target'), isFalse);
+        expect(b.containsKey('catatan'), isFalse);
+        expect(b['teknisi'], [21, 22]);
+      },
+    );
 
     test('baris lama membawa id dan TIDAK membawa catatan (milik teknisi)', () {
       final item = (form().toJson()['item'] as List).cast<Map>();
@@ -169,13 +187,21 @@ void main() {
     test('baris BARU tanpa id, catatan hanya bila diisi', () {
       final b = form(
         baris: [
-          const BarisUbahPenugasan(jenisAlat: ' pH Meter ', jumlah: 3, catatan: ' cepat '),
+          const BarisUbahPenugasan(
+            jenisAlat: ' pH Meter ',
+            jumlah: 3,
+            catatan: ' cepat ',
+          ),
           const BarisUbahPenugasan(jenisAlat: 'Oven', jumlah: 1),
         ],
       ).toJson();
       final item = (b['item'] as List).cast<Map>();
 
-      expect(item[0], {'jenis_alat': 'pH Meter', 'jumlah': 3, 'catatan': 'cepat'});
+      expect(item[0], {
+        'jenis_alat': 'pH Meter',
+        'jumlah': 3,
+        'catatan': 'cepat',
+      });
       expect(item[1], {'jenis_alat': 'Oven', 'jumlah': 1});
     });
 
@@ -219,7 +245,10 @@ void main() {
     test('baris berprogres tidak boleh dibuang dari sisi UI', () {
       final b = BarisUbahPenugasan.dari(_p14().baris.first);
       expect(b.sudahDikerjakan, isTrue);
-      expect(BarisUbahPenugasan.dari(_p14().baris.last).sudahDikerjakan, isFalse);
+      expect(
+        BarisUbahPenugasan.dari(_p14().baris.last).sudahDikerjakan,
+        isFalse,
+      );
     });
   });
 
@@ -230,7 +259,12 @@ void main() {
         terkirim = r;
         return _json({
           'data': [_json14()],
-          'meta': {'total': 41, 'per_page': 20, 'current_page': 2, 'last_page': 3},
+          'meta': {
+            'total': 41,
+            'per_page': 20,
+            'current_page': 2,
+            'last_page': 3,
+          },
         });
       });
       final h = await s.daftar('tkn', status: 'aktif', halaman: 2);
@@ -252,7 +286,9 @@ void main() {
       final f = FormUbahPenugasan(
         judul: 'Revisi',
         teknisi: const [21],
-        baris: const [BarisUbahPenugasan(id: 31, jenisAlat: 'Autoklaf', jumlah: 10)],
+        baris: const [
+          BarisUbahPenugasan(id: 31, jenisAlat: 'Autoklaf', jumlah: 10),
+        ],
         tanggalTarget: DateTime(2026, 11, 30),
         awal: _p14(),
       );
@@ -278,7 +314,11 @@ void main() {
           'message': 'Penugasan dibatalkan.',
           'data': _json14(
             status: 'dibatalkan',
-            batal: {'alasan': 'x', 'oleh': 'Sari', 'pada': '2026-11-18T11:00:00+07:00'},
+            batal: {
+              'alasan': 'x',
+              'oleh': 'Sari',
+              'pada': '2026-11-18T11:00:00+07:00',
+            },
           ),
         });
       });
@@ -299,7 +339,11 @@ void main() {
       (
         '422 penugasan_tidak_aktif',
         422,
-        {'message': 'Sudah selesai.', 'kode': 'penugasan_tidak_aktif', 'status': 'selesai'},
+        {
+          'message': 'Sudah selesai.',
+          'kode': 'penugasan_tidak_aktif',
+          'status': 'selesai',
+        },
       ),
       (
         '422 penugasan_sudah_selesai',
@@ -346,18 +390,21 @@ void main() {
       });
     }
 
-    test('batalkan: jaringan putus → KoneksiException, tidak diulang', () async {
-      var panggilan = 0;
-      final s = _layanan((_) async {
-        panggilan++;
-        throw const SocketException('putus');
-      });
-      await expectLater(
-        s.batalkan('t', 14, alasan: 'alasan sah'),
-        throwsA(isA<KoneksiException>()),
-      );
-      expect(panggilan, 1);
-    });
+    test(
+      'batalkan: jaringan putus → KoneksiException, tidak diulang',
+      () async {
+        var panggilan = 0;
+        final s = _layanan((_) async {
+          panggilan++;
+          throw const SocketException('putus');
+        });
+        await expectLater(
+          s.batalkan('t', 14, alasan: 'alasan sah'),
+          throwsA(isA<KoneksiException>()),
+        );
+        expect(panggilan, 1);
+      },
+    );
   });
 
   group('provider', () {
@@ -365,7 +412,9 @@ void main() {
       final w = ProviderContainer(
         overrides: [
           tokenStorageProvider.overrideWithValue(InMemoryTokenStorage()),
-          authServiceProvider.overrideWithValue(MockAuthService(jeda: Duration.zero)),
+          authServiceProvider.overrideWithValue(
+            MockAuthService(jeda: Duration.zero),
+          ),
           sumberTokenPushProvider.overrideWithValue(const TanpaTokenPush()),
           penugasanKelolaServiceProvider.overrideWithValue(layanan),
         ],
@@ -379,7 +428,9 @@ void main() {
     test('bawaan hanya penugasan AKTIF; saring mengganti status', () async {
       final layanan = MockPenugasanKelolaService();
       final w = wadah(layanan);
-      await w.read(authProvider.notifier).login(identifier: 'SDK-0001', password: 'rahasia123');
+      await w
+          .read(authProvider.notifier)
+          .login(identifier: 'SDK-0001', password: 'rahasia123');
       final l = w.listen(penugasanKelolaProvider, (_, _) {});
       addTearDown(l.close);
 
@@ -397,23 +448,30 @@ void main() {
       expect(w.read(penugasanKelolaProvider).value!.items, hasLength(4));
     });
 
-    test('ganti akun: saringan kembali ke aktif dan server dipanggil lagi', () async {
-      final layanan = MockPenugasanKelolaService();
-      final w = wadah(layanan);
-      await w.read(authProvider.notifier).login(identifier: 'SDK-0001', password: 'rahasia123');
-      final l = w.listen(penugasanKelolaProvider, (_, _) {});
-      addTearDown(l.close);
-      await w.read(penugasanKelolaProvider.future);
-      await w.read(penugasanKelolaProvider.notifier).saring('selesai');
-      final sebelum = layanan.catatan.length;
+    test(
+      'ganti akun: saringan kembali ke aktif dan server dipanggil lagi',
+      () async {
+        final layanan = MockPenugasanKelolaService();
+        final w = wadah(layanan);
+        await w
+            .read(authProvider.notifier)
+            .login(identifier: 'SDK-0001', password: 'rahasia123');
+        final l = w.listen(penugasanKelolaProvider, (_, _) {});
+        addTearDown(l.close);
+        await w.read(penugasanKelolaProvider.future);
+        await w.read(penugasanKelolaProvider.notifier).saring('selesai');
+        final sebelum = layanan.catatan.length;
 
-      await w.read(authProvider.notifier).logout();
-      await w.read(authProvider.notifier).login(identifier: 'SDK-0002', password: 'rahasia123');
-      await w.read(penugasanKelolaProvider.future);
+        await w.read(authProvider.notifier).logout();
+        await w
+            .read(authProvider.notifier)
+            .login(identifier: 'SDK-0002', password: 'rahasia123');
+        await w.read(penugasanKelolaProvider.future);
 
-      expect(layanan.catatan.length, greaterThan(sebelum));
-      expect(w.read(penugasanKelolaProvider.notifier).status, 'aktif');
-    });
+        expect(layanan.catatan.length, greaterThan(sebelum));
+        expect(w.read(penugasanKelolaProvider.notifier).status, 'aktif');
+      },
+    );
   });
 
   group('papan: gerbang izin dan aksi', () {
@@ -451,7 +509,9 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('admin: kartu aktif punya menu Ubah + Batalkan', (tester) async {
+    testWidgets('admin: kartu aktif punya menu Ubah + Batalkan', (
+      tester,
+    ) async {
       await buka(tester);
 
       expect(find.text('Kalibrasi minggu ini'), findsOneWidget);
@@ -470,13 +530,12 @@ void main() {
       expect(find.text('Kalibrasi minggu ini'), findsNothing);
     });
 
-    testWidgets('izin ubah tanpa izin batalkan: menu hanya Ubah', (tester) async {
+    testWidgets('izin ubah tanpa izin batalkan: menu hanya Ubah', (
+      tester,
+    ) async {
       await buka(
         tester,
-        izin: const Izin(
-          role: UserRole.admin,
-          boleh: {NamaIzin.penugasanUbah},
-        ),
+        izin: const Izin(role: UserRole.admin, boleh: {NamaIzin.penugasanUbah}),
       );
       await ketukDi(tester, find.byKey(const Key('menu-penugasan-14')));
       await tester.pumpAndSettle();
@@ -489,10 +548,16 @@ void main() {
       tester,
     ) async {
       await buka(tester);
-      await tester.tap(find.byKey(const Key('saring-penugasan-dibatalkan')));
+      await ketukDi(
+        tester,
+        find.byKey(const Key('saring-penugasan-dibatalkan')),
+      );
       await selesaikan(tester);
 
-      expect(find.text('Alasan: Pelanggan membatalkan pesanan.'), findsOneWidget);
+      expect(
+        find.text('Alasan: Pelanggan membatalkan pesanan.'),
+        findsOneWidget,
+      );
       expect(find.textContaining('Dibatalkan oleh Sari'), findsOneWidget);
       // Penugasan dibatalkan tidak punya menu aksi.
       expect(find.byKey(const Key('menu-penugasan-16')), findsNothing);
@@ -500,7 +565,10 @@ void main() {
 
     testWidgets('kosong: kalimat sendiri', (tester) async {
       await buka(tester, layanan: MockPenugasanKelolaService(awal: const []));
-      expect(find.text('Tidak ada penugasan dengan status ini.'), findsOneWidget);
+      expect(
+        find.text('Tidak ada penugasan dengan status ini.'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('galat memuat: kalimat sendiri + Coba lagi', (tester) async {
@@ -512,66 +580,75 @@ void main() {
       expect(find.text('Coba lagi'), findsOneWidget);
     });
 
-    testWidgets('batalkan: alasan wajib 5-400, tidak menembak server bila pendek', (
-      tester,
-    ) async {
-      final layanan = MockPenugasanKelolaService();
-      await buka(tester, layanan: layanan);
+    testWidgets(
+      'batalkan: alasan wajib 5-400, tidak menembak server bila pendek',
+      (tester) async {
+        final layanan = MockPenugasanKelolaService();
+        await buka(tester, layanan: layanan);
 
-      await menu(tester, 14, 'Batalkan penugasan');
-      await tester.enterText(find.byKey(const Key('isian-dialog')), 'abc');
-      await tester.tap(find.byKey(const Key('aksi-dialog')));
-      await tester.pumpAndSettle();
+        await menu(tester, 14, 'Batalkan penugasan');
+        await tester.enterText(find.byKey(const Key('isian-dialog')), 'abc');
+        await tester.tap(find.byKey(const Key('aksi-dialog')));
+        await tester.pumpAndSettle();
 
-      expect(find.text('Alasan minimal 5 karakter.'), findsOneWidget);
-      expect(layanan.catatan.where((c) => c.startsWith('batalkan')), isEmpty);
+        expect(find.text('Alasan minimal 5 karakter.'), findsOneWidget);
+        expect(layanan.catatan.where((c) => c.startsWith('batalkan')), isEmpty);
 
-      await tester.enterText(find.byKey(const Key('isian-dialog')), 'x' * 401);
-      await tester.tap(find.byKey(const Key('aksi-dialog')));
-      await tester.pumpAndSettle();
-      expect(find.text('Alasan maksimal 400 karakter.'), findsOneWidget);
-      expect(layanan.catatan.where((c) => c.startsWith('batalkan')), isEmpty);
-    });
+        await tester.enterText(
+          find.byKey(const Key('isian-dialog')),
+          'x' * 401,
+        );
+        await tester.tap(find.byKey(const Key('aksi-dialog')));
+        await tester.pumpAndSettle();
+        expect(find.text('Alasan maksimal 400 karakter.'), findsOneWidget);
+        expect(layanan.catatan.where((c) => c.startsWith('batalkan')), isEmpty);
+      },
+    );
 
-    testWidgets('batalkan sah: server dipanggil, papan diambil ulang, kabar tampil', (
-      tester,
-    ) async {
-      final layanan = MockPenugasanKelolaService();
-      await buka(tester, layanan: layanan);
+    testWidgets(
+      'batalkan sah: server dipanggil, papan diambil ulang, kabar tampil',
+      (tester) async {
+        final layanan = MockPenugasanKelolaService();
+        await buka(tester, layanan: layanan);
 
-      await menu(tester, 14, 'Batalkan penugasan');
-      await tester.enterText(
-        find.byKey(const Key('isian-dialog')),
-        'Pelanggan membatalkan pesanan.',
-      );
-      await tester.tap(find.byKey(const Key('aksi-dialog')));
-      await tester.pumpAndSettle();
+        await menu(tester, 14, 'Batalkan penugasan');
+        await tester.enterText(
+          find.byKey(const Key('isian-dialog')),
+          'Pelanggan membatalkan pesanan.',
+        );
+        await tester.tap(find.byKey(const Key('aksi-dialog')));
+        await tester.pumpAndSettle();
 
-      expect(
-        layanan.catatan,
-        contains('batalkan 14 "Pelanggan membatalkan pesanan."'),
-      );
-      expect(find.text('Penugasan dibatalkan.'), findsOneWidget);
-      // Bawaan = aktif: kartu itu hilang dari papan.
-      expect(find.text('Kalibrasi minggu ini'), findsNothing);
-    });
+        expect(
+          layanan.catatan,
+          contains('batalkan 14 "Pelanggan membatalkan pesanan."'),
+        );
+        expect(find.text('Penugasan dibatalkan.'), findsOneWidget);
+        // Bawaan = aktif: kartu itu hilang dari papan.
+        expect(find.text('Kalibrasi minggu ini'), findsNothing);
+      },
+    );
 
-    testWidgets('batalkan penugasan yang sudah selesai: kalimat kode, dialog tetap', (
-      tester,
-    ) async {
-      await buka(tester, layanan: _SelesaiSaatBatal());
+    testWidgets(
+      'batalkan penugasan yang sudah selesai: kalimat kode, dialog tetap',
+      (tester) async {
+        await buka(tester, layanan: _SelesaiSaatBatal());
 
-      await menu(tester, 14, 'Batalkan penugasan');
-      await tester.enterText(find.byKey(const Key('isian-dialog')), 'alasan sah');
-      await tester.tap(find.byKey(const Key('aksi-dialog')));
-      await tester.pumpAndSettle();
+        await menu(tester, 14, 'Batalkan penugasan');
+        await tester.enterText(
+          find.byKey(const Key('isian-dialog')),
+          'alasan sah',
+        );
+        await tester.tap(find.byKey(const Key('aksi-dialog')));
+        await tester.pumpAndSettle();
 
-      expect(
-        find.text('Penugasan ini sudah selesai, jadi tidak bisa dibatalkan.'),
-        findsOneWidget,
-      );
-      expect(find.byKey(const Key('aksi-dialog')), findsOneWidget);
-    });
+        expect(
+          find.text('Penugasan ini sudah selesai, jadi tidak bisa dibatalkan.'),
+          findsOneWidget,
+        );
+        expect(find.byKey(const Key('aksi-dialog')), findsOneWidget);
+      },
+    );
   });
 
   group('form ubah penugasan', () {
@@ -584,7 +661,9 @@ void main() {
       double lebar = 392,
     }) async {
       final l = layanan ?? MockPenugasanKelolaService();
-      aturLayar(tester, lebar, 852);
+      // Tinggi besar: daftar baris alat dibangun malas, dan tes ini memeriksa
+      // isi SEMUA baris. Perilaku pada layar pendek diuji di crud_responsif.
+      aturLayar(tester, lebar, 2400);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -683,7 +762,9 @@ void main() {
       expect(l.catatan.where((c) => c.startsWith('ubah')), isEmpty);
     });
 
-    testWidgets('jumlah 0 ditolak di klien (bukan diam-diam jadi 1)', (tester) async {
+    testWidgets('jumlah 0 ditolak di klien (bukan diam-diam jadi 1)', (
+      tester,
+    ) async {
       final l = await buka(tester);
       await tester.enterText(_kolomDengan('4'), '0');
       await ketukDi(tester, find.byKey(const Key('simpan-penugasan')));
@@ -722,9 +803,7 @@ void main() {
       final l = await buka(
         tester,
         layanan: MockPenugasanKelolaService(
-          awal: [
-            Penugasan.fromJson(_json14(status: 'selesai')),
-          ],
+          awal: [Penugasan.fromJson(_json14(status: 'selesai'))],
         ),
       );
       expect(l, isNotNull);
