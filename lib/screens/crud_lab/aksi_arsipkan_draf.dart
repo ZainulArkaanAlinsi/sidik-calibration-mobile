@@ -51,13 +51,15 @@ Future<bool> arsipkanDrafCrud(
       if (perluMuatUlangCrud(e)) saatBasi?.call();
     },
   );
-  if (ok) {
-    saatSelesai?.call();
-    if (context.mounted) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text(l10n.crudDrafArsipkanBerhasil)));
-    }
+  if (!ok) return false;
+
+  // Kabar dulu, baru segarkan daftar: penyegaran membuang kartu (dan
+  // `context`-nya) sebelum snackbar sempat dipasang.
+  if (context.mounted) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(l10n.crudDrafArsipkanBerhasil)));
   }
-  return ok;
+  saatSelesai?.call();
+  return true;
 }
