@@ -8052,7 +8052,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pindaiLembarKeterangan =>
-      'Photograph the sheet, the app suggests its type';
+      'Photograph the sheet: its type is recognized and its content is filled in as suggestions for you to check';
 
   @override
   String get pindaiLembarMembaca => 'Recognizing the sheet type...';
@@ -8461,4 +8461,74 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get jlSamarUsulan =>
       'The print is blurry. These are the closest suggestions, none is selected for you. Pick the one that matches your instrument.';
+
+  @override
+  String get pindaiPilihSatuJudul => 'Pick one';
+
+  @override
+  String get pindaiJenisLain => 'Other type...';
+
+  @override
+  String get pindaiTakDikenaliJudul => 'Can\'t tell which sheet this is';
+
+  @override
+  String get pindaiTakDikenaliPesan =>
+      'The app is not sure which sheet this is, so it will not guess. Retake the photo with the title and form code at the top of the sheet clearly visible, or start from \"Start calibration\".';
+
+  @override
+  String get pindaiBelumBisaJudul => 'Can\'t be read automatically yet';
+
+  @override
+  String pindaiBelumBisaPesan(String jenis) {
+    return 'The $jenis sheet was recognized, but the app cannot read it automatically yet. Start from \"Start calibration\" and fill it in by hand.';
+  }
+
+  @override
+  String get pindaiPerluKonfirmasi =>
+      'The form code was read clearly, but the printed revision differs from the one the app holds. Make sure this is the right type.';
+
+  @override
+  String get pindaiPilihAlatJudul => 'Pick the instrument';
+
+  @override
+  String pindaiPilihAlatPesan(String jenis, int jumlah) {
+    return 'There are $jumlah $jenis instruments. Pick the one being calibrated.';
+  }
+
+  @override
+  String get pindaiCariAlat => 'Search instruments';
+
+  @override
+  String get pindaiPilihAlatNanti => 'Choose later on the sheet';
+
+  @override
+  String get pindaiMenyiapkanLembar => 'Preparing the sheet...';
+
+  @override
+  String pindaiBannerOtomatis(String jenis) {
+    return 'Recognized automatically: $jenis (from the photo). Wrong?';
+  }
+
+  @override
+  String pindaiBannerDipilih(String jenis) {
+    return 'Sheet type: $jenis (picked from the photo). Wrong?';
+  }
+
+  @override
+  String get pindaiGantiJenis => 'Change type';
+
+  @override
+  String get pindaiBannerPilihAlat =>
+      'Pick the instrument below, then tap \"Fill from photo\".';
+
+  @override
+  String get pindaiGantiJenisJudul => 'Change sheet type';
+
+  @override
+  String pindaiGantiJenisPesan(String jenis) {
+    return 'Now: $jenis. Pick the right type and the same photo is read again. Entries that are not saved yet do not carry over.';
+  }
+
+  @override
+  String get lkIsiDariFoto => 'Fill from photo';
 }
