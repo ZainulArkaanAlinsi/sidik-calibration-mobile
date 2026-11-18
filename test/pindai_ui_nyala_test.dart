@@ -75,9 +75,18 @@ void main() {
     addTearDown(tester.view.reset);
   }
 
-  Widget app({required bool pindaiAktif, bool didukung = true, bool? lokal}) =>
-      ProviderScope(
+  Widget app({
+    required bool pindaiAktif,
+    bool didukung = true,
+    bool? lokal,
+    // Saklar kedua: bawaan produksi MATI (satu pintu foto). Tes jalur per-tabel
+    // yang lama menyalakannya; [fotoPerTabelBawaan] = tidak di-override sama
+    // sekali (jalur yang sama persis dengan produksi).
+    bool fotoPerTabelBawaan = false,
+  }) => ProviderScope(
     overrides: [
+      if (!fotoPerTabelBawaan)
+        fotoPerTabelAktifProvider.overrideWithValue(true),
       // Waktu NYALA, providernya sengaja NGGAK di-override sama sekali: yang
       // diuji test pertama itu nilai BAWAANNYA, jadi dia harus lewat jalur
       // yang sama persis dengan produksi (`AppConfig.pindaiLembarAktif`).
@@ -157,6 +166,31 @@ void main() {
 
     // Satu per TABEL, bukan satu per lembar — pH punya Before & After.
     expect(find.text('Foto tabel ini'), findsNWidgets(2));
+  });
+
+  testWidgets('bawaan produksi: pintu foto PER TABEL tersembunyi (satu pintu '
+      'foto per layar); saklar `FOTO_PER_TABEL` yang menyalakannya', (
+    tester,
+  ) async {
+    expect(
+      AppConfig.fotoPerTabelAktif,
+      isFalse,
+      reason: 'satu pintu foto: ML Kit lama per tabel mati tanpa --dart-define',
+    );
+
+    perbesarViewport(tester);
+    // `fotoPerTabelBawaan`: saklar kedua TIDAK di-override, jalur yang sama
+    // persis dengan produksi.
+    await bukaSampaiTabel(
+      tester,
+      app(pindaiAktif: true, fotoPerTabelBawaan: true),
+    );
+
+    // Lembarnya beneran kebangun (jangkar), baru pintunya diperiksa.
+    expect(find.text('Before adjustment Reading'), findsOneWidget);
+    expect(find.text('After adjustment Reading'), findsOneWidget);
+    expect(find.text('Foto tabel ini'), findsNothing);
+    expect(find.text('FOTO TABEL INI'), findsNothing);
   });
 
   testWidgets('saklarnya masih SAKLAR — dimatiin, FOTO TABEL INI hilang', (

@@ -254,8 +254,11 @@ Future<int> _pindaiSekali({
 
   try {
     JalankanPindaiAsli pakai;
-    if (mesin != null) {
-      pakai = mesin;
+    // [mesin] = parameter (tes yang memanggil langsung); `mesinPindaiAsliProvider`
+    // = tes yang lewat layar lembar kerja. Produksi: keduanya null.
+    final mesinUji = mesin ?? ref.read(mesinPindaiAsliProvider);
+    if (mesinUji != null) {
+      pakai = mesinUji;
     } else {
       final pabrik = ref.read(pabrikPembacaPindaiProvider);
       pakai = JalankanPindaiAsli(
