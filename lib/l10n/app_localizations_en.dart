@@ -8461,4 +8461,743 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get jlSamarUsulan =>
       'The print is blurry. These are the closest suggestions, none is selected for you. Pick the one that matches your instrument.';
+
+  @override
+  String get saHubJudul => 'Super Admin management';
+
+  @override
+  String get saHubKelolaSub => 'Users, customer members, and your own password';
+
+  @override
+  String get saHubPenggunaJudul => 'Users';
+
+  @override
+  String get saHubPenggunaSub =>
+      'Add, edit, reset password, deactivate accounts';
+
+  @override
+  String get saHubPelangganJudul => 'Customers & members';
+
+  @override
+  String get saHubPelangganSub =>
+      'Members, invitations, and the contact person of each customer';
+
+  @override
+  String get saHubGantiSub => 'Change the password of your own account';
+
+  @override
+  String get saHubKosong => 'This account has no screen it can open here yet.';
+
+  @override
+  String get saTanpaIzin =>
+      'This screen is only for accounts the server has granted permission.';
+
+  @override
+  String get saBatal => 'Cancel';
+
+  @override
+  String get saCobaLagi => 'Try again';
+
+  @override
+  String get saMuatLagi => 'Load more';
+
+  @override
+  String saAksiUntuk(String nama) {
+    return 'Actions for $nama';
+  }
+
+  @override
+  String get saGalatUmum => 'The action did not go through. Try again.';
+
+  @override
+  String get saGalatTidakAda =>
+      'That record was not found; it may have changed. The list is reloading.';
+
+  @override
+  String get saGantiJudul => 'Change my password';
+
+  @override
+  String get saGantiIntro =>
+      'Enter your current password, then the new one twice. Other devices using this account are signed out; this device stays signed in.';
+
+  @override
+  String get saGantiLama => 'Current password';
+
+  @override
+  String get saGantiBaru => 'New password';
+
+  @override
+  String get saGantiUlang => 'Repeat new password';
+
+  @override
+  String get saGantiHelper =>
+      'At least 10 characters. The server judges the strength.';
+
+  @override
+  String get saGantiLamaKosong => 'The current password is required.';
+
+  @override
+  String get saGantiBaruKosong => 'The new password is required.';
+
+  @override
+  String get saGantiBeda => 'The new password and its repeat do not match.';
+
+  @override
+  String get saGantiSimpan => 'Change password';
+
+  @override
+  String get saGantiBerhasil => 'Password changed.';
+
+  @override
+  String saGantiSesiLain(int jumlah) {
+    return '$jumlah other devices were signed out.';
+  }
+
+  @override
+  String get saGantiGagal => 'The password could not be changed. Try again.';
+
+  @override
+  String get saPenggunaJudul => 'Users';
+
+  @override
+  String get saPenggunaCari => 'Search name, email, or employee ID';
+
+  @override
+  String get saPeranSemua => 'All roles';
+
+  @override
+  String get saPeranAdmin => 'Admin';
+
+  @override
+  String get saPeranAdminMasterData => 'Admin (Master Data)';
+
+  @override
+  String get saPeranTeknisi => 'Technician';
+
+  @override
+  String get saPeranViewer => 'Viewer';
+
+  @override
+  String get saPenggunaKosong => 'No users match these filters.';
+
+  @override
+  String get saPenggunaGagal => 'The user list could not be loaded.';
+
+  @override
+  String get saTambahPengguna => 'Add user';
+
+  @override
+  String get saAksiUbah => 'Edit details';
+
+  @override
+  String get saAksiSetelSandi => 'Reset password';
+
+  @override
+  String get saAksiNonaktifkan => 'Deactivate account';
+
+  @override
+  String get saAksiAktifkan => 'Reactivate';
+
+  @override
+  String get saAksiSetujui => 'Approve';
+
+  @override
+  String get saAksiTolak => 'Reject';
+
+  @override
+  String saNonaktifJudul(String nama) {
+    return 'Deactivate $nama?';
+  }
+
+  @override
+  String get saNonaktifIsi =>
+      'This account can no longer sign in and all its devices are signed out on their next request. Calibration history and certificates in its name stay as they are. The account can be reactivated.';
+
+  @override
+  String get saNonaktifAksi => 'Deactivate';
+
+  @override
+  String get saNonaktifBerhasil => 'Account deactivated.';
+
+  @override
+  String saAktifJudul(String nama) {
+    return 'Reactivate $nama?';
+  }
+
+  @override
+  String get saAktifIsi =>
+      'They can sign in again with their old password. The role does not change. If a new password is needed, reset it afterwards.';
+
+  @override
+  String get saAktifAksi => 'Reactivate';
+
+  @override
+  String get saAktifBerhasil => 'Account reactivated.';
+
+  @override
+  String get saAlasanWajib => 'Reason (required, 3 to 500 characters)';
+
+  @override
+  String get saAlasanOpsional => 'Reason (optional)';
+
+  @override
+  String get saAlasanCatatan =>
+      'This reason is recorded in the change history under your name.';
+
+  @override
+  String get saAlasanPendek => 'The reason needs at least 3 characters.';
+
+  @override
+  String get saAlasanPanjang => 'The reason can be at most 500 characters.';
+
+  @override
+  String saSetelJudul(String nama) {
+    return 'Reset password for $nama';
+  }
+
+  @override
+  String get saSetelIsi =>
+      'All devices of this person are signed out. Hand the new password to them in person.';
+
+  @override
+  String get saSetelLabel => 'New password';
+
+  @override
+  String get saSetelHelper => 'At least 8 characters. Not shown again.';
+
+  @override
+  String get saSetelPendek => 'The password needs at least 8 characters.';
+
+  @override
+  String get saSetelAksi => 'Reset';
+
+  @override
+  String saSetelBerhasil(String nama) {
+    return 'Password for $nama was reset.';
+  }
+
+  @override
+  String saSetujuiJudul(String nama) {
+    return 'Approve $nama';
+  }
+
+  @override
+  String get saSetujuiIsi => 'Choose the role of this account.';
+
+  @override
+  String get saSetujuiBerhasil => 'Account approved.';
+
+  @override
+  String saTolakJudul(String nama) {
+    return 'Reject $nama?';
+  }
+
+  @override
+  String get saTolakIsi => 'This account is deactivated and cannot sign in.';
+
+  @override
+  String get saTolakBerhasil => 'Applicant rejected.';
+
+  @override
+  String get saGalatSudahNonaktif =>
+      'This account is already inactive. The list is reloading.';
+
+  @override
+  String get saGalatSudahAktif =>
+      'This account is already active. The list is reloading.';
+
+  @override
+  String get saGalatPerluPersetujuan =>
+      'This account is still awaiting approval. Use Approve.';
+
+  @override
+  String get saFormTambahJudul => 'Add user';
+
+  @override
+  String get saFormUbahJudul => 'Edit user';
+
+  @override
+  String get saFormPeran => 'Account role';
+
+  @override
+  String get saFormIntroTambah =>
+      'The account is active right away. They sign in with their employee ID or email. Hand over the initial password in person.';
+
+  @override
+  String get saFormIntroUbah =>
+      'Only the fields you change are sent. The password is not changed here; use Reset password.';
+
+  @override
+  String get saFormBuat => 'Create account';
+
+  @override
+  String get saFormSimpan => 'Save changes';
+
+  @override
+  String saFormBerhasilBuat(String nama, String id) {
+    return 'Account $nama created (employee ID $id). Hand the initial password over in person and ask them to change it via Change password.';
+  }
+
+  @override
+  String get saFormBerhasilUbah => 'Changes saved.';
+
+  @override
+  String get saFormTanpaPerubahan => 'Nothing has been changed.';
+
+  @override
+  String saFormPeranTetap(String peran) {
+    return 'The $peran role cannot be changed here.';
+  }
+
+  @override
+  String get saPelJudul => 'Customers & members';
+
+  @override
+  String get saPelCari => 'Search customer name';
+
+  @override
+  String get saPelKosong => 'No customers match.';
+
+  @override
+  String get saPelGagal => 'The customer list could not be loaded.';
+
+  @override
+  String get saDetGagal => 'The members of this customer could not be loaded.';
+
+  @override
+  String saDetKuota(int aktif, int maks) {
+    return '$aktif of at most $maks active members';
+  }
+
+  @override
+  String get saDetPicAdmin => 'Lab contact admin';
+
+  @override
+  String get saDetPicAdminKosong =>
+      'Not assigned. Notifications for this customer go to all admins.';
+
+  @override
+  String get saDetUbahPic => 'Change contact admin';
+
+  @override
+  String get saPicJudul => 'Choose contact admin';
+
+  @override
+  String get saPicIsi =>
+      'The contact admin receives the submission and equipment verification notifications of this customer.';
+
+  @override
+  String get saPicLepas => 'Remove contact admin';
+
+  @override
+  String get saPicKosong => 'There is no active admin in this lab yet.';
+
+  @override
+  String get saPicGagalMuat => 'The admin list could not be loaded.';
+
+  @override
+  String get saPicBerhasil => 'Contact admin updated.';
+
+  @override
+  String get saPicDilepas => 'Contact admin removed.';
+
+  @override
+  String get saAnggotaJudul => 'Members';
+
+  @override
+  String get saAnggotaKosong =>
+      'No members yet. Invite the first person with the button above.';
+
+  @override
+  String get saPeranPicUtama => 'Main contact';
+
+  @override
+  String get saPeranStaf => 'Staff';
+
+  @override
+  String get saTanpaNamaAnggota => '(account no longer exists)';
+
+  @override
+  String saBergabung(String tanggal) {
+    return 'Joined $tanggal';
+  }
+
+  @override
+  String saDinonaktifkanOleh(String tanggal, String oleh) {
+    return 'Deactivated $tanggal by $oleh';
+  }
+
+  @override
+  String saDinonaktifkanSaja(String tanggal) {
+    return 'Deactivated $tanggal';
+  }
+
+  @override
+  String get saPicTerakhir =>
+      'Last main contact. Invite another main contact before removing this one.';
+
+  @override
+  String get saCabutAkses => 'Remove access';
+
+  @override
+  String saCabutJudul(String nama) {
+    return 'Remove access for $nama?';
+  }
+
+  @override
+  String saCabutIsi(String nama, String perusahaan) {
+    return '$nama can no longer open the data of $perusahaan and their sessions are revoked. A removed member stays on record as history. To restore, invite the same person again.';
+  }
+
+  @override
+  String get saCabutBerhasil => 'Member access removed.';
+
+  @override
+  String get saGalatPicTerakhir =>
+      'This is the only active main contact, so access cannot be removed. Invite another main contact first.';
+
+  @override
+  String get saGalatSudahNonaktifAnggota =>
+      'This member is already inactive. The list is reloading.';
+
+  @override
+  String get saUndanganJudul => 'Pending invitations';
+
+  @override
+  String get saUndanganKosong => 'No invitations are waiting.';
+
+  @override
+  String saUndanganBerlaku(String tanggal) {
+    return 'Valid until $tanggal';
+  }
+
+  @override
+  String saUndanganOleh(String nama) {
+    return 'Invited by $nama';
+  }
+
+  @override
+  String get saBatalkanUndangan => 'Cancel invitation';
+
+  @override
+  String get saBatalkanJudul => 'Cancel the invitation?';
+
+  @override
+  String saBatalkanUntuk(String email) {
+    return 'Invitation for $email.';
+  }
+
+  @override
+  String get saBatalkanIsi =>
+      'The code stops working. To invite again, send a new invitation.';
+
+  @override
+  String get saBatalkanTidak => 'Keep it';
+
+  @override
+  String get saBatalkanBerhasil => 'Invitation cancelled.';
+
+  @override
+  String get saAlatJudul => 'Customer equipment';
+
+  @override
+  String get saAlatKosong => 'This customer has no equipment yet.';
+
+  @override
+  String get saAlatGagal => 'The equipment list could not be loaded.';
+
+  @override
+  String get saAlatLanjutGagal => 'The next equipment could not be loaded.';
+
+  @override
+  String saAlatSeri(String seri) {
+    return 'Serial no. $seri';
+  }
+
+  @override
+  String get saAlatTanpaSeri => 'No serial number';
+
+  @override
+  String saAlatJadwal(String tanggal) {
+    return 'Next calibration $tanggal';
+  }
+
+  @override
+  String get saAlatTanpaJadwal => 'No recalibration scheduled';
+
+  @override
+  String saAlatJumlahSert(int jumlah) {
+    return '$jumlah certificates';
+  }
+
+  @override
+  String get saMemuat => 'Loading';
+
+  @override
+  String get saRiwayatJudul => 'Certificate history';
+
+  @override
+  String get saRiwayatKosong => 'This equipment has no certificates yet.';
+
+  @override
+  String get saRiwayatGagal => 'The certificate history could not be loaded.';
+
+  @override
+  String get saRiwayatLanjutGagal =>
+      'The next certificates could not be loaded.';
+
+  @override
+  String get saRiwayatTanpaTanggal => 'No issue date';
+
+  @override
+  String saRiwayatTerbit(String tanggal) {
+    return 'Issued $tanggal';
+  }
+
+  @override
+  String get saSertTerbit => 'Issued';
+
+  @override
+  String get saSertDigantikan => 'Superseded';
+
+  @override
+  String get saSertDitarik => 'Withdrawn';
+
+  @override
+  String get saSertDibatalkan => 'Cancelled';
+
+  @override
+  String get saSertGagal => 'Failed';
+
+  @override
+  String get saSertMenunggu => 'Awaiting issue';
+
+  @override
+  String get saSertBuka => 'Open certificate preview';
+
+  @override
+  String get saAlatStatusTerkalibrasi => 'Calibrated';
+
+  @override
+  String get saAlatStatusMendekati => 'Due soon';
+
+  @override
+  String get saAlatStatusLewat => 'Overdue';
+
+  @override
+  String get saAlatStatusBelum => 'Never calibrated';
+
+  @override
+  String get saAlatStatusNonaktif => 'Inactive';
+
+  @override
+  String saAlatHariLagi(int hari) {
+    return 'in $hari days';
+  }
+
+  @override
+  String get saAlatHariIni => 'today';
+
+  @override
+  String saAlatTerlambat(int hari) {
+    return '$hari days late';
+  }
+
+  @override
+  String saAlatTerbaru(String nomor) {
+    return 'Latest certificate $nomor';
+  }
+
+  @override
+  String saSertDigantikanOleh(String nomor) {
+    return 'Superseded by $nomor';
+  }
+
+  @override
+  String saSertRevisiDari(String nomor) {
+    return 'Revision of $nomor';
+  }
+
+  @override
+  String saSertDitarikPada(String tanggal) {
+    return 'Withdrawn $tanggal';
+  }
+
+  @override
+  String saSertDibatalkanPada(String tanggal) {
+    return 'Cancelled $tanggal';
+  }
+
+  @override
+  String saPelRingkas(int alat, int sertifikat, int anggota) {
+    return '$alat equipment · $sertifikat certificates · $anggota members';
+  }
+
+  @override
+  String get saPelTanpaAkun => 'No customer account yet';
+
+  @override
+  String get saDetTanpaAkunIsi =>
+      'This company has equipment or certificates, but nobody can see them yet. Invite the first member.';
+
+  @override
+  String get saDetNamaNormalKosong =>
+      'Duplicate-company detection does not work for this company yet. Save the company again in the Customers screen to fix it.';
+
+  @override
+  String get saPindahJudul => 'Move equipment';
+
+  @override
+  String get saPindahTombol => 'Move equipment';
+
+  @override
+  String get saPindahIntro =>
+      'Move equipment and its certificates to another company, for example when a company was misspelled or duplicated. Certificate numbers and contents do not change.';
+
+  @override
+  String get saPindahTujuan => 'Destination company';
+
+  @override
+  String get saPindahTujuanKosong => 'Not chosen yet';
+
+  @override
+  String get saPindahPilihTujuan => 'Choose destination';
+
+  @override
+  String get saPindahGantiTujuan => 'Change destination';
+
+  @override
+  String get saPindahAlatJudul => 'Equipment to move';
+
+  @override
+  String saPindahDipilih(int n) {
+    return '$n equipment selected';
+  }
+
+  @override
+  String get saPindahPilihMuat => 'Select all loaded';
+
+  @override
+  String get saPindahKosongkan => 'Clear selection';
+
+  @override
+  String get saPindahMaks => 'At most 100 items per move.';
+
+  @override
+  String get saPindahAlatKosong => 'This company has no equipment to move.';
+
+  @override
+  String get saPindahLihatPratinjau => 'Preview';
+
+  @override
+  String get saPilihPtJudul => 'Choose destination company';
+
+  @override
+  String get saPilihPtCari => 'Search company name';
+
+  @override
+  String get saPilihPtKosong => 'No other company matches.';
+
+  @override
+  String get saPratinjauJudul => 'Move preview';
+
+  @override
+  String get saPratinjauDari => 'From';
+
+  @override
+  String get saPratinjauKe => 'To';
+
+  @override
+  String saPratinjauAnggotaPt(int n) {
+    return '$n active members';
+  }
+
+  @override
+  String saPratinjauAlat(int n) {
+    return '$n equipment moved';
+  }
+
+  @override
+  String saPratinjauSertTerdampak(int n) {
+    return '$n certificates move along';
+  }
+
+  @override
+  String saPratinjauSertTerlihat(int n) {
+    return '$n of them are visible in the customer app';
+  }
+
+  @override
+  String get saPratinjauMulai => 'Start seeing this equipment';
+
+  @override
+  String get saPratinjauBerhenti => 'Stop seeing this equipment';
+
+  @override
+  String get saPratinjauTidakAda => 'None';
+
+  @override
+  String saPratinjauPaket(int n) {
+    return '$n package/order lines point to this equipment and do NOT move.';
+  }
+
+  @override
+  String get saPeringatanPaket =>
+      'Package/order lines pointing to this equipment do not move.';
+
+  @override
+  String get saPeringatanArsip =>
+      'Old archive files stay in the original company folder until the owner runs the archive tidy-up.';
+
+  @override
+  String get saPeringatanIsi =>
+      'Certificate numbers and contents, including the printed owner name, are not changed.';
+
+  @override
+  String saPindahEksekusi(int n) {
+    return 'Move $n equipment';
+  }
+
+  @override
+  String saPindahKonfirmJudul(int n, String pt) {
+    return 'Move $n equipment to $pt?';
+  }
+
+  @override
+  String saPindahKonfirmIsi(int n) {
+    return '$n certificates move along. Certificates are not changed or deleted; equipment can be moved again if this was a mistake. It is recorded in the change history under your name.';
+  }
+
+  @override
+  String get saPindahAksi => 'Move';
+
+  @override
+  String saPindahBerhasil(int n, String pt) {
+    return '$n equipment moved to $pt.';
+  }
+
+  @override
+  String saPindahBerhasilIsi(int s, int t) {
+    return '$s certificates moved along ($t visible in the customer app).';
+  }
+
+  @override
+  String get saPindahSelesai => 'Done';
+
+  @override
+  String get saPratinjauGagal => 'The preview could not be loaded.';
+
+  @override
+  String get saPratinjauUlang => 'Repeat preview';
+
+  @override
+  String get saGalatAlatSudahPindah =>
+      'Another admin already moved the equipment. Repeat the preview to see the latest state.';
+
+  @override
+  String get saGalatAlatBukanMilik =>
+      'Some equipment no longer belongs to the original company. Repeat the preview.';
+
+  @override
+  String get saGalatPtSama => 'The destination cannot be the original company.';
 }

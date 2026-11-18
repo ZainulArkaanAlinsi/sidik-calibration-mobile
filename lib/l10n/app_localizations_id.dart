@@ -8314,4 +8314,743 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get jlSamarUsulan =>
       'Cetakannya samar. Ini usulan yang paling dekat, belum ada yang dipilihkan. Pilih yang sesuai dengan alat Anda.';
+
+  @override
+  String get saHubJudul => 'Pengelolaan Super Admin';
+
+  @override
+  String get saHubKelolaSub =>
+      'Pengguna, anggota pelanggan, dan sandi akun Anda';
+
+  @override
+  String get saHubPenggunaJudul => 'Pengguna';
+
+  @override
+  String get saHubPenggunaSub =>
+      'Tambah, ubah, setel ulang sandi, nonaktifkan akun';
+
+  @override
+  String get saHubPelangganJudul => 'Pelanggan & anggota';
+
+  @override
+  String get saHubPelangganSub => 'Anggota, undangan, dan PIC tiap pelanggan';
+
+  @override
+  String get saHubGantiSub => 'Ganti sandi akun Anda sendiri';
+
+  @override
+  String get saHubKosong =>
+      'Akun ini belum punya layar yang bisa dibuka di sini.';
+
+  @override
+  String get saTanpaIzin =>
+      'Layar ini hanya untuk akun yang diberi izin oleh server.';
+
+  @override
+  String get saBatal => 'Batal';
+
+  @override
+  String get saCobaLagi => 'Coba lagi';
+
+  @override
+  String get saMuatLagi => 'Muat lebih banyak';
+
+  @override
+  String saAksiUntuk(String nama) {
+    return 'Aksi untuk $nama';
+  }
+
+  @override
+  String get saGalatUmum => 'Aksi belum berhasil. Coba lagi.';
+
+  @override
+  String get saGalatTidakAda =>
+      'Datanya tidak ditemukan, mungkin sudah berubah. Daftar dimuat ulang.';
+
+  @override
+  String get saGantiJudul => 'Ganti sandi saya';
+
+  @override
+  String get saGantiIntro =>
+      'Isi sandi Anda sekarang, lalu sandi baru dua kali. Perangkat lain yang memakai akun ini akan keluar sendiri; perangkat ini tetap masuk.';
+
+  @override
+  String get saGantiLama => 'Sandi sekarang';
+
+  @override
+  String get saGantiBaru => 'Sandi baru';
+
+  @override
+  String get saGantiUlang => 'Ulangi sandi baru';
+
+  @override
+  String get saGantiHelper =>
+      'Minimal 10 karakter. Kekuatan sandi dinilai server.';
+
+  @override
+  String get saGantiLamaKosong => 'Sandi sekarang wajib diisi.';
+
+  @override
+  String get saGantiBaruKosong => 'Sandi baru wajib diisi.';
+
+  @override
+  String get saGantiBeda => 'Sandi baru dan pengulangannya belum sama.';
+
+  @override
+  String get saGantiSimpan => 'Ganti sandi';
+
+  @override
+  String get saGantiBerhasil => 'Sandi berhasil diganti.';
+
+  @override
+  String saGantiSesiLain(int jumlah) {
+    return '$jumlah perangkat lain telah dikeluarkan.';
+  }
+
+  @override
+  String get saGantiGagal => 'Sandi belum bisa diganti. Coba lagi.';
+
+  @override
+  String get saPenggunaJudul => 'Pengguna';
+
+  @override
+  String get saPenggunaCari => 'Cari nama, email, atau ID pegawai';
+
+  @override
+  String get saPeranSemua => 'Semua peran';
+
+  @override
+  String get saPeranAdmin => 'Admin';
+
+  @override
+  String get saPeranAdminMasterData => 'Admin (Master Data)';
+
+  @override
+  String get saPeranTeknisi => 'Teknisi';
+
+  @override
+  String get saPeranViewer => 'Viewer';
+
+  @override
+  String get saPenggunaKosong =>
+      'Tidak ada pengguna yang cocok dengan saringan ini.';
+
+  @override
+  String get saPenggunaGagal => 'Daftar pengguna belum bisa dimuat.';
+
+  @override
+  String get saTambahPengguna => 'Tambah pengguna';
+
+  @override
+  String get saAksiUbah => 'Ubah data';
+
+  @override
+  String get saAksiSetelSandi => 'Setel ulang sandi';
+
+  @override
+  String get saAksiNonaktifkan => 'Nonaktifkan akun';
+
+  @override
+  String get saAksiAktifkan => 'Aktifkan kembali';
+
+  @override
+  String get saAksiSetujui => 'Setujui';
+
+  @override
+  String get saAksiTolak => 'Tolak';
+
+  @override
+  String saNonaktifJudul(String nama) {
+    return 'Nonaktifkan $nama?';
+  }
+
+  @override
+  String get saNonaktifIsi =>
+      'Akun ini tidak bisa masuk lagi dan semua perangkatnya keluar pada permintaan berikutnya. Riwayat kalibrasi dan sertifikat atas namanya tidak berubah. Akun bisa diaktifkan kembali.';
+
+  @override
+  String get saNonaktifAksi => 'Nonaktifkan';
+
+  @override
+  String get saNonaktifBerhasil => 'Akun dinonaktifkan.';
+
+  @override
+  String saAktifJudul(String nama) {
+    return 'Aktifkan kembali $nama?';
+  }
+
+  @override
+  String get saAktifIsi =>
+      'Orangnya bisa masuk lagi dengan sandi lamanya. Peran tidak berubah. Bila perlu sandi baru, setel ulang sandinya sesudah ini.';
+
+  @override
+  String get saAktifAksi => 'Aktifkan';
+
+  @override
+  String get saAktifBerhasil => 'Akun diaktifkan kembali.';
+
+  @override
+  String get saAlasanWajib => 'Alasan (wajib, 3 sampai 500 karakter)';
+
+  @override
+  String get saAlasanOpsional => 'Alasan (boleh dikosongkan)';
+
+  @override
+  String get saAlasanCatatan =>
+      'Alasan ini tercatat di riwayat perubahan atas nama Anda.';
+
+  @override
+  String get saAlasanPendek => 'Alasan minimal 3 karakter.';
+
+  @override
+  String get saAlasanPanjang => 'Alasan maksimal 500 karakter.';
+
+  @override
+  String saSetelJudul(String nama) {
+    return 'Setel ulang sandi $nama';
+  }
+
+  @override
+  String get saSetelIsi =>
+      'Semua perangkat orang ini keluar. Sampaikan sandi barunya langsung ke orangnya.';
+
+  @override
+  String get saSetelLabel => 'Sandi baru';
+
+  @override
+  String get saSetelHelper => 'Minimal 8 karakter. Tidak ditampilkan lagi.';
+
+  @override
+  String get saSetelPendek => 'Sandi minimal 8 karakter.';
+
+  @override
+  String get saSetelAksi => 'Setel ulang';
+
+  @override
+  String saSetelBerhasil(String nama) {
+    return 'Sandi $nama sudah disetel ulang.';
+  }
+
+  @override
+  String saSetujuiJudul(String nama) {
+    return 'Setujui $nama';
+  }
+
+  @override
+  String get saSetujuiIsi => 'Pilih peran akun ini.';
+
+  @override
+  String get saSetujuiBerhasil => 'Akun disetujui.';
+
+  @override
+  String saTolakJudul(String nama) {
+    return 'Tolak $nama?';
+  }
+
+  @override
+  String get saTolakIsi => 'Akun ini dinonaktifkan dan tidak bisa masuk.';
+
+  @override
+  String get saTolakBerhasil => 'Pendaftar ditolak.';
+
+  @override
+  String get saGalatSudahNonaktif =>
+      'Akun ini sudah nonaktif. Daftar dimuat ulang.';
+
+  @override
+  String get saGalatSudahAktif => 'Akun ini sudah aktif. Daftar dimuat ulang.';
+
+  @override
+  String get saGalatPerluPersetujuan =>
+      'Akun ini masih menunggu persetujuan. Gunakan Setujui.';
+
+  @override
+  String get saFormTambahJudul => 'Tambah pengguna';
+
+  @override
+  String get saFormUbahJudul => 'Ubah pengguna';
+
+  @override
+  String get saFormPeran => 'Peran akun';
+
+  @override
+  String get saFormIntroTambah =>
+      'Akun langsung aktif. Orangnya masuk dengan ID pegawai atau email. Sandi awal disampaikan langsung ke orangnya.';
+
+  @override
+  String get saFormIntroUbah =>
+      'Hanya kolom yang Anda ubah yang dikirim. Sandi tidak diubah dari sini; pakai Setel ulang sandi.';
+
+  @override
+  String get saFormBuat => 'Buat akun';
+
+  @override
+  String get saFormSimpan => 'Simpan perubahan';
+
+  @override
+  String saFormBerhasilBuat(String nama, String id) {
+    return 'Akun $nama dibuat (ID pegawai $id). Sampaikan sandi awalnya langsung ke orangnya dan minta diganti lewat Ganti sandi.';
+  }
+
+  @override
+  String get saFormBerhasilUbah => 'Perubahan disimpan.';
+
+  @override
+  String get saFormTanpaPerubahan => 'Belum ada yang diubah.';
+
+  @override
+  String saFormPeranTetap(String peran) {
+    return 'Peran $peran tidak bisa diubah dari sini.';
+  }
+
+  @override
+  String get saPelJudul => 'Pelanggan & anggota';
+
+  @override
+  String get saPelCari => 'Cari nama pelanggan';
+
+  @override
+  String get saPelKosong => 'Belum ada pelanggan yang cocok.';
+
+  @override
+  String get saPelGagal => 'Daftar pelanggan belum bisa dimuat.';
+
+  @override
+  String get saDetGagal => 'Anggota pelanggan ini belum bisa dimuat.';
+
+  @override
+  String saDetKuota(int aktif, int maks) {
+    return '$aktif dari maksimum $maks anggota aktif';
+  }
+
+  @override
+  String get saDetPicAdmin => 'PIC admin lab';
+
+  @override
+  String get saDetPicAdminKosong =>
+      'Belum ditunjuk. Notifikasi pelanggan ini ke semua admin.';
+
+  @override
+  String get saDetUbahPic => 'Ubah PIC admin';
+
+  @override
+  String get saPicJudul => 'Pilih PIC admin';
+
+  @override
+  String get saPicIsi =>
+      'PIC admin menerima notifikasi pengajuan dan verifikasi alat pelanggan ini.';
+
+  @override
+  String get saPicLepas => 'Lepas PIC admin';
+
+  @override
+  String get saPicKosong => 'Belum ada admin aktif di lab ini.';
+
+  @override
+  String get saPicGagalMuat => 'Daftar admin belum bisa dimuat.';
+
+  @override
+  String get saPicBerhasil => 'PIC admin diperbarui.';
+
+  @override
+  String get saPicDilepas => 'PIC admin dilepas.';
+
+  @override
+  String get saAnggotaJudul => 'Anggota';
+
+  @override
+  String get saAnggotaKosong =>
+      'Belum ada anggota. Undang orang pertama lewat tombol di atas.';
+
+  @override
+  String get saPeranPicUtama => 'PIC utama';
+
+  @override
+  String get saPeranStaf => 'Staf';
+
+  @override
+  String get saTanpaNamaAnggota => '(akun sudah tidak ada)';
+
+  @override
+  String saBergabung(String tanggal) {
+    return 'Bergabung $tanggal';
+  }
+
+  @override
+  String saDinonaktifkanOleh(String tanggal, String oleh) {
+    return 'Dinonaktifkan $tanggal oleh $oleh';
+  }
+
+  @override
+  String saDinonaktifkanSaja(String tanggal) {
+    return 'Dinonaktifkan $tanggal';
+  }
+
+  @override
+  String get saPicTerakhir =>
+      'PIC utama terakhir. Undang PIC utama lain dulu sebelum mencabutnya.';
+
+  @override
+  String get saCabutAkses => 'Cabut akses';
+
+  @override
+  String saCabutJudul(String nama) {
+    return 'Cabut akses $nama?';
+  }
+
+  @override
+  String saCabutIsi(String nama, String perusahaan) {
+    return '$nama tidak bisa lagi masuk ke data $perusahaan dan sesinya dicabut. Anggota yang dicabut tetap tercatat sebagai riwayat. Untuk memulihkan, undang ulang orang yang sama.';
+  }
+
+  @override
+  String get saCabutBerhasil => 'Akses anggota dicabut.';
+
+  @override
+  String get saGalatPicTerakhir =>
+      'Dia satu-satunya PIC utama aktif, jadi tidak bisa dicabut. Undang PIC utama lain dulu.';
+
+  @override
+  String get saGalatSudahNonaktifAnggota =>
+      'Anggota ini sudah nonaktif. Daftar dimuat ulang.';
+
+  @override
+  String get saUndanganJudul => 'Undangan menunggu';
+
+  @override
+  String get saUndanganKosong => 'Tidak ada undangan yang menunggu.';
+
+  @override
+  String saUndanganBerlaku(String tanggal) {
+    return 'Berlaku sampai $tanggal';
+  }
+
+  @override
+  String saUndanganOleh(String nama) {
+    return 'Diundang oleh $nama';
+  }
+
+  @override
+  String get saBatalkanUndangan => 'Batalkan undangan';
+
+  @override
+  String get saBatalkanJudul => 'Batalkan undangan?';
+
+  @override
+  String saBatalkanUntuk(String email) {
+    return 'Undangan untuk $email.';
+  }
+
+  @override
+  String get saBatalkanIsi =>
+      'Kodenya tidak berlaku lagi. Untuk mengundang ulang, kirim undangan baru.';
+
+  @override
+  String get saBatalkanTidak => 'Tidak jadi';
+
+  @override
+  String get saBatalkanBerhasil => 'Undangan dibatalkan.';
+
+  @override
+  String get saAlatJudul => 'Alat pelanggan';
+
+  @override
+  String get saAlatKosong => 'Pelanggan ini belum punya alat.';
+
+  @override
+  String get saAlatGagal => 'Daftar alat belum bisa dimuat.';
+
+  @override
+  String get saAlatLanjutGagal => 'Alat berikutnya belum bisa dimuat.';
+
+  @override
+  String saAlatSeri(String seri) {
+    return 'No. seri $seri';
+  }
+
+  @override
+  String get saAlatTanpaSeri => 'Tanpa nomor seri';
+
+  @override
+  String saAlatJadwal(String tanggal) {
+    return 'Kalibrasi ulang $tanggal';
+  }
+
+  @override
+  String get saAlatTanpaJadwal => 'Belum dijadwalkan kalibrasi ulang';
+
+  @override
+  String saAlatJumlahSert(int jumlah) {
+    return '$jumlah sertifikat';
+  }
+
+  @override
+  String get saMemuat => 'Memuat';
+
+  @override
+  String get saRiwayatJudul => 'Riwayat sertifikat';
+
+  @override
+  String get saRiwayatKosong => 'Alat ini belum punya sertifikat.';
+
+  @override
+  String get saRiwayatGagal => 'Riwayat sertifikat belum bisa dimuat.';
+
+  @override
+  String get saRiwayatLanjutGagal => 'Sertifikat berikutnya belum bisa dimuat.';
+
+  @override
+  String get saRiwayatTanpaTanggal => 'Tanpa tanggal terbit';
+
+  @override
+  String saRiwayatTerbit(String tanggal) {
+    return 'Terbit $tanggal';
+  }
+
+  @override
+  String get saSertTerbit => 'Terbit';
+
+  @override
+  String get saSertDigantikan => 'Digantikan';
+
+  @override
+  String get saSertDitarik => 'Ditarik';
+
+  @override
+  String get saSertDibatalkan => 'Dibatalkan';
+
+  @override
+  String get saSertGagal => 'Gagal terbit';
+
+  @override
+  String get saSertMenunggu => 'Menunggu terbit';
+
+  @override
+  String get saSertBuka => 'Buka pratinjau sertifikat';
+
+  @override
+  String get saAlatStatusTerkalibrasi => 'Terkalibrasi';
+
+  @override
+  String get saAlatStatusMendekati => 'Mendekati jadwal';
+
+  @override
+  String get saAlatStatusLewat => 'Lewat jadwal';
+
+  @override
+  String get saAlatStatusBelum => 'Belum pernah dikalibrasi';
+
+  @override
+  String get saAlatStatusNonaktif => 'Nonaktif';
+
+  @override
+  String saAlatHariLagi(int hari) {
+    return '$hari hari lagi';
+  }
+
+  @override
+  String get saAlatHariIni => 'hari ini';
+
+  @override
+  String saAlatTerlambat(int hari) {
+    return 'terlambat $hari hari';
+  }
+
+  @override
+  String saAlatTerbaru(String nomor) {
+    return 'Sertifikat terbaru $nomor';
+  }
+
+  @override
+  String saSertDigantikanOleh(String nomor) {
+    return 'Digantikan oleh $nomor';
+  }
+
+  @override
+  String saSertRevisiDari(String nomor) {
+    return 'Revisi dari $nomor';
+  }
+
+  @override
+  String saSertDitarikPada(String tanggal) {
+    return 'Ditarik $tanggal';
+  }
+
+  @override
+  String saSertDibatalkanPada(String tanggal) {
+    return 'Dibatalkan $tanggal';
+  }
+
+  @override
+  String saPelRingkas(int alat, int sertifikat, int anggota) {
+    return '$alat alat · $sertifikat sertifikat · $anggota anggota';
+  }
+
+  @override
+  String get saPelTanpaAkun => 'Belum ada akun pelanggan';
+
+  @override
+  String get saDetTanpaAkunIsi =>
+      'PT ini punya alat atau sertifikat, tetapi belum ada satu orang pun yang bisa melihatnya. Undang anggota pertama.';
+
+  @override
+  String get saDetNamaNormalKosong =>
+      'Deteksi PT kembar belum bekerja untuk PT ini. Simpan ulang data PT di layar Pelanggan untuk memperbaikinya.';
+
+  @override
+  String get saPindahJudul => 'Pindahkan alat';
+
+  @override
+  String get saPindahTombol => 'Pindahkan alat';
+
+  @override
+  String get saPindahIntro =>
+      'Pindahkan alat beserta sertifikatnya ke PT lain, misalnya bila PT salah ketik atau kembar. Nomor dan isi sertifikat tidak berubah.';
+
+  @override
+  String get saPindahTujuan => 'PT tujuan';
+
+  @override
+  String get saPindahTujuanKosong => 'Belum dipilih';
+
+  @override
+  String get saPindahPilihTujuan => 'Pilih PT tujuan';
+
+  @override
+  String get saPindahGantiTujuan => 'Ganti PT tujuan';
+
+  @override
+  String get saPindahAlatJudul => 'Alat yang dipindah';
+
+  @override
+  String saPindahDipilih(int n) {
+    return '$n alat dipilih';
+  }
+
+  @override
+  String get saPindahPilihMuat => 'Pilih semua yang termuat';
+
+  @override
+  String get saPindahKosongkan => 'Kosongkan pilihan';
+
+  @override
+  String get saPindahMaks => 'Paling banyak 100 alat sekali pindah.';
+
+  @override
+  String get saPindahAlatKosong => 'PT ini tidak punya alat untuk dipindah.';
+
+  @override
+  String get saPindahLihatPratinjau => 'Lihat pratinjau';
+
+  @override
+  String get saPilihPtJudul => 'Pilih PT tujuan';
+
+  @override
+  String get saPilihPtCari => 'Cari nama PT';
+
+  @override
+  String get saPilihPtKosong => 'Tidak ada PT lain yang cocok.';
+
+  @override
+  String get saPratinjauJudul => 'Pratinjau pemindahan';
+
+  @override
+  String get saPratinjauDari => 'Dari';
+
+  @override
+  String get saPratinjauKe => 'Ke';
+
+  @override
+  String saPratinjauAnggotaPt(int n) {
+    return '$n anggota aktif';
+  }
+
+  @override
+  String saPratinjauAlat(int n) {
+    return '$n alat dipindahkan';
+  }
+
+  @override
+  String saPratinjauSertTerdampak(int n) {
+    return '$n sertifikat ikut berpindah';
+  }
+
+  @override
+  String saPratinjauSertTerlihat(int n) {
+    return '$n di antaranya terlihat di aplikasi pelanggan';
+  }
+
+  @override
+  String get saPratinjauMulai => 'Mulai melihat alat ini';
+
+  @override
+  String get saPratinjauBerhenti => 'Berhenti melihat alat ini';
+
+  @override
+  String get saPratinjauTidakAda => 'Tidak ada';
+
+  @override
+  String saPratinjauPaket(int n) {
+    return '$n baris paket/order menunjuk alat ini dan TIDAK ikut pindah.';
+  }
+
+  @override
+  String get saPeringatanPaket =>
+      'Baris paket/order yang menunjuk alat ini tidak ikut pindah.';
+
+  @override
+  String get saPeringatanArsip =>
+      'Berkas arsip lama tetap di folder PT asal sampai pemilik menjalankan perapian arsip.';
+
+  @override
+  String get saPeringatanIsi =>
+      'Nomor dan isi sertifikat, termasuk nama pemilik yang tercetak, tidak diubah.';
+
+  @override
+  String saPindahEksekusi(int n) {
+    return 'Pindahkan $n alat';
+  }
+
+  @override
+  String saPindahKonfirmJudul(int n, String pt) {
+    return 'Pindahkan $n alat ke $pt?';
+  }
+
+  @override
+  String saPindahKonfirmIsi(int n) {
+    return '$n sertifikat ikut berpindah. Sertifikat tidak diubah dan tidak dihapus; alat bisa dipindahkan lagi bila keliru. Tercatat di riwayat perubahan atas nama Anda.';
+  }
+
+  @override
+  String get saPindahAksi => 'Pindahkan';
+
+  @override
+  String saPindahBerhasil(int n, String pt) {
+    return '$n alat dipindahkan ke $pt.';
+  }
+
+  @override
+  String saPindahBerhasilIsi(int s, int t) {
+    return '$s sertifikat ikut berpindah ($t terlihat di aplikasi pelanggan).';
+  }
+
+  @override
+  String get saPindahSelesai => 'Selesai';
+
+  @override
+  String get saPratinjauGagal => 'Pratinjau belum bisa dimuat.';
+
+  @override
+  String get saPratinjauUlang => 'Ulangi pratinjau';
+
+  @override
+  String get saGalatAlatSudahPindah =>
+      'Alat sudah dipindah admin lain. Ulangi pratinjau untuk melihat keadaan terbaru.';
+
+  @override
+  String get saGalatAlatBukanMilik =>
+      'Sebagian alat bukan milik PT asal lagi. Ulangi pratinjau.';
+
+  @override
+  String get saGalatPtSama => 'PT tujuan tidak boleh sama dengan PT asal.';
 }
