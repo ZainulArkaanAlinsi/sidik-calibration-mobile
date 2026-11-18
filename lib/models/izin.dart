@@ -209,4 +209,32 @@ abstract final class NamaIzin {
   // `hitung`; viewer cuma `lihat`.
   static const workbookLihat = 'workbook.lihat';
   static const workbookHitung = 'workbook.hitung';
+
+  // Pengelolaan pengguna & pelanggan di aplikasi lab (kontrak
+  // `docs/perintah-frontend-super-admin.md` §6, API 18 Nov 2026).
+  //
+  // `pengguna.setujui`, `anggota-pelanggan.undang`, dan `.pic-admin` sudah
+  // lama ada di server; tiga kunci lain BARU:
+  // - `pengguna.buat-admin` / `pengguna.ubah-status`: hanya super admin.
+  // - `anggota-pelanggan.lihat` / `.cabut`: admin dan super admin.
+  //
+  // Kunci BARU dipertanyakan dengan `cadangan: false` — izinnya hanya hidup
+  // bila server menyebutnya; aturan peran lama tidak boleh menyalakannya.
+  static const penggunaSetujui = 'pengguna.setujui';
+  static const penggunaBuatAdmin = 'pengguna.buat-admin';
+  static const penggunaUbahStatus = 'pengguna.ubah-status';
+  static const anggotaPelangganLihat = 'anggota-pelanggan.lihat';
+  static const anggotaPelangganCabut = 'anggota-pelanggan.cabut';
+  static const anggotaPelangganUndang = 'anggota-pelanggan.undang';
+  static const anggotaPelangganPicAdmin = 'anggota-pelanggan.pic-admin';
+
+  // Pelacakan pelanggan → alat → sertifikat (kontrak §3.4, §3.5). BARU:
+  // `pelanggan.alat-lihat` untuk admin & super admin; `alat.riwayat-sertifikat`
+  // juga dipegang teknisi & viewer (teknisi: hanya sertifikat sesinya sendiri,
+  // ditegakkan server).
+  static const pelangganAlatLihat = 'pelanggan.alat-lihat';
+  static const alatRiwayatSertifikat = 'alat.riwayat-sertifikat';
+
+  // Pindahkan alat (beserta sertifikatnya) ke PT lain (kontrak §3.7).
+  static const pelangganPindahAlat = 'pelanggan.pindah-alat';
 }
