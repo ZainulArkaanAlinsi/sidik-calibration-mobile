@@ -10,6 +10,12 @@ class Customer {
     required this.telepon,
     required this.email,
     this.jumlahAlat = 0,
+    this.alatCount,
+    this.sertifikatCount,
+    this.anggotaAktifCount,
+    this.undanganMenungguCount,
+    this.tanpaAkun = false,
+    this.namaNormalKosong = false,
   });
 
   final int id;
@@ -19,6 +25,21 @@ class Customer {
   final String telepon;
   final String email;
   final int jumlahAlat;
+
+  /// Hitungan & penanda dari SERVER (kontrak `docs/perintah-frontend-super-admin.md`
+  /// §3.6), aditif: `null` = server lama / respons yang tidak membawanya
+  /// (`POST`/`PUT` tidak menghitung). Klien tidak menghitung ulang.
+  ///
+  /// `sertifikatCount` = terbit + dibatalkan (sama dengan yang dilihat
+  /// pelanggan). `tanpaAkun` = PT punya alat/sertifikat tetapi tidak ada satu
+  /// anggota aktif pun. `namaNormalKosong` = deteksi PT kembar belum bekerja
+  /// untuk PT ini.
+  final int? alatCount;
+  final int? sertifikatCount;
+  final int? anggotaAktifCount;
+  final int? undanganMenungguCount;
+  final bool tanpaAkun;
+  final bool namaNormalKosong;
 
   Map<String, dynamic> toJson() => {
     'nama': nama,
@@ -39,6 +60,12 @@ class Customer {
       telepon: teks('telepon'),
       email: teks('email'),
       jumlahAlat: (json['jumlah_alat'] as num?)?.toInt() ?? 0,
+      alatCount: (json['alat_count'] as num?)?.toInt(),
+      sertifikatCount: (json['sertifikat_count'] as num?)?.toInt(),
+      anggotaAktifCount: (json['anggota_aktif_count'] as num?)?.toInt(),
+      undanganMenungguCount: (json['undangan_menunggu_count'] as num?)?.toInt(),
+      tanpaAkun: json['tanpa_akun'] == true,
+      namaNormalKosong: json['nama_normal_kosong'] == true,
     );
   }
 }
