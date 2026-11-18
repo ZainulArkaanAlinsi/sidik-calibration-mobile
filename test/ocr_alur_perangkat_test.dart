@@ -317,6 +317,35 @@ void main() {
       }
     }
 
+    testWidgets('huruf 2,0 di HP pendek: banner jadi SATU baris ringkas '
+        '(lembar kerja tidak kehabisan ruang), kalimat penuh tetap di label '
+        'aksesibilitas', (tester) async {
+      await _atur(tester, const Size(320, 640));
+      final semantik = tester.ensureSemantics();
+      await tester.pumpWidget(
+        _bungkus(
+          mode: Brightness.light,
+          skala: 2.0,
+          isi: (_) => BannerJenisDariFoto(
+            info: info(),
+            perluAlat: true,
+            onGanti: () {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      final ringkas = find.byKey(BannerJenisDariFoto.kunciRingkas);
+      expect(ringkas, findsOneWidget);
+      expect(tester.getSize(ringkas).height, lessThanOrEqualTo(120));
+      expect(
+        find.bySemanticsLabel(RegExp('Dikenali otomatis: UV/VIS')),
+        findsOneWidget,
+      );
+      semantik.dispose();
+    });
+
     testWidgets('dipilih teknisi (bukan otomatis): kalimat berbeda, jujur', (
       tester,
     ) async {

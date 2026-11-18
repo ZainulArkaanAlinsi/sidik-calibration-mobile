@@ -14617,6 +14617,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Fill from photo'**
   String get lkIsiDariFoto;
+
+  /// No description provided for @pindaiBannerRingkas.
+  ///
+  /// In en, this message translates to:
+  /// **'{jenis} · from photo'**
+  String pindaiBannerRingkas(String jenis);
 }
 
 class _AppLocalizationsDelegate

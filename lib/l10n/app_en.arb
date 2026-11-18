@@ -4452,5 +4452,7 @@
   "pindaiGantiJenisJudul": "Change sheet type",
   "pindaiGantiJenisPesan": "Now: {jenis}. Pick the right type and the same photo is read again. Entries that are not saved yet do not carry over.",
   "@pindaiGantiJenisPesan": {"placeholders": {"jenis": {"type": "String"}}},
-  "lkIsiDariFoto": "Fill from photo"
+  "lkIsiDariFoto": "Fill from photo",
+  "pindaiBannerRingkas": "{jenis} · from photo",
+  "@pindaiBannerRingkas": {"placeholders": {"jenis": {"type": "String"}}}
 }

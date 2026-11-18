@@ -8531,4 +8531,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lkIsiDariFoto => 'Fill from photo';
+
+  @override
+  String pindaiBannerRingkas(String jenis) {
+    return '$jenis · from photo';
+  }
 }

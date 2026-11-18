@@ -37,6 +37,13 @@ class BannerJenisDariFoto extends StatelessWidget {
   static const lebarSebaris = 520.0;
   static const skalaSebaris = 1.3;
 
+  /// Di atas skala huruf ini banner menjadi SATU baris ringkas (jenis + ikon
+  /// ganti): lembar kerja sudah memuat legenda, kop, dan dua tombol bawah, dan
+  /// banner empat baris di huruf 2,0 memakan separuh layar pendek.
+  static const skalaRingkas = 1.6;
+
+  static const kunciRingkas = ValueKey('banner-ringkas');
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -71,6 +78,60 @@ class BannerJenisDariFoto extends StatelessWidget {
       size: 20,
       color: warna.onSecondaryContainer,
     );
+
+    final kalimat = info.otomatis
+        ? l10n.pindaiBannerOtomatis(info.jenis)
+        : l10n.pindaiBannerDipilih(info.jenis);
+
+    if (skala > skalaRingkas) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.md,
+          AppSpacing.sm,
+          AppSpacing.md,
+          0,
+        ),
+        child: Semantics(
+          label: perluAlat ? '$kalimat ${l10n.pindaiBannerPilihAlat}' : kalimat,
+          container: true,
+          child: Material(
+            key: kunciRingkas,
+            color: warna.secondaryContainer,
+            borderRadius: BorderRadius.circular(AppSpacing.sm),
+            child: Padding(
+              padding: const EdgeInsets.only(left: AppSpacing.md),
+              child: Row(
+                children: [
+                  ikon,
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: ExcludeSemantics(
+                      child: Text(
+                        l10n.pindaiBannerRingkas(info.jenis),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: tema.textTheme.bodyMedium?.copyWith(
+                          color: warna.onSecondaryContainer,
+                        ),
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    key: kunciGanti,
+                    tooltip: l10n.pindaiGantiJenis,
+                    onPressed: onGanti,
+                    icon: Icon(
+                      Icons.swap_horiz,
+                      color: warna.onSecondaryContainer,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(

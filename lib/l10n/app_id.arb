@@ -3473,5 +3473,6 @@
   "pindaiBannerPilihAlat": "Pilih alat di bawah, lalu ketuk \"Isi dari foto\".",
   "pindaiGantiJenisJudul": "Ganti jenis lembar",
   "pindaiGantiJenisPesan": "Sekarang: {jenis}. Pilih jenis yang benar, foto yang sama dibaca lagi. Isian yang belum disimpan tidak ikut pindah.",
-  "lkIsiDariFoto": "Isi dari foto"
+  "lkIsiDariFoto": "Isi dari foto",
+  "pindaiBannerRingkas": "{jenis} · dari foto"
 }
