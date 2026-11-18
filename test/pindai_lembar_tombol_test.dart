@@ -103,7 +103,8 @@ Future<void> _pasang(WidgetTester tester, Widget app) async {
 
 final _tombol = find.byKey(TombolPindaiLembar.kunciTombol);
 const _teksTombol = 'Pindai lembar kerja';
-const _teksKeterangan = 'Foto lembarnya, aplikasi menyarankan jenisnya';
+const _teksKeterangan =
+    'Foto lembarnya: jenisnya dikenali dan isinya terisi sebagai saran, tinggal Anda periksa';
 
 void main() {
   group('aturan "boleh dipindai" (kontrak §2), kunci hilang = false', () {

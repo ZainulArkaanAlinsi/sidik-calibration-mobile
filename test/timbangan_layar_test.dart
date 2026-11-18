@@ -40,6 +40,9 @@ void main() {
 
   Widget app() => ProviderScope(
     overrides: [
+      // Pintu foto per tabel (ML Kit lama) MATI bawaan; tes ini menjaga letaknya
+      // bila saklarnya dinyalakan.
+      fotoPerTabelAktifProvider.overrideWithValue(true),
       tokenStorageProvider.overrideWithValue(
         InMemoryTokenStorage('mock-token-1'),
       ),

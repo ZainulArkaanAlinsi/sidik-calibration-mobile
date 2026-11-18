@@ -187,6 +187,12 @@ List<Override> _mock() => [
   // eksplisit supaya golden tidak bergeser kalau ada yang menyalakan
   // `--dart-define=PINDAI_LEMBAR=false` saat menjalankan tes.
   pindaiLembarAktifProvider.overrideWithValue(true),
+  // Golden beku masih menggambar pintu foto PER TABEL ("Foto tabel ini"), yang
+  // sejak 18 Nov 2026 MATI bawaan di produksi (`AppConfig.fotoPerTabelAktif`,
+  // satu pintu foto). Dipatok NYALA di sini supaya gambar acuan (dibuat di
+  // macOS, tidak boleh diperbarui dari Windows) tidak bergeser; menurunkannya
+  // butuh golden baru lewat `golden-baru.yml` dan keputusan pemilik.
+  fotoPerTabelAktifProvider.overrideWithValue(true),
 ];
 
 /// Tema dipasang di SATU tempat ini.

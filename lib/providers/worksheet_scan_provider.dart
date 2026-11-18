@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/config/app_config.dart';
 import '../models/worksheet_template.dart';
+import '../services/jalankan_pindai_asli.dart' show JalankanPindaiAsli;
 import '../services/pembaca_halaman.dart';
 import '../services/pembaca_qr.dart';
 import '../services/ocr_angka/muat_mesin_bawaan.dart';
@@ -30,6 +31,13 @@ final worksheetScanServiceProvider = Provider<WorksheetScanService>((ref) {
 /// Cuma test yang boleh nge-override; produksi selalu baca saklarnya.
 final pindaiLembarAktifProvider = Provider<bool>(
   (ref) => AppConfig.pindaiLembarAktif,
+);
+
+/// [AppConfig.fotoPerTabelAktif] lewat provider, alasannya sama dengan
+/// [pindaiLembarAktifProvider]: `bool.fromEnvironment` itu const waktu compile.
+/// Bawaan MATI (satu pintu foto); tes jalur per-tabel yang lama menyalakannya.
+final fotoPerTabelAktifProvider = Provider<bool>(
+  (ref) => AppConfig.fotoPerTabelAktif,
 );
 
 /// Pabrik pembaca ML Kit — **bikin baru tiap pindai, tutup sesudahnya**.
@@ -74,6 +82,13 @@ final pabrikPembacaPindaiProvider = Provider<PabrikPembacaPindai>((ref) {
     halaman: MlKitPembacaHalaman.new,
   );
 });
+
+/// Mesin baca formulir asli yang DISUNTIKKAN tes ke "Foto lembar kerja" yang
+/// dijalankan dari layar lembar kerja (alur foto beranda membacanya sendiri, jadi
+/// tes tidak punya jalan lain untuk memberi hasil baca yang pasti). Produksi
+/// selalu `null` = mesin sungguhan dari [pabrikPembacaPindaiProvider]; alasannya
+/// sama dengan seam di atasnya, dan cuma test yang boleh meng-override.
+final mesinPindaiAsliProvider = Provider<JalankanPindaiAsli?>((ref) => null);
 
 /// Kunci [worksheetTemplateProvider]: kode lembar + alat yang lagi dipilih.
 ///

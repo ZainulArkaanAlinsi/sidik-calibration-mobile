@@ -7957,7 +7957,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get pindaiLembarKeterangan =>
-      'Foto lembarnya, aplikasi menyarankan jenisnya';
+      'Foto lembarnya: jenisnya dikenali dan isinya terisi sebagai saran, tinggal Anda periksa';
 
   @override
   String get pindaiLembarMembaca => 'Mengenali jenis lembar...';
@@ -9053,4 +9053,79 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get saGalatPtSama => 'PT tujuan tidak boleh sama dengan PT asal.';
+
+  @override
+  String get pindaiPilihSatuJudul => 'Pilih salah satu';
+
+  @override
+  String get pindaiJenisLain => 'Jenis lain...';
+
+  @override
+  String get pindaiTakDikenaliJudul => 'Jenis lembar belum bisa dikenali';
+
+  @override
+  String get pindaiTakDikenaliPesan =>
+      'Aplikasi belum yakin ini lembar apa, jadi tidak menebak. Foto ulang dengan judul dan kode formulir di bagian atas lembar terlihat jelas, atau mulai dari \"Mulai kalibrasi\".';
+
+  @override
+  String get pindaiBelumBisaJudul => 'Belum bisa dibaca otomatis';
+
+  @override
+  String pindaiBelumBisaPesan(String jenis) {
+    return 'Lembar $jenis dikenali, tetapi belum bisa dibaca otomatis di aplikasi. Mulai dari \"Mulai kalibrasi\" lalu isi manual.';
+  }
+
+  @override
+  String get pindaiPerluKonfirmasi =>
+      'Kode formulir terbaca jelas, tetapi revisi yang tercetak beda dari yang dipegang aplikasi. Pastikan ini jenis yang benar.';
+
+  @override
+  String get pindaiPilihAlatJudul => 'Pilih alat';
+
+  @override
+  String pindaiPilihAlatPesan(String jenis, int jumlah) {
+    return 'Ada $jumlah alat $jenis. Pilih yang sedang dikalibrasi.';
+  }
+
+  @override
+  String get pindaiCariAlat => 'Cari alat';
+
+  @override
+  String get pindaiPilihAlatNanti => 'Pilih nanti di lembar';
+
+  @override
+  String get pindaiMenyiapkanLembar => 'Menyiapkan lembar...';
+
+  @override
+  String pindaiBannerOtomatis(String jenis) {
+    return 'Dikenali otomatis: $jenis (dari foto). Salah?';
+  }
+
+  @override
+  String pindaiBannerDipilih(String jenis) {
+    return 'Jenis lembar: $jenis (dipilih dari foto). Salah?';
+  }
+
+  @override
+  String get pindaiGantiJenis => 'Ganti jenis';
+
+  @override
+  String get pindaiBannerPilihAlat =>
+      'Pilih alat di bawah, lalu ketuk \"Isi dari foto\".';
+
+  @override
+  String get pindaiGantiJenisJudul => 'Ganti jenis lembar';
+
+  @override
+  String pindaiGantiJenisPesan(String jenis) {
+    return 'Sekarang: $jenis. Pilih jenis yang benar, foto yang sama dibaca lagi. Isian yang belum disimpan tidak ikut pindah.';
+  }
+
+  @override
+  String get lkIsiDariFoto => 'Isi dari foto';
+
+  @override
+  String pindaiBannerRingkas(String jenis) {
+    return '$jenis · dari foto';
+  }
 }

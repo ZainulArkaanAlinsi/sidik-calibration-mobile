@@ -10,25 +10,33 @@ import 'package:path_provider/path_provider.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/beku_lembar_kerja.dart';
 import '../../l10n/app_localizations.dart';
+import '../../models/equipment_lookup.dart';
+import '../../providers/calibration_input_provider.dart'
+    show equipmentLookupProfilProvider;
+import '../../providers/catatan_identifikasi_provider.dart';
 import '../../providers/kesiapan_pindai_lembar_provider.dart';
 import '../../providers/sumber_foto_provider.dart';
 import '../../providers/worksheet_scan_provider.dart';
+import '../../services/catatan_identifikasi_lembar.dart';
 import '../../services/foto_tertinggal.dart';
 import '../../services/jenis_lembar.dart';
 import '../../services/kenali_jenis_lembar.dart';
+import '../../services/keputusan_pindai_lembar.dart';
 import '../../services/modul_pembaca_teks.dart';
 import '../../services/pembaca_halaman.dart'
     show PembacaHalaman, sapuBerkasPindaiLama;
 import '../../services/pesan_galat_pindai.dart';
 import '../../services/potong_sel_foto.dart' show decodeFotoDiIsolate;
 import '../../widgets/konfirmasi_foto_tertinggal.dart';
-import '../../widgets/pilih_jenis_lembar_sheet.dart';
+import '../../widgets/pilih_alat_ringkas_sheet.dart';
+import '../../widgets/pilih_jenis_ringkas_sheet.dart';
 import '../calibration/lembar_kerja_screen.dart';
 import '../calibration/pindai_formulir_asli_flow.dart' show batasSisiFotoAsli;
+import 'dari_foto_lembar.dart';
 
-/// "Pindai lembar kerja" dari beranda (Opsi B): foto lembar -> aplikasi
-/// MENYARANKAN jenisnya -> teknisi konfirmasi -> lembar kerja jenis itu
-/// terbuka KOSONG, dan foto yang sama menunggu di sana untuk dipakai sekali.
+/// "Pindai lembar kerja" dari beranda, SATU-SATUNYA pintu foto: foto lembar ->
+/// jenis dikenali OTOMATIS -> lembar kerja yang tepat terbuka -> terisi sebagai
+/// saran kuning -> teknisi memeriksa dan membetulkan.
 ///
 /// Urutannya, dan apa yang TIDAK dilakukannya:
 ///
@@ -43,26 +51,35 @@ import '../calibration/pindai_formulir_asli_flow.dart' show batasSisiFotoAsli;
 ///     formulir bersih terbaca atau bukti berlapis (kode, judul, revisi)
 ///     cukup kuat (`kenaliJenisLembar` -> `identifikasiLembar`). Pembaca
 ///     SELALU ditutup.
-///  4. SATU lembar pilihan (`tampilkanPilihJenisLembar`): usulan hanya
-///     memilih-awal baris bila bukti kuat, unik, dan saling sepakat (kode
-///     bersih yang cocok tepat satu jenis, atau kode samar yang disepakati
-///     judul); pilih manual selalu ada; menutup lembar = selesai tanpa membuka
-///     apa pun (tidak ada yang memegang foto lagi).
-///  5. Jenis yang dikonfirmasi belum boleh dipindai server = pesan, tanpa
-///     navigasi. Selain itu `LembarKerjaScreen` jenis itu dibuka — dibungkus
-///     `BekuLembarKerja` seperti pemanggil lembar kerja lain — dengan
-///     `fotoAwal` = byte JPEG tadi.
+///  4. `putuskanPindaiLembar` (`keputusan_pindai_lembar.dart`):
+///      - kode formulir UNIK + skor tinggi + jenisnya boleh dipindai =
+///        lembar langsung terbuka, tanpa layar pilihan;
+///      - kandidat lebih dari satu (kode bersama, bacaan samar, bertentangan)
+///        = lembar ringkas "Pilih salah satu": SATU ketukan, tidak pernah
+///        dipilihkan;
+///      - tidak yakin / tidak terbaca = pesan jujur (foto ulang, jenis lain,
+///        atau "Mulai kalibrasi"), tanpa tebakan.
+///  5. Alat: satu-satunya alat jenis itu dipilih sendiri; bila ada beberapa,
+///     satu ketukan pada daftar pendek (`pilih_alat_ringkas_sheet.dart`).
+///  6. `LembarKerjaScreen(dariFoto:)` dibuka — dibungkus `BekuLembarKerja`
+///     seperti pemanggil lembar kerja lain — dan MEMBACA foto yang sama
+///     sendiri (tanpa dialog "Mau diisi bagaimana?" dan tanpa tombol foto
+///     kedua): hasilnya lewat layar periksa yang sudah ada, lalu sel terisi
+///     BERWARNA KUNING (saran) dan wajib diperiksa teknisi. Banner di atas
+///     lembar menyebut jenis yang dikenali dan memberi "Ganti jenis".
 ///
-/// Tidak ada isian, navigasi, atau pilihan jenis tanpa konfirmasi teknisi;
-/// tidak ada satu sel pun yang terisi dari foto ini di sini (sel kosong tetap
-/// kosong), dan alur ini sendiri TIDAK memulai pindai sel. Foto tidak
+/// Hasil OCR tetap HANYA saran: tidak ada sel yang terisi sebagai nilai
+/// tersahkan, sel kosong tetap kosong, dan keputusan membuka lembar tidak
+/// pernah mengunci jenisnya (banner "Ganti jenis" selalu ada). Foto tidak
 /// diunggah dan tidak disimpan ke disk: hanya ada di memori, dan berkas
-/// kameranya dihapus begitu bitanya terbaca. Teknisi memilih alat dulu di
-/// lembar kerja (titik ukur lahir dari alat), lalu menekan "Foto lembar
-/// kerja": foto ini dipakai SEKALI sebagai percobaan pertama (kamera TIDAK
-/// dibuka lagi), melewati pemeriksaan yang sama dengan foto kamera biasa —
-/// termasuk memeriksa ulang kode formulir terhadap jenis yang dipilih. Yang
-/// kedua dan seterusnya lewat kamera.
+/// kameranya dihapus begitu bitanya terbaca. Yang dicatat ke HP hanya skor,
+/// kode cetak, dan keputusan (`catatan_identifikasi_lembar.dart`, tanpa
+/// citra).
+///
+/// Jenis yang belum boleh dipindai (`siap_pindai`/mode uji,
+/// `perlu_konfirmasi_lab`, Temperatur Indikator) tidak pernah dibuka dari
+/// sini: pesan jujur, tanpa navigasi. Jalur manual "Mulai kalibrasi" tidak
+/// berubah.
 ///
 /// [setelahKembali] dipanggil sesudah lembar kerja ditutup (mis. menyegarkan
 /// daftar draf beranda teknisi).
@@ -74,6 +91,9 @@ Future<void> pindaiLembarKerja({
   final l10n = AppLocalizations.of(context);
   final messenger = ScaffoldMessenger.of(context);
   final navigator = Navigator.of(context);
+  // Wadah, bukan `ref`: closure "Ganti jenis" hidup selama lembar kerja
+  // terbuka dan tidak boleh bergantung pada widget beranda yang memulainya.
+  final wadah = ProviderScope.containerOf(context, listen: false);
 
   void kabar(String pesan) =>
       messenger.showSnackBar(SnackBar(content: Text(pesan)));
@@ -93,46 +113,414 @@ Future<void> pindaiLembarKerja({
   }
   if (!context.mounted) return;
 
-  // ---- 2-3. foto + pengenalan (memori berat hanya hidup di sini) -------------
-  final kenal = await _ambilDanKenali(
+  final catatan = wadah.read(catatanIdentifikasiLembarProvider);
+  final idPindai = DateTime.now().microsecondsSinceEpoch.toRadixString(36);
+
+  // ---- 2-4. foto -> pengenalan -> keputusan (ulang bila "Foto ulang") --------
+  final tentu = await _fotoDanJenis(
     context: context,
     ref: ref,
     kesiapan: kesiapan,
+    catatan: catatan,
+    idPindai: idPindai,
   );
-  if (kenal == null || !context.mounted) return;
+  if (tentu == null || !context.mounted) return;
 
-  // ---- 4. satu konfirmasi ----------------------------------------------------
-  final pilihan = await tampilkanPilihJenisLembar(
-    context,
-    petunjuk: kenal.petunjuk,
-    dikenal: kesiapan.dikenal,
-  );
-  if (pilihan == null || !context.mounted) return;
+  final jenis = tentu.jenis;
 
-  // ---- 5. buka lembar kerja --------------------------------------------------
-  if (!kesiapan.bolehDipindai(pilihan.templateId)) {
+  // ---- 5. jenis yang tidak boleh dipindai: pesan, tanpa navigasi -------------
+  if (!kesiapan.bolehDipindai(jenis.formulir.templateId)) {
     kabar(l10n.lkAsliBelumSiap);
     return;
   }
 
+  // ---- 6. alat, lalu buka lembar kerja ---------------------------------------
+  final alat = await _tentukanAlat(context, wadah, jenis.formulir);
+  if (alat.batal || !context.mounted) return;
+
   await navigator.push(
-    MaterialPageRoute<void>(
-      builder: (_) => BekuLembarKerja(
-        child: LembarKerjaScreen(
-          profil: pilihan.templateId,
-          judulTambahan: namaPendekJudul(pilihan.judul),
-          // Byte JPEG yang SAMA dengan yang dikenali tadi: teknisi memotret
-          // sekali. Dipakai di lembar kerja hanya setelah alat dipilih dan
-          // "Foto lembar kerja" ditekan. Byte-nya tertahan (di widget dan
-          // closure ini) sampai route ditutup, bukan cuma sampai dipakai;
-          // pemegang sekali-ambil yang bisa melepasnya lebih awal ditunda.
-          fotoAwal: kenal.jpeg,
+    _ruteLembar(
+      formulir: jenis.formulir,
+      otomatis: jenis.otomatis,
+      alat: alat.alat,
+      jpeg: tentu.jpeg,
+      kesiapan: kesiapan,
+      saran: [
+        for (final k in jenis.saran)
+          if (k.templateId != jenis.formulir.templateId) k,
+      ],
+      wadah: wadah,
+      catatan: catatan,
+      idPindai: idPindai,
+    ),
+  );
+
+  if (context.mounted) await setelahKembali?.call();
+}
+
+/// Hasil menentukan jenis dari satu foto.
+sealed class _Hasil {
+  const _Hasil();
+}
+
+/// Jenis yang akan dibuka. [saran] = kandidat hasil foto, bahan "Ganti jenis".
+class _Jenis extends _Hasil {
+  const _Jenis(this.formulir, {required this.otomatis, required this.saran});
+
+  final FormulirDikenal formulir;
+  final bool otomatis;
+  final List<FormulirDikenal> saran;
+}
+
+/// Teknisi minta memotret ulang.
+class _FotoUlang extends _Hasil {
+  const _FotoUlang();
+}
+
+/// Teknisi menutup pilihan tanpa memilih: tidak ada yang dibuka.
+class _Batal extends _Hasil {
+  const _Batal();
+}
+
+/// Foto + jenis yang akan dibuka. [jpeg] = byte JPEG kamera apa adanya
+/// (satu-satunya salinan foto, dibawa ke lembar kerja).
+typedef _Tentu = ({_Jenis jenis, Uint8List jpeg});
+
+/// Foto -> pengenalan -> keputusan, diulang selama teknisi memilih "Foto
+/// ulang" (foto sebelumnya dilepas dulu). `null` = berhenti tanpa membuka apa
+/// pun (dibatalkan, gagal, atau pilihan ditutup).
+Future<_Tentu?> _fotoDanJenis({
+  required BuildContext context,
+  required WidgetRef ref,
+  required KesiapanPindaiLembar kesiapan,
+  required CatatanIdentifikasiLembar catatan,
+  required String idPindai,
+}) async {
+  while (true) {
+    final kenal = await _ambilDanKenali(
+      context: context,
+      ref: ref,
+      kesiapan: kesiapan,
+    );
+    if (kenal == null || !context.mounted) return null;
+
+    final keputusan = putuskanPindaiLembar(
+      kenal.petunjuk,
+      boleh: kesiapan.bolehDipindai,
+    );
+    unawaited(
+      catatan.tulis(
+        'identifikasi',
+        idPindai,
+        ringkasIdentifikasi(kenal.petunjuk, keputusan),
+      ),
+    );
+
+    final hasil = await _tentukanJenis(
+      context: context,
+      kesiapan: kesiapan,
+      keputusan: keputusan,
+      petunjuk: kenal.petunjuk,
+      catatan: catatan,
+      idPindai: idPindai,
+    );
+    if (!context.mounted) return null;
+
+    switch (hasil) {
+      case _FotoUlang():
+        unawaited(catatan.tulis('foto_ulang', idPindai, const {}));
+      case _Batal():
+        return null;
+      case _Jenis():
+        return (jenis: hasil, jpeg: kenal.jpeg);
+    }
+  }
+}
+
+/// Menerjemahkan [keputusan] menjadi jenis yang dibuka, atau menanyakannya
+/// lewat lembar ringkas. Hanya fungsi tampilan: aturannya di
+/// `putuskanPindaiLembar`.
+Future<_Hasil> _tentukanJenis({
+  required BuildContext context,
+  required KesiapanPindaiLembar kesiapan,
+  required KeputusanPindai keputusan,
+  required HasilJenisLembar? petunjuk,
+  required CatatanIdentifikasiLembar catatan,
+  required String idPindai,
+}) async {
+  final l10n = AppLocalizations.of(context);
+  final saran = <FormulirDikenal>[
+    if (petunjuk != null)
+      for (final k in petunjuk.peringkat) k.formulir,
+  ];
+
+  if (keputusan case BukaOtomatis(:final formulir)) {
+    return _Jenis(formulir, otomatis: true, saran: saran);
+  }
+
+  final kandidat = keputusan is PilihSatu
+      ? keputusan.kandidat
+      : const <FormulirDikenal>[];
+
+  final (judul, pesan, semua, tawarkanFotoUlang) = switch (keputusan) {
+    PilihSatu(:final alasan) => (
+      l10n.pindaiPilihSatuJudul,
+      switch (alasan) {
+        AlasanPilih.kodeBersama => l10n.jlBeberapaJenis,
+        AlasanPilih.samar =>
+          kandidat.length == 1 ? l10n.jlSamarCocok : l10n.jlSamarUsulan,
+        AlasanPilih.bertentangan => l10n.jlBertentangan,
+        AlasanPilih.lemah => l10n.jlSamarUsulan,
+        AlasanPilih.judulSaja => l10n.jlDariJudul,
+        AlasanPilih.perluKonfirmasi => l10n.pindaiPerluKonfirmasi,
+      },
+      kesiapan.dikenal,
+      true,
+    ),
+    TakDikenali(:final alasan, :final kode, :final jenis) => switch (alasan) {
+      AlasanTakDikenali.tidakTerbaca => (
+        l10n.pindaiTakDikenaliJudul,
+        l10n.pindaiTakDikenaliPesan,
+        kesiapan.dikenal,
+        true,
+      ),
+      AlasanTakDikenali.kodeTakDikenal => (
+        l10n.pindaiTakDikenaliJudul,
+        l10n.jlKodeTakDikenal(kode ?? ''),
+        kesiapan.dikenal,
+        true,
+      ),
+      // Dikenali tetapi belum boleh dipindai: memotret ulang atau memilih
+      // jenis lain tidak membantu, hanya pesannya.
+      AlasanTakDikenali.belumBisaDipindai => (
+        l10n.pindaiBelumBisaJudul,
+        l10n.pindaiBelumBisaPesan(jenis ?? ''),
+        const <FormulirDikenal>[],
+        false,
+      ),
+    },
+    // Sudah dikembalikan di atas.
+    BukaOtomatis() => throw StateError('BukaOtomatis ditangani lebih dulu'),
+  };
+
+  final pilih = await tampilkanPilihJenisRingkas(
+    context,
+    judul: judul,
+    pesan: pesan,
+    kandidat: kandidat,
+    semua: semua,
+    tawarkanFotoUlang: tawarkanFotoUlang,
+  );
+
+  switch (pilih) {
+    case JenisDipilih(:final formulir):
+      unawaited(
+        catatan.tulis('pilihan', idPindai, {
+          'dipilih': formulir.templateId,
+          // -1 = dari "Jenis lain", bukan dari kandidat hasil foto.
+          'urutan_kandidat': kandidat.indexWhere(
+            (k) => k.templateId == formulir.templateId,
+          ),
+        }),
+      );
+
+      return _Jenis(formulir, otomatis: false, saran: saran);
+    case MintaFotoUlang():
+      return const _FotoUlang();
+    case null:
+      return const _Batal();
+  }
+}
+
+/// Hasil [_tentukanAlat]: [batal] = teknisi menutup daftar alat tanpa memilih
+/// (tidak ada lembar yang dibuka); [alat] `null` = tidak ada alat yang
+/// ditentukan di sini (lembar meminta teknisi memilih).
+typedef _HasilAlat = ({EquipmentLookup? alat, bool batal});
+
+/// Alat untuk lembar [formulir]: satu-satunya alat jenis ini dipilih sendiri;
+/// beberapa = SATU ketukan pada daftar pendek; tidak ada / daftar gagal dimuat
+/// = lembar yang meminta (dropdown alatnya sendiri menampilkan keadaannya).
+/// Daftarnya dari `GET /equipments?profil=` yang SAMA dengan dropdown di lembar,
+/// jadi tidak ada endpoint baru dan alat jenis lain tidak ikut tampil.
+Future<_HasilAlat> _tentukanAlat(
+  BuildContext context,
+  ProviderContainer wadah,
+  FormulirDikenal formulir,
+) async {
+  final l10n = AppLocalizations.of(context);
+  final profil = formulir.templateId;
+
+  final List<EquipmentLookup> daftar;
+  try {
+    daftar = await _denganProgres(
+      context,
+      l10n.pindaiMenyiapkanLembar,
+      () => wadah.read(equipmentLookupProfilProvider(profil).future),
+    );
+  } catch (e, st) {
+    catatGalatPindai('pindai-lembar-alat', e, st);
+    // Galat tidak boleh menempel di dropdown lembar.
+    wadah.invalidate(equipmentLookupProfilProvider(profil));
+
+    return (alat: null, batal: false);
+  }
+
+  final aktif = [
+    for (final a in daftar)
+      if (a.status != 'nonaktif') a,
+  ];
+  final calon = aktif.isEmpty ? daftar : aktif;
+
+  if (calon.length == 1) return (alat: calon.single, batal: false);
+  if (calon.isEmpty) return (alat: null, batal: false);
+  if (!context.mounted) return (alat: null, batal: true);
+
+  final pilih = await tampilkanPilihAlatRingkas(
+    context,
+    jenis: namaPendekJudul(formulir.judul),
+    alat: calon,
+  );
+
+  return switch (pilih) {
+    AlatDipilih(:final alat) => (alat: alat, batal: false),
+    AlatNanti() => (alat: null, batal: false),
+    null => (alat: null, batal: true),
+  };
+}
+
+/// Dialog progres yang tak bisa ditutup sendiri selama [kerja] berjalan.
+Future<T> _denganProgres<T>(
+  BuildContext context,
+  String pesan,
+  Future<T> Function() kerja,
+) async {
+  final navigator = Navigator.of(context);
+  showDialog<void>(
+    context: context,
+    barrierDismissible: false,
+    builder: (_) => PopScope(
+      canPop: false,
+      child: AlertDialog(
+        content: Row(
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(child: Text(pesan)),
+          ],
         ),
       ),
     ),
   );
 
-  if (context.mounted) await setelahKembali?.call();
+  try {
+    return await kerja();
+  } finally {
+    if (navigator.mounted) navigator.pop();
+  }
+}
+
+/// Route lembar kerja untuk [formulir], membawa foto yang SAMA. "Ganti jenis"
+/// membangun route berikutnya lewat fungsi ini juga.
+Route<void> _ruteLembar({
+  required FormulirDikenal formulir,
+  required bool otomatis,
+  required EquipmentLookup? alat,
+  required Uint8List jpeg,
+  required KesiapanPindaiLembar kesiapan,
+  required List<FormulirDikenal> saran,
+  required ProviderContainer wadah,
+  required CatatanIdentifikasiLembar catatan,
+  required String idPindai,
+}) => MaterialPageRoute<void>(
+  builder: (_) => BekuLembarKerja(
+    child: LembarKerjaScreen(
+      profil: formulir.templateId,
+      judulTambahan: namaPendekJudul(formulir.judul),
+      dariFoto: DariFotoLembar(
+        jpeg: jpeg,
+        jenis: namaPendekJudul(formulir.judul),
+        otomatis: otomatis,
+        alatAwal: alat,
+        gantiJenis: (ctx) => _gantiJenis(
+          ctx,
+          formulir: formulir,
+          jpeg: jpeg,
+          kesiapan: kesiapan,
+          saran: saran,
+          wadah: wadah,
+          catatan: catatan,
+          idPindai: idPindai,
+        ),
+      ),
+    ),
+  ),
+);
+
+/// "Ganti jenis" di banner lembar: kandidat lain dari foto yang sama (hanya
+/// yang boleh dipindai) + semua jenis di bawah "Jenis lain". Mengembalikan
+/// route lembar pengganti atau `null`.
+Future<Route<void>?> _gantiJenis(
+  BuildContext context, {
+  required FormulirDikenal formulir,
+  required Uint8List jpeg,
+  required KesiapanPindaiLembar kesiapan,
+  required List<FormulirDikenal> saran,
+  required ProviderContainer wadah,
+  required CatatanIdentifikasiLembar catatan,
+  required String idPindai,
+}) async {
+  final l10n = AppLocalizations.of(context);
+  final messenger = ScaffoldMessenger.of(context);
+
+  final pilih = await tampilkanPilihJenisRingkas(
+    context,
+    judul: l10n.pindaiGantiJenisJudul,
+    pesan: l10n.pindaiGantiJenisPesan(namaPendekJudul(formulir.judul)),
+    kandidat: [
+      for (final k in saran)
+        if (k.templateId != formulir.templateId &&
+            kesiapan.bolehDipindai(k.templateId))
+          k,
+    ],
+    semua: [
+      for (final d in kesiapan.dikenal)
+        if (d.templateId != formulir.templateId) d,
+    ],
+    tawarkanFotoUlang: false,
+  );
+  if (pilih is! JenisDipilih || !context.mounted) return null;
+
+  final baru = pilih.formulir;
+  if (!kesiapan.bolehDipindai(baru.templateId)) {
+    messenger.showSnackBar(SnackBar(content: Text(l10n.lkAsliBelumSiap)));
+
+    return null;
+  }
+
+  unawaited(
+    catatan.tulis('ganti_jenis', idPindai, {
+      'dari': formulir.templateId,
+      'ke': baru.templateId,
+    }),
+  );
+
+  final alat = await _tentukanAlat(context, wadah, baru);
+  if (alat.batal) return null;
+
+  return _ruteLembar(
+    formulir: baru,
+    otomatis: false,
+    alat: alat.alat,
+    jpeg: jpeg,
+    kesiapan: kesiapan,
+    saran: [
+      for (final k in [formulir, ...saran])
+        if (k.templateId != baru.templateId) k,
+    ],
+    wadah: wadah,
+    catatan: catatan,
+    idPindai: idPindai,
+  );
 }
 
 /// Hasil pengenalan; `petunjuk == null` = tidak ada petunjuk sama sekali
