@@ -10,6 +10,8 @@ import '../../providers/izin_provider.dart';
 import '../../widgets/readable_width.dart';
 import '../admin/import_excel_screen.dart';
 import '../audit/audit_log_screen.dart';
+import '../crud_lab/hak_crud_lab.dart';
+import '../crud_lab/pengelolaan_data_screen.dart';
 import '../data_acuan/paket_alur_acuan_screen.dart';
 import '../data_acuan/widgets/hak_alur_acuan.dart';
 import '../super_admin/hak_super_admin.dart';
@@ -64,6 +66,7 @@ class KelolaLabScreen extends ConsumerWidget {
     );
 
     final bolehPengelolaanSa = ref.bolehPengelolaanSa;
+    final bolehPengelolaanData = ref.bolehPengelolaanData;
 
     final grup = <(String, List<_Pintu>)>[
       (
@@ -88,6 +91,13 @@ class KelolaLabScreen extends ConsumerWidget {
               l10n.saHubJudul,
               l10n.saHubKelolaSub,
               () => const PengelolaanSuperAdminScreen(),
+            ),
+          if (bolehPengelolaanData)
+            _Pintu(
+              Icons.dashboard_customize_outlined,
+              l10n.crudHubJudul,
+              l10n.crudHubKelolaSub,
+              () => const PengelolaanDataScreen(),
             ),
         ],
       ),
