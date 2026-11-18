@@ -9200,4 +9200,833 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get saGalatPtSama => 'The destination cannot be the original company.';
+
+  @override
+  String get crudGalatKategoriKembar =>
+      'A category with that name already exists.';
+
+  @override
+  String crudGalatKategoriDipakai(String rincian) {
+    return 'This category is still in use$rincian. Deactivate it instead so it is no longer offered.';
+  }
+
+  @override
+  String get crudGalatKategoriNonaktif =>
+      'This category is inactive, so it cannot be used for new data.';
+
+  @override
+  String get crudGalatKodeBentrok =>
+      'Two people created a category at the same time. Please try again.';
+
+  @override
+  String crudGalatBukanDraf(String status) {
+    return 'Only drafts can be archived; this worksheet is $status.';
+  }
+
+  @override
+  String get crudGalatTidakDiarsipkan =>
+      'This draft is no longer archived. The list was reloaded.';
+
+  @override
+  String get crudGalatStatusBerubah =>
+      'The worksheet status changed (it may have been submitted from another device). Reload and try again.';
+
+  @override
+  String get crudGalatHanyaAdmin =>
+      'Only Master Data or Super Admin can open the draft archive.';
+
+  @override
+  String crudGalatPenugasanTidakAktif(String status) {
+    return 'This assignment is already $status, so it can no longer be edited or cancelled.';
+  }
+
+  @override
+  String get crudGalatPenugasanSelesai =>
+      'This assignment is already complete, so it cannot be cancelled.';
+
+  @override
+  String get crudGalatItemSudahDikerjakan =>
+      'A row with recorded progress cannot be removed. Change its quantity instead.';
+
+  @override
+  String get crudGalat403 => 'Your account is not allowed to do this.';
+
+  @override
+  String get crudGalat409 =>
+      'The data changed elsewhere. Reload and try again.';
+
+  @override
+  String get crudGalat429 => 'Too many requests. Wait a moment and try again.';
+
+  @override
+  String get crudGalat500 =>
+      'The server is having trouble. Try again shortly; if it keeps happening, contact the system administrator.';
+
+  @override
+  String get crudGalatKoneksi =>
+      'Cannot reach the server. Check your connection and try again.';
+
+  @override
+  String get crudGalatKoneksiSimpan =>
+      'The connection dropped while saving. The data may already be saved; check the list before creating it again.';
+
+  @override
+  String crudPemakaiAlat(int n) {
+    return '$n equipment';
+  }
+
+  @override
+  String crudPemakaiKemampuan(int n) {
+    return '$n capabilities';
+  }
+
+  @override
+  String crudPemakaiPenugasan(int n) {
+    return '$n assignments';
+  }
+
+  @override
+  String crudPemakaiMetode(int n) {
+    return '$n methods';
+  }
+
+  @override
+  String crudPemakaiRumus(int n) {
+    return '$n formulas';
+  }
+
+  @override
+  String get crudTanpaIzin =>
+      'Your account has no permission for this section.';
+
+  @override
+  String get crudSimpan => 'Save';
+
+  @override
+  String get crudAksiUbah => 'Edit';
+
+  @override
+  String get crudAksiHapus => 'Delete';
+
+  @override
+  String get crudBatalDialog => 'Cancel';
+
+  @override
+  String get crudTutup => 'Close';
+
+  @override
+  String get crudHubJudul => 'Orders & lab data';
+
+  @override
+  String get crudHubKelolaSub =>
+      'Orders, assignments, equipment categories and the draft archive.';
+
+  @override
+  String get crudHubOrderJudul => 'Orders';
+
+  @override
+  String get crudHubOrderSub =>
+      'Record, edit and delete customer equipment orders.';
+
+  @override
+  String get crudHubPenugasanJudul => 'Assignments';
+
+  @override
+  String get crudHubPenugasanSub =>
+      'Edit or cancel assignments that are still active.';
+
+  @override
+  String get crudHubKategoriJudul => 'Equipment categories';
+
+  @override
+  String get crudHubKategoriSub =>
+      'Add, rename, deactivate and delete categories.';
+
+  @override
+  String get crudHubArsipJudul => 'Draft archive';
+
+  @override
+  String get crudHubArsipSub =>
+      'Archived worksheet drafts; restore them when needed.';
+
+  @override
+  String get crudHubKosong => 'No menu is available for this account.';
+
+  @override
+  String get crudOrderJudul => 'Orders';
+
+  @override
+  String get crudOrderCari => 'Search order number or company';
+
+  @override
+  String get crudOrderSemua => 'All';
+
+  @override
+  String get crudOrderKosong => 'There are no orders yet.';
+
+  @override
+  String get crudOrderKosongCari => 'No order matches this search.';
+
+  @override
+  String get crudOrderGagal => 'The order list could not be loaded.';
+
+  @override
+  String get crudOrderBuat => 'Create order';
+
+  @override
+  String crudOrderAlat(int n) {
+    return '$n equipment';
+  }
+
+  @override
+  String crudOrderMasuk(String tanggal) {
+    return 'Received $tanggal';
+  }
+
+  @override
+  String crudOrderJanji(String tanggal) {
+    return 'Due $tanggal';
+  }
+
+  @override
+  String get crudOrderTelat => 'Overdue';
+
+  @override
+  String get crudOrderDetailJudul => 'Order details';
+
+  @override
+  String crudOrderDiterima(String nama) {
+    return 'Received by $nama';
+  }
+
+  @override
+  String get crudOrderCatatan => 'Notes';
+
+  @override
+  String get crudOrderAlatJudul => 'Equipment in this order';
+
+  @override
+  String get crudOrderAlatKosong => 'This order has no equipment yet.';
+
+  @override
+  String get crudOrderBelumDibagi => 'Not assigned';
+
+  @override
+  String crudOrderTeknisiNama(String nama) {
+    return 'Technician: $nama';
+  }
+
+  @override
+  String get crudOrderKondisi => 'Condition on receipt';
+
+  @override
+  String get crudOrderKelengkapan => 'Accessories';
+
+  @override
+  String get crudOrderDetailGagal => 'This order could not be loaded.';
+
+  @override
+  String get crudOrderFormBuat => 'Create order';
+
+  @override
+  String get crudOrderFormUbah => 'Edit order';
+
+  @override
+  String get crudOrderIntroBuat =>
+      'The order number is created automatically by the server on save.';
+
+  @override
+  String crudOrderIntroUbah(String nomor) {
+    return 'Number $nomor does not change. The customer cannot be changed from here.';
+  }
+
+  @override
+  String get crudOrderPelanggan => 'Customer (company)';
+
+  @override
+  String get crudOrderPilihPelanggan => 'Choose a customer';
+
+  @override
+  String get crudOrderCariPelanggan => 'Search customer name';
+
+  @override
+  String get crudOrderPelangganKosong => 'No customer found.';
+
+  @override
+  String get crudOrderPelangganGagal =>
+      'The customer list could not be loaded.';
+
+  @override
+  String get crudOrderPelangganWajib => 'Choose a customer first.';
+
+  @override
+  String get crudOrderTanggalMasuk => 'Date received';
+
+  @override
+  String get crudOrderTanggalJanji => 'Due date (optional)';
+
+  @override
+  String get crudOrderPilihTanggal => 'Choose a date';
+
+  @override
+  String get crudOrderKosongkanTanggal => 'Clear the due date';
+
+  @override
+  String get crudOrderTanggalMasukWajib => 'The received date is required.';
+
+  @override
+  String get crudOrderJanjiSebelumMasuk =>
+      'The due date cannot be before the received date.';
+
+  @override
+  String get crudOrderStatus => 'Status';
+
+  @override
+  String get crudOrderCatatanLabel => 'Notes (optional)';
+
+  @override
+  String get crudOrderCatatanPanjang => 'Notes can be at most 1000 characters.';
+
+  @override
+  String crudOrderAlatBagian(int n) {
+    return 'Equipment ($n)';
+  }
+
+  @override
+  String get crudOrderTambahAlat => 'Add equipment';
+
+  @override
+  String get crudOrderAlatWajib => 'Add at least one piece of equipment.';
+
+  @override
+  String get crudOrderAlatPilihPtDulu =>
+      'Choose a customer first to add equipment of that company.';
+
+  @override
+  String crudOrderBuangAlat(String nama) {
+    return 'Remove $nama from the order';
+  }
+
+  @override
+  String get crudOrderCatatanSesi =>
+      'Equipment already in calibration stays in the order even if removed from this list.';
+
+  @override
+  String crudOrderBerhasilBuat(String nomor) {
+    return 'Order $nomor created.';
+  }
+
+  @override
+  String get crudOrderBerhasilUbah => 'Order updated.';
+
+  @override
+  String get crudOrderGalatUmum =>
+      'The order was not saved. Check the fields marked with errors.';
+
+  @override
+  String get crudItemTeknisi => 'Technician';
+
+  @override
+  String get crudItemPilihTeknisi => 'Choose a technician';
+
+  @override
+  String get crudItemTanpaTeknisi => 'Not assigned';
+
+  @override
+  String get crudItemTeknisiKosong => 'There are no active technicians.';
+
+  @override
+  String get crudItemTeknisiGagal => 'The technician list could not be loaded.';
+
+  @override
+  String get crudItemRincian => 'Receiving details';
+
+  @override
+  String get crudItemKondisi => 'Condition on receipt';
+
+  @override
+  String get crudItemKelengkapan => 'Accessories';
+
+  @override
+  String get crudItemCatatan => 'Equipment notes';
+
+  @override
+  String crudPilihAlatJudul(String pt) {
+    return 'Choose equipment of $pt';
+  }
+
+  @override
+  String get crudPilihAlatCari => 'Search name or serial number';
+
+  @override
+  String get crudPilihAlatKosong => 'No matching equipment for this company.';
+
+  @override
+  String get crudPilihAlatGagal => 'The equipment could not be loaded.';
+
+  @override
+  String get crudPilihAlatSudah => 'Already in the order';
+
+  @override
+  String crudPilihAlatTambah(int n) {
+    return 'Add $n equipment';
+  }
+
+  @override
+  String get crudPilihAlatPilihDulu => 'Choose equipment first';
+
+  @override
+  String crudOrderHapusJudul(String nomor) {
+    return 'Delete order $nomor?';
+  }
+
+  @override
+  String get crudOrderHapusIsi =>
+      'The order and its equipment list will be deleted. An order whose equipment is already in calibration cannot be deleted; set its status to Cancelled so the history stays intact.';
+
+  @override
+  String get crudOrderHapusAksi => 'Delete order';
+
+  @override
+  String get crudOrderHapusBerhasil => 'Order deleted.';
+
+  @override
+  String get crudOrderHapusDitolak =>
+      'This order has equipment that is already in calibration, so it cannot be deleted. Set its status to Cancelled so the history stays intact.';
+
+  @override
+  String get crudOrderAlatDikosongkan =>
+      'The equipment list was cleared because the customer changed.';
+
+  @override
+  String get crudAlasanWajib => 'Reason';
+
+  @override
+  String get crudAlasanOpsional => 'Reason (optional)';
+
+  @override
+  String get crudAlasanCatatan =>
+      'Reason of 5 to 400 characters; recorded in the audit trail.';
+
+  @override
+  String get crudAlasanCatatanOpsional =>
+      'At most 400 characters; recorded in the audit trail.';
+
+  @override
+  String get crudAlasanPendek => 'The reason must be at least 5 characters.';
+
+  @override
+  String get crudAlasanPanjang => 'The reason can be at most 400 characters.';
+
+  @override
+  String get crudPenugasanJudul => 'Assignments';
+
+  @override
+  String get crudPenugasanKosong => 'There are no assignments yet.';
+
+  @override
+  String get crudPenugasanKosongStatus => 'No assignment has this status.';
+
+  @override
+  String get crudPenugasanGagal => 'The assignment list could not be loaded.';
+
+  @override
+  String get crudPenugasanSemua => 'All';
+
+  @override
+  String crudPenugasanTim(String nama) {
+    return 'Team: $nama';
+  }
+
+  @override
+  String crudPenugasanTarget(String tanggal) {
+    return 'Target $tanggal';
+  }
+
+  @override
+  String get crudPenugasanTerlambat => 'Late';
+
+  @override
+  String crudPenugasanProgres(int persen) {
+    return '$persen% complete';
+  }
+
+  @override
+  String crudPenugasanBaris(int n) {
+    return '$n equipment rows';
+  }
+
+  @override
+  String get crudPenugasanTipeGrup => 'Group';
+
+  @override
+  String get crudPenugasanTipePersonal => 'Personal';
+
+  @override
+  String crudPenugasanBatalAlasan(String alasan) {
+    return 'Reason: $alasan';
+  }
+
+  @override
+  String crudPenugasanBatalOleh(String nama) {
+    return 'Cancelled by $nama';
+  }
+
+  @override
+  String crudPenugasanBatalPada(String tanggal) {
+    return 'Cancelled $tanggal';
+  }
+
+  @override
+  String crudPenugasanBatalOlehPada(String nama, String tanggal) {
+    return 'Cancelled by $nama, $tanggal';
+  }
+
+  @override
+  String get crudPenugasanAksiBatalkan => 'Cancel assignment';
+
+  @override
+  String crudPenugasanBatalJudul(String judul) {
+    return 'Cancel the assignment \"$judul\"?';
+  }
+
+  @override
+  String get crudPenugasanBatalIsi =>
+      'The assignment is marked Cancelled. Members, equipment rows and progress stay readable as history, and members are notified.';
+
+  @override
+  String get crudPenugasanBatalAksi => 'Cancel assignment';
+
+  @override
+  String get crudPenugasanBatalBerhasil => 'Assignment cancelled.';
+
+  @override
+  String get crudPenugasanUbahJudul => 'Edit assignment';
+
+  @override
+  String get crudPenugasanUbahIntro =>
+      'Only active assignments can be edited. Progress already reported by technicians does not change.';
+
+  @override
+  String get crudPenugasanJudulLabel => 'Title';
+
+  @override
+  String get crudPenugasanJudulWajib => 'The title is required.';
+
+  @override
+  String get crudPenugasanJudulPanjang =>
+      'The title can be at most 150 characters.';
+
+  @override
+  String get crudPenugasanTanggalTarget => 'Target date (optional)';
+
+  @override
+  String get crudPenugasanKosongkanTarget => 'Clear the target';
+
+  @override
+  String get crudPenugasanTanggalLewat =>
+      'A new target date cannot be before today.';
+
+  @override
+  String get crudPenugasanCatatanLabel => 'Notes (optional)';
+
+  @override
+  String get crudPenugasanCatatanPanjang =>
+      'Notes can be at most 1000 characters.';
+
+  @override
+  String get crudPenugasanTeknisiBagian => 'Technicians';
+
+  @override
+  String get crudPenugasanTeknisiIntro =>
+      'The first one chosen becomes the leader.';
+
+  @override
+  String get crudPenugasanKetua => 'Leader';
+
+  @override
+  String get crudPenugasanTeknisiWajib => 'Choose at least one technician.';
+
+  @override
+  String get crudPenugasanTeknisiMaks => 'At most 20 technicians.';
+
+  @override
+  String crudPenugasanTeknisiNonaktif(String nama) {
+    return '$nama (inactive)';
+  }
+
+  @override
+  String crudPenugasanBarisBagian(int n) {
+    return 'Equipment rows ($n)';
+  }
+
+  @override
+  String get crudPenugasanBarisWajib => 'Add at least one row.';
+
+  @override
+  String get crudPenugasanBarisMaks => 'At most 50 rows.';
+
+  @override
+  String get crudPenugasanTambahBaris => 'Add a row';
+
+  @override
+  String get crudPenugasanJenisAlat => 'Equipment type';
+
+  @override
+  String get crudPenugasanJenisWajib => 'The equipment type is required.';
+
+  @override
+  String get crudPenugasanJenisPanjang =>
+      'The equipment type can be at most 120 characters.';
+
+  @override
+  String get crudPenugasanJumlah => 'Quantity';
+
+  @override
+  String get crudPenugasanJumlahSalah => 'The quantity must be 1 to 999.';
+
+  @override
+  String crudPenugasanSelesaiN(int n) {
+    return 'Done $n';
+  }
+
+  @override
+  String crudPenugasanPaket(String nomor) {
+    return 'Package $nomor';
+  }
+
+  @override
+  String get crudPenugasanBarisCatatan => 'Row notes (optional)';
+
+  @override
+  String crudPenugasanBuangBaris(String nama) {
+    return 'Remove row $nama';
+  }
+
+  @override
+  String get crudPenugasanBarisTerkunci =>
+      'Progress is recorded: this row cannot be removed.';
+
+  @override
+  String get crudPenugasanBerhasilUbah => 'Assignment updated.';
+
+  @override
+  String get crudPenugasanGalatUmum =>
+      'The assignment was not saved. Check the fields marked with errors.';
+
+  @override
+  String get crudPenugasanTeknisiGagal =>
+      'The technician list could not be loaded.';
+
+  @override
+  String get crudKategoriJudul => 'Equipment categories';
+
+  @override
+  String get crudKategoriKosong => 'There are no categories yet.';
+
+  @override
+  String get crudKategoriKosongSaring => 'No category has this status.';
+
+  @override
+  String get crudKategoriGagal => 'The category list could not be loaded.';
+
+  @override
+  String get crudKategoriSemua => 'All';
+
+  @override
+  String get crudKategoriTambah => 'Add category';
+
+  @override
+  String crudKategoriKode(String kode) {
+    return 'Code: $kode';
+  }
+
+  @override
+  String crudKategoriTanpaCmc(int n) {
+    return '$n without CMC';
+  }
+
+  @override
+  String crudKategoriNonaktifSejak(String tanggal) {
+    return 'Inactive since $tanggal';
+  }
+
+  @override
+  String get crudKategoriAksiUbahNama => 'Rename';
+
+  @override
+  String get crudKategoriAksiNonaktifkan => 'Deactivate';
+
+  @override
+  String get crudKategoriAksiAktifkan => 'Reactivate';
+
+  @override
+  String get crudKategoriAksiHapus => 'Delete';
+
+  @override
+  String get crudKategoriFormTambahJudul => 'Add category';
+
+  @override
+  String get crudKategoriFormTambahIsi =>
+      'A category is a measurement group, e.g. Pressure or Mass.';
+
+  @override
+  String crudKategoriFormUbahJudul(String nama) {
+    return 'Rename $nama';
+  }
+
+  @override
+  String get crudKategoriFormUbahIsi =>
+      'Only the name changes; the category code never changes.';
+
+  @override
+  String get crudKategoriNamaLabel => 'Category name';
+
+  @override
+  String get crudKategoriNamaCatatan =>
+      'The code is created automatically from the name and does not change afterwards.';
+
+  @override
+  String get crudKategoriNamaPendek =>
+      'The name must be at least 2 characters.';
+
+  @override
+  String get crudKategoriNamaPanjang =>
+      'The name can be at most 100 characters.';
+
+  @override
+  String get crudKategoriSimpanTambah => 'Add';
+
+  @override
+  String get crudKategoriSimpanUbah => 'Save name';
+
+  @override
+  String get crudKategoriBerhasilBuat => 'Category created.';
+
+  @override
+  String get crudKategoriBerhasilUbah => 'Category renamed.';
+
+  @override
+  String get crudGalatKategoriKembarNonaktif =>
+      'A category with that name already exists but is inactive. Reactivate it from the list.';
+
+  @override
+  String crudKategoriNonaktifJudul(String nama) {
+    return 'Deactivate $nama?';
+  }
+
+  @override
+  String get crudKategoriNonaktifIsi =>
+      'The category is no longer offered for new equipment, assignments and equipment names. Existing equipment still shows it. It can be reactivated.';
+
+  @override
+  String get crudKategoriNonaktifAksi => 'Deactivate';
+
+  @override
+  String get crudKategoriNonaktifBerhasil => 'Category deactivated.';
+
+  @override
+  String crudKategoriAktifJudul(String nama) {
+    return 'Reactivate $nama?';
+  }
+
+  @override
+  String get crudKategoriAktifIsi =>
+      'The category is offered again for new data.';
+
+  @override
+  String get crudKategoriAktifAksi => 'Reactivate';
+
+  @override
+  String get crudKategoriAktifBerhasil => 'Category reactivated.';
+
+  @override
+  String crudKategoriHapusJudul(String nama) {
+    return 'Delete $nama?';
+  }
+
+  @override
+  String get crudKategoriHapusIsi =>
+      'A category not used by anything is removed from the list and recorded in the audit. One still in use cannot be deleted; deactivate it instead.';
+
+  @override
+  String get crudKategoriHapusAksi => 'Delete category';
+
+  @override
+  String get crudKategoriHapusBerhasil => 'Category deleted.';
+
+  @override
+  String get crudArsipJudul => 'Draft archive';
+
+  @override
+  String get crudArsipIntro =>
+      'Archived drafts disappear from the technician lists, but their readings and session numbers stay stored. Restore them when needed.';
+
+  @override
+  String get crudArsipCari => 'Search session number, equipment or company';
+
+  @override
+  String get crudArsipKosong => 'No drafts have been archived yet.';
+
+  @override
+  String get crudArsipKosongCari => 'No archived draft matches this search.';
+
+  @override
+  String get crudArsipGagal => 'The draft archive could not be loaded.';
+
+  @override
+  String crudArsipAlasan(String alasan) {
+    return 'Reason: $alasan';
+  }
+
+  @override
+  String crudArsipOleh(String nama, String tanggal) {
+    return 'Archived by $nama, $tanggal';
+  }
+
+  @override
+  String crudArsipOlehTanpaNama(String tanggal) {
+    return 'Archived $tanggal';
+  }
+
+  @override
+  String get crudArsipAksiPulihkan => 'Restore';
+
+  @override
+  String crudArsipPulihkanJudul(String nomor) {
+    return 'Restore draft $nomor?';
+  }
+
+  @override
+  String get crudArsipPulihkanIsi =>
+      'The draft returns to its owner\'s list with the same content as before it was archived.';
+
+  @override
+  String get crudArsipPulihkanAksi => 'Restore draft';
+
+  @override
+  String get crudArsipPulihkanBerhasil => 'Draft restored.';
+
+  @override
+  String get crudArsipTanpaNomor => 'No session number';
+
+  @override
+  String crudDrafArsipkanTooltip(String nama) {
+    return 'Archive draft $nama';
+  }
+
+  @override
+  String crudDrafArsipkanJudul(String nama) {
+    return 'Archive draft $nama?';
+  }
+
+  @override
+  String get crudDrafArsipkanIsi =>
+      'The draft disappears from lists, the dashboard and reports. Its readings, session number and results are not deleted, and Master Data can restore it.';
+
+  @override
+  String get crudDrafArsipkanAksi => 'Archive';
+
+  @override
+  String get crudDrafArsipkanBerhasil => 'Draft archived.';
 }
