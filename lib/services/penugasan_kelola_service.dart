@@ -5,10 +5,13 @@ import 'api_client.dart';
 import 'auth_service.dart' show ApiException;
 import 'pengguna_sa_service.dart' show HalamanHasil;
 
-/// Kelola penugasan dari aplikasi Lab: papan (berpaginasi), ubah, batalkan.
+/// Kelola penugasan dari aplikasi Lab: papan (berpaginasi), ubah, batalkan,
+/// selesaikan, buka lagi.
 ///
-/// Kontrak: `docs/perintah-frontend-crud-lengkap.md` §4. Hanya admin dan super
-/// admin (`penugasan.ubah` / `penugasan.batalkan`); teknisi tetap hanya
+/// Kontrak: `docs/perintah-frontend-crud-lengkap.md` §4 dan, untuk selesaikan
+/// dan buka lagi, `docs/perintah-frontend-penugasan-selesai.md` (PR #284). Hanya
+/// admin dan super admin (`penugasan.ubah` / `penugasan.batalkan` /
+/// `penugasan.selesaikan`; `penugasan.buka-lagi` super admin saja); teknisi tetap hanya
 /// melaporkan progres lewat `PenugasanService` lama yang TIDAK diubah. Server
 /// yang menegakkan; layar hanya menyembunyikan tombol.
 ///
@@ -29,6 +32,18 @@ abstract class PenugasanKelolaService {
   /// `POST /penugasan/{id}/batalkan` — [alasan] 5–400 karakter. Idempoten:
   /// yang sudah dibatalkan dijawab `200` dengan `batal` yang lama.
   Future<Penugasan> batalkan(String token, int id, {required String alasan});
+
+  /// `POST /penugasan/{id}/selesaikan` — tanpa badan; server memutuskan
+  /// (`aktif` dan `persen_tuntas` 100). Galat `422` berkode:
+  /// `penugasan_belum_tuntas` (+`persen_tuntas`), `penugasan_sudah_selesai`
+  /// (kirim ulang sesudah jaringan putus: layar menganggapnya BERHASIL),
+  /// `penugasan_tidak_aktif` (+`status`).
+  Future<Penugasan> selesaikan(String token, int id);
+
+  /// `POST /penugasan/{id}/buka-lagi` — super admin saja; [alasan] 5–400
+  /// karakter, masuk jejak audit dan notifikasi anggota. Galat `422`:
+  /// `penugasan_tidak_selesai` (+`status`), atau validasi `errors.alasan`.
+  Future<Penugasan> bukaLagi(String token, int id, {required String alasan});
 }
 
 class ApiPenugasanKelolaService implements PenugasanKelolaService {
@@ -82,6 +97,27 @@ class ApiPenugasanKelolaService implements PenugasanKelolaService {
     // kedua), jadi pengguna boleh mengulang sendiri bila jawabannya hilang.
     await _api.post(
       '/penugasan/$id/batalkan',
+      token: token,
+      body: {'alasan': alasan},
+    ),
+  );
+
+  @override
+  Future<Penugasan> selesaikan(String token, int id) async => _penugasan(
+    // Juga tanpa `client_request_id`, dan sengaja: kirim ulang sesudah balasan
+    // hilang dijawab `422 penugasan_sudah_selesai` (bukan 200), yang layar
+    // baca sebagai "sudah selesai". Tidak ada yang berlipat ganda.
+    await _api.post('/penugasan/$id/selesaikan', token: token),
+  );
+
+  @override
+  Future<Penugasan> bukaLagi(
+    String token,
+    int id, {
+    required String alasan,
+  }) async => _penugasan(
+    await _api.post(
+      '/penugasan/$id/buka-lagi',
       token: token,
       body: {'alasan': alasan},
     ),
@@ -324,4 +360,91 @@ class MockPenugasanKelolaService implements PenugasanKelolaService {
     _data[_data.indexWhere((p) => p.id == id)] = baru;
     return baru;
   }
+
+  @override
+  Future<Penugasan> selesaikan(String token, int id) async {
+    await _awal('selesaikan $id');
+    final lama = _cari(id);
+    // Urutan pemeriksaan sama dengan server (PR #284): sudah selesai, bukan
+    // aktif, belum tuntas.
+    if (lama.status == 'selesai') {
+      throw _galat422(
+        'Penugasan ini sudah selesai.',
+        kode: 'penugasan_sudah_selesai',
+        tambahan: {'status': 'selesai'},
+      );
+    }
+    if (lama.status != 'aktif') {
+      throw _galat422(
+        'Penugasan ini sudah ${lama.status}, jadi tidak bisa diselesaikan.',
+        kode: 'penugasan_tidak_aktif',
+        tambahan: {'status': lama.status},
+      );
+    }
+    if (lama.persenTuntas < 100) {
+      throw _galat422(
+        'Penugasan ini baru ${lama.persenTuntas}% tuntas.',
+        kode: 'penugasan_belum_tuntas',
+        tambahan: {'persen_tuntas': lama.persenTuntas},
+      );
+    }
+    final baru = _salin(
+      lama,
+      status: 'selesai',
+      diselesaikanPada: DateTime.now().toUtc(),
+    );
+    _data[_data.indexWhere((p) => p.id == id)] = baru;
+    return baru;
+  }
+
+  @override
+  Future<Penugasan> bukaLagi(
+    String token,
+    int id, {
+    required String alasan,
+  }) async {
+    await _awal('bukaLagi $id "$alasan"');
+    final panjang = alasan.trim().length;
+    if (panjang < 5 || panjang > 400) {
+      throw _galat422(
+        'Alasan harus 5 sampai 400 karakter.',
+        errors: {
+          'alasan': ['Alasan harus 5 sampai 400 karakter.'],
+        },
+      );
+    }
+    final lama = _cari(id);
+    if (lama.status != 'selesai') {
+      throw _galat422(
+        'Penugasan ini tidak berstatus selesai.',
+        kode: 'penugasan_tidak_selesai',
+        tambahan: {'status': lama.status},
+      );
+    }
+    final baru = _salin(lama, status: 'aktif');
+    _data[_data.indexWhere((p) => p.id == id)] = baru;
+    return baru;
+  }
+
+  /// Salinan [lama] dengan status baru; `diselesaikanPada` kembali `null`
+  /// kecuali diisi (buka lagi mengosongkannya).
+  static Penugasan _salin(
+    Penugasan lama, {
+    required String status,
+    DateTime? diselesaikanPada,
+  }) => Penugasan(
+    id: lama.id,
+    judul: lama.judul,
+    tipe: lama.tipe,
+    status: status,
+    tanggalTarget: lama.tanggalTarget,
+    terlambat: lama.terlambat,
+    persenTuntas: lama.persenTuntas,
+    catatan: lama.catatan,
+    dibuatOleh: lama.dibuatOleh,
+    batal: lama.batal,
+    diselesaikanPada: diselesaikanPada,
+    teknisi: lama.teknisi,
+    baris: lama.baris,
+  );
 }
