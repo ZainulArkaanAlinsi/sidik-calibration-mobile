@@ -137,11 +137,17 @@ class _Lencana extends StatelessWidget {
         children: [
           Icon(ikon, size: 14, color: warna),
           const SizedBox(width: 4),
-          Text(
-            '$jumlah $label',
-            style: Theme.of(
-              context,
-            ).textTheme.labelSmall?.copyWith(color: warna),
+          // Flexible: label berbahasa panjang + huruf sangat besar (320 dp,
+          // skala 2,0) meluap 3,7 px bila Text menuntut lebar penuhnya. Kini
+          // turun ke baris kedua. Terungkap oleh keadaan "penerbitan ditahan"
+          // yang selalu membawa temuan error `menunggu_keputusan_tm`.
+          Flexible(
+            child: Text(
+              '$jumlah $label',
+              style: Theme.of(
+                context,
+              ).textTheme.labelSmall?.copyWith(color: warna),
+            ),
           ),
         ],
       ),
