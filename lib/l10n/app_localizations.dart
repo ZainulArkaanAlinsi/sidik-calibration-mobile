@@ -17563,6 +17563,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This assignment is not marked Completed, so it cannot be reopened. A cancelled assignment is never reopened; create a new one.'**
   String get crudGalatPenugasanTidakSelesai;
+
+  /// No description provided for @perhitSesiTidakAda.
+  ///
+  /// In en, this message translates to:
+  /// **'This session no longer exists on the server. It may have been archived or deleted by an admin.'**
+  String get perhitSesiTidakAda;
 }
 
 class _AppLocalizationsDelegate

@@ -10311,4 +10311,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get crudGalatPenugasanTidakSelesai =>
       'This assignment is not marked Completed, so it cannot be reopened. A cancelled assignment is never reopened; create a new one.';
+
+  @override
+  String get perhitSesiTidakAda =>
+      'This session no longer exists on the server. It may have been archived or deleted by an admin.';
 }

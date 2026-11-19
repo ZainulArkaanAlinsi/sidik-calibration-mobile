@@ -10157,4 +10157,8 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get crudGalatPenugasanTidakSelesai =>
       'Penugasan ini tidak berstatus Selesai, jadi tidak bisa dibuka lagi. Penugasan yang dibatalkan tidak dibuka lagi; buat penugasan baru.';
+
+  @override
+  String get perhitSesiTidakAda =>
+      'Sesi ini sudah tidak ada di server. Mungkin diarsipkan atau dihapus admin.';
 }
