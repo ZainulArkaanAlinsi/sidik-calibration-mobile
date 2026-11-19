@@ -53,6 +53,7 @@ import 'package:sidik_calibration/providers/perhitungan_provider.dart';
 import 'package:sidik_calibration/providers/sumber_foto_provider.dart';
 import 'package:sidik_calibration/providers/technician_provider.dart';
 import 'package:sidik_calibration/providers/worksheet_scan_provider.dart';
+import 'package:sidik_calibration/screens/calibration/foto_review_screen.dart';
 import 'package:sidik_calibration/screens/calibration/lembar_kerja_screen.dart';
 import 'package:sidik_calibration/screens/pindai/dari_foto_lembar.dart';
 import 'package:sidik_calibration/screens/shell/main_shell.dart';
@@ -212,6 +213,7 @@ class _Mesin extends JalankanPindaiAsli {
 
   Completer<void>? tahan;
   final bool gagal;
+  int dipanggil = 0;
 
   @override
   Future<HasilBacaAsli> baca(
@@ -219,6 +221,7 @@ class _Mesin extends JalankanPindaiAsli {
     required WorksheetTemplate template,
     Uint8List? jpegAsli,
   }) async {
+    dipanggil++;
     await tahan?.future;
     if (gagal) {
       throw const PindaiAsliGagal(
@@ -412,10 +415,18 @@ Future<void> _tenang(WidgetTester tester) async {
   }
 }
 
-void _bersihkanSnack(WidgetTester tester) {
+Future<void> _bersihkanSnack(WidgetTester tester) async {
   final f = find.byType(ScaffoldMessenger);
   if (f.evaluate().isEmpty) return;
-  tester.state<ScaffoldMessengerState>(f.first).clearSnackBars();
+  final pesan = tester.state<ScaffoldMessengerState>(f.first);
+  // `clearSnackBars` saja meninggalkan satu pesan yang sudah antre; sembunyikan
+  // satu per satu sampai tidak ada.
+  for (var i = 0; i < 6 && find.byType(SnackBar).evaluate().isNotEmpty; i++) {
+    pesan
+      ..clearSnackBars()
+      ..hideCurrentSnackBar();
+    await tester.pump(const Duration(milliseconds: 450));
+  }
 }
 
 void main() {
@@ -453,8 +464,17 @@ void main() {
     tester.view.devicePixelRatio = 2.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    debugDisableShadows = false;
-    addTearDown(() => debugDisableShadows = true);
+  }
+
+  /// Bayangan digambar sungguhan untuk PNG (bawaan flutter_test: kotak hitam
+  /// keras). Harus dikembalikan SEBELUM tes selesai.
+  Future<void> denganBayangan(Future<void> Function() isi) async {
+    if (folder != null) debugDisableShadows = false;
+    try {
+      await isi();
+    } finally {
+      debugDisableShadows = true;
+    }
   }
 
   /// Satu keadaan LembarKerjaScreen langsung (alur sudah sampai lembar).
@@ -464,37 +484,56 @@ void main() {
     DariFotoLembar Function() dariFoto, {
     Future<void> Function(WidgetTester tester, _Dunia d)? aksi,
     bool snack = false,
+    bool gulir = false,
   }) {
     if (hanya != null && hanya != nama) return;
     for (final u in _ukuran) {
       testWidgets('$nama - ${u.nama}', (tester) async {
-        aturLayar(tester, u);
-        final d = dunia();
-        final kunci = GlobalKey();
-        await tester.pumpWidget(
-          _app(
-            home: BekuLembarKerja(
-              child: LembarKerjaScreen(
-                profil: 'ph_meter',
-                judulTambahan: 'pH Meter',
-                dariFoto: dariFoto(),
+        await denganBayangan(() async {
+          aturLayar(tester, u);
+          final d = dunia();
+          final kunci = GlobalKey();
+          await tester.pumpWidget(
+            _app(
+              home: BekuLembarKerja(
+                child: LembarKerjaScreen(
+                  profil: 'ph_meter',
+                  judulTambahan: 'pH Meter',
+                  dariFoto: dariFoto(),
+                ),
               ),
+              dunia: d,
+              u: u,
+              kunci: kunci,
             ),
-            dunia: d,
-            u: u,
-            kunci: kunci,
-          ),
-        );
-        await _tunggu(tester, () => false, maks: 6);
-        await _tenang(tester);
-        if (aksi != null) {
-          await aksi(tester, d);
+          );
+          // Foto dibaca di latar (decode di isolate = waktu nyata): tunggu pesan
+          // hasilnya muncul dulu, lalu dibersihkan bila bukan yang dipotret.
+          await _tunggu(tester, () => (d.mesin?.dipanggil ?? 1) > 0, maks: 80);
+          await _tunggu(
+            tester,
+            () => find.byType(SnackBar).evaluate().isNotEmpty,
+            maks: 30,
+          );
           await _tenang(tester);
-        }
-        if (!snack) _bersihkanSnack(tester);
-        await tester.pump(const Duration(milliseconds: 300));
-        await potret(tester, kunci, u, nama);
-        expect(tester.takeException(), isNull);
+          if (aksi != null) {
+            await aksi(tester, d);
+            await _tenang(tester);
+          }
+          if (!snack) await _bersihkanSnack(tester);
+          await tester.pump(const Duration(milliseconds: 400));
+          await potret(tester, kunci, u, nama);
+          if (gulir) {
+            // Kotak isian lembar di bawah blok: identitas kuning + "Perlu dicek".
+            await tester.drag(
+              find.text('Calibration Worksheet - pH Meter'),
+              const Offset(0, -760),
+            );
+            await tester.pump(const Duration(milliseconds: 600));
+            await potret(tester, kunci, u, '$nama-isian');
+          }
+          expect(tester.takeException(), isNull);
+        });
       }, skip: lewati != null);
     }
   }
@@ -530,13 +569,19 @@ void main() {
   );
 
   // Keadaan blok identitas ---------------------------------------------------
-  keadaan('blok-cocok', () => dunia(alat: [_alat14]), () => bekal(_kertas));
+  keadaan(
+    'blok-cocok',
+    () => dunia(alat: [_alat14]),
+    () => bekal(_kertas),
+    gulir: true,
+  );
   keadaan(
     'blok-terpilih',
     () => dunia(alat: [_alat14]),
     () => bekal(_kertas),
     aksi: (tester, d) =>
         ketuk(tester, find.byKey(const ValueKey('identitas-pakai-alat'))),
+    gulir: true,
   );
   keadaan(
     'blok-mirip',
@@ -556,8 +601,14 @@ void main() {
         pemilik: 'PT Tirta Contoh Mandiri',
       ),
     ),
-    aksi: (tester, d) =>
-        ketuk(tester, find.byKey(const ValueKey('identitas-buat-lanjut'))),
+    aksi: (tester, d) async {
+      await ketuk(tester, find.byKey(const ValueKey('identitas-buat-lanjut')));
+      // Bawa kotak nomor seri (dengan pesannya) ke layar.
+      await tester.ensureVisible(
+        find.byKey(const ValueKey('identitas-kotak-seri')),
+      );
+      await tester.pump(const Duration(milliseconds: 400));
+    },
   );
   keadaan(
     'blok-pt-mirip',
@@ -595,99 +646,113 @@ void main() {
   if (hanya == null || hanya == nama) {
     for (final u in _ukuran) {
       testWidgets('$nama - ${u.nama}', (tester) async {
-        aturLayar(tester, u);
-        final tahanBaca = Completer<void>();
-        final tahanMesin = Completer<void>();
-        final d = _Dunia(
-          alat: [_alat14],
-          halaman: _Pembaca(
-            halamanPhUji(
-              nama: 'pH Meter',
-              seri: 'B628755900',
-              merk: 'Mettler',
-              model: 'Five Easy',
-              pemilik: 'PT Tirta Contoh Mandiri',
-              alamat: ['Jl. Contoh Primer A-10, Kec. Cicalengka'],
-              kalibrasi: '13 Nov 2026',
+        await denganBayangan(() async {
+          aturLayar(tester, u);
+          final tahanBaca = Completer<void>();
+          final tahanMesin = Completer<void>();
+          final d = _Dunia(
+            alat: [_alat14],
+            halaman: _Pembaca(
+              halamanPhUji(
+                nama: 'pH Meter',
+                seri: 'B628755900',
+                merk: 'Mettler',
+                model: 'Five Easy',
+                pemilik: 'PT Tirta Contoh Mandiri',
+                alamat: ['Jl. Contoh Primer A-10, Kec. Cicalengka'],
+                kalibrasi: '13 Nov 2026',
+              ),
+              tahan: tahanBaca,
             ),
-            tahan: tahanBaca,
-          ),
-          mesin: _Mesin(tahan: tahanMesin),
-        );
-        final kunci = GlobalKey();
-        await tester.pumpWidget(
-          _app(home: const MainShell(), dunia: d, u: u, kunci: kunci),
-        );
-        await tester.runAsync(() async {
-          final konteks = tester.element(find.byType(MaterialApp));
-          await precacheImage(
-            const AssetImage('assets/images/logo_pt_sidik.png'),
-            konteks,
+            mesin: _Mesin(tahan: tahanMesin),
           );
+          final kunci = GlobalKey();
+          await tester.pumpWidget(
+            _app(home: const MainShell(), dunia: d, u: u, kunci: kunci),
+          );
+          await tester.runAsync(() async {
+            final konteks = tester.element(find.byType(MaterialApp));
+            await precacheImage(
+              const AssetImage('assets/images/logo_pt_sidik.png'),
+              konteks,
+            );
+          });
+          await _tenang(tester);
+          await potret(tester, kunci, u, '01-beranda');
+
+          // Kamera = layar sistem (tidak digambar); foto -> membaca.
+          final tombol = find.byKey(TombolPindaiLembar.kunciTombol);
+          // Layar sempit dengan huruf besar: tombolnya di bawah lipatan dan
+          // belum dibangun; gulirkan sampai ada.
+          if (tombol.evaluate().isEmpty) {
+            await tester.scrollUntilVisible(
+              tombol,
+              200,
+              scrollable: find.byType(Scrollable).first,
+            );
+          }
+          expect(tombol, findsOneWidget);
+          await tester.ensureVisible(tombol);
+          await tester.pump();
+          await tester.tap(tombol);
+          await tester.pump();
+          await _tunggu(
+            tester,
+            () =>
+                find.textContaining('Mengenali').evaluate().isNotEmpty ||
+                find.textContaining('Membaca').evaluate().isNotEmpty,
+          );
+          await potret(tester, kunci, u, '02-membaca');
+
+          // Lembar terbuka: identitas masuk kuning, blok mencocokkan alat, foto
+          // dibaca di latar (dialog memproses).
+          tahanBaca.complete();
+          await _tunggu(
+            tester,
+            () => find.byKey(kunciBlok).evaluate().isNotEmpty,
+          );
+          await _tunggu(
+            tester,
+            () => find
+                .byKey(const ValueKey('identitas-cocok'))
+                .evaluate()
+                .isNotEmpty,
+          );
+          await tester.pump(const Duration(milliseconds: 600));
+          await potret(tester, kunci, u, '03-lembar-terbuka');
+
+          // Cek hasil pindai.
+          tahanMesin.complete();
+          await _tunggu(
+            tester,
+            () => find.textContaining('Cek Hasil').evaluate().isNotEmpty,
+            maks: 80,
+          );
+          await _tenang(tester);
+          await potret(tester, kunci, u, '04-cek-hasil');
+
+          // Teknisi mencentang satu per satu, lalu memasukkan.
+          // Tanda cek adalah SAKELAR: yang belum dicek berikon lingkaran
+          // kosong; ketuk yang pertama sampai tidak ada lagi.
+          final belumDicek = find.descendant(
+            of: find.byType(FotoReviewScreen),
+            matching: find.byIcon(Icons.check_circle_outline),
+          );
+          for (var n = 0; n < 30 && belumDicek.evaluate().isNotEmpty; n++) {
+            await tester.ensureVisible(belumDicek.first);
+            await tester.pump();
+            await tester.tap(belumDicek.first);
+            await tester.pump();
+          }
+          await tester.pump();
+          await tester.tap(find.byType(FilledButton).last);
+          await _tenang(tester);
+          await _bersihkanSnack(tester);
+          await tester.pump(const Duration(milliseconds: 300));
+          await potret(tester, kunci, u, '05-lembar-terisi');
+
+          expect(tester.takeException(), isNull);
         });
-        await _tenang(tester);
-        await potret(tester, kunci, u, '01-beranda');
-
-        // Kamera = layar sistem (tidak digambar); foto -> membaca.
-        final tombol = find.byKey(TombolPindaiLembar.kunciTombol);
-        expect(tombol, findsOneWidget);
-        await tester.ensureVisible(tombol);
-        await tester.pump();
-        await tester.tap(tombol);
-        await tester.pump();
-        await _tunggu(
-          tester,
-          () =>
-              find.textContaining('Mengenali').evaluate().isNotEmpty ||
-              find.textContaining('Membaca').evaluate().isNotEmpty,
-        );
-        await potret(tester, kunci, u, '02-membaca');
-
-        // Lembar terbuka: identitas masuk kuning, blok mencocokkan alat, foto
-        // dibaca di latar (dialog memproses).
-        tahanBaca.complete();
-        await _tunggu(
-          tester,
-          () => find.byKey(kunciBlok).evaluate().isNotEmpty,
-        );
-        await _tunggu(
-          tester,
-          () => find
-              .byKey(const ValueKey('identitas-cocok'))
-              .evaluate()
-              .isNotEmpty,
-        );
-        await tester.pump(const Duration(milliseconds: 600));
-        await potret(tester, kunci, u, '03-lembar-terbuka');
-
-        // Cek hasil pindai.
-        tahanMesin.complete();
-        await _tunggu(
-          tester,
-          () => find.textContaining('Cek Hasil').evaluate().isNotEmpty,
-          maks: 80,
-        );
-        await _tenang(tester);
-        await potret(tester, kunci, u, '04-cek-hasil');
-
-        // Teknisi mencentang satu per satu, lalu memasukkan.
-        final cek = find.byWidgetPredicate(
-          (w) =>
-              w.key is ValueKey &&
-              '${(w.key as ValueKey).value}'.startsWith('cek-'),
-        );
-        for (var i = 0; i < cek.evaluate().length; i++) {
-          await tester.ensureVisible(cek.at(i));
-          await tester.tap(cek.at(i));
-        }
-        await tester.pump();
-        await tester.tap(find.byType(FilledButton).last);
-        await _tenang(tester);
-        _bersihkanSnack(tester);
-        await tester.pump(const Duration(milliseconds: 300));
-        await potret(tester, kunci, u, '05-lembar-terisi');
-
-        expect(tester.takeException(), isNull);
       }, skip: lewati != null);
     }
   }
@@ -695,34 +760,36 @@ void main() {
   // SEBELUM (1.0.819): kartu pilihan alat setelah foto -----------------------
   if (hanya == null || hanya == 'sebelum') {
     testWidgets('sebelum - 392', (tester) async {
-      const u = _Ukuran('392', 392, 852, 1.0);
-      aturLayar(tester, u);
-      final kunci = GlobalKey();
-      final d = _Dunia();
-      await tester.pumpWidget(
-        _app(
-          home: Scaffold(
-            body: Builder(
-              builder: (context) => Center(
-                child: FilledButton(
-                  onPressed: () => tampilkanPilihAlatRingkas(
-                    context,
-                    jenis: 'pH Meter',
-                    alat: [_alat14, _a(21, 'B628755901')],
+      await denganBayangan(() async {
+        const u = _Ukuran('392', 392, 852, 1.0);
+        aturLayar(tester, u);
+        final kunci = GlobalKey();
+        final d = _Dunia();
+        await tester.pumpWidget(
+          _app(
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => Center(
+                  child: FilledButton(
+                    onPressed: () => tampilkanPilihAlatRingkas(
+                      context,
+                      jenis: 'pH Meter',
+                      alat: [_alat14, _a(21, 'B628755901')],
+                    ),
+                    child: const Text('foto'),
                   ),
-                  child: const Text('foto'),
                 ),
               ),
             ),
+            dunia: d,
+            u: u,
+            kunci: kunci,
           ),
-          dunia: d,
-          u: u,
-          kunci: kunci,
-        ),
-      );
-      await tester.tap(find.text('foto'));
-      await _tenang(tester);
-      await potret(tester, kunci, u, '00-SEBELUM-1.0.819-kartu-pilih-alat');
+        );
+        await tester.tap(find.text('foto'));
+        await _tenang(tester);
+        await potret(tester, kunci, u, '00-SEBELUM-1.0.819-kartu-pilih-alat');
+      });
     }, skip: lewati != null);
   }
 }

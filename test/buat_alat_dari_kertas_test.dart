@@ -280,6 +280,11 @@ void main() {
         final kedua = await p.jalankan(_data());
         expect(kedua, isA<AlatSiap>());
         expect(pt.didaftarkan, 1, reason: 'PT tidak kembar');
+        expect(
+          pt.jumlahCari,
+          1,
+          reason: 'PT yang sudah beres dipakai ulang tanpa mencari lagi',
+        );
         expect(layanan.dikirim, hasLength(1));
       },
     );

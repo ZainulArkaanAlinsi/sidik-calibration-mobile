@@ -128,4 +128,46 @@ void main() {
       },
     );
   });
+
+  group('draf lokal: identitas kertas tanpa alat bertahan di HP', () {
+    test('salinan HP membawa saran kuning (belum dicek) dan alat tetap null, '
+        'jadi draf "alat belum dibuat" tidak kehilangan apa pun', () {
+      final i = _isian();
+      i.terapkanIdentitasKertas(_id);
+      final salinan = i.salinanLokal();
+
+      final baru = _isian();
+      baru.pulihkanSalinanLokal(salinan);
+
+      expect(
+        baru.alat,
+        isNull,
+        reason: 'belum ada alat: gerbang kirim menahan',
+      );
+      expect(baru.teks['alat_serial_number']!.text, 'B628755900');
+      expect(baru.teks['pemilik_nama']!.text, 'PT Tirta Contoh Mandiri');
+      expect(
+        baru.isianDariFoto,
+        containsAll(['alat_serial_number', 'pemilik_nama']),
+      );
+      // Masih WAJIB dicek: dipulihkan tidak berarti sudah dikonfirmasi.
+      expect(baru.jumlahPerluCek, i.jumlahPerluCek);
+      expect(baru.jumlahPerluCek, greaterThan(0));
+    });
+
+    test(
+      'yang sudah dikonfirmasi teknisi tetap terkonfirmasi sesudah pulih',
+      () {
+        final i = _isian();
+        i.terapkanIdentitasKertas(_id);
+        i.konfirmasiSelCek('isian|alat_serial_number');
+        final sebelum = i.jumlahPerluCek;
+
+        final baru = _isian();
+        baru.pulihkanSalinanLokal(i.salinanLokal());
+
+        expect(baru.jumlahPerluCek, sebelum);
+      },
+    );
+  });
 }

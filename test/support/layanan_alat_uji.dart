@@ -114,19 +114,26 @@ class PtUji implements CustomerLookupService {
   final List<CustomerLookup> _ada;
   final List<CustomerLookup> mirip;
   int didaftarkan = 0;
+
+  /// Berapa kali PT dicari (`GET /customers/lookup`).
+  int jumlahCari = 0;
   bool? terakhirTetapBuat;
 
   @override
-  Future<List<CustomerLookup>> cari(String token, {String? search}) async => [
-    for (final c in _ada)
-      // Seperti `CustomerController::lookup()`: nama dinormalkan (tanda baca
-      // dan spasi ganda diratakan) sebelum dicari.
-      if ((search ?? '').isEmpty ||
-          SimpananPelanggan.normalkan(
-            c.nama,
-          ).contains(SimpananPelanggan.normalkan(search ?? '')))
-        c,
-  ];
+  Future<List<CustomerLookup>> cari(String token, {String? search}) async {
+    jumlahCari++;
+
+    return [
+      for (final c in _ada)
+        // Seperti `CustomerController::lookup()`: nama dinormalkan (tanda baca
+        // dan spasi ganda diratakan) sebelum dicari.
+        if ((search ?? '').isEmpty ||
+            SimpananPelanggan.normalkan(
+              c.nama,
+            ).contains(SimpananPelanggan.normalkan(search ?? '')))
+          c,
+    ];
+  }
 
   @override
   Future<HasilDirektori> cariDirektori(

@@ -133,23 +133,25 @@ class _Harness {
           home: Scaffold(
             resizeToAvoidBottomInset: false,
             body: StatefulBuilder(
-              builder: (context, set) => Column(
-                children: [
-                  // Seperti di lembar: jatah sendiri (`Flexible`), lembar di bawah.
-                  Flexible(
-                    child: BlokIdentitasFoto(
+              // Seperti di lembar: blok setinggi isinya (dibatasi terhadap jatah),
+              // lembar di bawahnya mendapat sisanya.
+              builder: (context, set) => LayoutBuilder(
+                builder: (context, c) => Column(
+                  children: [
+                    BlokIdentitasFoto(
                       identitas: identitas,
                       isian: isian,
                       profil: 'ph_meter',
                       bekalAlatBaru: bekal,
+                      tinggiMaks: c.maxHeight,
                       onBerubah: () {
                         berubah++;
                         set(() {});
                       },
                     ),
-                  ),
-                  const Expanded(child: SizedBox.expand()),
-                ],
+                    const Expanded(child: SizedBox.expand()),
+                  ],
+                ),
               ),
             ),
           ),
