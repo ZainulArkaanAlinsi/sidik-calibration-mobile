@@ -14,6 +14,7 @@ import '../../providers/history_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/izin_provider.dart';
 import '../../providers/perhitungan_provider.dart';
+import '../../services/auth_service.dart' show ApiException;
 import '../../services/kode_galat.dart';
 import '../../services/perhitungan_service.dart' show HasilApprove;
 import '../../widgets/app_button.dart';
@@ -105,9 +106,17 @@ class _PerhitunganScreenState extends ConsumerState<PerhitunganScreen> {
       await aksi();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('$e')));
+        // 404 = sesi diarsipkan/dihapus admin selagi layar ini terbuka. Teks
+        // servernya nama kelas model ("No query results for model [...]"),
+        // jadi kalimatnya dari STATUS; galat lain tetap membawa pesannya.
+        final tidakAda = e is ApiException && e.status == 404;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              tidakAda ? AppLocalizations.of(context).perhitSesiTidakAda : '$e',
+            ),
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _sibuk = false);
