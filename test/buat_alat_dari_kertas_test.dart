@@ -1,153 +1,15 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sidik_calibration/models/customer_lookup.dart';
-import 'package:sidik_calibration/models/equipment.dart';
 import 'package:sidik_calibration/models/equipment_lookup.dart';
-import 'package:sidik_calibration/models/perusahaan_direktori.dart';
 import 'package:sidik_calibration/services/auth_service.dart';
 import 'package:sidik_calibration/services/buat_alat_dari_kertas.dart';
-import 'package:sidik_calibration/services/customer_lookup_service.dart';
-import 'package:sidik_calibration/services/equipment_lookup_service.dart';
-import 'package:sidik_calibration/services/equipment_service.dart';
-import 'package:sidik_calibration/services/identitas_kertas.dart'
-    show kunciSeri;
-import 'package:sidik_calibration/services/simpanan_pelanggan.dart'
-    show SimpananPelanggan;
+
+import 'support/layanan_alat_uji.dart';
 
 /// "Buat dan lanjut": PT lalu alat, IDEMPOTEN. Yang dijaga bukan bentuk
 /// panelnya tetapi aturan keras: tidak ada duplikat (seri dicek sebelum
 /// membuat, 422 seri kembar dijawab dengan alat yang ada), PT mirip tidak
 /// ditembus diam-diam, dan gagal sebagian aman diulang.
-
-/// Pencarian alat tiruan: daftar yang bisa berubah antar-panggilan.
-class _Cari implements EquipmentLookupService {
-  _Cari([List<EquipmentLookup>? awal]) : alat = [...?awal];
-
-  final List<EquipmentLookup> alat;
-  int dipanggil = 0;
-
-  @override
-  Future<List<EquipmentLookup>> cari(
-    String token, {
-    String? search,
-    String? kategori,
-    String? profil,
-  }) async {
-    dipanggil++;
-    final q = kunciSeri(search ?? '');
-
-    return [
-      for (final a in alat)
-        if (q.isNotEmpty && kunciSeri(a.serialNumber).contains(q)) a,
-    ];
-  }
-}
-
-/// `POST /equipments` tiruan: mencatat yang dikirim, bisa diprogram gagal.
-class _Layanan implements EquipmentService {
-  _Layanan({this.sebelumSimpan});
-
-  /// Dipanggil sebelum menyimpan; boleh melempar atau mengubah dunia (mis.
-  /// menambah alat kembar, meniru balapan).
-  Future<void> Function(Equipment data)? sebelumSimpan;
-
-  final dikirim = <Equipment>[];
-  int _id = 500;
-
-  @override
-  Future<Equipment> simpan(String token, Equipment data) async {
-    await sebelumSimpan?.call(data);
-    dikirim.add(data);
-
-    return Equipment(
-      id: _id++,
-      namaAlat: data.namaAlat,
-      serialNumber: data.serialNumber,
-      kategori: data.kategori,
-      status: data.status,
-      merk: data.merk,
-      model: data.model,
-      noIdentifikasi: data.noIdentifikasi,
-      pelangganId: data.pelangganId,
-      pelangganNama: data.pelangganNama,
-      namaAlatKemampuan: data.namaAlatKemampuan,
-    );
-  }
-
-  @override
-  Future<EquipmentPage> daftar(
-    String token, {
-    String? search,
-    String? kategori,
-    String? status,
-    int? pelangganId,
-    int? jatuhTempoDalam,
-    bool termasukLewat = false,
-    String? urut,
-    int page = 1,
-  }) => throw UnimplementedError();
-
-  @override
-  Future<Equipment> ubah(String token, Equipment data) =>
-      throw UnimplementedError();
-
-  @override
-  Future<void> hapus(String token, int id) => throw UnimplementedError();
-}
-
-/// PT tiruan: daftar PT yang ada, hitung `daftarkan`, dan jawaban 409 mirip.
-class _Pt implements CustomerLookupService {
-  _Pt({List<CustomerLookup>? ada, this.mirip = const []}) : _ada = [...?ada];
-
-  final List<CustomerLookup> _ada;
-  final List<CustomerLookup> mirip;
-  int didaftarkan = 0;
-  bool? terakhirTetapBuat;
-
-  @override
-  Future<List<CustomerLookup>> cari(String token, {String? search}) async => [
-    for (final c in _ada)
-      // Seperti `CustomerController::lookup()`: nama dinormalkan (tanda baca
-      // dan spasi ganda diratakan) sebelum dicari.
-      if ((search ?? '').isEmpty ||
-          SimpananPelanggan.normalkan(
-            c.nama,
-          ).contains(SimpananPelanggan.normalkan(search ?? '')))
-        c,
-  ];
-
-  @override
-  Future<HasilDirektori> cariDirektori(
-    String token, {
-    required String search,
-  }) => throw UnimplementedError();
-
-  @override
-  Future<CustomerLookup> daftarkan(
-    String token, {
-    required String nama,
-    String? alamat,
-    String? direktoriRef,
-    bool tetapBuat = false,
-  }) async {
-    terakhirTetapBuat = tetapBuat;
-    if (mirip.isNotEmpty && !tetapBuat) {
-      throw PelangganMiripException(
-        pesan: 'Ada pelanggan yang mirip.',
-        kandidat: mirip,
-        namaPersisSudahAda: false,
-      );
-    }
-    didaftarkan++;
-    final baru = CustomerLookup(
-      id: 900 + didaftarkan,
-      nama: nama,
-      alamat: alamat,
-    );
-    _ada.add(baru);
-
-    return baru;
-  }
-}
 
 EquipmentLookup _a(
   int id,
@@ -176,22 +38,29 @@ DataAlatBaru _data({
   namaAlatKemampuan: 'pH Meter',
 );
 
-PembuatAlatDariKertas _pembuat(_Pt pt, _Cari cari, _Layanan layanan) =>
-    PembuatAlatDariKertas(
-      pelanggan: pt,
-      cariAlat: cari,
-      layananAlat: layanan,
-      token: () async => 'tok',
-    );
+PembuatAlatDariKertas _pembuat(
+  PtUji pt,
+  PencariAlatUji cari,
+  LayananAlatUji layanan,
+) => PembuatAlatDariKertas(
+  pelanggan: pt,
+  cariAlat: cari,
+  layananAlat: layanan,
+  token: () async => 'tok',
+);
 
 void main() {
   group('alat BARU dan PT BARU', () {
     test(
       'PT didaftarkan, alat dibuat memakai id PT itu dan jenis dari lembar',
       () async {
-        final pt = _Pt();
-        final layanan = _Layanan();
-        final h = await _pembuat(pt, _Cari(), layanan).jalankan(_data());
+        final pt = PtUji();
+        final layanan = LayananAlatUji();
+        final h = await _pembuat(
+          pt,
+          PencariAlatUji(),
+          layanan,
+        ).jalankan(_data());
 
         expect(h, isA<AlatSiap>());
         final siap = h as AlatSiap;
@@ -213,11 +82,15 @@ void main() {
     test(
       'PT yang sama (abaikan tanda baca dan huruf) dipakai, TIDAK didaftarkan',
       () async {
-        final pt = _Pt(
+        final pt = PtUji(
           ada: const [CustomerLookup(id: 7, nama: 'PT. Tirta  Contoh')],
         );
-        final layanan = _Layanan();
-        final h = await _pembuat(pt, _Cari(), layanan).jalankan(_data());
+        final layanan = LayananAlatUji();
+        final h = await _pembuat(
+          pt,
+          PencariAlatUji(),
+          layanan,
+        ).jalankan(_data());
 
         expect(h, isA<AlatSiap>());
         expect(pt.didaftarkan, 0, reason: 'jangan melahirkan PT kembar');
@@ -230,11 +103,11 @@ void main() {
     test(
       'seri sudah terdaftar (sejenis): alat yang ada dipakai, tidak ada POST',
       () async {
-        final pt = _Pt();
-        final layanan = _Layanan();
+        final pt = PtUji();
+        final layanan = LayananAlatUji();
         final h = await _pembuat(
           pt,
-          _Cari([_a(12, 'SN-4471')]),
+          PencariAlatUji([_a(12, 'SN-4471')]),
           layanan,
         ).jalankan(_data(seri: 'sn 4471'));
 
@@ -253,11 +126,11 @@ void main() {
     test(
       'seri milik alat JENIS LAIN: ditolak dengan alasan, tidak dibuat',
       () async {
-        final pt = _Pt();
-        final layanan = _Layanan();
+        final pt = PtUji();
+        final layanan = LayananAlatUji();
         final h = await _pembuat(
           pt,
-          _Cari([_a(12, 'SN-4471', kategori: 'suhu')]),
+          PencariAlatUji([_a(12, 'SN-4471', kategori: 'suhu')]),
           layanan,
         ).jalankan(_data());
 
@@ -271,8 +144,8 @@ void main() {
     test(
       'server menolak seri kembar (422, balapan): alat yang ada dipakai',
       () async {
-        final cari = _Cari();
-        final layanan = _Layanan(
+        final cari = PencariAlatUji();
+        final layanan = LayananAlatUji(
           sebelumSimpan: (_) async {
             // Di antara pengecekan dan POST, perangkat lain mendaftarkannya.
             cari.alat.add(_a(33, 'SN-4471'));
@@ -288,7 +161,7 @@ void main() {
           },
         );
 
-        final h = await _pembuat(_Pt(), cari, layanan).jalankan(_data());
+        final h = await _pembuat(PtUji(), cari, layanan).jalankan(_data());
 
         expect(h, isA<AlatSiap>());
         expect((h as AlatSiap).sudahAda, isTrue);
@@ -299,7 +172,7 @@ void main() {
     test(
       '422 yang BUKAN soal seri tidak disamarkan: gagal dengan pesannya',
       () async {
-        final layanan = _Layanan(
+        final layanan = LayananAlatUji(
           sebelumSimpan: (_) async => throw const ApiException(
             'Kategori tidak aktif.',
             status: 422,
@@ -311,7 +184,11 @@ void main() {
           ),
         );
 
-        final h = await _pembuat(_Pt(), _Cari(), layanan).jalankan(_data());
+        final h = await _pembuat(
+          PtUji(),
+          PencariAlatUji(),
+          layanan,
+        ).jalankan(_data());
 
         expect(h, isA<GagalBuatAlat>());
         expect(
@@ -331,9 +208,13 @@ void main() {
     test(
       '409 mirip: berhenti dengan kandidat, belum ada alat dan PT dibuat',
       () async {
-        final pt = _Pt(mirip: mirip);
-        final layanan = _Layanan();
-        final h = await _pembuat(pt, _Cari(), layanan).jalankan(_data());
+        final pt = PtUji(mirip: mirip);
+        final layanan = LayananAlatUji();
+        final h = await _pembuat(
+          pt,
+          PencariAlatUji(),
+          layanan,
+        ).jalankan(_data());
 
         expect(h, isA<PtPerluDipilih>());
         expect((h as PtPerluDipilih).kandidat.map((c) => c.id), [3, 4]);
@@ -345,9 +226,9 @@ void main() {
     test(
       'teknisi memilih kandidat: alat dibuat untuk PT itu, PT tidak baru',
       () async {
-        final pt = _Pt(mirip: mirip);
-        final layanan = _Layanan();
-        final p = _pembuat(pt, _Cari(), layanan);
+        final pt = PtUji(mirip: mirip);
+        final layanan = LayananAlatUji();
+        final p = _pembuat(pt, PencariAlatUji(), layanan);
 
         await p.jalankan(_data());
         final h = await p.jalankan(_data(), ptDipilih: mirip.last);
@@ -361,9 +242,9 @@ void main() {
     test(
       'teknisi menegaskan PT lain: tetap_buat dikirim, baru lalu dibuat',
       () async {
-        final pt = _Pt(mirip: mirip);
-        final layanan = _Layanan();
-        final p = _pembuat(pt, _Cari(), layanan);
+        final pt = PtUji(mirip: mirip);
+        final layanan = LayananAlatUji();
+        final p = _pembuat(pt, PencariAlatUji(), layanan);
 
         await p.jalankan(_data());
         final h = await p.jalankan(_data(), tetapBuatPt: true);
@@ -380,9 +261,9 @@ void main() {
     test(
       'PT berhasil, alat gagal (sinyal): ulang tidak mendaftarkan PT lagi',
       () async {
-        final pt = _Pt();
+        final pt = PtUji();
         var gagalSekali = true;
-        final layanan = _Layanan(
+        final layanan = LayananAlatUji(
           sebelumSimpan: (_) async {
             if (gagalSekali) {
               gagalSekali = false;
@@ -390,7 +271,7 @@ void main() {
             }
           },
         );
-        final p = _pembuat(pt, _Cari(), layanan);
+        final p = _pembuat(pt, PencariAlatUji(), layanan);
 
         final pertama = await p.jalankan(_data());
         expect(pertama, isA<GagalBuatAlat>());
@@ -406,9 +287,9 @@ void main() {
     test(
       'nama PT diubah teknisi sesudah gagal: PT baru dicari, bukan memo lama',
       () async {
-        final pt = _Pt();
+        final pt = PtUji();
         var gagalSekali = true;
-        final layanan = _Layanan(
+        final layanan = LayananAlatUji(
           sebelumSimpan: (_) async {
             if (gagalSekali) {
               gagalSekali = false;
@@ -416,7 +297,7 @@ void main() {
             }
           },
         );
-        final p = _pembuat(pt, _Cari(), layanan);
+        final p = _pembuat(pt, PencariAlatUji(), layanan);
 
         await p.jalankan(_data(pemilik: 'PT Salah Baca'));
         final h = await p.jalankan(_data(pemilik: 'PT Tirta Contoh'));
@@ -429,8 +310,8 @@ void main() {
     test(
       'sesudah berhasil, panggilan ulang dengan seri sama tidak membuat lagi',
       () async {
-        final layanan = _Layanan();
-        final p = _pembuat(_Pt(), _Cari(), layanan);
+        final layanan = LayananAlatUji();
+        final p = _pembuat(PtUji(), PencariAlatUji(), layanan);
 
         final a = await p.jalankan(_data()) as AlatSiap;
         final b = await p.jalankan(_data()) as AlatSiap;
@@ -441,8 +322,8 @@ void main() {
     );
 
     test('dua ketukan bersamaan: SATU kerja, SATU alat', () async {
-      final layanan = _Layanan();
-      final p = _pembuat(_Pt(), _Cari(), layanan);
+      final layanan = LayananAlatUji();
+      final p = _pembuat(PtUji(), PencariAlatUji(), layanan);
 
       final hasil = await Future.wait([
         p.jalankan(_data()),
@@ -454,10 +335,14 @@ void main() {
     });
 
     test('galat tak terduga dibungkus GagalBuatAlat, tidak melempar', () async {
-      final layanan = _Layanan(
+      final layanan = LayananAlatUji(
         sebelumSimpan: (_) async => throw StateError('aneh'),
       );
-      final h = await _pembuat(_Pt(), _Cari(), layanan).jalankan(_data());
+      final h = await _pembuat(
+        PtUji(),
+        PencariAlatUji(),
+        layanan,
+      ).jalankan(_data());
 
       expect(h, isA<GagalBuatAlat>());
     });

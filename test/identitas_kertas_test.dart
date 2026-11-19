@@ -1,127 +1,14 @@
-import 'dart:ui' show Rect;
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sidik_calibration/services/identitas_kertas.dart';
 import 'package:sidik_calibration/services/pembaca_halaman.dart'
     show TeksTerbaca;
 
+import 'support/halaman_identitas_uji.dart';
+
 /// Pembaca identitas dari teks seluruh halaman, dengan TEKS SINTETIS: tidak ada
 /// foto asli lab di repo. Letak label meniru formulir kosong SIDIK-FM-CAL
 /// (koordinat dalam point halaman A4 lanskap 792 x 612, dikali [_skala] seperti
 /// foto), nilainya karangan.
-const _skala = 4.0;
-
-/// Satu elemen teks (satu kata) di (x0, y0)-(x1, y1) point.
-TeksTerbaca _e(
-  double x0,
-  double y0,
-  double x1,
-  double y1,
-  String teks, {
-  double? yakin,
-}) => (
-  teks: teks,
-  kotak: Rect.fromLTRB(x0 * _skala, y0 * _skala, x1 * _skala, y1 * _skala),
-  keyakinan: yakin,
-);
-
-/// Baris berlabel pH 0509: label di x=27..118, nilai mulai x=125.
-List<TeksTerbaca> _labelPh({
-  String? nama,
-  String? model,
-  String? seri,
-  String? merk,
-  String? pemilik,
-  List<String> alamat = const [],
-  String? terima,
-  String? kalibrasi,
-  bool cetakanTh = true,
-}) {
-  final hasil = <TeksTerbaca>[
-    _e(44, 96, 63, 108, 'PT.'),
-    _e(66, 96, 98, 108, 'SIDIK'),
-    _e(300, 96, 363, 108, 'Calibration'),
-    _e(261, 125, 291, 132, 'Received'),
-    _e(293, 125, 308, 132, 'Date'),
-    _e(312, 123, 315, 132, ':'),
-    _e(255, 137, 291, 144, 'Calibration'),
-    _e(293, 137, 308, 144, 'Date'),
-    _e(312, 135, 315, 144, ':'),
-    _e(69, 157, 121, 165, 'EQUIPMENT'),
-    _e(123, 157, 163, 165, 'IDENTITY'),
-    _e(165, 157, 184, 165, 'AND'),
-    _e(186, 157, 235, 165, 'CUSTOMER'),
-    _e(238, 157, 262, 165, 'DATA'),
-    // 1. Name
-    _e(27, 184, 32, 191, '1.'),
-    _e(38, 184, 57, 191, 'Name'),
-    _e(115, 184, 118, 191, ':'),
-    // 2. Range/Resolution + satuan cetak
-    _e(27, 197, 32, 204, '2.'),
-    _e(38, 197, 96, 204, 'Range/Resolution'),
-    _e(115, 197, 118, 204, ':'),
-    _e(185, 197, 194, 204, 'pH'),
-    _e(185, 208, 194, 215, 'pH'),
-    // 3. Type/Model
-    _e(27, 219, 32, 226, '3.'),
-    _e(38, 219, 76, 226, 'Type/Model'),
-    _e(115, 218, 118, 225, ':'),
-    // 4. Serial Number/LPI
-    _e(27, 230, 32, 237, '4.'),
-    _e(38, 230, 57, 237, 'Serial'),
-    _e(58, 230, 97, 237, 'Number/LPI'),
-    _e(115, 229, 118, 236, ':'),
-    // 5. Merk/Manufacture
-    _e(27, 241, 32, 248, '5.'),
-    _e(38, 241, 97, 248, 'Merk/Manufacture'),
-    _e(115, 240, 118, 247, ':'),
-    // OWNER
-    _e(27, 268, 60, 275, 'OWNER'),
-    _e(27, 281, 32, 288, '1.'),
-    _e(38, 281, 57, 288, 'Name'),
-    _e(115, 281, 118, 288, ':'),
-    _e(27, 292, 32, 299, '2.'),
-    _e(38, 292, 75, 299, 'Address'),
-    _e(115, 292, 118, 299, ':'),
-  ];
-
-  if (cetakanTh) {
-    hasil.addAll([
-      _e(38, 255, 100, 262, 'Thermohygro'),
-      _e(150, 255, 175, 262, 'Insitu:'),
-      _e(180, 255, 195, 262, 'TH-6'),
-      _e(150, 268, 175, 275, 'Inlab:'),
-      _e(240, 281, 255, 288, 'TH-2'),
-      _e(260, 281, 275, 288, 'TH-7'),
-      _e(150, 303, 165, 310, 'TH-4'),
-    ]);
-  }
-
-  // Tulisan tangan.
-  void tulis(double y, String? teks, {double x = 125}) {
-    if (teks == null) return;
-    var kiri = x;
-    for (final kata in teks.split(' ')) {
-      final lebar = 6.0 * kata.length + 2;
-      hasil.add(_e(kiri, y, kiri + lebar, y + 8, kata));
-      kiri += lebar + 4;
-    }
-  }
-
-  tulis(183, nama);
-  tulis(218, model);
-  tulis(229, seri);
-  tulis(240, merk);
-  tulis(280, pemilik);
-  for (var i = 0; i < alamat.length; i++) {
-    tulis(291 + i * 11, alamat[i]);
-  }
-  tulis(123, terima, x: 330);
-  tulis(135, kalibrasi, x: 330);
-
-  return hasil;
-}
-
 void main() {
   final hariIni = DateTime(2026, 11, 19);
 
@@ -129,7 +16,7 @@ void main() {
     test(
       'label dan cetakan saja (TH-n, satuan, Insitu/Inlab) = semua kosong',
       () {
-        final id = bacaIdentitasKertas(_labelPh(), sekarang: hariIni);
+        final id = bacaIdentitasKertas(halamanLabelPh(), sekarang: hariIni);
 
         expect(id.adaIsi, isFalse, reason: '$id');
         expect(id.namaAlat, isNull);
@@ -145,13 +32,13 @@ void main() {
       'halaman tanpa teks atau terlalu sedikit teks = kosong, tidak melempar',
       () {
         expect(bacaIdentitasKertas(const []).adaIsi, isFalse);
-        expect(bacaIdentitasKertas([_e(0, 0, 10, 10, 'Halo')]).adaIsi, isFalse);
+        expect(bacaIdentitasKertas([el(0, 0, 10, 10, 'Halo')]).adaIsi, isFalse);
       },
     );
   });
 
   group('pH 0509: tulisan teknisi di kanan label cetak', () {
-    final penuh = _labelPh(
+    final penuh = halamanLabelPh(
       nama: 'pH Meter',
       model: 'Five Easy',
       seri: 'B628755900',
@@ -179,7 +66,7 @@ void main() {
       '"1. Name" kedua (di bawah judul OWNER) = pemilik, bukan nama alat',
       () {
         final id = bacaIdentitasKertas(
-          _labelPh(nama: 'pH Meter', pemilik: 'CV Sentosa'),
+          halamanLabelPh(nama: 'pH Meter', pemilik: 'CV Sentosa'),
           sekarang: hariIni,
         );
 
@@ -190,7 +77,7 @@ void main() {
 
     test('hanya satu bidang terisi: yang lain tetap kosong', () {
       final id = bacaIdentitasKertas(
-        _labelPh(seri: 'SN-4471'),
+        halamanLabelPh(seri: 'SN-4471'),
         sekarang: hariIni,
       );
 
@@ -203,7 +90,7 @@ void main() {
 
     test('satuan cetak di dalam nama ("pH Meter") tidak dibuang', () {
       final id = bacaIdentitasKertas(
-        _labelPh(nama: 'pH Meter'),
+        halamanLabelPh(nama: 'pH Meter'),
         sekarang: hariIni,
       );
 
@@ -214,7 +101,7 @@ void main() {
       'nilai serial dengan spasi dipertahankan apa adanya; kunci merapikan',
       () {
         final id = bacaIdentitasKertas(
-          _labelPh(seri: 'B 628 755 900'),
+          halamanLabelPh(seri: 'B 628 755 900'),
           sekarang: hariIni,
         );
 
@@ -225,7 +112,7 @@ void main() {
 
     test('seri tanpa satu angka pun tidak diterima (bukan nomor seri)', () {
       final id = bacaIdentitasKertas(
-        _labelPh(seri: 'Mettler'),
+        halamanLabelPh(seri: 'Mettler'),
         sekarang: hariIni,
       );
 
@@ -233,7 +120,7 @@ void main() {
     });
 
     test('keyakinan pengenal rendah (< 0,35) = bidang dikosongkan', () {
-      final lembar = _labelPh(seri: 'B628755900', merk: 'Mettler');
+      final lembar = halamanLabelPh(seri: 'B628755900', merk: 'Mettler');
       final lemah = [
         for (final t in lembar)
           if (t.teks == 'Mettler')
@@ -252,7 +139,7 @@ void main() {
 
     test('tanggal masa depan jauh (salah baca tahun) dikosongkan', () {
       final id = bacaIdentitasKertas(
-        _labelPh(kalibrasi: '13/11/2029'),
+        halamanLabelPh(kalibrasi: '13/11/2029'),
         sekarang: hariIni,
       );
 
@@ -265,54 +152,54 @@ void main() {
     // Cust. / Alamat Cust.; kolom kanan Rentang Ukur / Tgl. Diterima / Tgl.
     // Kalibrasi.
     List<TeksTerbaca> thermocouple() => [
-      _e(80, 60, 200, 70, 'Identitas'),
-      _e(204, 60, 230, 70, 'Alat'),
-      _e(234, 60, 250, 70, 'dan'),
-      _e(254, 60, 275, 70, 'Data'),
-      _e(279, 60, 320, 70, 'Customer'),
-      _e(20, 80, 38, 88, 'Nama'),
-      _e(40, 80, 56, 88, 'Alat'),
-      _e(90, 80, 93, 88, ':'),
-      _e(110, 79, 150, 89, 'Termokopel', yakin: 0.8),
-      _e(300, 80, 330, 88, 'Rentang'),
-      _e(332, 80, 350, 88, 'Ukur'),
-      _e(380, 80, 383, 88, ':'),
-      _e(420, 80, 435, 88, 'Tgl.'),
-      _e(437, 80, 470, 88, 'Diterima'),
-      _e(474, 80, 477, 88, ':'),
-      _e(485, 79, 540, 89, '12-11-26'),
-      _e(20, 92, 36, 100, 'Merk'),
-      _e(90, 92, 93, 100, ':'),
-      _e(110, 91, 140, 101, 'Fluke'),
-      _e(20, 104, 36, 112, 'Type'),
-      _e(90, 104, 93, 112, ':'),
-      _e(110, 103, 130, 113, '52II'),
-      _e(300, 104, 340, 112, 'Kapasitas'),
-      _e(342, 104, 360, 112, 'Alat'),
-      _e(380, 104, 383, 112, ':'),
-      _e(420, 104, 435, 112, 'Tgl.'),
-      _e(437, 104, 480, 112, 'Kalibrasi'),
-      _e(484, 104, 487, 112, ':'),
-      _e(495, 103, 560, 113, '13.11.2026'),
-      _e(20, 116, 30, 124, 'No.'),
-      _e(32, 116, 45, 124, 'Seri'),
-      _e(90, 116, 93, 124, ':'),
-      _e(110, 115, 170, 125, 'FK-20193847'),
-      _e(20, 140, 38, 148, 'Nama'),
-      _e(40, 140, 62, 148, 'Cust.'),
-      _e(90, 140, 93, 148, ':'),
-      _e(110, 139, 130, 149, 'CV'),
-      _e(134, 139, 160, 149, 'Maju'),
-      _e(300, 140, 335, 148, 'Lokasi'),
-      _e(337, 140, 372, 148, 'Kalibrasi'),
-      _e(376, 140, 379, 148, ':'),
-      _e(385, 139, 410, 149, 'Inlab'),
-      _e(20, 152, 38, 160, 'Alamat'),
-      _e(40, 152, 62, 160, 'Cust.'),
-      _e(90, 152, 93, 160, ':'),
-      _e(110, 151, 140, 161, 'Jl.'),
-      _e(144, 151, 190, 161, 'Merdeka'),
-      _e(194, 151, 210, 161, '12'),
+      el(80, 60, 200, 70, 'Identitas'),
+      el(204, 60, 230, 70, 'Alat'),
+      el(234, 60, 250, 70, 'dan'),
+      el(254, 60, 275, 70, 'Data'),
+      el(279, 60, 320, 70, 'Customer'),
+      el(20, 80, 38, 88, 'Nama'),
+      el(40, 80, 56, 88, 'Alat'),
+      el(90, 80, 93, 88, ':'),
+      el(110, 79, 150, 89, 'Termokopel', yakin: 0.8),
+      el(300, 80, 330, 88, 'Rentang'),
+      el(332, 80, 350, 88, 'Ukur'),
+      el(380, 80, 383, 88, ':'),
+      el(420, 80, 435, 88, 'Tgl.'),
+      el(437, 80, 470, 88, 'Diterima'),
+      el(474, 80, 477, 88, ':'),
+      el(485, 79, 540, 89, '12-11-26'),
+      el(20, 92, 36, 100, 'Merk'),
+      el(90, 92, 93, 100, ':'),
+      el(110, 91, 140, 101, 'Fluke'),
+      el(20, 104, 36, 112, 'Type'),
+      el(90, 104, 93, 112, ':'),
+      el(110, 103, 130, 113, '52II'),
+      el(300, 104, 340, 112, 'Kapasitas'),
+      el(342, 104, 360, 112, 'Alat'),
+      el(380, 104, 383, 112, ':'),
+      el(420, 104, 435, 112, 'Tgl.'),
+      el(437, 104, 480, 112, 'Kalibrasi'),
+      el(484, 104, 487, 112, ':'),
+      el(495, 103, 560, 113, '13.11.2026'),
+      el(20, 116, 30, 124, 'No.'),
+      el(32, 116, 45, 124, 'Seri'),
+      el(90, 116, 93, 124, ':'),
+      el(110, 115, 170, 125, 'FK-20193847'),
+      el(20, 140, 38, 148, 'Nama'),
+      el(40, 140, 62, 148, 'Cust.'),
+      el(90, 140, 93, 148, ':'),
+      el(110, 139, 130, 149, 'CV'),
+      el(134, 139, 160, 149, 'Maju'),
+      el(300, 140, 335, 148, 'Lokasi'),
+      el(337, 140, 372, 148, 'Kalibrasi'),
+      el(376, 140, 379, 148, ':'),
+      el(385, 139, 410, 149, 'Inlab'),
+      el(20, 152, 38, 160, 'Alamat'),
+      el(40, 152, 62, 160, 'Cust.'),
+      el(90, 152, 93, 160, ':'),
+      el(110, 151, 140, 161, 'Jl.'),
+      el(144, 151, 190, 161, 'Merdeka'),
+      el(194, 151, 210, 161, '12'),
     ];
 
     test('label Indonesia, titik dua terpisah, dua kolom: semua terbaca', () {
@@ -346,17 +233,17 @@ void main() {
   group('bentuk label lain', () {
     test('"Owner :" dengan nilai di baris yang sama (Micrometer)', () {
       final id = bacaIdentitasKertas([
-        _e(10, 40, 40, 48, 'Owner'),
-        _e(80, 40, 83, 48, ':'),
-        _e(90, 39, 120, 49, 'PT'),
-        _e(124, 39, 170, 49, 'Sinar'),
-        _e(10, 52, 40, 60, 'Address'),
-        _e(80, 52, 83, 60, ':'),
-        _e(90, 51, 130, 61, 'Cikarang'),
-        _e(10, 64, 60, 72, 'Serial'),
-        _e(62, 64, 90, 72, 'Number'),
-        _e(80, 64, 83, 72, ':'),
-        _e(90, 63, 130, 73, 'MC-7731'),
+        el(10, 40, 40, 48, 'Owner'),
+        el(80, 40, 83, 48, ':'),
+        el(90, 39, 120, 49, 'PT'),
+        el(124, 39, 170, 49, 'Sinar'),
+        el(10, 52, 40, 60, 'Address'),
+        el(80, 52, 83, 60, ':'),
+        el(90, 51, 130, 61, 'Cikarang'),
+        el(10, 64, 60, 72, 'Serial'),
+        el(62, 64, 90, 72, 'Number'),
+        el(80, 64, 83, 72, ':'),
+        el(90, 63, 130, 73, 'MC-7731'),
       ], sekarang: hariIni);
 
       expect(id.pemilik, 'PT Sinar');
@@ -366,12 +253,12 @@ void main() {
 
     test('titik dua menempel pada label atau nilai ("Name:", ":Mettler")', () {
       final id = bacaIdentitasKertas([
-        _e(10, 40, 40, 48, 'Merk:'),
-        _e(50, 39, 100, 49, 'Mettler'),
-        _e(10, 52, 60, 60, 'Serial'),
-        _e(62, 52, 90, 60, 'Number'),
-        _e(92, 52, 150, 60, ':B628755900'),
-        _e(10, 64, 20, 72, 'x'),
+        el(10, 40, 40, 48, 'Merk:'),
+        el(50, 39, 100, 49, 'Mettler'),
+        el(10, 52, 60, 60, 'Serial'),
+        el(62, 52, 90, 60, 'Number'),
+        el(92, 52, 150, 60, ':B628755900'),
+        el(10, 64, 20, 72, 'x'),
       ], sekarang: hariIni);
 
       expect(id.merk, 'Mettler');
@@ -380,9 +267,9 @@ void main() {
 
     test('label dan nilai satu elemen ("Merk:Mettler") dipecah', () {
       final id = bacaIdentitasKertas([
-        _e(10, 40, 90, 48, 'Merk:Mettler'),
-        _e(10, 52, 90, 60, 'Serial:SN-8812'),
-        _e(10, 64, 20, 72, 'x'),
+        el(10, 40, 90, 48, 'Merk:Mettler'),
+        el(10, 52, 90, 60, 'Serial:SN-8812'),
+        el(10, 64, 20, 72, 'x'),
       ], sekarang: hariIni);
 
       expect(id.merk, 'Mettler');
@@ -391,13 +278,13 @@ void main() {
 
     test('"Name" dua kali tanpa judul OWNER: pertama alat, kedua pemilik', () {
       final id = bacaIdentitasKertas([
-        _e(10, 40, 40, 48, 'Name'),
-        _e(60, 40, 63, 48, ':'),
-        _e(70, 39, 110, 49, 'Neraca'),
-        _e(10, 80, 40, 88, 'Name'),
-        _e(60, 80, 63, 88, ':'),
-        _e(70, 79, 110, 89, 'PT'),
-        _e(114, 79, 150, 89, 'Aman'),
+        el(10, 40, 40, 48, 'Name'),
+        el(60, 40, 63, 48, ':'),
+        el(70, 39, 110, 49, 'Neraca'),
+        el(10, 80, 40, 88, 'Name'),
+        el(60, 80, 63, 88, ':'),
+        el(70, 79, 110, 89, 'PT'),
+        el(114, 79, 150, 89, 'Aman'),
       ], sekarang: hariIni);
 
       expect(id.namaAlat, 'Neraca');
@@ -406,11 +293,11 @@ void main() {
 
     test('nilai yang terlalu jauh dari label (kolom lain) tidak diambil', () {
       final id = bacaIdentitasKertas([
-        _e(10, 40, 40, 48, 'Merk'),
-        _e(50, 40, 53, 48, ':'),
-        _e(900, 39, 940, 49, 'Teks'),
-        _e(10, 60, 40, 68, 'x'),
-        _e(10, 80, 40, 88, 'y'),
+        el(10, 40, 40, 48, 'Merk'),
+        el(50, 40, 53, 48, ':'),
+        el(900, 39, 940, 49, 'Teks'),
+        el(10, 60, 40, 68, 'x'),
+        el(10, 80, 40, 88, 'y'),
       ], sekarang: hariIni);
 
       expect(id.merk, isNull);
@@ -418,12 +305,12 @@ void main() {
 
     test('ID alat dan "No. ID"', () {
       final id = bacaIdentitasKertas([
-        _e(10, 40, 20, 48, 'No.'),
-        _e(22, 40, 36, 48, 'ID'),
-        _e(60, 40, 63, 48, ':'),
-        _e(70, 39, 130, 49, 'PH-007'),
-        _e(10, 60, 40, 68, 'x'),
-        _e(10, 80, 40, 88, 'y'),
+        el(10, 40, 20, 48, 'No.'),
+        el(22, 40, 36, 48, 'ID'),
+        el(60, 40, 63, 48, ':'),
+        el(70, 39, 130, 49, 'PH-007'),
+        el(10, 60, 40, 68, 'x'),
+        el(10, 80, 40, 88, 'y'),
       ], sekarang: hariIni);
 
       expect(id.idAlat, 'PH-007');
