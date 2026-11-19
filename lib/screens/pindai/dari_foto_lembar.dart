@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/widgets.dart';
 
-import '../../models/equipment_lookup.dart';
+import '../../services/identitas_kertas.dart';
 
 /// Bekal lembar kerja yang dibuka dari foto beranda ("Pindai lembar kerja").
 ///
@@ -11,13 +11,19 @@ import '../../models/equipment_lookup.dart';
 ///
 /// Dipisah dari layar lembar kerja (yang beku, `docs/desain-ulang/BEKU.md`)
 /// supaya yang masuk ke sana hanya data dan satu callback, bukan logika alur.
+///
+/// Alurnya LINEAR: tidak ada alat yang dipilihkan sebelum kertas dibaca.
+/// Alatnya ditentukan dari identitas yang TERTULIS di kertas ([identitas]):
+/// dicocokkan ke alat terdaftar, atau dibuat lewat panel "Alat baru", dan
+/// selalu dengan ketukan teknisi.
 class DariFotoLembar {
   const DariFotoLembar({
     required this.jpeg,
     required this.jenis,
     required this.otomatis,
     required this.gantiJenis,
-    this.alatAwal,
+    this.identitas = IdentitasKertas.kosong,
+    this.kodeDokumen,
   });
 
   /// Byte JPEG foto yang SUDAH dipotret di beranda (apa adanya, bukan citra
@@ -34,10 +40,14 @@ class DariFotoLembar {
   /// banner.
   final bool otomatis;
 
-  /// Alat yang sudah ditentukan alur (satu-satunya alat jenis ini, atau yang
-  /// diketuk teknisi). `null` = belum ada; teknisi memilih di lembar dan
-  /// menekan "Isi dari foto".
-  final EquipmentLookup? alatAwal;
+  /// Identitas alat dan pemilik yang terbaca dari kertas (jangkar label cetak).
+  /// Hanya USULAN: masuk lembar sebagai isian kuning yang wajib dikonfirmasi.
+  final IdentitasKertas identitas;
+
+  /// Kode formulir (`SIDIK-FM-CAL-…`) yang dibaca dari kertas, dikirim sebagai
+  /// `kode_dokumen` supaya server memilih peta varian yang benar tanpa alat.
+  /// `null` = tidak dikirim (peta bawaan).
+  final String? kodeDokumen;
 
   /// "Ganti jenis" di banner: tampilkan pilihan jenis lain, lalu kembalikan
   /// route lembar pengganti (membawa foto yang sama), atau `null` bila

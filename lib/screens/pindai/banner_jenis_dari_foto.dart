@@ -15,7 +15,6 @@ class BannerJenisDariFoto extends StatelessWidget {
     super.key,
     required this.info,
     required this.onGanti,
-    this.perluAlat = false,
   });
 
   final DariFotoLembar info;
@@ -23,12 +22,8 @@ class BannerJenisDariFoto extends StatelessWidget {
   /// `null` = tombol mati (foto sedang dibaca).
   final VoidCallback? onGanti;
 
-  /// Alat belum ditentukan: banner menambahkan satu baris petunjuk.
-  final bool perluAlat;
-
   static const kunciBanner = ValueKey('banner-jenis-dari-foto');
   static const kunciGanti = ValueKey('banner-ganti-jenis');
-  static const kunciPetunjukAlat = ValueKey('banner-petunjuk-alat');
 
   /// Lebar minimal (dp) dan skala huruf maksimal yang masih memuat teks dan
   /// tombol dalam SATU baris. Di bawahnya tombol turun ke bawah teks: baris
@@ -59,15 +54,6 @@ class BannerJenisDariFoto extends StatelessWidget {
         color: warna.onSecondaryContainer,
       ),
     );
-    final petunjuk = perluAlat
-        ? Text(
-            l10n.pindaiBannerPilihAlat,
-            key: kunciPetunjukAlat,
-            style: tema.textTheme.bodySmall?.copyWith(
-              color: warna.onSecondaryContainer,
-            ),
-          )
-        : null;
     final ganti = TextButton(
       key: kunciGanti,
       onPressed: onGanti,
@@ -92,7 +78,7 @@ class BannerJenisDariFoto extends StatelessWidget {
           0,
         ),
         child: Semantics(
-          label: perluAlat ? '$kalimat ${l10n.pindaiBannerPilihAlat}' : kalimat,
+          label: kalimat,
           container: true,
           child: Material(
             key: kunciRingkas,
@@ -164,7 +150,7 @@ class BannerJenisDariFoto extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisSize: MainAxisSize.min,
-                            children: [teks, ?petunjuk],
+                            children: [teks],
                           ),
                         ),
                         ganti,
@@ -186,7 +172,7 @@ class BannerJenisDariFoto extends StatelessWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 mainAxisSize: MainAxisSize.min,
-                                children: [teks, ?petunjuk],
+                                children: [teks],
                               ),
                             ),
                           ],

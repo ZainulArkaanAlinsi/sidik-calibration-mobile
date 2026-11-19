@@ -72,6 +72,11 @@ const _kodeIsian = '@isian';
 /// ke kamera. `null` = perilaku lama persis. Tidak ditulis ke disk dan tidak
 /// diunggah — hanya di memori (pemanggil yang memegang byte-nya; fungsi ini
 /// tidak menyimpannya).
+///
+/// [tanpaDialogFotoUlang] = lembar dibuka dari foto beranda: foto yang gagal
+/// tidak memunculkan dialog "Tutup / Foto ulang", hanya pesan alasannya;
+/// memotret ulang lewat tombol "Foto ulang" di lembar. Bawaan `false` (jalur
+/// manual tidak berubah).
 Future<int> pindaiFormulirAsli({
   required BuildContext context,
   required WidgetRef ref,
@@ -79,6 +84,7 @@ Future<int> pindaiFormulirAsli({
   required WorksheetTemplate template,
   JalankanPindaiAsli? mesin,
   Uint8List? bitaAwal,
+  bool tanpaDialogFotoUlang = false,
 }) async {
   var awal = bitaAwal;
   while (true) {
@@ -98,6 +104,25 @@ Future<int> pindaiFormulirAsli({
     final u = usul;
     if (u == null) return terisi;
     if (!context.mounted) return 0;
+
+    // Lembar dari foto beranda: alasannya cukup satu pesan, dan "Foto ulang"
+    // adalah tombol kecil yang sudah ada di lembar; tidak ada dialog dua tombol.
+    if (tanpaDialogFotoUlang) {
+      final l10n = AppLocalizations.of(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          key: const ValueKey('pesan-foto-gagal'),
+          duration: const Duration(seconds: 10),
+          content: Text(
+            u.halamanTerpotong
+                ? '${u.pesan}\n${l10n.lkAsliHalamanTerpotong}'
+                : u.pesan,
+          ),
+        ),
+      );
+
+      return 0;
+    }
 
     final ulang = await tawarkanFotoUlang(
       context,

@@ -10,25 +10,23 @@ import 'package:path_provider/path_provider.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/beku_lembar_kerja.dart';
 import '../../l10n/app_localizations.dart';
-import '../../models/equipment_lookup.dart';
-import '../../providers/calibration_input_provider.dart'
-    show equipmentLookupProfilProvider;
 import '../../providers/catatan_identifikasi_provider.dart';
+import '../../providers/jam_provider.dart';
 import '../../providers/kesiapan_pindai_lembar_provider.dart';
 import '../../providers/sumber_foto_provider.dart';
 import '../../providers/worksheet_scan_provider.dart';
 import '../../services/catatan_identifikasi_lembar.dart';
 import '../../services/foto_tertinggal.dart';
+import '../../services/identitas_kertas.dart';
 import '../../services/jenis_lembar.dart';
 import '../../services/kenali_jenis_lembar.dart';
 import '../../services/keputusan_pindai_lembar.dart';
 import '../../services/modul_pembaca_teks.dart';
 import '../../services/pembaca_halaman.dart'
-    show PembacaHalaman, sapuBerkasPindaiLama;
+    show PembacaHalaman, TeksTerbaca, sapuBerkasPindaiLama;
 import '../../services/pesan_galat_pindai.dart';
 import '../../services/potong_sel_foto.dart' show decodeFotoDiIsolate;
 import '../../widgets/konfirmasi_foto_tertinggal.dart';
-import '../../widgets/pilih_alat_ringkas_sheet.dart';
 import '../../widgets/pilih_jenis_ringkas_sheet.dart';
 import '../calibration/lembar_kerja_screen.dart';
 import '../calibration/pindai_formulir_asli_flow.dart' show batasSisiFotoAsli;
@@ -59,14 +57,22 @@ import 'dari_foto_lembar.dart';
 ///        dipilihkan;
 ///      - tidak yakin / tidak terbaca = pesan jujur (foto ulang, jenis lain,
 ///        atau "Mulai kalibrasi"), tanpa tebakan.
-///  5. Alat: satu-satunya alat jenis itu dipilih sendiri; bila ada beberapa,
-///     satu ketukan pada daftar pendek (`pilih_alat_ringkas_sheet.dart`).
+///  5. TIDAK ada alat yang dipilihkan, satu pun, sebelum kertas dibaca (dulu
+///     alur memilih alat terdaftar dari daftar lalu menyalin identitas dan
+///     pemiliknya ke lembar, padahal yang benar adalah yang TERTULIS di
+///     kertas). Identitas kertas dibaca dari teks halaman yang sama dengan
+///     pengenalan jenis (`bacaIdentitasKertas`, jangkar label cetak), tanpa
+///     membaca halaman kedua kali.
 ///  6. `LembarKerjaScreen(dariFoto:)` dibuka — dibungkus `BekuLembarKerja`
 ///     seperti pemanggil lembar kerja lain — dan MEMBACA foto yang sama
-///     sendiri (tanpa dialog "Mau diisi bagaimana?" dan tanpa tombol foto
-///     kedua): hasilnya lewat layar periksa yang sudah ada, lalu sel terisi
-///     BERWARNA KUNING (saran) dan wajib diperiksa teknisi. Banner di atas
-///     lembar menyebut jenis yang dikenali dan memberi "Ganti jenis".
+///     sendiri (tanpa dialog "Mau diisi bagaimana?", tanpa tombol foto kedua,
+///     tanpa menunggu alat): kode formulir terbaca ikut dikirim sebagai
+///     `kode_dokumen` supaya peta varian benar tanpa alat. Hasilnya lewat
+///     layar periksa yang sudah ada, lalu sel dan identitas terisi BERWARNA
+///     KUNING (saran) dan wajib diperiksa teknisi. Blok identitas di atas
+///     lembar mencocokkan alat/PT ke yang terdaftar (atau membukakan panel
+///     "Alat baru"), selalu dengan ketukan teknisi. Banner menyebut jenis yang
+///     dikenali dan memberi "Ganti jenis".
 ///
 /// Hasil OCR tetap HANYA saran: tidak ada sel yang terisi sebagai nilai
 /// tersahkan, sel kosong tetap kosong, dan keputusan membuka lembar tidak
@@ -134,16 +140,12 @@ Future<void> pindaiLembarKerja({
     return;
   }
 
-  // ---- 6. alat, lalu buka lembar kerja ---------------------------------------
-  final alat = await _tentukanAlat(context, wadah, jenis.formulir);
-  if (alat.batal || !context.mounted) return;
-
+  // ---- 6. buka lembar kerja: TANPA memilihkan alat ---------------------------
   await navigator.push(
     _ruteLembar(
       formulir: jenis.formulir,
       otomatis: jenis.otomatis,
-      alat: alat.alat,
-      jpeg: tentu.jpeg,
+      foto: tentu.foto,
       kesiapan: kesiapan,
       saran: [
         for (final k in jenis.saran)
@@ -182,9 +184,43 @@ class _Batal extends _Hasil {
   const _Batal();
 }
 
-/// Foto + jenis yang akan dibuka. [jpeg] = byte JPEG kamera apa adanya
-/// (satu-satunya salinan foto, dibawa ke lembar kerja).
-typedef _Tentu = ({_Jenis jenis, Uint8List jpeg});
+/// Yang dibawa dari foto ke lembar kerja: [jpeg] = byte JPEG kamera apa adanya
+/// (satu-satunya salinan foto), [identitas] = identitas yang tertulis di kertas,
+/// dan kode formulir tercetak + kandidatnya untuk `kode_dokumen`.
+class _BekalFoto {
+  const _BekalFoto({
+    required this.jpeg,
+    required this.identitas,
+    required this.kodeCetak,
+    required this.kandidatKode,
+  });
+
+  final Uint8List jpeg;
+  final IdentitasKertas identitas;
+
+  /// Kode formulir hasil identifikasi (`SIDIK-FM-CAL-0508.A`), atau `null`.
+  final String? kodeCetak;
+
+  /// Jenis yang ditunjuk oleh bukti di kertas (kode/judul/revisi).
+  final List<FormulirDikenal> kandidatKode;
+
+  /// `kode_dokumen` untuk [formulir]: kode tercetak bila jenis itu memang yang
+  /// ditunjuk kertas (peta varian yang tepat), selain itu kode bawaan jenis itu
+  /// (mis. teknisi memilih jenis lain lewat "Ganti jenis").
+  String? kodeUntuk(FormulirDikenal formulir) {
+    final cetak = kodeCetak;
+    if (cetak != null &&
+        cetak.isNotEmpty &&
+        kandidatKode.any((k) => k.templateId == formulir.templateId)) {
+      return cetak;
+    }
+
+    return formulir.kodeDokumen.isEmpty ? null : formulir.kodeDokumen;
+  }
+}
+
+/// Foto + jenis yang akan dibuka.
+typedef _Tentu = ({_Jenis jenis, _BekalFoto foto});
 
 /// Foto -> pengenalan -> keputusan, diulang selama teknisi memilih "Foto
 /// ulang" (foto sebelumnya dilepas dulu). `null` = berhenti tanpa membuka apa
@@ -232,7 +268,23 @@ Future<_Tentu?> _fotoDanJenis({
       case _Batal():
         return null;
       case _Jenis():
-        return (jenis: hasil, jpeg: kenal.jpeg);
+        return (
+          jenis: hasil,
+          foto: _BekalFoto(
+            jpeg: kenal.jpeg,
+            // Dibaca dari teks halaman yang SAMA dengan pengenalan jenis; tidak
+            // ada pembacaan kedua dan tidak ada citra yang keluar HP.
+            identitas: bacaIdentitasKertas(
+              kenal.teks,
+              sekarang: ProviderScope.containerOf(
+                context,
+                listen: false,
+              ).read(jamProvider)(),
+            ),
+            kodeCetak: kenal.petunjuk?.kodeFormulir,
+            kandidatKode: kenal.petunjuk?.kandidat ?? const [],
+          ),
+        );
     }
   }
 }
@@ -332,100 +384,12 @@ Future<_Hasil> _tentukanJenis({
   }
 }
 
-/// Hasil [_tentukanAlat]: [batal] = teknisi menutup daftar alat tanpa memilih
-/// (tidak ada lembar yang dibuka); [alat] `null` = tidak ada alat yang
-/// ditentukan di sini (lembar meminta teknisi memilih).
-typedef _HasilAlat = ({EquipmentLookup? alat, bool batal});
-
-/// Alat untuk lembar [formulir]: satu-satunya alat jenis ini dipilih sendiri;
-/// beberapa = SATU ketukan pada daftar pendek; tidak ada / daftar gagal dimuat
-/// = lembar yang meminta (dropdown alatnya sendiri menampilkan keadaannya).
-/// Daftarnya dari `GET /equipments?profil=` yang SAMA dengan dropdown di lembar,
-/// jadi tidak ada endpoint baru dan alat jenis lain tidak ikut tampil.
-Future<_HasilAlat> _tentukanAlat(
-  BuildContext context,
-  ProviderContainer wadah,
-  FormulirDikenal formulir,
-) async {
-  final l10n = AppLocalizations.of(context);
-  final profil = formulir.templateId;
-
-  final List<EquipmentLookup> daftar;
-  try {
-    daftar = await _denganProgres(
-      context,
-      l10n.pindaiMenyiapkanLembar,
-      () => wadah.read(equipmentLookupProfilProvider(profil).future),
-    );
-  } catch (e, st) {
-    catatGalatPindai('pindai-lembar-alat', e, st);
-    // Galat tidak boleh menempel di dropdown lembar.
-    wadah.invalidate(equipmentLookupProfilProvider(profil));
-
-    return (alat: null, batal: false);
-  }
-
-  final aktif = [
-    for (final a in daftar)
-      if (a.status != 'nonaktif') a,
-  ];
-  final calon = aktif.isEmpty ? daftar : aktif;
-
-  if (calon.length == 1) return (alat: calon.single, batal: false);
-  if (calon.isEmpty) return (alat: null, batal: false);
-  if (!context.mounted) return (alat: null, batal: true);
-
-  final pilih = await tampilkanPilihAlatRingkas(
-    context,
-    jenis: namaPendekJudul(formulir.judul),
-    alat: calon,
-  );
-
-  return switch (pilih) {
-    AlatDipilih(:final alat) => (alat: alat, batal: false),
-    AlatNanti() => (alat: null, batal: false),
-    null => (alat: null, batal: true),
-  };
-}
-
-/// Dialog progres yang tak bisa ditutup sendiri selama [kerja] berjalan.
-Future<T> _denganProgres<T>(
-  BuildContext context,
-  String pesan,
-  Future<T> Function() kerja,
-) async {
-  final navigator = Navigator.of(context);
-  showDialog<void>(
-    context: context,
-    barrierDismissible: false,
-    builder: (_) => PopScope(
-      canPop: false,
-      child: AlertDialog(
-        content: Row(
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(child: Text(pesan)),
-          ],
-        ),
-      ),
-    ),
-  );
-
-  try {
-    return await kerja();
-  } finally {
-    if (navigator.mounted) navigator.pop();
-  }
-}
-
 /// Route lembar kerja untuk [formulir], membawa foto yang SAMA. "Ganti jenis"
 /// membangun route berikutnya lewat fungsi ini juga.
 Route<void> _ruteLembar({
   required FormulirDikenal formulir,
   required bool otomatis,
-  required EquipmentLookup? alat,
-  required Uint8List jpeg,
+  required _BekalFoto foto,
   required KesiapanPindaiLembar kesiapan,
   required List<FormulirDikenal> saran,
   required ProviderContainer wadah,
@@ -437,14 +401,15 @@ Route<void> _ruteLembar({
       profil: formulir.templateId,
       judulTambahan: namaPendekJudul(formulir.judul),
       dariFoto: DariFotoLembar(
-        jpeg: jpeg,
+        jpeg: foto.jpeg,
         jenis: namaPendekJudul(formulir.judul),
         otomatis: otomatis,
-        alatAwal: alat,
+        identitas: foto.identitas,
+        kodeDokumen: foto.kodeUntuk(formulir),
         gantiJenis: (ctx) => _gantiJenis(
           ctx,
           formulir: formulir,
-          jpeg: jpeg,
+          foto: foto,
           kesiapan: kesiapan,
           saran: saran,
           wadah: wadah,
@@ -462,7 +427,7 @@ Route<void> _ruteLembar({
 Future<Route<void>?> _gantiJenis(
   BuildContext context, {
   required FormulirDikenal formulir,
-  required Uint8List jpeg,
+  required _BekalFoto foto,
   required KesiapanPindaiLembar kesiapan,
   required List<FormulirDikenal> saran,
   required ProviderContainer wadah,
@@ -504,14 +469,10 @@ Future<Route<void>?> _gantiJenis(
     }),
   );
 
-  final alat = await _tentukanAlat(context, wadah, baru);
-  if (alat.batal) return null;
-
   return _ruteLembar(
     formulir: baru,
     otomatis: false,
-    alat: alat.alat,
-    jpeg: jpeg,
+    foto: foto,
     kesiapan: kesiapan,
     saran: [
       for (final k in [formulir, ...saran])
@@ -525,8 +486,14 @@ Future<Route<void>?> _gantiJenis(
 
 /// Hasil pengenalan; `petunjuk == null` = tidak ada petunjuk sama sekali
 /// (lembar pilihan menampilkan daftar manual). [jpeg] = byte JPEG kamera apa
-/// adanya, untuk dibawa ke lembar kerja (satu-satunya salinan foto).
-typedef _Pengenalan = ({HasilJenisLembar? petunjuk, Uint8List jpeg});
+/// adanya, untuk dibawa ke lembar kerja (satu-satunya salinan foto). [teks] =
+/// elemen teks halaman (tegak) dari pembacaan yang sama, bahan identitas kertas;
+/// kosong bila tidak ada petunjuk.
+typedef _Pengenalan = ({
+  HasilJenisLembar? petunjuk,
+  Uint8List jpeg,
+  List<TeksTerbaca> teks,
+});
 
 /// Kamera -> decode -> pembaca halaman. `null` = berhenti (dibatalkan atau
 /// gagal; pesan sudah ditampilkan). Fungsi terpisah supaya citra hasil decode
@@ -619,6 +586,7 @@ Future<_Pengenalan?> _ambilDanKenali({
   // ditutup, apa pun hasilnya.
   PembacaHalaman? halaman;
   HasilJenisLembar? petunjuk;
+  var teks = const <TeksTerbaca>[];
   String? galat;
 
   try {
@@ -628,6 +596,7 @@ Future<_Pengenalan?> _ambilDanKenali({
       jpegAsli: bita,
       halaman: halaman,
       dikenal: kesiapan.dikenal,
+      padaTeksHalaman: (t) => teks = t,
     );
   } on ModulPembacaTeksBelumSiap {
     // ML Kit unbundled: modul `ocr` belum terunduh. Tidak ada yang berubah.
@@ -651,5 +620,5 @@ Future<_Pengenalan?> _ambilDanKenali({
     return null;
   }
 
-  return (petunjuk: petunjuk, jpeg: bita);
+  return (petunjuk: petunjuk, jpeg: bita, teks: teks);
 }

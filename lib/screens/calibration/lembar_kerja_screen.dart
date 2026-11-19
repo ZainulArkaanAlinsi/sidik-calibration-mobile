@@ -36,6 +36,8 @@ import '../../models/worksheet_template.dart';
 import '../../providers/worksheet_scan_provider.dart';
 import 'pindai_formulir_asli_flow.dart';
 import '../pindai/banner_jenis_dari_foto.dart';
+import '../pindai/blok_identitas_foto.dart';
+import '../pindai/identitas_foto_isian.dart';
 import '../pindai/dari_foto_lembar.dart';
 import '../../services/auth_service.dart'
     show ApiException, AuthException, gagalJaringan;
@@ -132,15 +134,17 @@ class LembarKerjaScreen extends ConsumerStatefulWidget {
   final String? judulTambahan;
 
   /// Bekal lembar yang dibuka dari foto beranda ("Pindai lembar kerja"):
-  /// jenis dikenali dari foto, foto yang SUDAH dipotret, dan alat bila sudah
-  /// ditentukan. `null` (bawaan) = lembar dibuka lewat "Mulai kalibrasi" (jalur
-  /// manual): tidak ada banner, tidak ada isi otomatis, tidak ada dialog "Mau
-  /// diisi bagaimana?".
+  /// jenis dikenali dari foto, foto yang SUDAH dipotret, dan identitas yang
+  /// TERTULIS di kertas. `null` (bawaan) = lembar dibuka lewat "Mulai
+  /// kalibrasi" (jalur manual): tidak ada banner, tidak ada isi otomatis, tidak
+  /// ada dialog "Mau diisi bagaimana?".
   ///
-  /// Foto itu dibaca OTOMATIS begitu lembar siap (tanpa tombol foto kedua):
-  /// hasilnya lewat layar periksa yang sudah ada, dan sel yang terisi tampil
-  /// KUNING (saran). Dipakai SEKALI; "Foto ulang" sesudahnya membuka kamera.
-  /// Hanya di memori: tidak ditulis ke disk dan tidak diunggah.
+  /// Alurnya linear: tidak ada alat yang dipilihkan. Foto itu dibaca OTOMATIS
+  /// begitu lembar siap (tanpa tombol foto kedua dan tanpa menunggu alat):
+  /// hasilnya lewat layar periksa yang sudah ada, dan sel serta identitas yang
+  /// terisi tampil KUNING (saran). Alat dicocokkan dari identitas kertas lewat
+  /// blok identitas di atas lembar. Dipakai SEKALI; "Foto ulang" sesudahnya
+  /// membuka kamera. Hanya di memori: tidak ditulis ke disk dan tidak diunggah.
   ///
   /// Memori, apa adanya: byte JPEG di dalamnya (beberapa MB, bukan citra
   /// decode) TETAP dipegang widget ini, [_Form], dan closure route pemanggil
@@ -171,11 +175,9 @@ class _LembarKerjaScreenState extends ConsumerState<LembarKerjaScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // Alat dari foto beranda ikut kunci bentuk SEJAK permintaan pertama, jadi
-    // lembar yang ditarik sudah disusutkan ke alat itu (titik ukurnya lahir
-    // dari alat) dan foto bisa dibaca begitu formulir pertama terpasang.
-    _equipmentId =
-        widget.drafLokal?.equipmentId ?? widget.dariFoto?.alatAwal?.id;
+    // Lembar dari foto beranda tidak membawa alat: alatnya ditentukan teknisi
+    // dari identitas kertas (blok identitas), lalu bentuk ditarik ulang.
+    _equipmentId = widget.drafLokal?.equipmentId;
     _pengulangan = widget.drafLokal?.pengulangan;
 
     // Tarik ulang SAAT LEMBAR DIBUKA. `lembarKerjaProvider` bukan autoDispose,
@@ -684,12 +686,6 @@ class _FormState extends ConsumerState<_Form> {
     _sesiIdTerkini = widget.sesiId;
     final dariFoto = widget.dariFoto;
     _fotoAwalSisa = dariFoto?.jpeg;
-    // Alat yang sudah ditentukan alur foto dipasang SEBELUM salinan HP: titik
-    // acuan penjaga draf sudah memuatnya, jadi memilih alat bukan "perubahan".
-    if (dariFoto?.alatAwal case final alat?) {
-      _isian.alat = alat;
-      _isian.isiDariAlat();
-    }
     _pasangSalinanHp();
 
     // Server Render gratis tidur sesudah ~15 menit nganggur dan butuh 30–90 s
@@ -700,12 +696,16 @@ class _FormState extends ConsumerState<_Form> {
     final id = widget.sesiId;
     if (id != null) {
       _muatSesiLama(id);
-    } else if (dariFoto?.alatAwal != null) {
-      // Lembar dari foto beranda dengan alat yang sudah jelas: foto yang sama
-      // dibaca SEKARANG, tanpa dialog dan tanpa tombol kedua. Lembar yang
-      // dibuka lewat "Mulai kalibrasi" tidak menawarkan apa-apa (jalur manual).
+    } else if (dariFoto != null) {
+      // Lembar dari foto beranda: identitas yang tertulis di kertas masuk
+      // sebagai saran kuning, dan foto yang sama dibaca SEKARANG, tanpa dialog,
+      // tanpa tombol kedua, dan tanpa menunggu alat. Lembar yang dibuka lewat
+      // "Mulai kalibrasi" tidak menawarkan apa-apa (jalur manual).
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         if (!mounted) return;
+        if (_isian.terapkanIdentitasKertas(dariFoto.identitas) > 0) {
+          _isianBerubah();
+        }
         await _fotoLembar();
         // Sesudah percobaan pertama (berhasil, gagal, atau berhenti karena
         // formulir belum siap) tombol foto boleh muncul sebagai jalan ulang.
@@ -717,8 +717,13 @@ class _FormState extends ConsumerState<_Form> {
   /// Percobaan membaca foto beranda otomatis sudah selesai (apa pun hasilnya).
   bool _autoFotoSelesai = false;
 
-  KunciTemplatePindai get _kunciAsli =>
-      (kode: widget.profil, equipmentId: _isian.alat?.id);
+  KunciTemplatePindai get _kunciAsli => (
+    kode: widget.profil,
+    equipmentId: _isian.alat?.id,
+    // Kode formulir yang dibaca dari kertas memilih peta varian di server tanpa
+    // perlu alat. Jalur manual tidak mengirimnya (perilaku lama).
+    kodeDokumen: widget.dariFoto?.kodeDokumen,
+  );
 
   bool _sedangMemindai = false;
 
@@ -756,8 +761,10 @@ class _FormState extends ConsumerState<_Form> {
 
     try {
       final l10n = AppLocalizations.of(context);
+      // Jalur manual butuh alat dulu (peta formulir ikut alat). Lembar dari
+      // foto tidak: kode formulir yang terbaca memilih petanya.
       final alat = _isian.alat;
-      if (alat == null) {
+      if (alat == null && widget.dariFoto == null) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(l10n.lkAsliPilihAlatDulu)));
@@ -805,6 +812,9 @@ class _FormState extends ConsumerState<_Form> {
         isian: _isian,
         template: asli,
         bitaAwal: awal,
+        // Lembar dari foto: gagal baca cukup pesan + tombol kecil "Foto ulang"
+        // di lembar, tanpa dialog dua tombol.
+        tanpaDialogFotoUlang: widget.dariFoto != null,
       );
       if (terisi > 0 && mounted) _isianBerubah();
     } finally {
@@ -1254,11 +1264,13 @@ class _FormState extends ConsumerState<_Form> {
 
     navigator.pushReplacement(
       MaterialPageRoute<void>(
-        builder: (_) => BekuLembarKerja(child: LembarKerjaScreen(
-          sesiId: widget.sesiId,
-          profil: widget.profil,
-          judulTambahan: widget.judulTambahan,
-        )),
+        builder: (_) => BekuLembarKerja(
+          child: LembarKerjaScreen(
+            sesiId: widget.sesiId,
+            profil: widget.profil,
+            judulTambahan: widget.judulTambahan,
+          ),
+        ),
       ),
     );
   }
@@ -2602,8 +2614,21 @@ class _FormState extends ConsumerState<_Form> {
                   if (widget.dariFoto case final dariFoto?)
                     BannerJenisDariFoto(
                       info: dariFoto,
-                      perluAlat: _isian.alat == null && _fotoAwalSisa != null,
                       onGanti: _sedangMemindai ? null : _gantiJenis,
+                    ),
+                  // Identitas yang TERTULIS di kertas: cocok ke alat terdaftar,
+                  // atau dibuat lewat panel "Alat baru". Selalu ketukan teknisi.
+                  // `Flexible`: blok ini menggulir di dalam jatahnya, jadi panel
+                  // yang tinggi tidak mendesak lembar sampai habis.
+                  if (widget.dariFoto case final dariFoto?)
+                    Flexible(
+                      child: BlokIdentitasFoto(
+                        identitas: dariFoto.identitas,
+                        isian: _isian,
+                        profil: widget.profil,
+                        bekalAlatBaru: _isian.bentuk.alatBaru,
+                        onBerubah: _isianBerubah,
+                      ),
                     ),
                   // Di atas lembar, bukan di dalamnya: tetap kelihatan di halaman
                   // mana pun dan di dua tata letak — formulir kosong yang kelihatan
@@ -2628,16 +2653,12 @@ class _FormState extends ConsumerState<_Form> {
                   if (ref.watch(formulirAsliProvider(_kunciAsli)).isLoading)
                     const KabarServerLambat(),
                   // SATU pintu foto per layar. Lembar dari foto beranda: foto
-                  // dibaca otomatis, jadi tombol ini baru muncul sesudahnya
-                  // ("Foto ulang"), atau langsung bila alur tidak menentukan alat
-                  // dan foto masih menunggu ("Isi dari foto"). Lembar manual:
-                  // tombol lamanya.
+                  // dibaca otomatis, jadi tombol ini baru muncul sesudahnya dan
+                  // hanya satu: "Foto ulang". Lembar manual: tombol lamanya.
                   if (_bolehFotoLembar(
                         ref.watch(formulirAsliProvider(_kunciAsli)).value,
                       ) &&
-                      (widget.dariFoto == null ||
-                          _autoFotoSelesai ||
-                          widget.dariFoto!.alatAwal == null))
+                      (widget.dariFoto == null || _autoFotoSelesai))
                     Padding(
                       padding: const EdgeInsets.fromLTRB(
                         AppSpacing.md,
@@ -2657,8 +2678,6 @@ class _FormState extends ConsumerState<_Form> {
                           label: Text(
                             widget.dariFoto == null
                                 ? AppLocalizations.of(context).phCalibCaraFoto
-                                : _fotoAwalSisa != null
-                                ? AppLocalizations.of(context).lkIsiDariFoto
                                 : AppLocalizations.of(context).lkFotoUlang,
                           ),
                         ),
@@ -5864,7 +5883,13 @@ class _PilihAlat extends ConsumerWidget {
             ),
             hint: Text(list.isEmpty ? l10n.lkAlatKosong : l10n.lkPilih),
             items: [
-              for (final e in list)
+              // Alat yang dipakai dari blok identitas kertas (dicocokkan lewat
+              // seri) bisa di luar halaman pertama daftar: tetap harus ada di
+              // `items`, atau Dropdown melempar.
+              for (final e in [
+                ...list,
+                if (isian.alat case final a? when !list.contains(a)) a,
+              ])
                 DropdownMenuItem(
                   value: e,
                   child: Text(
