@@ -17467,6 +17467,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Got it'**
   String get ditahanDialogTutup;
+
+  /// No description provided for @crudPenugasanAksiSelesaikan.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete'**
+  String get crudPenugasanAksiSelesaikan;
+
+  /// No description provided for @crudPenugasanAksiBukaLagi.
+  ///
+  /// In en, this message translates to:
+  /// **'Reopen'**
+  String get crudPenugasanAksiBukaLagi;
+
+  /// No description provided for @crudPenugasanSiapDitutup.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready to complete'**
+  String get crudPenugasanSiapDitutup;
+
+  /// No description provided for @crudPenugasanSelesaiPada.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed {tanggal}'**
+  String crudPenugasanSelesaiPada(String tanggal);
+
+  /// No description provided for @crudPenugasanSelesaiJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete the assignment \"{judul}\"?'**
+  String crudPenugasanSelesaiJudul(String judul);
+
+  /// No description provided for @crudPenugasanSelesaiIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'All equipment rows are done. The assignment is marked Completed and its members are notified. Only a super admin can reopen it.'**
+  String get crudPenugasanSelesaiIsi;
+
+  /// No description provided for @crudPenugasanSelesaiAksi.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete'**
+  String get crudPenugasanSelesaiAksi;
+
+  /// No description provided for @crudPenugasanSelesaiBerhasil.
+  ///
+  /// In en, this message translates to:
+  /// **'Assignment completed.'**
+  String get crudPenugasanSelesaiBerhasil;
+
+  /// No description provided for @crudPenugasanSudahSelesai.
+  ///
+  /// In en, this message translates to:
+  /// **'This assignment was already completed.'**
+  String get crudPenugasanSudahSelesai;
+
+  /// No description provided for @crudPenugasanBukaLagiJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Reopen the assignment \"{judul}\"?'**
+  String crudPenugasanBukaLagiJudul(String judul);
+
+  /// No description provided for @crudPenugasanBukaLagiIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'The assignment becomes Active again: technicians can report progress and it can be completed again. Reported progress does not change. Members are notified with your reason.'**
+  String get crudPenugasanBukaLagiIsi;
+
+  /// No description provided for @crudPenugasanBukaLagiAksi.
+  ///
+  /// In en, this message translates to:
+  /// **'Reopen'**
+  String get crudPenugasanBukaLagiAksi;
+
+  /// No description provided for @crudPenugasanBukaLagiBerhasil.
+  ///
+  /// In en, this message translates to:
+  /// **'Assignment reopened.'**
+  String get crudPenugasanBukaLagiBerhasil;
+
+  /// No description provided for @crudGalatPenugasanBelumTuntas.
+  ///
+  /// In en, this message translates to:
+  /// **'This assignment is only {persen}% complete. Have the technician report progress on every row first, then try again.'**
+  String crudGalatPenugasanBelumTuntas(int persen);
+
+  /// No description provided for @crudGalatPenugasanBelumTuntasUmum.
+  ///
+  /// In en, this message translates to:
+  /// **'This assignment is not complete yet. Have the technician report progress on every row first, then try again.'**
+  String get crudGalatPenugasanBelumTuntasUmum;
+
+  /// No description provided for @crudGalatPenugasanTidakSelesai.
+  ///
+  /// In en, this message translates to:
+  /// **'This assignment is not marked Completed, so it cannot be reopened. A cancelled assignment is never reopened; create a new one.'**
+  String get crudGalatPenugasanTidakSelesai;
 }
 
 class _AppLocalizationsDelegate

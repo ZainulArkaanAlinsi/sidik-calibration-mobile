@@ -10250,4 +10250,65 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ditahanDialogTutup => 'Got it';
+
+  @override
+  String get crudPenugasanAksiSelesaikan => 'Complete';
+
+  @override
+  String get crudPenugasanAksiBukaLagi => 'Reopen';
+
+  @override
+  String get crudPenugasanSiapDitutup => 'Ready to complete';
+
+  @override
+  String crudPenugasanSelesaiPada(String tanggal) {
+    return 'Completed $tanggal';
+  }
+
+  @override
+  String crudPenugasanSelesaiJudul(String judul) {
+    return 'Complete the assignment \"$judul\"?';
+  }
+
+  @override
+  String get crudPenugasanSelesaiIsi =>
+      'All equipment rows are done. The assignment is marked Completed and its members are notified. Only a super admin can reopen it.';
+
+  @override
+  String get crudPenugasanSelesaiAksi => 'Complete';
+
+  @override
+  String get crudPenugasanSelesaiBerhasil => 'Assignment completed.';
+
+  @override
+  String get crudPenugasanSudahSelesai =>
+      'This assignment was already completed.';
+
+  @override
+  String crudPenugasanBukaLagiJudul(String judul) {
+    return 'Reopen the assignment \"$judul\"?';
+  }
+
+  @override
+  String get crudPenugasanBukaLagiIsi =>
+      'The assignment becomes Active again: technicians can report progress and it can be completed again. Reported progress does not change. Members are notified with your reason.';
+
+  @override
+  String get crudPenugasanBukaLagiAksi => 'Reopen';
+
+  @override
+  String get crudPenugasanBukaLagiBerhasil => 'Assignment reopened.';
+
+  @override
+  String crudGalatPenugasanBelumTuntas(int persen) {
+    return 'This assignment is only $persen% complete. Have the technician report progress on every row first, then try again.';
+  }
+
+  @override
+  String get crudGalatPenugasanBelumTuntasUmum =>
+      'This assignment is not complete yet. Have the technician report progress on every row first, then try again.';
+
+  @override
+  String get crudGalatPenugasanTidakSelesai =>
+      'This assignment is not marked Completed, so it cannot be reopened. A cancelled assignment is never reopened; create a new one.';
 }

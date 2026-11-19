@@ -10097,4 +10097,64 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get ditahanDialogTutup => 'Mengerti';
+
+  @override
+  String get crudPenugasanAksiSelesaikan => 'Selesaikan';
+
+  @override
+  String get crudPenugasanAksiBukaLagi => 'Buka lagi';
+
+  @override
+  String get crudPenugasanSiapDitutup => 'Siap diselesaikan';
+
+  @override
+  String crudPenugasanSelesaiPada(String tanggal) {
+    return 'Selesai $tanggal';
+  }
+
+  @override
+  String crudPenugasanSelesaiJudul(String judul) {
+    return 'Selesaikan penugasan \"$judul\"?';
+  }
+
+  @override
+  String get crudPenugasanSelesaiIsi =>
+      'Semua baris alat sudah tuntas. Penugasan ditandai Selesai dan anggota mendapat pemberitahuan. Hanya Super Admin yang bisa membukanya lagi.';
+
+  @override
+  String get crudPenugasanSelesaiAksi => 'Selesaikan';
+
+  @override
+  String get crudPenugasanSelesaiBerhasil => 'Penugasan diselesaikan.';
+
+  @override
+  String get crudPenugasanSudahSelesai => 'Penugasan ini sudah selesai.';
+
+  @override
+  String crudPenugasanBukaLagiJudul(String judul) {
+    return 'Buka lagi penugasan \"$judul\"?';
+  }
+
+  @override
+  String get crudPenugasanBukaLagiIsi =>
+      'Penugasan kembali Aktif: teknisi bisa melapor lagi dan penugasan bisa diselesaikan lagi. Progres yang sudah dilaporkan tidak berubah. Anggota diberi tahu beserta alasan Anda.';
+
+  @override
+  String get crudPenugasanBukaLagiAksi => 'Buka lagi';
+
+  @override
+  String get crudPenugasanBukaLagiBerhasil => 'Penugasan dibuka lagi.';
+
+  @override
+  String crudGalatPenugasanBelumTuntas(int persen) {
+    return 'Penugasan ini baru $persen% tuntas. Minta teknisi melaporkan progres semua barisnya dulu, lalu coba lagi.';
+  }
+
+  @override
+  String get crudGalatPenugasanBelumTuntasUmum =>
+      'Penugasan ini belum tuntas. Minta teknisi melaporkan progres semua barisnya dulu, lalu coba lagi.';
+
+  @override
+  String get crudGalatPenugasanTidakSelesai =>
+      'Penugasan ini tidak berstatus Selesai, jadi tidak bisa dibuka lagi. Penugasan yang dibatalkan tidak dibuka lagi; buat penugasan baru.';
 }

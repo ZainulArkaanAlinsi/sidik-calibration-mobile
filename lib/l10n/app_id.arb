@@ -3948,5 +3948,21 @@
   "ditahanDialogJudul": "Penerbitan sertifikat ditahan",
   "ditahanDialogIsi": "Sertifikat ini belum bisa diterbitkan. Sesi tetap menunggu persetujuan dan nomor sertifikat yang diketik belum terpakai.",
   "ditahanDialogAlasan": "Alasan",
-  "ditahanDialogTutup": "Mengerti"
+  "ditahanDialogTutup": "Mengerti",
+  "crudPenugasanAksiSelesaikan": "Selesaikan",
+  "crudPenugasanAksiBukaLagi": "Buka lagi",
+  "crudPenugasanSiapDitutup": "Siap diselesaikan",
+  "crudPenugasanSelesaiPada": "Selesai {tanggal}",
+  "crudPenugasanSelesaiJudul": "Selesaikan penugasan \"{judul}\"?",
+  "crudPenugasanSelesaiIsi": "Semua baris alat sudah tuntas. Penugasan ditandai Selesai dan anggota mendapat pemberitahuan. Hanya Super Admin yang bisa membukanya lagi.",
+  "crudPenugasanSelesaiAksi": "Selesaikan",
+  "crudPenugasanSelesaiBerhasil": "Penugasan diselesaikan.",
+  "crudPenugasanSudahSelesai": "Penugasan ini sudah selesai.",
+  "crudPenugasanBukaLagiJudul": "Buka lagi penugasan \"{judul}\"?",
+  "crudPenugasanBukaLagiIsi": "Penugasan kembali Aktif: teknisi bisa melapor lagi dan penugasan bisa diselesaikan lagi. Progres yang sudah dilaporkan tidak berubah. Anggota diberi tahu beserta alasan Anda.",
+  "crudPenugasanBukaLagiAksi": "Buka lagi",
+  "crudPenugasanBukaLagiBerhasil": "Penugasan dibuka lagi.",
+  "crudGalatPenugasanBelumTuntas": "Penugasan ini baru {persen}% tuntas. Minta teknisi melaporkan progres semua barisnya dulu, lalu coba lagi.",
+  "crudGalatPenugasanBelumTuntasUmum": "Penugasan ini belum tuntas. Minta teknisi melaporkan progres semua barisnya dulu, lalu coba lagi.",
+  "crudGalatPenugasanTidakSelesai": "Penugasan ini tidak berstatus Selesai, jadi tidak bisa dibuka lagi. Penugasan yang dibatalkan tidak dibuka lagi; buat penugasan baru."
 }
