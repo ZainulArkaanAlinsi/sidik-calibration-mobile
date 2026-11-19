@@ -97,7 +97,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// tidak dipanggil dari `initState`), baca foto otomatis untuk semua lembar dari
 /// foto, kunci peta formulir memuat `kodeDokumen`, identitas kertas dituang
 /// sebagai saran kuning, banner tanpa petunjuk pilih alat, tombol foto hanya
-/// "Foto ulang", `BlokIdentitasFoto` di atas lembar, dan `_PilihAlat` memuat alat
+/// "Foto ulang", `BlokIdentitasFoto` di atas lembar (lewat `_denganBlokIdentitas`), dan `_PilihAlat` memuat alat
 /// terpilih yang di luar halaman pertama daftar. `lembar_kerja_state.dart` TIDAK
 /// berubah. Lembar tanpa `dariFoto` tampil identik, dan golden
 /// `test/beku/goldens/` TIDAK diperbarui. Rincian: addendum 19 Nov di
@@ -109,7 +109,7 @@ const Map<String, String> _hashBeku = {
   // pemanggil di dalam berkas); lainnya masih hash L0. `lembar_kerja_screen`
   // berubah lagi 15 Nov 2026 (foto awal "Pindai lembar kerja", lihat atas).
   'lib/screens/calibration/lembar_kerja_screen.dart':
-      'b548dbc8ef969366ec7a90b9a95542c9cc5fb556e4d400f68430e8286b677789',
+      'e76811ee717933c2d95d164178d74eeed6dea419ad1f4ecf2675a8973b702aae',
   'lib/screens/calibration/lembar_kerja_state.dart':
       '6e6005a486d13dfcc002fa339e38d0bee5c3b3054cbdf0e9ed843266c16cc093',
   'lib/screens/calibration/kinerja_lembar.dart':

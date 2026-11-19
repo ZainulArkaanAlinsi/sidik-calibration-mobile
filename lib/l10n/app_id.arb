@@ -3925,7 +3925,6 @@
   "identitasSeriWajib": "Nomor seri tidak terbaca. Ketik dari badan alat.",
   "identitasJenisAlat": "Jenis: {jenis}",
   "identitasAlamat": "Alamat",
-  "identitasBedaJudul": "Beda dari data terdaftar",
   "identitasBedaBaris": "{label}: kertas \"{kertas}\", terdaftar \"{terdaftar}\"",
   "identitasPakaiTerdaftar": "Pakai yang terdaftar",
   "identitasTidakTerbaca": "Identitas di kertas belum terbaca. Pilih alat di bawah, atau buat alat baru.",

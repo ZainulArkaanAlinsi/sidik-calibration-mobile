@@ -10003,9 +10003,6 @@ class AppLocalizationsId extends AppLocalizations {
   String get identitasAlamat => 'Alamat';
 
   @override
-  String get identitasBedaJudul => 'Beda dari data terdaftar';
-
-  @override
   String identitasBedaBaris(String label, String kertas, String terdaftar) {
     return '$label: kertas \"$kertas\", terdaftar \"$terdaftar\"';
   }

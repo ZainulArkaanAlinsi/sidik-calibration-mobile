@@ -741,6 +741,34 @@ class _FormState extends ConsumerState<_Form> {
       asli.bolehDipindaiAsli &&
       _isian.bisaMenerimaFotoAsli(asli);
 
+  /// Lembar dari foto: blok identitas (alat/PT yang TERTULIS di kertas: cocok ke
+  /// yang terdaftar, atau panel "Alat baru"; selalu ketukan teknisi) di atas
+  /// lembar, DI DALAM jatah lembar. Setinggi isinya, dibatasi oleh blok itu
+  /// sendiri terhadap jatah ini (papan ketik ikut menyempitkannya); lembar
+  /// mendapat sisanya, jadi panel yang tinggi tidak mendesak lembar sampai habis
+  /// dan tidak ada ruang kosong. Jalur manual (`dariFoto == null`): lembar apa
+  /// adanya.
+  Widget _denganBlokIdentitas(Widget lembar) {
+    final dariFoto = widget.dariFoto;
+    if (dariFoto == null) return lembar;
+
+    return LayoutBuilder(
+      builder: (context, jatah) => Column(
+        children: [
+          BlokIdentitasFoto(
+            identitas: dariFoto.identitas,
+            isian: _isian,
+            profil: widget.profil,
+            bekalAlatBaru: _isian.bentuk.alatBaru,
+            onBerubah: _isianBerubah,
+            tinggiMaks: jatah.maxHeight,
+          ),
+          Expanded(child: lembar),
+        ],
+      ),
+    );
+  }
+
   /// "Ganti jenis" di banner: pilihan jenis lain (dari alur foto), lalu lembar
   /// pengganti dengan foto yang sama. Isian yang belum disimpan dijaga dengan
   /// dialog keluar yang sama seperti tombol kembali.
@@ -2616,20 +2644,6 @@ class _FormState extends ConsumerState<_Form> {
                       info: dariFoto,
                       onGanti: _sedangMemindai ? null : _gantiJenis,
                     ),
-                  // Identitas yang TERTULIS di kertas: cocok ke alat terdaftar,
-                  // atau dibuat lewat panel "Alat baru". Selalu ketukan teknisi.
-                  // `Flexible`: blok ini menggulir di dalam jatahnya, jadi panel
-                  // yang tinggi tidak mendesak lembar sampai habis.
-                  if (widget.dariFoto case final dariFoto?)
-                    Flexible(
-                      child: BlokIdentitasFoto(
-                        identitas: dariFoto.identitas,
-                        isian: _isian,
-                        profil: widget.profil,
-                        bekalAlatBaru: _isian.bentuk.alatBaru,
-                        onBerubah: _isianBerubah,
-                      ),
-                    ),
                   // Di atas lembar, bukan di dalamnya: tetap kelihatan di halaman
                   // mana pun dan di dua tata letak — formulir kosong yang kelihatan
                   // persis seperti draft kosong itu yang mau dicegah.
@@ -2699,25 +2713,27 @@ class _FormState extends ConsumerState<_Form> {
                       ),
                     ),
                   Expanded(
-                    child: duaKolom
-                        ? _LembarDuaKolom(
-                            bentuk: bentuk,
-                            isian: _isian,
-                            onBerubah: _isianBerubah,
-                            sesiId: widget.sesiId,
-                            profil: widget.profil,
-                            gulirKiri: _gulirKolomKiri,
-                            gulirKanan: _gulirKolomKanan,
-                          )
-                        : _LembarSatuKolom(
-                            bentuk: bentuk,
-                            isian: _isian,
-                            halaman: _halaman,
-                            onBerubah: _isianBerubah,
-                            sesiId: widget.sesiId,
-                            profil: widget.profil,
-                            gulir: _gulirSatuKolom,
-                          ),
+                    child: _denganBlokIdentitas(
+                      duaKolom
+                          ? _LembarDuaKolom(
+                              bentuk: bentuk,
+                              isian: _isian,
+                              onBerubah: _isianBerubah,
+                              sesiId: widget.sesiId,
+                              profil: widget.profil,
+                              gulirKiri: _gulirKolomKiri,
+                              gulirKanan: _gulirKolomKanan,
+                            )
+                          : _LembarSatuKolom(
+                              bentuk: bentuk,
+                              isian: _isian,
+                              halaman: _halaman,
+                              onBerubah: _isianBerubah,
+                              sesiId: widget.sesiId,
+                              profil: widget.profil,
+                              gulir: _gulirSatuKolom,
+                            ),
+                    ),
                   ),
 
                   // Tombolnya nempel di bawah, bukan ikut ke-scroll: lembar kerjanya

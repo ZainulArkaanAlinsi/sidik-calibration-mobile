@@ -17324,12 +17324,6 @@ abstract class AppLocalizations {
   /// **'Address'**
   String get identitasAlamat;
 
-  /// No description provided for @identitasBedaJudul.
-  ///
-  /// In en, this message translates to:
-  /// **'Differs from registered data'**
-  String get identitasBedaJudul;
-
   /// No description provided for @identitasBedaBaris.
   ///
   /// In en, this message translates to:

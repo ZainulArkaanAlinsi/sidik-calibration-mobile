@@ -49,6 +49,7 @@ class BlokIdentitasFoto extends ConsumerStatefulWidget {
     required this.profil,
     required this.bekalAlatBaru,
     required this.onBerubah,
+    required this.tinggiMaks,
   });
 
   final IdentitasKertas identitas;
@@ -63,6 +64,12 @@ class BlokIdentitasFoto extends ConsumerStatefulWidget {
 
   /// Alat atau isian berubah: lembar digambar ulang dan bentuknya ditarik ulang.
   final VoidCallback onBerubah;
+
+  /// Tinggi jatah lembar tempat blok ini duduk (di atas lembar). Kartu pendek
+  /// dibatasi setengahnya; panel "Alat baru" (satu langkah keputusan, ada
+  /// "Batal") boleh memakai seluruh jatah selama terbuka. Sisanya digulir di
+  /// dalam blok; lembar di bawahnya mendapat sisa jatah.
+  final double tinggiMaks;
 
   static const kunci = ValueKey('blok-identitas');
   static const kunciMencocokkan = ValueKey('identitas-mencocokkan');
@@ -479,16 +486,23 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
 
     // Digulirkan di dalam jatahnya sendiri: lembar di bawahnya tidak boleh
     // terdesak habis oleh panel yang tinggi (HP 320 dp, huruf besar, papan ketik
-    // terbuka). Pemanggil memberi jatah lewat `Flexible`.
-    return SingleChildScrollView(
-      key: BlokIdentitasFoto.kunci,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (isi is! SizedBox) isi,
-          if (_fase != _Fase.ditutup || alat != null) ..._barisTanggal(l10n),
-        ],
+    // terbuka). Tingginya dibatasi [BlokIdentitasFoto.tinggiMaks].
+    final panel = alat == null && _fase == _Fase.baru;
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxHeight: widget.tinggiMaks * (panel ? 1.0 : 0.5),
+      ),
+      child: SingleChildScrollView(
+        key: BlokIdentitasFoto.kunci,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (isi is! SizedBox) isi,
+            if (_fase != _Fase.ditutup || alat != null) ..._barisTanggal(l10n),
+          ],
+        ),
       ),
     );
   }
@@ -545,7 +559,6 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
   Widget _tombolTutup(AppLocalizations l10n) => IconButton(
     key: BlokIdentitasFoto.kunciTutup,
     tooltip: l10n.identitasTutup,
-    visualDensity: VisualDensity.compact,
     onPressed: () => setState(() => _fase = _Fase.ditutup),
     icon: const Icon(Icons.close, size: 18),
   );
@@ -613,49 +626,26 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
     void Function(SelisihIdentitas s)? onPakai,
   }) {
     if (selisih.isEmpty) return const [];
-    final tema = Theme.of(context);
 
     return [
       const SizedBox(height: AppSpacing.xs),
-      Row(
-        children: [
-          const Icon(
-            Icons.warning_amber_rounded,
-            size: 16,
-            color: kuningPerluDicek,
-          ),
-          const SizedBox(width: AppSpacing.xs),
-          Expanded(
-            child: Text(
-              l10n.identitasBedaJudul,
-              style: tema.textTheme.labelLarge,
-            ),
-          ),
-        ],
-      ),
       for (final s in selisih)
         Padding(
           key: BlokIdentitasFoto.kunciBeda(s.kode),
           padding: const EdgeInsets.only(top: 2),
-          child: Wrap(
-            spacing: AppSpacing.sm,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Text(
-                l10n.identitasBedaBaris(
-                  _labelKolom(s.kode),
-                  s.kertas,
-                  s.terdaftar,
-                ),
-                style: tema.textTheme.bodySmall,
-              ),
-              if (tombol)
-                TextButton(
-                  key: BlokIdentitasFoto.kunciPakaiTerdaftar(s.kode),
-                  onPressed: () => onPakai?.call(s),
-                  child: Text(l10n.identitasPakaiTerdaftar),
-                ),
-            ],
+          child: _BarisBeda(
+            teks: l10n.identitasBedaBaris(
+              _labelKolom(s.kode),
+              s.kertas,
+              s.terdaftar,
+            ),
+            tombol: tombol
+                ? TextButton(
+                    key: BlokIdentitasFoto.kunciPakaiTerdaftar(s.kode),
+                    onPressed: () => onPakai?.call(s),
+                    child: Text(l10n.identitasPakaiTerdaftar),
+                  )
+                : null,
           ),
         ),
     ];
@@ -736,7 +726,6 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
                 borderSide: const BorderSide(color: kuningPerluDicek),
               )
             : null,
-        helperText: null,
         labelStyle: tema.textTheme.bodyMedium,
       ),
     );
@@ -987,6 +976,45 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
   }
 }
 
+/// Satu selisih kertas lawan data terdaftar: ikon kuning + kalimat, dan
+/// (opsional) tombol "Pakai yang terdaftar".
+class _BarisBeda extends StatelessWidget {
+  const _BarisBeda({required this.teks, this.tombol});
+
+  final String teks;
+  final Widget? tombol;
+
+  @override
+  Widget build(BuildContext context) {
+    final tema = Theme.of(context);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(top: 2),
+          child: Icon(
+            Icons.warning_amber_rounded,
+            size: 16,
+            color: kuningPerluDicek,
+          ),
+        ),
+        const SizedBox(width: AppSpacing.xs),
+        Expanded(
+          child: Wrap(
+            spacing: AppSpacing.sm,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(teks, style: tema.textTheme.bodySmall),
+              ?tombol,
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 /// Alat yang dipakai lembar ini (dipilih lewat blok ini atau lewat pilihan alat
 /// manual), dengan selisih terhadap kertas yang masih berlaku.
 class _KartuTerpilih extends StatelessWidget {
@@ -1049,44 +1077,21 @@ class _KartuTerpilih extends StatelessWidget {
             ),
             if (selisih.isNotEmpty) ...[
               const SizedBox(height: AppSpacing.xs),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.warning_amber_rounded,
-                    size: 16,
-                    color: kuningPerluDicek,
-                  ),
-                  const SizedBox(width: AppSpacing.xs),
-                  Expanded(
-                    child: Text(
-                      l10n.identitasBedaJudul,
-                      style: tema.textTheme.labelLarge,
-                    ),
-                  ),
-                ],
-              ),
               for (final s in selisih)
                 Padding(
                   key: BlokIdentitasFoto.kunciBeda(s.kode),
                   padding: const EdgeInsets.only(top: 2),
-                  child: Wrap(
-                    spacing: AppSpacing.sm,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      Text(
-                        l10n.identitasBedaBaris(
-                          label(s.kode),
-                          s.kertas,
-                          s.terdaftar,
-                        ),
-                        style: tema.textTheme.bodySmall,
-                      ),
-                      TextButton(
-                        key: BlokIdentitasFoto.kunciPakaiTerdaftar(s.kode),
-                        onPressed: () => onPakaiTerdaftar(s),
-                        child: Text(l10n.identitasPakaiTerdaftar),
-                      ),
-                    ],
+                  child: _BarisBeda(
+                    teks: l10n.identitasBedaBaris(
+                      label(s.kode),
+                      s.kertas,
+                      s.terdaftar,
+                    ),
+                    tombol: TextButton(
+                      key: BlokIdentitasFoto.kunciPakaiTerdaftar(s.kode),
+                      onPressed: () => onPakaiTerdaftar(s),
+                      child: Text(l10n.identitasPakaiTerdaftar),
+                    ),
                   ),
                 ),
             ],

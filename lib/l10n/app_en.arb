@@ -5563,7 +5563,6 @@
   "identitasJenisAlat": "Type: {jenis}",
   "@identitasJenisAlat": {"placeholders": {"jenis": {"type": "String"}}},
   "identitasAlamat": "Address",
-  "identitasBedaJudul": "Differs from registered data",
   "identitasBedaBaris": "{label}: paper \"{kertas}\", registered \"{terdaftar}\"",
   "@identitasBedaBaris": {"placeholders": {"label": {"type": "String"}, "kertas": {"type": "String"}, "terdaftar": {"type": "String"}}},
   "identitasPakaiTerdaftar": "Use registered",

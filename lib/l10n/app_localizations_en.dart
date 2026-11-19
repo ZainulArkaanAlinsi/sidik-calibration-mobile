@@ -10156,9 +10156,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get identitasAlamat => 'Address';
 
   @override
-  String get identitasBedaJudul => 'Differs from registered data';
-
-  @override
   String identitasBedaBaris(String label, String kertas, String terdaftar) {
     return '$label: paper \"$kertas\", registered \"$terdaftar\"';
   }

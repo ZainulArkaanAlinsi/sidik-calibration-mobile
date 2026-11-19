@@ -207,8 +207,10 @@ lewat ekstensi di `lib/screens/pindai/identitas_foto_isian.dart`, memakai
   ("Foto ulang") dan baru muncul sesudah percobaan pertama ("Isi dari foto"
   dihapus). Gagal baca = pesan saja, tanpa dialog Tutup/Foto ulang
   (`tanpaDialogFotoUlang`, hanya jalur foto).
-- Satu widget baru di atas lembar: `BlokIdentitasFoto` (di `Flexible`, menggulir
-  di jatahnya sendiri). `_PilihAlat` memuat alat terpilih yang di luar halaman
+- Satu widget baru di atas lembar: `BlokIdentitasFoto`, lewat `_denganBlokIdentitas`
+  yang membungkus lembar di dalam jatahnya sendiri (blok setinggi isinya,
+  dibatasi terhadap jatah itu dan menggulir di dalamnya; lembar mendapat sisanya;
+  `dariFoto == null` = lembar apa adanya). `_PilihAlat` memuat alat terpilih yang di luar halaman
   pertama daftar (agar Dropdown tidak melempar).
 
 **Yang TIDAK berubah.** Aturan OCR (hanya di perangkat, hasil = saran, tanpa
