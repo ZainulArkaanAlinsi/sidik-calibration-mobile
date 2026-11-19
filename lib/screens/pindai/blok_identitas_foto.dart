@@ -933,17 +933,19 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
       );
     }
 
-    // Layar sempit: panelnya ada di lembar bawah; di sini hanya kartu pembuka.
+    // Layar sempit: panelnya ada di lembar bawah; di sini hanya kartu pembuka,
+    // sekecil mungkin (satu tombol, tanpa teks dan tombol tutup lain): di 320 dp
+    // x huruf 2,0 blok hanya mendapat ~120 dp, dan lembar bawah punya Batal.
     if (_sempit()) {
-      return _kartuPesan(
-        l10n,
-        kunci: BlokIdentitasFoto.kunciAlatBaruRingkas,
-        pesan: l10n.identitasAlatBaruBelum,
-        aksi: FilledButton(
-          key: BlokIdentitasFoto.kunciBukaAlatBaru,
-          onPressed: _bukaLembar,
-          child: Text(l10n.identitasBukaAlatBaru),
-        ),
+      return _kartu(
+        BlokIdentitasFoto.kunciAlatBaruRingkas,
+        children: [
+          FilledButton(
+            key: BlokIdentitasFoto.kunciBukaAlatBaru,
+            onPressed: _bukaLembar,
+            child: Text(l10n.identitasBukaAlatBaru),
+          ),
+        ],
       );
     }
 

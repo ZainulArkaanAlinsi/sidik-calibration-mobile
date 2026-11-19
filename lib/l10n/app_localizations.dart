@@ -17408,16 +17408,10 @@ abstract class AppLocalizations {
   /// **'Range and resolution can be completed later in Instrument master.'**
   String get identitasLengkapiNanti;
 
-  /// No description provided for @identitasAlatBaruBelum.
-  ///
-  /// In en, this message translates to:
-  /// **'The new instrument has not been created yet.'**
-  String get identitasAlatBaruBelum;
-
   /// No description provided for @identitasBukaAlatBaru.
   ///
   /// In en, this message translates to:
-  /// **'Check and create'**
+  /// **'Check and create the instrument'**
   String get identitasBukaAlatBaru;
 
   /// No description provided for @ditahanJudul.

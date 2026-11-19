@@ -10215,11 +10215,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Range and resolution can be completed later in Instrument master.';
 
   @override
-  String get identitasAlatBaruBelum =>
-      'The new instrument has not been created yet.';
-
-  @override
-  String get identitasBukaAlatBaru => 'Check and create';
+  String get identitasBukaAlatBaru => 'Check and create the instrument';
 
   @override
   String get ditahanJudul => 'Issuance on hold';
