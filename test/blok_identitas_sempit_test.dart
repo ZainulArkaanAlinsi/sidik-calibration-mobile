@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -752,7 +751,7 @@ void main() {
         tester.getSemantics(
           find.descendant(of: _lembarBawah, matching: find.text('Alat baru')),
         ),
-        containsSemantics(label: 'Alat baru', isHeader: true),
+        isSemantics(label: 'Alat baru', isHeader: true),
       );
       await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
       await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
