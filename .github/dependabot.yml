@@ -1,0 +1,41 @@
+# Pembaruan dependensi terjadwal (perawatan rutin, keputusan pemilik 19 Nov 2026).
+# Mingguan, maksimal tiga PR terbuka, minor/patch dikelompokkan, ditinjau dan digabung MANUAL.
+# Menggabungkan perubahan pubspec ke main memicu rilis APK otomatis (Lab): gabungkan hanya yang sudah diuji di HP/CI dan di luar jam kerja lab.
+version: 2
+updates:
+  - package-ecosystem: pub
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Asia/Jakarta
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      minor-dan-patch:
+        update-types: ["minor", "patch"]
+  - package-ecosystem: pub
+    directory: "/studio"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Asia/Jakarta
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      minor-dan-patch:
+        update-types: ["minor", "patch"]
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Asia/Jakarta
+    open-pull-requests-limit: 2
+    commit-message:
+      prefix: "chore(ci)"
