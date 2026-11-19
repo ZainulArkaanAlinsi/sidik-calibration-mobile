@@ -10062,6 +10062,12 @@ class AppLocalizationsId extends AppLocalizations {
       'Rentang dan resolusi alat bisa dilengkapi nanti di Master Alat.';
 
   @override
+  String get identitasAlatBaruBelum => 'Alat baru belum dibuat.';
+
+  @override
+  String get identitasBukaAlatBaru => 'Periksa dan buat';
+
+  @override
   String get ditahanJudul => 'Penerbitan ditahan';
 
   @override

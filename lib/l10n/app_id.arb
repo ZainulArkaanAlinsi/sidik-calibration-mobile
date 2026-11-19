@@ -3939,6 +3939,8 @@
   "identitasTanggalTerima": "Tanggal terima di kertas: {tanggal}",
   "identitasPakaiTanggal": "Pakai tanggal ini",
   "identitasLengkapiNanti": "Rentang dan resolusi alat bisa dilengkapi nanti di Master Alat.",
+  "identitasAlatBaruBelum": "Alat baru belum dibuat.",
+  "identitasBukaAlatBaru": "Periksa dan buat",
   "ditahanJudul": "Penerbitan ditahan",
   "ditahanIsi": "Penerbitan sertifikat jenis alat ini ditahan menunggu keputusan Technical Manager. Lembar tetap bisa diisi dan dihitung.",
   "ditahanRujukan": "Rujukan TM: {rujukan}",
