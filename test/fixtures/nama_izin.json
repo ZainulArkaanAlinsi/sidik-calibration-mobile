@@ -1,7 +1,7 @@
 {
     "_sumber": "MatriksIzin::PETA di repo sidik-calibration-api. DIGENERATE docs/skrip/gen-nama-izin-mobile.php — jangan disunting tangan.",
     "_dipakai": "test/nama_izin_test.dart — menuntut tiap nilai di `NamaIzin` ada di daftar ini. Nama yang tidak dikenal server bikin Izin.bolehkah() diam-diam balik ke aturan peran hardcode.",
-    "jumlah": 78,
+    "jumlah": 80,
     "izin": [
         "alat.hapus",
         "alat.lihat",
@@ -63,8 +63,10 @@
         "pengingat.kirim",
         "penugasan.batalkan",
         "penugasan.buat",
+        "penugasan.buka-lagi",
         "penugasan.lapor-progres",
         "penugasan.lihat",
+        "penugasan.selesaikan",
         "penugasan.ubah",
         "ruangan.kelola",
         "ruangan.lihat",
