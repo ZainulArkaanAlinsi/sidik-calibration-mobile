@@ -19,16 +19,26 @@
 ///  2. [terapkanOpsiSentry] mematikan semua yang bisa membawa data pengguna:
 ///     tangkapan layar, hierarki tampilan, breadcrumb (maksimum 0, termasuk
 ///     ketuk/teks), badan permintaan HTTP, pengguna/PII bawaan, sesi, replay,
-///     performa/tracing, log, laporan klien, daftar paket, ANR, dan penangkap
-///     crash native. Penangkap galat milik SDK sendiri (Flutter/async/isolate/
-///     `debugPrint`) DICABUT: satu-satunya pintu masuk adalah [catat].
+///     performa/tracing, log, laporan klien, daftar paket, dan opsi native
+///     yang dipetakan Flutter (ANR, handler pengecualian native). Penangkap
+///     galat milik SDK sendiri (Flutter/async/isolate/`debugPrint`) DICABUT:
+///     satu-satunya pintu masuk adalah [catat].
 ///  3. [saringEventSentry] (`beforeSend`) adalah pagar terakhir: membuang pesan
 ///     galat, pengguna, request, breadcrumb, extra, tag selain whitelist,
 ///     konteks perangkat, nama host, dan path absolut dari jejak tumpukan.
 ///
-/// Galat native (Java/NDK/ANR) SENGAJA tidak ditangkap Sentry: `beforeSend`
-/// Dart tidak berlaku untuk event native, jadi tidak ada pagar yang menjamin
-/// isinya bersih. Crash native tetap dilaporkan Crashlytics.
+/// ## Sisi native (Android) — BELUM diuji di HP
+///
+/// SDK native HARUS hidup begitu DSN diisi: di Android event Dart dikirim lewat
+/// transport native (`FileSystemTransport`), jadi `autoInitializeNativeSdk`
+/// tidak dimatikan. Konsekuensinya `beforeSend` Dart TIDAK berlaku untuk event
+/// yang lahir di native, dan sentry-android-core 8.64.0 menyalakan penangkap
+/// crash NDK secara bawaan (`enableNdk` = true, tidak dipetakan Flutter).
+/// Karena itu penangkap native dimatikan lewat meta-data AndroidManifest
+/// (`io.sentry.ndk.enable` dan kerabatnya, dibaca sebelum callback Flutter;
+/// dijaga `test/sentry_manifest_test.dart`). Crash native tetap dilaporkan
+/// Crashlytics, bukan Sentry. Pengaruh meta-data itu di perangkat belum diuji;
+/// uji di HP dengan DSN uji sebelum DSN rilis diisi.
 library;
 
 import 'dart:async';
@@ -170,7 +180,8 @@ void terapkanOpsiSentry(
     ..enableAutoSessionTracking = false
     ..sendClientReports = false
     ..reportPackages = false
-    // Native: tidak ada penangkap crash/ANR/hang (tidak melewati beforeSend).
+    // Native: Flutter hanya memetakan handler pengecualian + ANR; NDK dan sisanya
+    // ditutup lewat meta-data AndroidManifest (lihat dokumen perpustakaan ini).
     ..enableNativeCrashHandling = false
     ..anrEnabled = false
     ..enableTombstone = false

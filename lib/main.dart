@@ -52,10 +52,10 @@ Future<void> main() async {
   // aplikasinya JALAN TERUS; widget yang gagal dibangun tampil sebagai kartu
   // ramah. Lihat [pasangPenangkapGalat].
   pasangPenangkapGalat(
-    pelapor: gabungkanPelapor([
-      await _pelaporGalat(firebaseHidup),
-      pelaporSentry,
-    ]),
+    pelapor: susunPelaporAktif(
+      crashlytics: await _pelaporGalat(firebaseHidup),
+      sentry: pelaporSentry,
+    ),
   );
 
   // Pembaruan Windows yang sudah diunduh di pembukaan sebelumnya dipasang di

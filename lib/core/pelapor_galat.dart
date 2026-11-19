@@ -125,6 +125,21 @@ PelaporGalat? gabungkanPelapor(Iterable<PelaporGalat?> daftar) {
   };
 }
 
+/// Susun pelapor yang dipasang `main.dart`. Di build NON-rilis (debug/profile)
+/// log lokal [PelaporGalatDiam] SELALU ikut: memasang pelapor mana pun
+/// (Sentry sendirian karena DSN diisi, atau Firebase gagal) menggantikan
+/// bawaan [pelaporGalat], dan galat async lalu hilang dari logcat/konsol
+/// pengembang. Di rilis, log lokal tidak dipakai (sama seperti sebelumnya).
+PelaporGalat? susunPelaporAktif({
+  PelaporGalat? crashlytics,
+  PelaporGalat? sentry,
+  bool rilis = kReleaseMode,
+}) => gabungkanPelapor([
+  if (!rilis) const PelaporGalatDiam(),
+  crashlytics,
+  sentry,
+]);
+
 /// Pelapor yang aktif. Diganti sekali oleh `main.dart`; test memakai bawaan.
 PelaporGalat pelaporGalat = const PelaporGalatDiam();
 

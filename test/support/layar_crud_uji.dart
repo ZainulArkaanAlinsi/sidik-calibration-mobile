@@ -23,6 +23,7 @@ import 'package:sidik_calibration/providers/calibration_input_provider.dart'
 import 'package:sidik_calibration/providers/draf_lokal_provider.dart';
 import 'package:sidik_calibration/providers/history_provider.dart';
 import 'package:sidik_calibration/providers/perhitungan_provider.dart';
+import 'package:sidik_calibration/screens/admin/antrean_approval_screen.dart';
 import 'package:sidik_calibration/screens/admin/perhitungan_screen.dart';
 import 'package:sidik_calibration/screens/crud_lab/arsip_draf_screen.dart';
 import 'package:sidik_calibration/screens/crud_lab/kategori_kelola_screen.dart';
@@ -47,6 +48,7 @@ import 'package:sidik_calibration/services/standard_service.dart';
 
 import 'crud_uji.dart';
 import 'layar_sa_uji.dart' show ketukDi;
+import 'antrean_ditahan_uji.dart';
 import 'riwayat_ditahan_uji.dart';
 import 'super_admin_uji.dart' show namaSangatPanjang;
 
@@ -730,6 +732,18 @@ LapisanUjiCrud _lapisanPerhitungan({
   );
 }
 
+/// Kartu Antrean Approval: Setujui dijawab `422 profil_ditahan`.
+Future<void> _setujuiAntreanDitahan(WidgetTester tester) async {
+  await tester.tap(find.text('Setujui'));
+  await tester.pumpAndSettle();
+  await tester.enterText(
+    find.byKey(const ValueKey('isian-nomor-sertifikat')),
+    'CAL/KT/H-proving_ring',
+  );
+  await tester.tap(find.byKey(const ValueKey('simpan-setujui')));
+  await tester.pumpAndSettle();
+}
+
 Widget _layarPerhitungan() => const PerhitunganScreen(
   calibrationId: 30,
   statusSesi: CalibrationStatus.menungguApproval,
@@ -1203,6 +1217,19 @@ final List<KeadaanCrud> keadaanLainCrud = [
     izin: izinTeknisiCrud,
   ),
   // ------------------------- PAKET LAB-UI-2: penerbitan ditahan (PR #280)
+  KeadaanCrud(
+    'antrean-approval-ditahan-dialog',
+    () => const AntreanApprovalScreen(),
+    () => LapisanUjiCrud(
+      tambahan: [
+        historyServiceProvider.overrideWithValue(AntreanSatuUji()),
+        approvalServiceProvider.overrideWithValue(ApprovalDitahanUji()),
+        perhitunganServiceProvider.overrideWithValue(MockPerhitunganService()),
+      ],
+    ),
+    sesudah: _setujuiAntreanDitahan,
+    tinggiBesar: false,
+  ),
   KeadaanCrud(
     'perhitungan-normal',
     _layarPerhitungan,

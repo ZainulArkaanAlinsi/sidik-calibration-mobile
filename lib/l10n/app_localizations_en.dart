@@ -10318,4 +10318,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get perhitSesiTidakAda =>
       'This session no longer exists on the server. It may have been archived or deleted by an admin.';
+
+  @override
+  String get crudPenugasanSudahAktif => 'This assignment was already reopened.';
 }
