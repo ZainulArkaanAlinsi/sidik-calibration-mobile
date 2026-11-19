@@ -3,14 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:sidik_calibration/l10n/app_localizations.dart';
-import 'package:sidik_calibration/models/calibration_detail.dart';
 import 'package:sidik_calibration/models/calibration_history_item.dart';
 import 'package:sidik_calibration/models/penerbitan_ditahan.dart';
 import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/calibration_input_provider.dart';
 import 'package:sidik_calibration/providers/history_provider.dart';
 import 'package:sidik_calibration/screens/admin/perhitungan_screen.dart';
-import 'package:sidik_calibration/services/history_service.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
 import 'package:sidik_calibration/providers/perhitungan_provider.dart';
 import 'package:sidik_calibration/services/perhitungan_service.dart';
@@ -18,56 +16,17 @@ import 'package:sidik_calibration/services/standard_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 import 'package:sidik_calibration/widgets/app_button.dart';
 
+import 'support/riwayat_ditahan_uji.dart';
+
 /// Penerbitan ditahan menunggu Technical Manager (PR #280) di layar
 /// Perhitungan/Setujui.
 ///
 /// Teks alasan dan rujukan disalin dari respons API NYATA (uji kontrak app-API
 /// 19 Nov 2026, `kontrak/hasil/dart-ditahan.json`, DT-D-proving_ring dan
 /// DT-P-proving_ring). Mock di sini hanya mengantar JSON yang sama bentuknya.
-const _alasan =
-    'Proving Ring: U95 tercetak 2,3 kgf (pita 0 sampai 500 kgf lampiran '
-    'LK-285-IDN), sedangkan master 22,4 kgf (pita 10 sampai 88 kN), sekitar '
-    '10 kali lebih besar daripada sertifikat yang sudah pernah terbit. Pita '
-    'CMC mana yang benar (G14) belum diputuskan';
-
-const _ditahan = PenerbitanDitahan(
-  ditahan: true,
-  alasan: _alasan,
-  rujukanTm: 'TM-4',
-);
-
-/// Detail sesi `GET /calibrations/{id}`; penahanannya diambil dari [bacaDitahan]
-/// tiap kali dibaca, supaya tes bisa membalik keadaan server (TM melepas
-/// penahanan) di tengah jalan.
-class _Riwayat extends MockHistoryService {
-  _Riwayat(this.bacaDitahan);
-
-  final PenerbitanDitahan Function() bacaDitahan;
-  int panggilDetail = 0;
-
-  @override
-  Future<CalibrationDetail> ambilDetail(String token, int id) async {
-    panggilDetail++;
-    final p = bacaDitahan();
-    return CalibrationDetail.fromJson({
-      'id': id,
-      'status': 'menunggu_approval',
-      'equipment': {'id': 12, 'nama_alat': 'Proving Ring'},
-      'teknisi': {'nama': 'Teknisi Sidik'},
-      'nomor_sesi': 'KAL/2026/11/0030',
-      'nomor_order': 'ORD/KT/proving_ring',
-      'penerbitan_ditahan': {
-        'ditahan': p.ditahan,
-        'alasan': p.alasan,
-        'rujukan_tm': p.rujukanTm,
-      },
-    });
-  }
-}
-
 Widget _app(
   MockPerhitunganService perhitungan,
-  _Riwayat riwayat, {
+  RiwayatSesiDitahan riwayat, {
   CalibrationStatus? status = CalibrationStatus.menungguApproval,
 }) => ProviderScope(
   overrides: [
@@ -108,11 +67,14 @@ void main() {
     testWidgets('ditahan: banner memuat alasan + rujukan TM, Setujui mati dan '
         'tidak mengirim apa pun', (tester) async {
       final svc = MockPerhitunganService();
-      await _muat(tester, _app(svc, _Riwayat(() => _ditahan)));
+      await _muat(
+        tester,
+        _app(svc, RiwayatSesiDitahan(() => ditahanProvingRingUji)),
+      );
 
       expect(_banner, findsOneWidget);
       expect(find.text('Penerbitan ditahan'), findsOneWidget);
-      expect(find.text(_alasan), findsOneWidget);
+      expect(find.text(alasanProvingRingUji), findsOneWidget);
       expect(find.text('Rujukan TM: TM-4'), findsOneWidget);
       expect(_petunjuk, findsOneWidget);
 
@@ -134,7 +96,10 @@ void main() {
     ) async {
       await _muat(
         tester,
-        _app(MockPerhitunganService(), _Riwayat(() => PenerbitanDitahan.tidak)),
+        _app(
+          MockPerhitunganService(),
+          RiwayatSesiDitahan(() => PenerbitanDitahan.tidak),
+        ),
       );
 
       expect(_banner, findsNothing);
@@ -149,7 +114,7 @@ void main() {
         tester,
         _app(
           MockPerhitunganService(),
-          _Riwayat(() => _ditahan),
+          RiwayatSesiDitahan(() => ditahanProvingRingUji),
           status: CalibrationStatus.disetujui,
         ),
       );
@@ -162,7 +127,10 @@ void main() {
     ) async {
       await _muat(
         tester,
-        _app(MockPerhitunganService(), _Riwayat(() => _ditahan)),
+        _app(
+          MockPerhitunganService(),
+          RiwayatSesiDitahan(() => ditahanProvingRingUji),
+        ),
       );
 
       await tester.tap(find.byKey(const ValueKey('baca-alasan-ditahan')));
@@ -170,7 +138,7 @@ void main() {
 
       expect(_dialog, findsOneWidget);
       expect(find.byKey(const ValueKey('alasan-dialog')), findsOneWidget);
-      expect(find.text(_alasan), findsWidgets);
+      expect(find.text(alasanProvingRingUji), findsWidgets);
 
       await tester.tap(find.byKey(const ValueKey('tutup-dialog-ditahan')));
       await tester.pumpAndSettle();
@@ -179,8 +147,8 @@ void main() {
 
     testWidgets('Periksa membaca ulang penahanan: TM melepas, banner hilang '
         'dan Setujui hidup lagi', (tester) async {
-      var kini = _ditahan;
-      final riwayat = _Riwayat(() => kini);
+      var kini = ditahanProvingRingUji;
+      final riwayat = RiwayatSesiDitahan(() => kini);
       await _muat(tester, _app(MockPerhitunganService(), riwayat));
       expect(_banner, findsOneWidget);
       final sebelum = riwayat.panggilDetail;
@@ -201,9 +169,11 @@ void main() {
       // Detail awal belum tahu soal penahanan (klien lama / data basi); server
       // sudah menahan, jadi approve ditolak dan bacaan berikutnya ikut ditahan.
       var serverMenahan = false;
-      final svc = MockPerhitunganService(penerbitanDitahan: _ditahan);
-      final riwayat = _Riwayat(
-        () => serverMenahan ? _ditahan : PenerbitanDitahan.tidak,
+      final svc = MockPerhitunganService(
+        penerbitanDitahan: ditahanProvingRingUji,
+      );
+      final riwayat = RiwayatSesiDitahan(
+        () => serverMenahan ? ditahanProvingRingUji : PenerbitanDitahan.tidak,
       );
       await _muat(tester, _app(svc, riwayat));
       expect(_banner, findsNothing);
@@ -222,7 +192,7 @@ void main() {
       // Server menjawab 422: dialog penjelasan, bukan SnackBar panjang.
       expect(_dialog, findsOneWidget);
       expect(find.text('Penerbitan sertifikat ditahan'), findsOneWidget);
-      expect(find.text(_alasan), findsWidgets);
+      expect(find.text(alasanProvingRingUji), findsWidgets);
       expect(find.text('Rujukan TM: TM-4'), findsWidgets);
       expect(find.byType(SnackBar), findsNothing);
 

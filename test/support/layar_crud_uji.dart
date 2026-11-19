@@ -8,13 +8,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:sidik_calibration/models/arsip_draf.dart';
+import 'package:sidik_calibration/models/calibration_history_item.dart'
+    show CalibrationStatus;
+import 'package:sidik_calibration/models/penerbitan_ditahan.dart';
 import 'package:sidik_calibration/models/category.dart';
 import 'package:sidik_calibration/models/izin.dart';
 import 'package:sidik_calibration/models/order.dart';
 import 'package:sidik_calibration/models/order_kelola.dart';
 import 'package:sidik_calibration/models/penugasan.dart';
 import 'package:sidik_calibration/models/penugasan_kelola.dart';
+import 'package:sidik_calibration/providers/calibration_input_provider.dart'
+    show standardServiceProvider;
+import 'package:sidik_calibration/providers/draf_lokal_provider.dart';
 import 'package:sidik_calibration/providers/history_provider.dart';
+import 'package:sidik_calibration/providers/perhitungan_provider.dart';
+import 'package:sidik_calibration/screens/admin/perhitungan_screen.dart';
 import 'package:sidik_calibration/screens/crud_lab/arsip_draf_screen.dart';
 import 'package:sidik_calibration/screens/crud_lab/kategori_kelola_screen.dart';
 import 'package:sidik_calibration/screens/crud_lab/penugasan_kelola_screen.dart';
@@ -26,14 +34,19 @@ import 'package:sidik_calibration/screens/crud_lab/order_list_screen.dart';
 import 'package:sidik_calibration/screens/crud_lab/pengelolaan_data_screen.dart';
 import 'package:sidik_calibration/services/arsip_draf_service.dart';
 import 'package:sidik_calibration/services/auth_service.dart';
+import 'package:sidik_calibration/services/draf_lokal.dart';
 import 'package:sidik_calibration/services/history_service.dart';
 import 'package:sidik_calibration/services/kategori_kelola_service.dart';
 import 'package:sidik_calibration/services/order_kelola_service.dart';
 import 'package:sidik_calibration/services/pengguna_sa_service.dart';
 import 'package:sidik_calibration/services/penugasan_kelola_service.dart';
+import 'package:sidik_calibration/services/perhitungan_service.dart';
+import 'package:sidik_calibration/services/pesan_penolakan_draf.dart';
+import 'package:sidik_calibration/services/standard_service.dart';
 
 import 'crud_uji.dart';
 import 'layar_sa_uji.dart' show ketukDi;
+import 'riwayat_ditahan_uji.dart';
 import 'super_admin_uji.dart' show namaSangatPanjang;
 
 class KeadaanCrud {
@@ -661,6 +674,75 @@ Future<void> _arsipkanGagal(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
+/// Keadaan server untuk keadaan `perhitungan-ditahan-422`: detail sesi baru
+/// ikut menahan SESUDAH approve ditolak (klien yang datanya basi).
+var _serverMenahanUji = false;
+
+LapisanUjiCrud _lapisanPerhitungan({
+  bool ditahan = false,
+  bool klienBasi = false,
+}) {
+  _serverMenahanUji = false;
+  final penahanan = ditahan || klienBasi
+      ? ditahanProvingRingUji
+      : PenerbitanDitahan.tidak;
+  return LapisanUjiCrud(
+    tambahan: [
+      perhitunganServiceProvider.overrideWithValue(
+        MockPerhitunganService(penerbitanDitahan: penahanan),
+      ),
+      historyServiceProvider.overrideWithValue(
+        RiwayatSesiDitahan(
+          () => ditahan || _serverMenahanUji
+              ? ditahanProvingRingUji
+              : PenerbitanDitahan.tidak,
+        ),
+      ),
+      standardServiceProvider.overrideWithValue(MockStandardService()),
+    ],
+  );
+}
+
+Widget _layarPerhitungan() => const PerhitunganScreen(
+  calibrationId: 30,
+  statusSesi: CalibrationStatus.menungguApproval,
+);
+
+Future<void> _bukaAlasanDitahan(WidgetTester tester) async {
+  await ketukDi(tester, find.byKey(const ValueKey('baca-alasan-ditahan')));
+  await tester.pumpAndSettle();
+}
+
+/// Klien yang datanya basi menekan Setujui: server menjawab `422
+/// profil_ditahan`, dialog terbuka, dan detail sesi dibaca ulang.
+Future<void> _setujuiKeDitahan(WidgetTester tester) async {
+  _serverMenahanUji = true;
+  await tester.tap(find.text('Setujui'));
+  await tester.pumpAndSettle();
+  await tester.enterText(
+    find.byKey(const ValueKey('isian-nomor-sertifikat')),
+    'CAL/KT/H-proving_ring',
+  );
+  await tester.tap(find.byKey(const ValueKey('simpan-setujui')));
+  await tester.pumpAndSettle();
+}
+
+/// Draf di antrean HP yang ditolak server karena diarsipkan admin (404).
+List<DrafLokal> _drafLokalDiarsipkan() => [
+  DrafLokal(
+    userId: 2,
+    sesiId: 25,
+    clientRequestId: '0b7c6a52-3f7e-4d55-9a3b-2c1d0e9f8a71',
+    profil: 'ph_meter',
+    disimpanPada: DateTime.utc(2026, 11, 19, 3),
+    status: StatusDrafLokal.perluDiperbaiki,
+    pesan: pesanPenolakanDraf(404),
+    judul: 'pH Meter · SN-12345',
+    kiriman: const {'status': 'draft'},
+    isian: const {},
+  ),
+];
+
 LapisanUjiCrud _lapisanDraf({ArsipDrafService? arsip}) => LapisanUjiCrud(
   arsipDraf: arsip,
   tambahan: [historyServiceProvider.overrideWithValue(MockHistoryService())],
@@ -852,6 +934,19 @@ final List<KeadaanCrud> keadaanLainCrud = [
       penugasan: MockPenugasanKelolaService(awal: penugasanBurukCrud),
     ),
     sesudah: _batalDialog,
+  ),
+  KeadaanCrud(
+    'penugasan-siap-ditutup',
+    () => const PenugasanKelolaScreen(),
+    () => LapisanUjiCrud(
+      penugasan: MockPenugasanKelolaService(
+        awal: [
+          penugasanBurukCrud.firstWhere((p) => p.id == 65),
+          penugasanBurukCrud.firstWhere((p) => p.id == 62),
+          penugasanBurukCrud.firstWhere((p) => p.id == 61),
+        ],
+      ),
+    ),
   ),
   KeadaanCrud(
     'penugasan-selesaikan-dialog',
@@ -1066,5 +1161,45 @@ final List<KeadaanCrud> keadaanLainCrud = [
     token: tokenTeknisiCrud,
     izin: izinTeknisiCrud,
     sesudah: _arsipkanGagal,
+  ),
+  // ------------------------------- PAKET LAB-UI-2: galat ramah draf diarsipkan
+  KeadaanCrud(
+    'draf-lokal-diarsipkan',
+    () => const DrafScreen(),
+    () => LapisanUjiCrud(
+      tambahan: [
+        historyServiceProvider.overrideWithValue(MockHistoryService()),
+        drafLokalProvider.overrideWith((ref) async => _drafLokalDiarsipkan()),
+      ],
+    ),
+    token: tokenTeknisiCrud,
+    izin: izinTeknisiCrud,
+  ),
+  // ------------------------- PAKET LAB-UI-2: penerbitan ditahan (PR #280)
+  KeadaanCrud(
+    'perhitungan-normal',
+    _layarPerhitungan,
+    () => _lapisanPerhitungan(),
+    tinggiBesar: false,
+  ),
+  KeadaanCrud(
+    'perhitungan-ditahan',
+    _layarPerhitungan,
+    () => _lapisanPerhitungan(ditahan: true),
+    tinggiBesar: false,
+  ),
+  KeadaanCrud(
+    'perhitungan-ditahan-dialog',
+    _layarPerhitungan,
+    () => _lapisanPerhitungan(ditahan: true),
+    sesudah: _bukaAlasanDitahan,
+    tinggiBesar: false,
+  ),
+  KeadaanCrud(
+    'perhitungan-ditahan-422',
+    _layarPerhitungan,
+    () => _lapisanPerhitungan(klienBasi: true),
+    sesudah: _setujuiKeDitahan,
+    tinggiBesar: false,
   ),
 ];
