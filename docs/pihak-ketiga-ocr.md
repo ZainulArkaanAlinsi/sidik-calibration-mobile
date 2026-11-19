@@ -125,9 +125,26 @@ ada panggilan jaringan. Hanya Android/iOS (aplikasi HP); desktop dan web dilewat
 kode kita + label konteks buatan kode + versi aplikasi (`versi+build`). Pesan galat tidak pernah ikut. Tiga lapis:
 (1) `PelaporGalatSentry.catat` hanya mengirim jenis dan membuang galat jaringan/4xx; (2) `terapkanOpsiSentry` mematikan
 tangkapan layar, hierarki tampilan, semua breadcrumb (`maxBreadcrumbs = 0`), badan permintaan HTTP, PII bawaan, sesi,
-replay, performa (`tracesSampleRate = 0`, semua transaksi/log/metrik dibuang), laporan klien, daftar paket, dan
-penangkap crash/ANR native, serta mencabut penangkap galat milik SDK sendiri; (3) `beforeSend` membuang pesan, pengguna,
-request, extra, konteks perangkat, host, path absolut, dan tag di luar whitelist. Crash native tetap dilaporkan Crashlytics.
+replay, performa (`tracesSampleRate = 0`, semua transaksi/log/metrik dibuang), laporan klien, dan daftar paket, serta
+mencabut penangkap galat milik SDK sendiri; (3) `beforeSend` membuang pesan, pengguna, request, extra, konteks perangkat,
+host, path absolut, dan tag di luar whitelist. Crash native tetap dilaporkan Crashlytics, bukan Sentry.
+
+**Sisi native Android: BELUM diuji di HP (koreksi 19 Nov 2026).** Versi awal dokumen ini keliru menulis bahwa SDK native
+"tidak dinyalakan" dan bahwa penangkap crash native dicabut oleh opsi Dart. Yang benar (dari kode `sentry_flutter` 10.5.0 dan
+bytecode `sentry-android-core` 8.64.0):
+- SDK native HARUS hidup begitu DSN diisi, karena event Dart dikirim lewat transport native (`FileSystemTransport`);
+  `autoInitializeNativeSdk` dibiarkan bawaan (true). Tanpa DSN, SDK tidak pernah berjalan (provider auto-init dicabut).
+- `enableNativeCrashHandling = false` HANYA mematikan handler pengecualian native dan ANR. NDK (`enableNdk`) bawaannya TRUE
+  dan tidak dipetakan Flutter, jadi penangkap crash NDK aktif begitu DSN diisi, dan event native TIDAK melewati `beforeSend` Dart.
+- Karena itu `android/app/src/main/AndroidManifest.xml` kini memuat meta-data yang dibaca SDK native SEBELUM callback Flutter:
+  `io.sentry.ndk.enable=false` (+ `ndk.scope-sync`, `ndk.app-hang`, `anr`, `tombstone`, `uncaught-exception-handler`,
+  `auto-session-tracking`, `attach-screenshot`, `attach-view-hierarchy`, `attach-threads`, `send-default-pii`,
+  `send-client-reports`, `max-breadcrumbs=0`, semua `breadcrumbs.*`, `logs.enabled`, `metrics.enabled`). Nama kunci diperiksa dari
+  bytecode `ManifestMetadataReader` 8.64.0. Dijaga `test/sentry_manifest_test.dart` (kunci ada, nilai mati, himpunan izin tidak berubah).
+- BELUM terbukti di perangkat: bahwa meta-data benar-benar mematikan NDK, dan apa yang dikirim native saat DSN diisi. Residu yang
+  diketahui: kode Flutter menyetel `logs.enabled`/`metrics.enabled` native menjadi true SESUDAH manifest (aplikasi tidak memakai
+  API log/metrik Sentry, dan log/metrik Dart dibuang `beforeSend*`). Pemilik menguji di HP asli dengan DSN uji sebelum DSN rilis
+  dipasang; periksa envelope yang tiba di Sentry (tidak boleh ada event native).
 
 **Dampak APK (PERKIRAAN, belum diukur dengan build rilis).** Dari berkas Maven Central: `libsentry.so` arm64-v8a
 887.712 bita mentah (317 KB terkompresi) + `libsentry-android.so` 20 KB; armeabi-v7a 588 KB mentah (284 KB terkompresi);
