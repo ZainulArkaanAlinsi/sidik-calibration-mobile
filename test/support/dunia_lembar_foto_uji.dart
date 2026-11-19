@@ -382,6 +382,7 @@ Widget appUji({
                       child: Text(
                         'papan ketik (sistem)',
                         style: TextStyle(
+                          fontFamily: 'Inter',
                           color: Color(0xFF5A6070),
                           fontSize: 12,
                           decoration: TextDecoration.none,
