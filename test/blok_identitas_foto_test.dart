@@ -762,6 +762,11 @@ void main() {
           skalaHuruf: huruf,
           papanKetik: ketik,
         );
+        // Layar sempit: panelnya di lembar bawah (paket OCR-SEMPIT; ambangnya
+        // `alatBaruSebagaiLembarBawah`, tesnya `blok_identitas_sempit_test`).
+        // Dibuka dulu; sesudahnya tata letak yang dijaga di sini sama.
+        final buka = find.byKey(BlokIdentitasFoto.kunciBukaAlatBaru);
+        if (buka.evaluate().isNotEmpty) await _ketuk(tester, buka);
         await _ketuk(tester, find.byKey(BlokIdentitasFoto.kunciBuatLanjut));
 
         expect(find.byKey(BlokIdentitasFoto.kunciPtMirip), findsOneWidget);
