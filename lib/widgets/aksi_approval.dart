@@ -213,6 +213,10 @@ class _AksiApprovalState extends ConsumerState<AksiApproval> {
       // karakter). Status sesi dan nomor yang diketik tidak berubah.
       if (kode == KodeGalat.profilDitahan) {
         setState(() => _busy = false);
+        // Detail sesi yang tersimpan di provider bisa lebih tua dari
+        // penahanannya: dibuang, supaya dibaca ulang saat layar Perhitungan
+        // dibuka atau Setujui ditekan lagi.
+        ref.invalidate(calibrationDetailProvider(widget.item.id));
         await tampilkanDialogPenerbitanDitahan(
           context,
           PenerbitanDitahan.dariBadan422(e.body),

@@ -3,6 +3,7 @@
 //
 // Badan 422 disalin dari API NYATA (uji kontrak 19 Nov 2026,
 // `kontrak/hasil/dart-ditahan.json` DT-P-proving_ring).
+import 'package:sidik_calibration/models/calibration_detail.dart';
 import 'package:sidik_calibration/models/calibration_history_item.dart';
 import 'package:sidik_calibration/services/approval_service.dart';
 import 'package:sidik_calibration/services/auth_service.dart';
@@ -51,6 +52,15 @@ class ApprovalDitahanUji implements ApprovalService {
 }
 
 class AntreanSatuUji extends MockHistoryService {
+  /// Berapa kali `GET /calibrations/{id}` dipanggil.
+  int panggilDetail = 0;
+
+  @override
+  Future<CalibrationDetail> ambilDetail(String token, int id) {
+    panggilDetail++;
+    return super.ambilDetail(token, id);
+  }
+
   CalibrationHistoryItem get _item => CalibrationHistoryItem(
     id: 42,
     namaAlat: 'Proving Ring',

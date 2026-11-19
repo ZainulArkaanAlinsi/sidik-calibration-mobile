@@ -29,6 +29,7 @@ void main() {
     addTearDown(tester.view.reset);
 
     final approval = ApprovalDitahanUji();
+    final antrean = AntreanSatuUji();
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -36,7 +37,7 @@ void main() {
             InMemoryTokenStorage('mock-token-1'),
           ),
           authServiceProvider.overrideWithValue(MockAuthService()),
-          historyServiceProvider.overrideWithValue(AntreanSatuUji()),
+          historyServiceProvider.overrideWithValue(antrean),
           approvalServiceProvider.overrideWithValue(approval),
           perhitunganServiceProvider.overrideWithValue(
             MockPerhitunganService(),
@@ -85,5 +86,12 @@ void main() {
     expect(find.text('Proving Ring'), findsWidgets);
     expect(find.text('Setujui'), findsOneWidget);
     expect(find.byType(SnackBar), findsNothing);
+
+    // Detail sesi dibaca ulang sesudah penahanan terungkap: Setujui yang
+    // berikutnya mengambilnya dari server lagi (bukan dari salinan lama).
+    final sebelum = antrean.panggilDetail;
+    await tester.tap(find.text('Setujui'));
+    await tester.pumpAndSettle();
+    expect(antrean.panggilDetail, greaterThan(sebelum));
   });
 }
