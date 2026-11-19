@@ -21,6 +21,7 @@ import '../../services/identitas_kertas.dart';
 import '../calibration/lembar_kerja_state.dart'
     show LembarKerjaState, kuningPerluDicek;
 import 'identitas_foto_isian.dart';
+import 'lembar_bawah_alat_baru.dart';
 
 /// Blok identitas di atas lembar yang dibuka dari foto: mencocokkan alat dan PT
 /// yang TERTULIS di kertas ke yang terdaftar, atau membukakan panel "Alat baru"
@@ -32,7 +33,10 @@ import 'identitas_foto_isian.dart';
 ///  - mirip: "Maksud Anda?" (maks 3 pilihan) atau "alat baru";
 ///  - tidak ada: panel "Alat baru" (nama, merk, model, seri, pemilik) dengan
 ///    "Buat dan lanjut". Nomor seri WAJIB (server mewajibkan seri unik per lab);
-///    tidak pernah membuat alat tanpa seri;
+///    tidak pernah membuat alat tanpa seri. Di layar lega panelnya inline di
+///    blok ini; di layar SEMPIT ([alatBaruSebagaiLembarBawah]) isi dan perilaku
+///    yang sama dibuka sebagai lembar bawah, dan blok hanya memuat kartu ringkas
+///    pembukanya;
 ///  - tidak ada yang terbaca / server tidak terjangkau: pesan jujur, lembar tetap
 ///    bisa dipakai lewat pilihan alat manual di bawahnya.
 ///
@@ -66,9 +70,11 @@ class BlokIdentitasFoto extends ConsumerStatefulWidget {
   final VoidCallback onBerubah;
 
   /// Tinggi jatah lembar tempat blok ini duduk (di atas lembar). Kartu pendek
-  /// dibatasi setengahnya; panel "Alat baru" (satu langkah keputusan, ada
+  /// dibatasi setengahnya; panel "Alat baru" inline (satu langkah keputusan, ada
   /// "Batal") boleh memakai seluruh jatah selama terbuka. Sisanya digulir di
-  /// dalam blok; lembar di bawahnya mendapat sisa jatah.
+  /// dalam blok; lembar di bawahnya mendapat sisa jatah. Di layar sempit panel
+  /// itu tidak inline sama sekali (lembar bawah), jadi jatah ini tidak lagi
+  /// membatasinya.
   final double tinggiMaks;
 
   static const kunci = ValueKey('blok-identitas');
@@ -89,6 +95,11 @@ class BlokIdentitasFoto extends ConsumerStatefulWidget {
   static const kunciPtMirip = ValueKey('identitas-pt-mirip');
   static const kunciPtBaru = ValueKey('identitas-pt-baru');
   static const kunciKategoriKosong = ValueKey('identitas-kategori-kosong');
+
+  /// Layar sempit: kartu ringkas pengganti panel inline (panelnya sendiri ada di
+  /// lembar bawah), dan tombolnya yang membuka lembar bawah itu.
+  static const kunciAlatBaruRingkas = ValueKey('identitas-alat-baru-ringkas');
+  static const kunciBukaAlatBaru = ValueKey('identitas-buka-alat-baru');
   static ValueKey<String> kunciPilihMirip(int id) =>
       ValueKey('identitas-pilih-mirip-$id');
   static ValueKey<String> kunciPilihPt(int id) =>
@@ -148,6 +159,31 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
   List<CustomerLookup>? _ptKandidat;
 
   PembuatAlatDariKertas? _pembuat;
+
+  // ---- lembar bawah (layar sempit) -------------------------------------------
+
+  /// Konteks DI DALAM lembar bawah yang sedang terbuka (`null` = tidak ada).
+  BuildContext? _konteksLembar;
+
+  /// Lembar bawah sedang dibuka (belum tentu sudah tergambar) / sedang ditutup:
+  /// penjaga ketukan ganda dan `pop` ganda.
+  bool _membukaLembar = false;
+  bool _menutupLembar = false;
+
+  /// Naik tiap [setState]: lembar bawah ada di rute lain, jadi tidak ikut
+  /// tergambar ulang oleh blok dan harus diberi tahu sendiri.
+  final _tampilanLembar = ValueNotifier<int>(0);
+
+  /// Fokus kotak wajib: kotak pertama yang salah difokuskan di lembar bawah
+  /// supaya tergulir ke layar (tombol di dasar lembar tidak ikut bergulir).
+  final _fokusNama = FocusNode();
+  final _fokusSeri = FocusNode();
+  final _fokusPemilik = FocusNode();
+
+  /// Pengait gulir (hanya di lembar bawah): panel PT mirip dan pesan galat
+  /// muncul di bawah kotak isian, dan harus dibawa ke layar.
+  final _gulirPtMirip = GlobalKey();
+  final _gulirGalat = GlobalKey();
 
   /// Akun yang sedang masuk (`null` = belum diketahui, atau tidak ada) dan
   /// "generasi" akun: naik tiap akun berganti, supaya hasil pencocokan atau
@@ -209,7 +245,18 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
         ..removeListener(_kotakBerubah)
         ..dispose();
     }
+    _fokusNama.dispose();
+    _fokusSeri.dispose();
+    _fokusPemilik.dispose();
+    _tampilanLembar.dispose();
     super.dispose();
+  }
+
+  /// Setiap perubahan keadaan juga menggambar ulang lembar bawah (bila terbuka).
+  @override
+  void setState(VoidCallback fn) {
+    super.setState(fn);
+    _tampilanLembar.value++;
   }
 
   void _kotakBerubah() {
@@ -338,7 +385,10 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
   }) async {
     if (_membuat) return;
     final data = _dataPanel();
-    if (data == null) return;
+    if (data == null) {
+      _fokusiKotakSalah();
+      return;
+    }
 
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
@@ -367,6 +417,7 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
           _membuat = false;
           _ptKandidat = null;
         });
+        // Lembar bawah (layar sempit) menutup sendiri: alat sudah terpasang.
         messenger.showSnackBar(
           SnackBar(
             content: Text(
@@ -381,11 +432,13 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
           _membuat = false;
           _ptKandidat = kandidat;
         });
+        _bawaKeLayar(_gulirPtMirip);
       case SeriMilikAlatLain(:final alat):
         setState(() {
           _membuat = false;
           _errSeri = l10n.identitasSeriJenisLain(alat.namaAlat);
         });
+        _fokusiKotakSalah();
       case GagalBuatAlat(:final galat):
         setState(() {
           _membuat = false;
@@ -393,7 +446,39 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
               ? l10n.identitasGagalBuat(galat.message)
               : l10n.identitasGagalUmum;
         });
+        _bawaKeLayar(_gulirGalat);
     }
+  }
+
+  /// Hanya di lembar bawah: tombol "Buat dan lanjut" ada di dasar lembar (tidak
+  /// ikut bergulir), jadi kotak yang ditolak bisa tertinggal di luar layar. Yang
+  /// pertama salah difokuskan; fokus menggulirnya ke layar. Panel inline tidak
+  /// berubah.
+  void _fokusiKotakSalah() {
+    if (_konteksLembar == null) return;
+    final fokus = _errNama != null
+        ? _fokusNama
+        : _errSeri != null
+        ? _fokusSeri
+        : _errPemilik != null
+        ? _fokusPemilik
+        : null;
+    fokus?.requestFocus();
+  }
+
+  /// Hanya di lembar bawah: panel PT mirip dan pesan galat muncul di bawah kotak
+  /// isian; dibawa ke layar begitu tergambar.
+  void _bawaKeLayar(GlobalKey kunci) {
+    if (_konteksLembar == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final konteks = kunci.currentContext;
+      if (konteks == null || !konteks.mounted) return;
+      Scrollable.ensureVisible(
+        konteks,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+      );
+    });
   }
 
   /// Nilai yang teknisi tetapkan di panel menjadi nilai lembar: hanya bila kotak
@@ -419,6 +504,97 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
     tulis('pemilik_alamat', d.alamat);
   }
 
+  // ---- lembar bawah (layar sempit) ----------------------------------------------
+
+  /// Alat baru hanya bisa dibuat dari sini bila lembar membawa kategorinya.
+  bool get _bisaBuat => widget.bekalAlatBaru?.kategori != null;
+
+  bool _sempit() => alatBaruSebagaiLembarBawah(
+    layar: MediaQuery.sizeOf(context),
+    skalaHuruf: MediaQuery.textScalerOf(context).scale(14) / 14,
+  );
+
+  /// Satu-satunya jalan masuk ke panel "Alat baru" lewat ketukan teknisi
+  /// ("Alat baru" saat identitas tak terbaca, "Bukan salah satunya"): di layar
+  /// sempit langsung membuka lembar bawah. Panel yang muncul dari hasil
+  /// pencocokan (otomatis) TIDAK membuka lembar bawah sendiri: lembar yang
+  /// muncul tanpa diminta mencuri fokus ketikan teknisi dan bisa menumpuk di atas
+  /// dialog "Membaca lembar kerja" (yang menutup dirinya dengan `pop` ke rute
+  /// teratas); blok menampilkan kartu ringkas dan menunggu ketukan.
+  void _masukBaru() {
+    setState(() => _fase = _Fase.baru);
+    if (_bisaBuat && _sempit()) _bukaLembar();
+  }
+
+  Future<void> _bukaLembar() async {
+    if (_membukaLembar || _konteksLembar != null || !mounted) return;
+    // Ada rute lain di atas lembar kerja (dialog, lembar lain): jangan menumpuk.
+    if (ModalRoute.of(context)?.isCurrent == false) return;
+
+    _membukaLembar = true;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: false,
+      builder: (konteks) {
+        _konteksLembar = konteks;
+
+        return _isiLembar();
+      },
+    );
+    _membukaLembar = false;
+    _menutupLembar = false;
+    _konteksLembar = null;
+    // Ditutup tanpa Batal/Tutup (usap turun, ketuk latar, Kembali): blok kembali
+    // menampilkan kartu ringkas pembukanya.
+    if (mounted) setState(() {});
+  }
+
+  /// Menutup lembar bawah dari luar rutenya (hasil pencocokan, akun berganti,
+  /// alat terpasang, layar jadi lega). Rute yang teratas di-`pop`; yang tertimpa
+  /// rute lain dilepas dari tumpukan.
+  void _tutupLembar() {
+    final konteks = _konteksLembar;
+    if (konteks == null || !konteks.mounted || _menutupLembar) return;
+    final rute = ModalRoute.of(konteks);
+    if (rute == null) return;
+
+    _menutupLembar = true;
+    final navigator = Navigator.of(konteks);
+    if (rute.isCurrent) {
+      navigator.pop();
+    } else {
+      navigator.removeRoute(rute);
+    }
+  }
+
+  /// Isi lembar bawah: panel yang sama dengan yang inline ([_badanPanelBaru],
+  /// [_aksiPanelBaru]) dalam kerangka bergulir dengan tombol di dasar.
+  Widget _isiLembar() => ListenableBuilder(
+    listenable: _tampilanLembar,
+    builder: (konteks, _) {
+      // Blok sudah lepas (layar ditutup) sementara lembar belum selesai hilang.
+      if (!mounted) return const SizedBox.shrink();
+      final l10n = AppLocalizations.of(context);
+
+      return PopScope(
+        // Selama alat dibuat, Kembali/ketuk latar tidak menutup lembar.
+        canPop: !_membuat,
+        child: KerangkaLembarAlatBaru(
+          key: BlokIdentitasFoto.kunciPanelBaru,
+          judul: Text(
+            l10n.lkAlatBaru,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          tutup: _tombolTutup(l10n),
+          badan: _badanPanelBaru(l10n, lembarBawah: true),
+          aksi: _aksiPanelBaru(l10n),
+        ),
+      );
+    },
+  );
+
   // ---- tampilan -----------------------------------------------------------------
 
   @override
@@ -426,6 +602,14 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
     _periksaAkun(ref.watch(authProvider.select((a) => a.value?.id)));
     final l10n = AppLocalizations.of(context);
     final alat = widget.isian.alat;
+
+    // Lembar bawah hanya boleh terbuka selama panel "Alat baru" memang
+    // dibutuhkan DAN layarnya sempit. Satu aturan untuk semua jalan tutup
+    // (alat terpasang, akun berganti, Batal/Tutup, layar jadi lega).
+    if (_konteksLembar != null &&
+        (alat != null || _fase != _Fase.baru || !_sempit())) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _tutupLembar());
+    }
 
     final Widget isi;
     if (alat != null) {
@@ -579,7 +763,7 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
   );
 
   Widget _tombolAlatBaru(AppLocalizations l10n) => TextButton.icon(
-    onPressed: () => setState(() => _fase = _Fase.baru),
+    onPressed: _masukBaru,
     icon: const Icon(Icons.add, size: 18),
     label: Text(l10n.lkAlatBaru),
   );
@@ -683,7 +867,7 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
           alignment: Alignment.centerLeft,
           child: TextButton(
             key: BlokIdentitasFoto.kunciMiripBaru,
-            onPressed: () => setState(() => _fase = _Fase.baru),
+            onPressed: _masukBaru,
             child: Text(l10n.identitasBukanSatuPun),
           ),
         ),
@@ -700,6 +884,7 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
     String? galat,
     bool wajib = false,
     int maxBaris = 1,
+    FocusNode? fokus,
   }) {
     final dariKertas =
         _dariKertas[c] != null && c.text.trim() == _dariKertas[c];
@@ -708,6 +893,7 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
     return TextField(
       key: kunci,
       controller: c,
+      focusNode: fokus,
       enabled: !_membuat,
       minLines: 1,
       maxLines: maxBaris,
@@ -747,6 +933,20 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
       );
     }
 
+    // Layar sempit: panelnya ada di lembar bawah; di sini hanya kartu pembuka.
+    if (_sempit()) {
+      return _kartuPesan(
+        l10n,
+        kunci: BlokIdentitasFoto.kunciAlatBaruRingkas,
+        pesan: l10n.identitasAlatBaruBelum,
+        aksi: FilledButton(
+          key: BlokIdentitasFoto.kunciBukaAlatBaru,
+          onPressed: _bukaLembar,
+          child: Text(l10n.identitasBukaAlatBaru),
+        ),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.md,
@@ -777,116 +977,143 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
                 _tombolTutup(l10n),
               ],
             ),
-            Text(
-              l10n.identitasAlatBaruPetunjuk,
-              style: tema.textTheme.bodySmall,
-            ),
-            Text(
-              l10n.identitasJenisAlat(bekal!.namaAlatKemampuan),
-              style: tema.textTheme.bodySmall,
-            ),
+            ..._badanPanelBaru(l10n),
             const SizedBox(height: AppSpacing.sm),
-            _kotak(
-              BlokIdentitasFoto.kunciKotakNama,
-              _nama,
-              l10n.equipNamaAlat,
-              galat: _errNama,
-              wajib: true,
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            _kotak(BlokIdentitasFoto.kunciKotakMerk, _merk, l10n.equipMerk),
-            const SizedBox(height: AppSpacing.sm),
-            _kotak(BlokIdentitasFoto.kunciKotakModel, _model, l10n.equipModel),
-            const SizedBox(height: AppSpacing.sm),
-            _kotak(
-              BlokIdentitasFoto.kunciKotakSeri,
-              _seri,
-              l10n.equipSerialNumber,
-              galat:
-                  _errSeri ??
-                  (_seriKosong && _seri.text.trim().isEmpty
-                      ? l10n.identitasSeriWajib
-                      : null),
-              wajib: true,
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            _kotak(
-              BlokIdentitasFoto.kunciKotakPemilik,
-              _pemilik,
-              l10n.equipPelanggan,
-              galat: _errPemilik,
-              wajib: true,
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            _kotak(
-              BlokIdentitasFoto.kunciKotakAlamat,
-              _alamat,
-              l10n.identitasAlamat,
-              maxBaris: 3,
-            ),
-            if (_ptKandidat case final kandidat?) ...[
-              const SizedBox(height: AppSpacing.sm),
-              _PanelPtMirip(
-                kandidat: kandidat,
-                sibuk: _membuat,
-                onPilih: (c) => _buatLanjut(ptDipilih: c),
-                onTetapBuat: () => _buatLanjut(tetapBuatPt: true),
-              ),
-            ],
-            if (_galat case final g?) ...[
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                g,
-                key: BlokIdentitasFoto.kunciGalat,
-                style: tema.textTheme.bodySmall?.copyWith(
-                  color: tema.colorScheme.error,
-                ),
-              ),
-            ],
-            const SizedBox(height: AppSpacing.sm),
-            Text(l10n.identitasLengkapiNanti, style: tema.textTheme.bodySmall),
-            const SizedBox(height: AppSpacing.sm),
-            Wrap(
-              alignment: WrapAlignment.end,
-              spacing: AppSpacing.sm,
-              runSpacing: AppSpacing.xs,
-              children: [
-                TextButton(
-                  key: BlokIdentitasFoto.kunciBatalBaru,
-                  onPressed: _membuat
-                      ? null
-                      : () => setState(() {
-                          _fase = _selesaiMemuat && _mirip.isNotEmpty
-                              ? _Fase.mirip
-                              : _Fase.ditutup;
-                        }),
-                  child: Text(l10n.identitasBatal),
-                ),
-                FilledButton(
-                  key: BlokIdentitasFoto.kunciBuatLanjut,
-                  onPressed: _membuat ? null : () => _buatLanjut(),
-                  child: _membuat
-                      ? Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                            const SizedBox(width: AppSpacing.sm),
-                            Text(l10n.identitasSedangMembuat),
-                          ],
-                        )
-                      : Text(l10n.identitasBuatLanjut),
-                ),
-              ],
-            ),
+            _aksiPanelBaru(l10n),
           ],
         ),
       ),
     );
   }
+
+  /// Isi panel "Alat baru" dari petunjuk sampai pesan "lengkapi nanti": SATU
+  /// sumber untuk panel inline dan lembar bawah, jadi isi dan perilakunya tidak
+  /// bisa menyimpang. [lembarBawah] hanya menambahkan pengait gulir (kunci
+  /// global; tidak dipakai inline supaya tidak pernah ada dua yang sama).
+  List<Widget> _badanPanelBaru(
+    AppLocalizations l10n, {
+    bool lembarBawah = false,
+  }) {
+    final tema = Theme.of(context);
+    final bekal = widget.bekalAlatBaru!;
+
+    return [
+      Text(l10n.identitasAlatBaruPetunjuk, style: tema.textTheme.bodySmall),
+      Text(
+        l10n.identitasJenisAlat(bekal.namaAlatKemampuan),
+        style: tema.textTheme.bodySmall,
+      ),
+      const SizedBox(height: AppSpacing.sm),
+      _kotak(
+        BlokIdentitasFoto.kunciKotakNama,
+        _nama,
+        l10n.equipNamaAlat,
+        galat: _errNama,
+        wajib: true,
+        fokus: _fokusNama,
+      ),
+      const SizedBox(height: AppSpacing.sm),
+      _kotak(BlokIdentitasFoto.kunciKotakMerk, _merk, l10n.equipMerk),
+      const SizedBox(height: AppSpacing.sm),
+      _kotak(BlokIdentitasFoto.kunciKotakModel, _model, l10n.equipModel),
+      const SizedBox(height: AppSpacing.sm),
+      _kotak(
+        BlokIdentitasFoto.kunciKotakSeri,
+        _seri,
+        l10n.equipSerialNumber,
+        galat:
+            _errSeri ??
+            (_seriKosong && _seri.text.trim().isEmpty
+                ? l10n.identitasSeriWajib
+                : null),
+        wajib: true,
+        fokus: _fokusSeri,
+      ),
+      const SizedBox(height: AppSpacing.sm),
+      _kotak(
+        BlokIdentitasFoto.kunciKotakPemilik,
+        _pemilik,
+        l10n.equipPelanggan,
+        galat: _errPemilik,
+        wajib: true,
+        fokus: _fokusPemilik,
+      ),
+      const SizedBox(height: AppSpacing.sm),
+      _kotak(
+        BlokIdentitasFoto.kunciKotakAlamat,
+        _alamat,
+        l10n.identitasAlamat,
+        maxBaris: 3,
+      ),
+      if (_ptKandidat case final kandidat?) ...[
+        const SizedBox(height: AppSpacing.sm),
+        KeyedSubtree(
+          key: lembarBawah ? _gulirPtMirip : null,
+          child: _PanelPtMirip(
+            kandidat: kandidat,
+            sibuk: _membuat,
+            onPilih: (c) => _buatLanjut(ptDipilih: c),
+            onTetapBuat: () => _buatLanjut(tetapBuatPt: true),
+          ),
+        ),
+      ],
+      if (_galat case final g?) ...[
+        const SizedBox(height: AppSpacing.sm),
+        KeyedSubtree(
+          key: lembarBawah ? _gulirGalat : null,
+          child: Text(
+            g,
+            key: BlokIdentitasFoto.kunciGalat,
+            style: tema.textTheme.bodySmall?.copyWith(
+              color: tema.colorScheme.error,
+            ),
+          ),
+        ),
+      ],
+      const SizedBox(height: AppSpacing.sm),
+      Text(l10n.identitasLengkapiNanti, style: tema.textTheme.bodySmall),
+    ];
+  }
+
+  /// Baris tombol panel "Alat baru": Batal dan "Buat dan lanjut".
+  Widget _aksiPanelBaru(AppLocalizations l10n) => Wrap(
+    alignment: WrapAlignment.end,
+    spacing: AppSpacing.sm,
+    runSpacing: AppSpacing.xs,
+    children: [
+      TextButton(
+        key: BlokIdentitasFoto.kunciBatalBaru,
+        onPressed: _membuat
+            ? null
+            : () => setState(() {
+                _fase = _selesaiMemuat && _mirip.isNotEmpty
+                    ? _Fase.mirip
+                    : _Fase.ditutup;
+              }),
+        child: Text(l10n.identitasBatal),
+      ),
+      FilledButton(
+        key: BlokIdentitasFoto.kunciBuatLanjut,
+        onPressed: _membuat ? null : () => _buatLanjut(),
+        child: _membuat
+            ? Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  // Fleksibel: huruf 2,0 di HP 320 dp membuat "Membuat…" lebih
+                  // lebar dari sisa tombol (meluap 16 dp).
+                  Flexible(child: Text(l10n.identitasSedangMembuat)),
+                ],
+              )
+            : Text(l10n.identitasBuatLanjut),
+      ),
+    ],
+  );
 
   // ---- tanggal dari kertas -----------------------------------------------------
 
