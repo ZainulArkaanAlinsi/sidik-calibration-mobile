@@ -5,12 +5,14 @@ import '../core/theme/app_spacing.dart';
 import '../l10n/app_localizations.dart';
 import '../models/calibration_detail.dart' show CalibrationDetail;
 import '../models/calibration_history_item.dart';
+import '../models/penerbitan_ditahan.dart';
 import '../models/validasi.dart';
 import '../providers/certificate_provider.dart';
 import '../providers/history_provider.dart';
 import '../providers/perhitungan_provider.dart';
 import '../screens/admin/widgets/dialog_setujui.dart';
 import '../screens/admin/widgets/panel_temuan.dart';
+import '../screens/admin/widgets/penerbitan_ditahan.dart';
 import '../screens/certificate/sertifikat_sukses_sheet.dart';
 import '../services/auth_service.dart' show ApiException;
 import '../services/kode_galat.dart';
@@ -204,6 +206,19 @@ class _AksiApprovalState extends ConsumerState<AksiApproval> {
       }
 
       final kode = kodeDariBadan(e.body);
+
+      // Penerbitan jenis alat ini ditahan menunggu Technical Manager (PR #280).
+      // Diperiksa paling awal di server, jadi tidak ada yang bisa dilengkapi:
+      // dialog yang SAMA dengan layar Perhitungan (bukan SnackBar ~370
+      // karakter). Status sesi dan nomor yang diketik tidak berubah.
+      if (kode == KodeGalat.profilDitahan) {
+        setState(() => _busy = false);
+        await tampilkanDialogPenerbitanDitahan(
+          context,
+          PenerbitanDitahan.dariBadan422(e.body),
+        );
+        return;
+      }
 
       // Server menolak nomor (Order Number / No. Sertifikat kosong, tidak
       // valid, atau sudah dipakai): dialog dibuka lagi dengan isian yang sama
