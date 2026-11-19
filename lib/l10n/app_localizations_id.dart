@@ -9956,4 +9956,111 @@ class AppLocalizationsId extends AppLocalizations {
   String pindaiBannerRingkas(String jenis) {
     return '$jenis · dari foto';
   }
+
+  @override
+  String get identitasMencocokkan => 'Mencocokkan alat dengan data terdaftar…';
+
+  @override
+  String identitasAlatTerdaftar(String nama) {
+    return 'Alat terdaftar: $nama';
+  }
+
+  @override
+  String get identitasPakaiAlat => 'Pakai alat ini';
+
+  @override
+  String get identitasMaksudAnda => 'Maksud Anda?';
+
+  @override
+  String get identitasBukanSatuPun => 'Bukan salah satunya, alat baru';
+
+  @override
+  String get identitasAlatBaruPetunjuk =>
+      'Diisi dari kertas. Periksa dulu, lalu buat.';
+
+  @override
+  String get identitasBuatLanjut => 'Buat dan lanjut';
+
+  @override
+  String get identitasSedangMembuat => 'Membuat…';
+
+  @override
+  String get identitasBatal => 'Batal';
+
+  @override
+  String get identitasTutup => 'Tutup';
+
+  @override
+  String get identitasSeriWajib =>
+      'Nomor seri tidak terbaca. Ketik dari badan alat.';
+
+  @override
+  String identitasJenisAlat(String jenis) {
+    return 'Jenis: $jenis';
+  }
+
+  @override
+  String get identitasAlamat => 'Alamat';
+
+  @override
+  String get identitasBedaJudul => 'Beda dari data terdaftar';
+
+  @override
+  String identitasBedaBaris(String label, String kertas, String terdaftar) {
+    return '$label: kertas \"$kertas\", terdaftar \"$terdaftar\"';
+  }
+
+  @override
+  String get identitasPakaiTerdaftar => 'Pakai yang terdaftar';
+
+  @override
+  String get identitasTidakTerbaca =>
+      'Identitas di kertas belum terbaca. Pilih alat di bawah, atau buat alat baru.';
+
+  @override
+  String get identitasGagalCocok =>
+      'Belum bisa mencocokkan alat (server tidak terjangkau). Pilih alat di bawah.';
+
+  @override
+  String identitasGagalBuat(String pesan) {
+    return 'Alat belum dibuat: $pesan';
+  }
+
+  @override
+  String get identitasGagalUmum =>
+      'Belum berhasil. Periksa sinyal lalu coba lagi.';
+
+  @override
+  String get identitasPtMirip =>
+      'Ada PT yang mirip. Pilih yang sudah ada, atau tetap buat PT baru.';
+
+  @override
+  String get identitasPtBaru => 'Tetap buat PT baru';
+
+  @override
+  String identitasSeriJenisLain(String nama) {
+    return 'Nomor seri ini sudah dipakai \"$nama\" (jenis alat lain). Periksa nomor serinya.';
+  }
+
+  @override
+  String identitasSeriSudahAda(String nama) {
+    return 'Nomor seri sudah terdaftar. Alat \"$nama\" dipakai, tidak dibuat ganda.';
+  }
+
+  @override
+  String identitasTanggalKalibrasi(String tanggal) {
+    return 'Tanggal kalibrasi di kertas: $tanggal';
+  }
+
+  @override
+  String identitasTanggalTerima(String tanggal) {
+    return 'Tanggal terima di kertas: $tanggal';
+  }
+
+  @override
+  String get identitasPakaiTanggal => 'Pakai tanggal ini';
+
+  @override
+  String get identitasLengkapiNanti =>
+      'Rentang dan resolusi alat bisa dilengkapi nanti di Master Alat.';
 }

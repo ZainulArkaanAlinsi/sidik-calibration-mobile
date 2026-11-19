@@ -17245,6 +17245,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{jenis} · from photo'**
   String pindaiBannerRingkas(String jenis);
+
+  /// No description provided for @identitasMencocokkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Matching the instrument to registered data…'**
+  String get identitasMencocokkan;
+
+  /// No description provided for @identitasAlatTerdaftar.
+  ///
+  /// In en, this message translates to:
+  /// **'Registered instrument: {nama}'**
+  String identitasAlatTerdaftar(String nama);
+
+  /// No description provided for @identitasPakaiAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this instrument'**
+  String get identitasPakaiAlat;
+
+  /// No description provided for @identitasMaksudAnda.
+  ///
+  /// In en, this message translates to:
+  /// **'Did you mean?'**
+  String get identitasMaksudAnda;
+
+  /// No description provided for @identitasBukanSatuPun.
+  ///
+  /// In en, this message translates to:
+  /// **'None of these, new instrument'**
+  String get identitasBukanSatuPun;
+
+  /// No description provided for @identitasAlatBaruPetunjuk.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled from the paper. Check it, then create.'**
+  String get identitasAlatBaruPetunjuk;
+
+  /// No description provided for @identitasBuatLanjut.
+  ///
+  /// In en, this message translates to:
+  /// **'Create and continue'**
+  String get identitasBuatLanjut;
+
+  /// No description provided for @identitasSedangMembuat.
+  ///
+  /// In en, this message translates to:
+  /// **'Creating…'**
+  String get identitasSedangMembuat;
+
+  /// No description provided for @identitasBatal.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get identitasBatal;
+
+  /// No description provided for @identitasTutup.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get identitasTutup;
+
+  /// No description provided for @identitasSeriWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial number not readable. Type it from the instrument body.'**
+  String get identitasSeriWajib;
+
+  /// No description provided for @identitasJenisAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Type: {jenis}'**
+  String identitasJenisAlat(String jenis);
+
+  /// No description provided for @identitasAlamat.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get identitasAlamat;
+
+  /// No description provided for @identitasBedaJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Differs from registered data'**
+  String get identitasBedaJudul;
+
+  /// No description provided for @identitasBedaBaris.
+  ///
+  /// In en, this message translates to:
+  /// **'{label}: paper \"{kertas}\", registered \"{terdaftar}\"'**
+  String identitasBedaBaris(String label, String kertas, String terdaftar);
+
+  /// No description provided for @identitasPakaiTerdaftar.
+  ///
+  /// In en, this message translates to:
+  /// **'Use registered'**
+  String get identitasPakaiTerdaftar;
+
+  /// No description provided for @identitasTidakTerbaca.
+  ///
+  /// In en, this message translates to:
+  /// **'The identity on the paper could not be read. Pick an instrument below, or create a new one.'**
+  String get identitasTidakTerbaca;
+
+  /// No description provided for @identitasGagalCocok.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not match the instrument (server unreachable). Pick one below.'**
+  String get identitasGagalCocok;
+
+  /// No description provided for @identitasGagalBuat.
+  ///
+  /// In en, this message translates to:
+  /// **'Instrument not created: {pesan}'**
+  String identitasGagalBuat(String pesan);
+
+  /// No description provided for @identitasGagalUmum.
+  ///
+  /// In en, this message translates to:
+  /// **'Not done yet. Check the signal and try again.'**
+  String get identitasGagalUmum;
+
+  /// No description provided for @identitasPtMirip.
+  ///
+  /// In en, this message translates to:
+  /// **'Similar companies exist. Pick an existing one, or create a new company anyway.'**
+  String get identitasPtMirip;
+
+  /// No description provided for @identitasPtBaru.
+  ///
+  /// In en, this message translates to:
+  /// **'Create as a new company'**
+  String get identitasPtBaru;
+
+  /// No description provided for @identitasSeriJenisLain.
+  ///
+  /// In en, this message translates to:
+  /// **'This serial number is already used by \"{nama}\" (another instrument type). Check the number.'**
+  String identitasSeriJenisLain(String nama);
+
+  /// No description provided for @identitasSeriSudahAda.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial number already registered. \"{nama}\" is used instead of creating a duplicate.'**
+  String identitasSeriSudahAda(String nama);
+
+  /// No description provided for @identitasTanggalKalibrasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration date on the paper: {tanggal}'**
+  String identitasTanggalKalibrasi(String tanggal);
+
+  /// No description provided for @identitasTanggalTerima.
+  ///
+  /// In en, this message translates to:
+  /// **'Received date on the paper: {tanggal}'**
+  String identitasTanggalTerima(String tanggal);
+
+  /// No description provided for @identitasPakaiTanggal.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this date'**
+  String get identitasPakaiTanggal;
+
+  /// No description provided for @identitasLengkapiNanti.
+  ///
+  /// In en, this message translates to:
+  /// **'Range and resolution can be completed later in Instrument master.'**
+  String get identitasLengkapiNanti;
 }
 
 class _AppLocalizationsDelegate

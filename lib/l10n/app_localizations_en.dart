@@ -10108,4 +10108,112 @@ class AppLocalizationsEn extends AppLocalizations {
   String pindaiBannerRingkas(String jenis) {
     return '$jenis · from photo';
   }
+
+  @override
+  String get identitasMencocokkan =>
+      'Matching the instrument to registered data…';
+
+  @override
+  String identitasAlatTerdaftar(String nama) {
+    return 'Registered instrument: $nama';
+  }
+
+  @override
+  String get identitasPakaiAlat => 'Use this instrument';
+
+  @override
+  String get identitasMaksudAnda => 'Did you mean?';
+
+  @override
+  String get identitasBukanSatuPun => 'None of these, new instrument';
+
+  @override
+  String get identitasAlatBaruPetunjuk =>
+      'Filled from the paper. Check it, then create.';
+
+  @override
+  String get identitasBuatLanjut => 'Create and continue';
+
+  @override
+  String get identitasSedangMembuat => 'Creating…';
+
+  @override
+  String get identitasBatal => 'Cancel';
+
+  @override
+  String get identitasTutup => 'Dismiss';
+
+  @override
+  String get identitasSeriWajib =>
+      'Serial number not readable. Type it from the instrument body.';
+
+  @override
+  String identitasJenisAlat(String jenis) {
+    return 'Type: $jenis';
+  }
+
+  @override
+  String get identitasAlamat => 'Address';
+
+  @override
+  String get identitasBedaJudul => 'Differs from registered data';
+
+  @override
+  String identitasBedaBaris(String label, String kertas, String terdaftar) {
+    return '$label: paper \"$kertas\", registered \"$terdaftar\"';
+  }
+
+  @override
+  String get identitasPakaiTerdaftar => 'Use registered';
+
+  @override
+  String get identitasTidakTerbaca =>
+      'The identity on the paper could not be read. Pick an instrument below, or create a new one.';
+
+  @override
+  String get identitasGagalCocok =>
+      'Could not match the instrument (server unreachable). Pick one below.';
+
+  @override
+  String identitasGagalBuat(String pesan) {
+    return 'Instrument not created: $pesan';
+  }
+
+  @override
+  String get identitasGagalUmum =>
+      'Not done yet. Check the signal and try again.';
+
+  @override
+  String get identitasPtMirip =>
+      'Similar companies exist. Pick an existing one, or create a new company anyway.';
+
+  @override
+  String get identitasPtBaru => 'Create as a new company';
+
+  @override
+  String identitasSeriJenisLain(String nama) {
+    return 'This serial number is already used by \"$nama\" (another instrument type). Check the number.';
+  }
+
+  @override
+  String identitasSeriSudahAda(String nama) {
+    return 'Serial number already registered. \"$nama\" is used instead of creating a duplicate.';
+  }
+
+  @override
+  String identitasTanggalKalibrasi(String tanggal) {
+    return 'Calibration date on the paper: $tanggal';
+  }
+
+  @override
+  String identitasTanggalTerima(String tanggal) {
+    return 'Received date on the paper: $tanggal';
+  }
+
+  @override
+  String get identitasPakaiTanggal => 'Use this date';
+
+  @override
+  String get identitasLengkapiNanti =>
+      'Range and resolution can be completed later in Instrument master.';
 }
