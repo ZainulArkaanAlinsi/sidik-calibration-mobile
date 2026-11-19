@@ -10060,4 +10060,41 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get identitasLengkapiNanti =>
       'Rentang dan resolusi alat bisa dilengkapi nanti di Master Alat.';
+
+  @override
+  String get ditahanJudul => 'Penerbitan ditahan';
+
+  @override
+  String get ditahanIsi =>
+      'Penerbitan sertifikat jenis alat ini ditahan menunggu keputusan Technical Manager. Lembar tetap bisa diisi dan dihitung.';
+
+  @override
+  String ditahanRujukan(String rujukan) {
+    return 'Rujukan TM: $rujukan';
+  }
+
+  @override
+  String ditahanVarian(String varian) {
+    return 'Berlaku untuk: $varian';
+  }
+
+  @override
+  String get ditahanSelengkapnya => 'Baca alasan lengkap';
+
+  @override
+  String get ditahanSetujuTertahan =>
+      'Setujui bisa dipakai setelah Technical Manager melepas penahanan.';
+
+  @override
+  String get ditahanDialogJudul => 'Penerbitan sertifikat ditahan';
+
+  @override
+  String get ditahanDialogIsi =>
+      'Sertifikat ini belum bisa diterbitkan. Sesi tetap menunggu persetujuan dan nomor sertifikat yang diketik belum terpakai.';
+
+  @override
+  String get ditahanDialogAlasan => 'Alasan';
+
+  @override
+  String get ditahanDialogTutup => 'Mengerti';
 }

@@ -17407,6 +17407,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Range and resolution can be completed later in Instrument master.'**
   String get identitasLengkapiNanti;
+
+  /// No description provided for @ditahanJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Issuance on hold'**
+  String get ditahanJudul;
+
+  /// No description provided for @ditahanIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate issuance for this instrument type is on hold, waiting for the Technical Manager. The worksheet can still be filled in and calculated.'**
+  String get ditahanIsi;
+
+  /// No description provided for @ditahanRujukan.
+  ///
+  /// In en, this message translates to:
+  /// **'TM reference: {rujukan}'**
+  String ditahanRujukan(String rujukan);
+
+  /// No description provided for @ditahanVarian.
+  ///
+  /// In en, this message translates to:
+  /// **'Applies to: {varian}'**
+  String ditahanVarian(String varian);
+
+  /// No description provided for @ditahanSelengkapnya.
+  ///
+  /// In en, this message translates to:
+  /// **'Read the full reason'**
+  String get ditahanSelengkapnya;
+
+  /// No description provided for @ditahanSetujuTertahan.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve becomes available once the Technical Manager lifts the hold.'**
+  String get ditahanSetujuTertahan;
+
+  /// No description provided for @ditahanDialogJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate issuance is on hold'**
+  String get ditahanDialogJudul;
+
+  /// No description provided for @ditahanDialogIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'This certificate cannot be issued yet. The session is still waiting for approval and the certificate number you typed is not used.'**
+  String get ditahanDialogIsi;
+
+  /// No description provided for @ditahanDialogAlasan.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get ditahanDialogAlasan;
+
+  /// No description provided for @ditahanDialogTutup.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get ditahanDialogTutup;
 }
 
 class _AppLocalizationsDelegate

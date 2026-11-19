@@ -5582,5 +5582,17 @@
   "identitasTanggalTerima": "Received date on the paper: {tanggal}",
   "@identitasTanggalTerima": {"placeholders": {"tanggal": {"type": "String"}}},
   "identitasPakaiTanggal": "Use this date",
-  "identitasLengkapiNanti": "Range and resolution can be completed later in Instrument master."
+  "identitasLengkapiNanti": "Range and resolution can be completed later in Instrument master.",
+  "ditahanJudul": "Issuance on hold",
+  "ditahanIsi": "Certificate issuance for this instrument type is on hold, waiting for the Technical Manager. The worksheet can still be filled in and calculated.",
+  "ditahanRujukan": "TM reference: {rujukan}",
+  "@ditahanRujukan": {"placeholders": {"rujukan": {"type": "String"}}},
+  "ditahanVarian": "Applies to: {varian}",
+  "@ditahanVarian": {"placeholders": {"varian": {"type": "String"}}},
+  "ditahanSelengkapnya": "Read the full reason",
+  "ditahanSetujuTertahan": "Approve becomes available once the Technical Manager lifts the hold.",
+  "ditahanDialogJudul": "Certificate issuance is on hold",
+  "ditahanDialogIsi": "This certificate cannot be issued yet. The session is still waiting for approval and the certificate number you typed is not used.",
+  "ditahanDialogAlasan": "Reason",
+  "ditahanDialogTutup": "Got it"
 }

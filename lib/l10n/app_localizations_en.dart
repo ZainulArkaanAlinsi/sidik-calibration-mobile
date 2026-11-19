@@ -10213,4 +10213,41 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get identitasLengkapiNanti =>
       'Range and resolution can be completed later in Instrument master.';
+
+  @override
+  String get ditahanJudul => 'Issuance on hold';
+
+  @override
+  String get ditahanIsi =>
+      'Certificate issuance for this instrument type is on hold, waiting for the Technical Manager. The worksheet can still be filled in and calculated.';
+
+  @override
+  String ditahanRujukan(String rujukan) {
+    return 'TM reference: $rujukan';
+  }
+
+  @override
+  String ditahanVarian(String varian) {
+    return 'Applies to: $varian';
+  }
+
+  @override
+  String get ditahanSelengkapnya => 'Read the full reason';
+
+  @override
+  String get ditahanSetujuTertahan =>
+      'Approve becomes available once the Technical Manager lifts the hold.';
+
+  @override
+  String get ditahanDialogJudul => 'Certificate issuance is on hold';
+
+  @override
+  String get ditahanDialogIsi =>
+      'This certificate cannot be issued yet. The session is still waiting for approval and the certificate number you typed is not used.';
+
+  @override
+  String get ditahanDialogAlasan => 'Reason';
+
+  @override
+  String get ditahanDialogTutup => 'Got it';
 }

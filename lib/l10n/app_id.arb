@@ -3938,5 +3938,15 @@
   "identitasTanggalKalibrasi": "Tanggal kalibrasi di kertas: {tanggal}",
   "identitasTanggalTerima": "Tanggal terima di kertas: {tanggal}",
   "identitasPakaiTanggal": "Pakai tanggal ini",
-  "identitasLengkapiNanti": "Rentang dan resolusi alat bisa dilengkapi nanti di Master Alat."
+  "identitasLengkapiNanti": "Rentang dan resolusi alat bisa dilengkapi nanti di Master Alat.",
+  "ditahanJudul": "Penerbitan ditahan",
+  "ditahanIsi": "Penerbitan sertifikat jenis alat ini ditahan menunggu keputusan Technical Manager. Lembar tetap bisa diisi dan dihitung.",
+  "ditahanRujukan": "Rujukan TM: {rujukan}",
+  "ditahanVarian": "Berlaku untuk: {varian}",
+  "ditahanSelengkapnya": "Baca alasan lengkap",
+  "ditahanSetujuTertahan": "Setujui bisa dipakai setelah Technical Manager melepas penahanan.",
+  "ditahanDialogJudul": "Penerbitan sertifikat ditahan",
+  "ditahanDialogIsi": "Sertifikat ini belum bisa diterbitkan. Sesi tetap menunggu persetujuan dan nomor sertifikat yang diketik belum terpakai.",
+  "ditahanDialogAlasan": "Alasan",
+  "ditahanDialogTutup": "Mengerti"
 }
