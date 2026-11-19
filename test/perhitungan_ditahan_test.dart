@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sidik_calibration/l10n/app_localizations.dart';
 import 'package:sidik_calibration/models/calibration_history_item.dart';
 import 'package:sidik_calibration/models/penerbitan_ditahan.dart';
+import 'package:sidik_calibration/models/validasi.dart';
 import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/calibration_input_provider.dart';
 import 'package:sidik_calibration/providers/history_provider.dart';
@@ -89,6 +90,44 @@ void main() {
         isEmpty,
         reason: 'tombol mati tidak boleh mengirim approve',
       );
+    });
+
+    testWidgets('server yang juga menahan lewat /validasi (temuan error): '
+        'kalimat merah menjelaskan, petunjuk tidak digandakan, tombol mati', (
+      tester,
+    ) async {
+      // Kontrak PR #280: GET /validasi memuat penahanannya sebagai temuan
+      // `error` berkode `menunggu_keputusan_tm` dan boleh_terbit false.
+      final svc = MockPerhitunganService(
+        validasi: const HasilValidasi(
+          valid: false,
+          bolehTerbit: false,
+          temuan: [
+            Temuan(
+              tingkat: TingkatTemuan.error,
+              kode: 'menunggu_keputusan_tm',
+              pesan: 'Ditahan menunggu keputusan Technical Manager (TM-4).',
+            ),
+          ],
+          ringkasan: {
+            TingkatTemuan.error: 1,
+            TingkatTemuan.peringatan: 0,
+            TingkatTemuan.info: 0,
+          },
+        ),
+      );
+      await _muat(
+        tester,
+        _app(svc, RiwayatSesiDitahan(() => ditahanProvingRingUji)),
+      );
+
+      expect(_banner, findsOneWidget);
+      expect(
+        find.textContaining('Ada temuan yang nahan penerbitan'),
+        findsOneWidget,
+      );
+      expect(_petunjuk, findsNothing);
+      expect(_tombol(tester, 'Setujui').onPressed, isNull);
     });
 
     testWidgets('tidak ditahan: tidak ada banner dan Setujui hidup', (
@@ -204,6 +243,10 @@ void main() {
       expect(_banner, findsOneWidget);
       expect(_tombol(tester, 'Setujui').onPressed, isNull);
       expect(svc.aksi.where((a) => a.$1 == 'setujui').length, 1);
+      // Hasil pemeriksaan dibaca ulang sesudah dialog (pemeriksaan otomatis
+      // saat layar dibuka + satu lagi), supaya tidak ada "Aman disetujui" yang
+      // basi di bawah banner yang menahan.
+      expect(svc.aksi.where((a) => a.$1 == 'periksa').length, 2);
     });
   });
 }

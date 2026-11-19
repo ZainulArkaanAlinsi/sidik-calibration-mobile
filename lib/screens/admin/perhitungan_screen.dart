@@ -273,6 +273,9 @@ class _PerhitunganScreenState extends ConsumerState<PerhitunganScreen> {
         context,
         hasil!.penahanan ?? PenerbitanDitahan.tidak,
       );
+      // Hasil pemeriksaan yang tampil bisa lebih tua dari penahanannya ("Nggak
+      // ada temuan. Aman disetujui." di bawah banner yang menahan): baca ulang.
+      if (mounted) await _periksa();
       return;
     }
 
@@ -806,12 +809,18 @@ class _BilahAksi extends StatelessWidget {
                   onPressed: onPeriksa,
                 ),
               ] else ...[
-                if (ditahan) ...[
+                // Bila `/validasi` sudah memuat penahanannya sebagai temuan
+                // `error` (`menunggu_keputusan_tm`), kalimat merah di atas sudah
+                // menjelaskan tombolnya yang mati: petunjuk ini cuma untuk
+                // keadaan SEBELUM temuan itu terbaca, supaya bilah bawah tidak
+                // memajang dua kalimat tentang hal yang sama.
+                if (ditahan && !diblokir) ...[
                   Text(
                     l10n.ditahanSetujuTertahan,
                     key: const ValueKey('petunjuk-setujui-ditahan'),
-                    style: TextStyle(
-                      fontSize: 11.5,
+                    // Skala teks dari tema (gerbang token-only), bukan ukuran
+                    // mentah seperti kalimat-kalimat lama di bilah ini.
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: c.textMuted,
                     ),
