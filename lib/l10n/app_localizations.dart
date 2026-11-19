@@ -17569,6 +17569,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This session no longer exists on the server. It may have been archived or deleted by an admin.'**
   String get perhitSesiTidakAda;
+
+  /// No description provided for @crudPenugasanSudahAktif.
+  ///
+  /// In en, this message translates to:
+  /// **'This assignment was already reopened.'**
+  String get crudPenugasanSudahAktif;
 }
 
 class _AppLocalizationsDelegate

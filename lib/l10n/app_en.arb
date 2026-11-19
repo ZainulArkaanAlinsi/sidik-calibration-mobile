@@ -5615,5 +5615,6 @@
   "@crudGalatPenugasanBelumTuntas": {"placeholders": {"persen": {"type": "int"}}},
   "crudGalatPenugasanBelumTuntasUmum": "This assignment is not complete yet. Have the technician report progress on every row first, then try again.",
   "crudGalatPenugasanTidakSelesai": "This assignment is not marked Completed, so it cannot be reopened. A cancelled assignment is never reopened; create a new one.",
-  "perhitSesiTidakAda": "This session no longer exists on the server. It may have been archived or deleted by an admin."
+  "perhitSesiTidakAda": "This session no longer exists on the server. It may have been archived or deleted by an admin.",
+  "crudPenugasanSudahAktif": "This assignment was already reopened."
 }

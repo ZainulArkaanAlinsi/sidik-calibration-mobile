@@ -3965,5 +3965,6 @@
   "crudGalatPenugasanBelumTuntas": "Penugasan ini baru {persen}% tuntas. Minta teknisi melaporkan progres semua barisnya dulu, lalu coba lagi.",
   "crudGalatPenugasanBelumTuntasUmum": "Penugasan ini belum tuntas. Minta teknisi melaporkan progres semua barisnya dulu, lalu coba lagi.",
   "crudGalatPenugasanTidakSelesai": "Penugasan ini tidak berstatus Selesai, jadi tidak bisa dibuka lagi. Penugasan yang dibatalkan tidak dibuka lagi; buat penugasan baru.",
-  "perhitSesiTidakAda": "Sesi ini sudah tidak ada di server. Mungkin diarsipkan atau dihapus admin."
+  "perhitSesiTidakAda": "Sesi ini sudah tidak ada di server. Mungkin diarsipkan atau dihapus admin.",
+  "crudPenugasanSudahAktif": "Penugasan ini sudah dibuka lagi."
 }

@@ -539,6 +539,60 @@ void main() {
       expect(find.text('Tugas 19'), findsNothing);
     });
 
+    testWidgets(
+      'buka lagi dikirim ulang: penugasan_tidak_selesai dengan status aktif '
+      'dianggap BERHASIL, bukan galat',
+      (tester) async {
+        final l = await buka(
+          tester,
+          layanan: _SudahAktif(data, 'aktif'),
+          token: tokenSuperAdminCrud,
+          izin: izinSuperAdminCrud,
+        );
+        await saringSelesai(tester);
+
+        await ketukDi(tester, bukaLagiTombol);
+        await tester.pumpAndSettle();
+        await tester.enterText(
+          find.byKey(const Key('isian-dialog')),
+          'Ada alat yang ternyata belum diperiksa.',
+        );
+        await tester.tap(find.byKey(const Key('aksi-dialog')));
+        await tester.pumpAndSettle();
+
+        expect(find.byKey(const Key('isian-dialog')), findsNothing);
+        expect(find.text('Penugasan ini sudah dibuka lagi.'), findsOneWidget);
+        expect(find.text('Penugasan dibuka lagi.'), findsNothing);
+        expect(l.catatan.where((c) => c.startsWith('bukaLagi')).length, 1);
+      },
+    );
+
+    testWidgets(
+      'buka lagi pada penugasan dibatalkan (penugasan_tidak_selesai, status '
+      'dibatalkan): TETAP galat, dialog terbuka',
+      (tester) async {
+        await buka(
+          tester,
+          layanan: _SudahAktif(data, 'dibatalkan'),
+          token: tokenSuperAdminCrud,
+          izin: izinSuperAdminCrud,
+        );
+        await saringSelesai(tester);
+
+        await ketukDi(tester, bukaLagiTombol);
+        await tester.pumpAndSettle();
+        await tester.enterText(
+          find.byKey(const Key('isian-dialog')),
+          'Ada alat yang ternyata belum diperiksa.',
+        );
+        await tester.tap(find.byKey(const Key('aksi-dialog')));
+        await tester.pumpAndSettle();
+
+        expect(find.textContaining('tidak dibuka lagi'), findsOneWidget);
+        expect(find.byKey(const Key('isian-dialog')), findsOneWidget);
+      },
+    );
+
     testWidgets('super admin: penugasan aktif yang siap tetap bisa '
         'diselesaikan (admin DAN super admin)', (tester) async {
       await buka(
@@ -609,4 +663,29 @@ class _Tolak403 extends MockPenugasanKelolaService {
   @override
   Future<Penugasan> selesaikan(String token, int id) async =>
       throw const ApiException('x', status: 403);
+}
+
+/// Server menjawab `penugasan_tidak_selesai` dengan [status] di badan.
+class _SudahAktif extends MockPenugasanKelolaService {
+  _SudahAktif(List<Penugasan> awal, this.status) : super(awal: awal);
+
+  final String status;
+
+  @override
+  Future<Penugasan> bukaLagi(
+    String token,
+    int id, {
+    required String alasan,
+  }) async {
+    catatan.add('bukaLagi $id "$alasan"');
+    throw ApiException(
+      'Penugasan ini tidak berstatus selesai.',
+      status: 422,
+      body: {
+        'message': 'Penugasan ini tidak berstatus selesai.',
+        'kode': 'penugasan_tidak_selesai',
+        'status': status,
+      },
+    );
+  }
 }

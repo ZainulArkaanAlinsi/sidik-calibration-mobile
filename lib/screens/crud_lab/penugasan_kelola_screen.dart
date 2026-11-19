@@ -150,6 +150,7 @@ class _PenugasanKelolaScreenState extends ConsumerState<PenugasanKelolaScreen> {
   /// jejak audit dan sampai ke anggota; progres teknisi tidak tersentuh.
   Future<void> _bukaLagi(Penugasan p) async {
     final l10n = AppLocalizations.of(context);
+    var sudahAktif = false;
     final ok = await tampilkanDialogIsian(
       context,
       judul: l10n.crudPenugasanBukaLagiJudul(p.judul),
@@ -165,9 +166,22 @@ class _PenugasanKelolaScreenState extends ConsumerState<PenugasanKelolaScreen> {
       aksi: (alasan) async {
         final token = await ref.read(tokenStorageProvider).read();
         if (token == null) throw const TokenHilangException();
-        await ref
-            .read(penugasanKelolaServiceProvider)
-            .bukaLagi(token, p.id, alasan: alasan);
+        try {
+          await ref
+              .read(penugasanKelolaServiceProvider)
+              .bukaLagi(token, p.id, alasan: alasan);
+        } on ApiException catch (e) {
+          // Kirim ulang sesudah balasan hilang: penugasan sudah dibuka dan kini
+          // `aktif`, jadi server menjawab 422 `penugasan_tidak_selesai` dengan
+          // `status: aktif`. Tujuannya sudah tercapai (cermin Selesaikan yang
+          // menganggap `penugasan_sudah_selesai` berhasil). Status `dibatalkan`
+          // tetap galat: itu tidak pernah dibuka lagi.
+          final aktif =
+              kodeDariBadan(e.body) == KodeCrud.penugasanTidakSelesai &&
+              e.body['status'] == 'aktif';
+          if (!aktif) rethrow;
+          sudahAktif = true;
+        }
       },
       saatGalat: (e) {
         if (perluMuatUlangCrud(e)) _ctl.muatUlang();
@@ -175,7 +189,11 @@ class _PenugasanKelolaScreenState extends ConsumerState<PenugasanKelolaScreen> {
     );
     if (ok) {
       _ctl.muatUlang();
-      _kabari(l10n.crudPenugasanBukaLagiBerhasil);
+      _kabari(
+        sudahAktif
+            ? l10n.crudPenugasanSudahAktif
+            : l10n.crudPenugasanBukaLagiBerhasil,
+      );
     }
   }
 

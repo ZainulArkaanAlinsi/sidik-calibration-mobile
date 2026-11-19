@@ -10161,4 +10161,7 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get perhitSesiTidakAda =>
       'Sesi ini sudah tidak ada di server. Mungkin diarsipkan atau dihapus admin.';
+
+  @override
+  String get crudPenugasanSudahAktif => 'Penugasan ini sudah dibuka lagi.';
 }
