@@ -321,6 +321,48 @@ final penugasanBurukCrud = <Penugasan>[
     terlambat: false,
     persenTuntas: 100,
   ),
+  // PR #284: aktif dan semua baris tuntas = siap diselesaikan.
+  const Penugasan(
+    id: 65,
+    judul:
+        'Kalibrasi ulang seluruh timbangan dan neraca analitik gudang pusat '
+        'dan semua cabang',
+    tipe: 'grup',
+    status: 'aktif',
+    terlambat: false,
+    persenTuntas: 100,
+    teknisi: [
+      AnggotaPenugasan(id: 21, nama: 'Dedi Teknisi', peran: 'ketua'),
+      AnggotaPenugasan(id: 22, nama: 'Eko Prasetyo', peran: 'anggota'),
+    ],
+    baris: [
+      BarisPenugasan(
+        id: 5,
+        jenisAlat: 'Timbangan',
+        jumlah: 4,
+        jumlahSelesai: 4,
+      ),
+    ],
+  ),
+  // Selesai dengan stempel waktu (`diselesaikan_pada`).
+  Penugasan(
+    id: 66,
+    judul: 'Termometer ruang proses selesai dikerjakan tepat waktu',
+    tipe: 'personal',
+    status: 'selesai',
+    terlambat: false,
+    persenTuntas: 100,
+    diselesaikanPada: DateTime.utc(2026, 11, 19, 3, 15),
+    teknisi: const [AnggotaPenugasan(id: 21, nama: 'Dedi', peran: 'ketua')],
+    baris: const [
+      BarisPenugasan(
+        id: 6,
+        jenisAlat: 'Termometer',
+        jumlah: 3,
+        jumlahSelesai: 3,
+      ),
+    ],
+  ),
 ];
 
 /// Kategori buruk: nama/kode super panjang, hitungan besar, nonaktif.
@@ -409,6 +451,24 @@ class _TolakBatal extends MockPenugasanKelolaService {
   );
 }
 
+/// Papan menampilkan 100%, tetapi di server penugasan itu ternyata baru 80%
+/// (laporan dikoreksi sesudah papan dimuat): `422 penugasan_belum_tuntas`.
+class _TolakSelesaiBelumTuntas extends MockPenugasanKelolaService {
+  _TolakSelesaiBelumTuntas() : super(awal: penugasanBurukCrud);
+
+  @override
+  Future<Penugasan> selesaikan(String token, int id) async =>
+      throw const ApiException(
+        'x',
+        status: 422,
+        body: {
+          'message': 'x',
+          'kode': 'penugasan_belum_tuntas',
+          'persen_tuntas': 80,
+        },
+      );
+}
+
 class _KategoriDipakai extends MockKategoriKelolaService {
   _KategoriDipakai() : super(awal: kategoriBurukCrud);
 
@@ -468,6 +528,35 @@ Future<void> _menuPenugasan(WidgetTester tester, int id, String aksi) async {
 
 Future<void> _batalDialog(WidgetTester tester) =>
     _menuPenugasan(tester, 61, 'Batalkan penugasan');
+
+Future<void> _selesaikanDialog(WidgetTester tester) async {
+  await ketukDi(tester, find.byKey(const Key('selesaikan-penugasan-65')));
+  await tester.pumpAndSettle();
+}
+
+Future<void> _selesaikanBelumTuntas(WidgetTester tester) async {
+  await _selesaikanDialog(tester);
+  await tester.tap(find.byKey(const Key('aksi-dialog')));
+  await tester.pumpAndSettle();
+}
+
+Future<void> _saringSelesai(WidgetTester tester) async {
+  await ketukDi(tester, find.byKey(const Key('saring-penugasan-selesai')));
+  await tester.pumpAndSettle();
+}
+
+Future<void> _bukaLagiDialog(WidgetTester tester) async {
+  await _saringSelesai(tester);
+  await ketukDi(tester, find.byKey(const Key('buka-lagi-penugasan-66')));
+  await tester.pumpAndSettle();
+}
+
+Future<void> _bukaLagiPendek(WidgetTester tester) async {
+  await _bukaLagiDialog(tester);
+  await tester.enterText(find.byKey(const Key('isian-dialog')), 'abc');
+  await tester.tap(find.byKey(const Key('aksi-dialog')));
+  await tester.pumpAndSettle();
+}
 
 Future<void> _batalGagal(WidgetTester tester) async {
   await _batalDialog(tester);
@@ -763,6 +852,58 @@ final List<KeadaanCrud> keadaanLainCrud = [
       penugasan: MockPenugasanKelolaService(awal: penugasanBurukCrud),
     ),
     sesudah: _batalDialog,
+  ),
+  KeadaanCrud(
+    'penugasan-selesaikan-dialog',
+    () => const PenugasanKelolaScreen(),
+    () => LapisanUjiCrud(
+      penugasan: MockPenugasanKelolaService(awal: penugasanBurukCrud),
+    ),
+    sesudah: _selesaikanDialog,
+  ),
+  KeadaanCrud(
+    'penugasan-selesaikan-belum-tuntas',
+    () => const PenugasanKelolaScreen(),
+    () => LapisanUjiCrud(penugasan: _TolakSelesaiBelumTuntas()),
+    sesudah: _selesaikanBelumTuntas,
+  ),
+  KeadaanCrud(
+    'penugasan-selesai-super-admin',
+    () => const PenugasanKelolaScreen(),
+    () => LapisanUjiCrud(
+      penugasan: MockPenugasanKelolaService(awal: penugasanBurukCrud),
+    ),
+    token: tokenSuperAdminCrud,
+    izin: izinSuperAdminCrud,
+    sesudah: _saringSelesai,
+  ),
+  KeadaanCrud(
+    'penugasan-selesai-admin',
+    () => const PenugasanKelolaScreen(),
+    () => LapisanUjiCrud(
+      penugasan: MockPenugasanKelolaService(awal: penugasanBurukCrud),
+    ),
+    sesudah: _saringSelesai,
+  ),
+  KeadaanCrud(
+    'penugasan-buka-lagi-dialog',
+    () => const PenugasanKelolaScreen(),
+    () => LapisanUjiCrud(
+      penugasan: MockPenugasanKelolaService(awal: penugasanBurukCrud),
+    ),
+    token: tokenSuperAdminCrud,
+    izin: izinSuperAdminCrud,
+    sesudah: _bukaLagiDialog,
+  ),
+  KeadaanCrud(
+    'penugasan-buka-lagi-pendek',
+    () => const PenugasanKelolaScreen(),
+    () => LapisanUjiCrud(
+      penugasan: MockPenugasanKelolaService(awal: penugasanBurukCrud),
+    ),
+    token: tokenSuperAdminCrud,
+    izin: izinSuperAdminCrud,
+    sesudah: _bukaLagiPendek,
   ),
   KeadaanCrud(
     'penugasan-batal-pendek',

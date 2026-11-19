@@ -45,13 +45,19 @@ const _izinAdminCrud = <String>{
   NamaIzin.kalibrasiPulihkan,
   NamaIzin.penugasanUbah,
   NamaIzin.penugasanBatalkan,
+  // PR #284: admin dan super admin menyelesaikan; membuka lagi HANYA super admin.
+  NamaIzin.penugasanSelesaikan,
 };
 
 const izinAdminCrud = Izin(role: UserRole.admin, boleh: _izinAdminCrud);
 
 const izinSuperAdminCrud = Izin(
   role: UserRole.superAdmin,
-  boleh: {..._izinAdminCrud, NamaIzin.penggunaBuatAdmin},
+  boleh: {
+    ..._izinAdminCrud,
+    NamaIzin.penggunaBuatAdmin,
+    NamaIzin.penugasanBukaLagi,
+  },
 );
 
 /// Teknisi: hanya `kalibrasi.arsipkan` (draf sendiri) dari kunci CRUD.
