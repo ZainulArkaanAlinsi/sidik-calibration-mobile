@@ -11,6 +11,7 @@ import 'package:sidik_calibration/models/arsip_draf.dart';
 import 'package:sidik_calibration/models/calibration_history_item.dart'
     show CalibrationStatus;
 import 'package:sidik_calibration/models/penerbitan_ditahan.dart';
+import 'package:sidik_calibration/models/validasi.dart';
 import 'package:sidik_calibration/models/category.dart';
 import 'package:sidik_calibration/models/izin.dart';
 import 'package:sidik_calibration/models/order.dart';
@@ -678,6 +679,29 @@ Future<void> _arsipkanGagal(WidgetTester tester) async {
 /// ikut menahan SESUDAH approve ditolak (klien yang datanya basi).
 var _serverMenahanUji = false;
 
+/// `GET /calibrations/{id}/validasi` untuk sesi yang penerbitannya ditahan:
+/// kontrak PR #280 memuat penahanannya sebagai temuan `error` berkode
+/// `menunggu_keputusan_tm`, jadi `boleh_terbit` false.
+const _validasiDitahanUji = HasilValidasi(
+  valid: false,
+  bolehTerbit: false,
+  temuan: [
+    Temuan(
+      tingkat: TingkatTemuan.error,
+      kode: 'menunggu_keputusan_tm',
+      pesan:
+          'Ditahan menunggu keputusan Technical Manager (TM-4): '
+          '$alasanProvingRingUji.',
+      konteks: {'penyimpangan': 'profil_ditahan'},
+    ),
+  ],
+  ringkasan: {
+    TingkatTemuan.error: 1,
+    TingkatTemuan.peringatan: 0,
+    TingkatTemuan.info: 0,
+  },
+);
+
 LapisanUjiCrud _lapisanPerhitungan({
   bool ditahan = false,
   bool klienBasi = false,
@@ -689,7 +713,10 @@ LapisanUjiCrud _lapisanPerhitungan({
   return LapisanUjiCrud(
     tambahan: [
       perhitunganServiceProvider.overrideWithValue(
-        MockPerhitunganService(penerbitanDitahan: penahanan),
+        MockPerhitunganService(
+          penerbitanDitahan: penahanan,
+          validasi: ditahan ? _validasiDitahanUji : null,
+        ),
       ),
       historyServiceProvider.overrideWithValue(
         RiwayatSesiDitahan(
