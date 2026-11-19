@@ -88,6 +88,43 @@ class PelaporGalatCrashlytics extends PelaporGalat {
   }
 }
 
+/// Meneruskan satu laporan ke beberapa tujuan sekaligus (Crashlytics dan
+/// Sentry). Galat satu tujuan tidak menghentikan yang lain, dan tidak pernah
+/// keluar dari [catat]: pelapor tidak boleh menjadi sumber crash.
+class PelaporGalatGabungan extends PelaporGalat {
+  const PelaporGalatGabungan(this.tujuan);
+
+  final List<PelaporGalat> tujuan;
+
+  @override
+  void catat(
+    Object galat,
+    StackTrace? tumpukan, {
+    String? konteks,
+    bool fatal = false,
+  }) {
+    for (final t in tujuan) {
+      try {
+        t.catat(galat, tumpukan, konteks: konteks, fatal: fatal);
+      } catch (_) {
+        // Sengaja diam.
+      }
+    }
+  }
+}
+
+/// Gabungkan pelapor yang aktif: `null` bila tidak ada satu pun (bawaan
+/// [PelaporGalatDiam] dipakai), pelapor itu sendiri bila hanya satu, selain
+/// itu [PelaporGalatGabungan].
+PelaporGalat? gabungkanPelapor(Iterable<PelaporGalat?> daftar) {
+  final aktif = daftar.whereType<PelaporGalat>().toList();
+  return switch (aktif.length) {
+    0 => null,
+    1 => aktif.single,
+    _ => PelaporGalatGabungan(aktif),
+  };
+}
+
 /// Pelapor yang aktif. Diganti sekali oleh `main.dart`; test memakai bawaan.
 PelaporGalat pelaporGalat = const PelaporGalatDiam();
 
