@@ -110,6 +110,13 @@ class AppConfig {
   /// [pindaiLembarAktif] juga nyala.
   static const bool fotoPerTabelAktif = bool.fromEnvironment('FOTO_PER_TABEL');
 
+  /// DSN Sentry buat laporan galat (keputusan pemilik 19 Nov 2026). **Kosong =
+  /// Sentry nonaktif total**: SDK tidak diinisialisasi, tidak ada penangkap dan
+  /// tidak ada panggilan jaringan. Tidak ada DSN di repo; diisi saat build lewat
+  /// `--dart-define=SENTRY_DSN=...`. Isi yang keluar dari HP dibatasi keras:
+  /// lihat `lib/core/pelapor_galat_sentry.dart`.
+  static const String sentryDsn = String.fromEnvironment('SENTRY_DSN');
+
   /// Kunci app Reverb (protokol Pusher) buat realtime sync (spec poin 12D).
   /// **Kosong = realtime nonaktif** — app tetap jalan normal, cuma nggak ada
   /// push; data ketarik seperti biasa waktu layar dibuka. Diisi lewat
