@@ -24,7 +24,56 @@ Map<String, String> _metaSentry() {
   return {for (final m in pola.allMatches(_manifest())) m[1]!: m[2]!};
 }
 
+/// Pelanggaran XML 1.0 pada komentar manifest: "--" DILARANG di dalam badan
+/// komentar (parser JDK/expat menolaknya, jadi build APK gagal), dan tiap
+/// komentar harus ditutup. Regex di tes lain TIDAK mengenali ini, sehingga
+/// manifest cacat tetap lolos; pemeriksa ini membaca komentarnya satu per satu.
+/// (Paket `xml` hanya dependensi transitif, jadi tidak dipakai langsung.)
+List<String> komentarXmlCacat(String xml) {
+  final masalah = <String>[];
+  var i = 0;
+  while (true) {
+    final buka = xml.indexOf('<!--', i);
+    if (buka < 0) break;
+    final baris = '\n'.allMatches(xml.substring(0, buka)).length + 1;
+    final tutup = xml.indexOf('-->', buka + 4);
+    if (tutup < 0) {
+      masalah.add('baris $baris: komentar tidak ditutup');
+      break;
+    }
+    final badan = xml.substring(buka + 4, tutup);
+    if (badan.contains('--') || badan.endsWith('-')) {
+      masalah.add('baris $baris: "--" di dalam komentar');
+    }
+    i = tutup + 3;
+  }
+  return masalah;
+}
+
 void main() {
+  group('pemeriksa komentar XML', () {
+    test('komentar sah lolos, "--" di dalam badan gagal', () {
+      expect(komentarXmlCacat('<a><!-- aman --></a>'), isEmpty);
+      expect(
+        komentarXmlCacat('<a><!-- flag --dart-define --></a>'),
+        hasLength(1),
+      );
+      expect(
+        komentarXmlCacat('<a>\n<!-- x -- y -->\n</a>').single,
+        contains('baris 2'),
+      );
+    });
+
+    test('komentar yang tidak ditutup, atau berakhir "--->", gagal', () {
+      expect(komentarXmlCacat('<a><!-- belum ditutup'), hasLength(1));
+      expect(komentarXmlCacat('<a><!-- x ---></a>'), hasLength(1));
+    });
+  });
+
+  test('AndroidManifest: tidak ada komentar yang melanggar XML 1.0', () {
+    expect(komentarXmlCacat(_manifest()), isEmpty);
+  });
+
   const diharapkan = <String, String>{
     'io.sentry.ndk.enable': 'false',
     'io.sentry.ndk.scope-sync.enable': 'false',
@@ -72,23 +121,26 @@ void main() {
     expect(menyala, isEmpty);
   });
 
-  test('izin Android tidak bertambah (himpunan yang dinyatakan app sendiri)', () {
-    final pola = RegExp(r'<uses-permission\s+android:name="([^"]+)"');
-    final izin = {for (final m in pola.allMatches(_manifest())) m[1]!};
+  test(
+    'izin Android tidak bertambah (himpunan yang dinyatakan app sendiri)',
+    () {
+      final pola = RegExp(r'<uses-permission\s+android:name="([^"]+)"');
+      final izin = {for (final m in pola.allMatches(_manifest())) m[1]!};
 
-    // Himpunan di basis OCR-LINEAR (0dac754). Sentry tidak boleh menambah:
-    // sentry-android-core hanya menyatakan INTERNET (sudah ada), dan manifest
-    // plugin hanya mencabut SentryInitProvider. Manifest HASIL MERGE belum
-    // dibangun di sini; cek tersebut ada di build rilis.
-    expect(izin, {
-      'android.permission.CAMERA',
-      'android.permission.RECORD_AUDIO',
-      'android.permission.WRITE_EXTERNAL_STORAGE',
-      'android.permission.INTERNET',
-      'android.permission.POST_NOTIFICATIONS',
-      'android.permission.REQUEST_INSTALL_PACKAGES',
-    });
-  });
+      // Himpunan di basis OCR-LINEAR (0dac754). Sentry tidak boleh menambah:
+      // sentry-android-core hanya menyatakan INTERNET (sudah ada), dan manifest
+      // plugin hanya mencabut SentryInitProvider. Manifest HASIL MERGE belum
+      // dibangun di sini; cek tersebut ada di build rilis.
+      expect(izin, {
+        'android.permission.CAMERA',
+        'android.permission.RECORD_AUDIO',
+        'android.permission.WRITE_EXTERNAL_STORAGE',
+        'android.permission.INTERNET',
+        'android.permission.POST_NOTIFICATIONS',
+        'android.permission.REQUEST_INSTALL_PACKAGES',
+      });
+    },
+  );
 
   test('tidak ada DSN atau auto-init di manifest', () {
     final m = _manifest();

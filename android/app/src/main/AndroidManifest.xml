@@ -136,8 +136,8 @@
         <meta-data
             android:name="com.google.mlkit.vision.DEPENDENCIES"
             android:value="ocr,barcode" />
-        <!-- Sentry (paket LAB-UI-2): SDK native MENYALA begitu `--dart-define=
-             SENTRY_DSN` diisi (event Dart dikirim lewat transport native), dan
+        <!-- Sentry (paket LAB-UI-2): SDK native MENYALA begitu flag dart-define
+             SENTRY_DSN diisi (event Dart dikirim lewat transport native), dan
              `beforeSend` Dart TIDAK berlaku untuk event yang lahir di native.
              Nilai di bawah dibaca `ManifestMetadataReader` sentry-android-core
              8.64.0 SEBELUM callback inisialisasi Flutter dan menutup penangkap
