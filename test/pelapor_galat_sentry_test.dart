@@ -638,6 +638,26 @@ void main() {
       expect(b.fatal, [true]);
     });
 
+    test('build non-rilis: log lokal ikut walau Sentry sendirian aktif', () {
+      final sentry = _PelaporRekam();
+
+      final aktif = susunPelaporAktif(sentry: sentry, rilis: false);
+
+      expect(aktif, isA<PelaporGalatGabungan>());
+      final tujuan = (aktif! as PelaporGalatGabungan).tujuan;
+      expect(tujuan.whereType<PelaporGalatDiam>(), hasLength(1));
+      expect(tujuan, contains(sentry));
+    });
+
+    test('rilis: tanpa log lokal; tanpa pelapor sama sekali = null', () {
+      final sentry = _PelaporRekam();
+
+      expect(susunPelaporAktif(sentry: sentry, rilis: true), same(sentry));
+      expect(susunPelaporAktif(rilis: true), isNull);
+      // Non-rilis tanpa pelapor lain cukup log lokal (sama dengan bawaan).
+      expect(susunPelaporAktif(rilis: false), isA<PelaporGalatDiam>());
+    });
+
     test(
       'gabungkanPelapor: nol -> null, satu -> itu sendiri, dua -> gabungan',
       () {
