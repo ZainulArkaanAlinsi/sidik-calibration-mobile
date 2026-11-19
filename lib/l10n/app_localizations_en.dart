@@ -10181,21 +10181,26 @@ class AppLocalizationsEn extends AppLocalizations {
       'Not done yet. Check the signal and try again.';
 
   @override
+  String identitasSeriSudahTerdaftar(String alat, String pt) {
+    return 'This serial number is already registered to \"$alat\" ($pt). Use that instrument, or change the serial number.';
+  }
+
+  @override
+  String identitasSeriAlatLain(String alat, String pt) {
+    return 'This serial number is registered to another instrument: \"$alat\" ($pt), not this worksheet\'s instrument type. It is not used and no new instrument is created. Check the serial number.';
+  }
+
+  @override
+  String identitasSeriPemilikBeda(String pemilik) {
+    return 'Owner on the paper: $pemilik. The registered owner is different; check before using it.';
+  }
+
+  @override
   String get identitasPtMirip =>
       'Similar companies exist. Pick an existing one, or create a new company anyway.';
 
   @override
   String get identitasPtBaru => 'Create as a new company';
-
-  @override
-  String identitasSeriJenisLain(String nama) {
-    return 'This serial number is already used by \"$nama\" (another instrument type). Check the number.';
-  }
-
-  @override
-  String identitasSeriSudahAda(String nama) {
-    return 'Serial number already registered. \"$nama\" is used instead of creating a duplicate.';
-  }
 
   @override
   String identitasTanggalKalibrasi(String tanggal) {

@@ -92,6 +92,42 @@ class IdentitasKertas {
 String kunciSeri(String seri) =>
     seri.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
 
+/// Isian yang BUKAN nomor seri walau tidak kosong: tanda strip/titik (kunci
+/// kosong), "N/A", "Tidak ada", "Tanpa seri", dst. Alat dengan seri seperti itu
+/// bertabrakan dengan alat kedua yang juga tanpa seri (seri unik per lab), lalu
+/// menempel diam-diam ke alat pertama. Daftarnya sengaja kecil dan sudah dalam
+/// bentuk [kunciSeri].
+const _seriBukanNomor = {
+  'NA',
+  'NIL',
+  'NONE',
+  'NULL',
+  'TBD',
+  'UNKNOWN',
+  'TIDAKADA',
+  'TIDAKADASERI',
+  'TIDAKADANOMOR',
+  'TANPASERI',
+  'TANPANOMOR',
+  'TIDAKTERBACA',
+  'TIDAKJELAS',
+  'BELUMADA',
+  'NOSERIAL',
+  'NOSN',
+};
+
+/// Apakah [seri] boleh dipakai sebagai nomor seri alat? `false` untuk kosong,
+/// hanya tanda baca (`-`, `...`, `?`), nol semua, dan kata-kata placeholder
+/// ([_seriBukanNomor]). Dipakai pencocok (seri kosong), panel "Alat baru", dan
+/// pembuat alat.
+bool seriBisaDipakai(String seri) {
+  final k = kunciSeri(seri);
+  if (k.isEmpty) return false;
+  if (RegExp(r'^0+$').hasMatch(k)) return false;
+
+  return !_seriBukanNomor.contains(k);
+}
+
 /// Kunci pencocokan MIRIP: [kunciSeri] dengan huruf O dianggap angka 0 dan huruf
 /// I dianggap angka 1 (salah baca yang paling umum di tulisan tangan). HANYA
 /// untuk membandingkan; nilai yang ditampilkan tidak pernah diubah.

@@ -17360,6 +17360,24 @@ abstract class AppLocalizations {
   /// **'Not done yet. Check the signal and try again.'**
   String get identitasGagalUmum;
 
+  /// No description provided for @identitasSeriSudahTerdaftar.
+  ///
+  /// In en, this message translates to:
+  /// **'This serial number is already registered to \"{alat}\" ({pt}). Use that instrument, or change the serial number.'**
+  String identitasSeriSudahTerdaftar(String alat, String pt);
+
+  /// No description provided for @identitasSeriAlatLain.
+  ///
+  /// In en, this message translates to:
+  /// **'This serial number is registered to another instrument: \"{alat}\" ({pt}), not this worksheet\'s instrument type. It is not used and no new instrument is created. Check the serial number.'**
+  String identitasSeriAlatLain(String alat, String pt);
+
+  /// No description provided for @identitasSeriPemilikBeda.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner on the paper: {pemilik}. The registered owner is different; check before using it.'**
+  String identitasSeriPemilikBeda(String pemilik);
+
   /// No description provided for @identitasPtMirip.
   ///
   /// In en, this message translates to:
@@ -17371,18 +17389,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Create as a new company'**
   String get identitasPtBaru;
-
-  /// No description provided for @identitasSeriJenisLain.
-  ///
-  /// In en, this message translates to:
-  /// **'This serial number is already used by \"{nama}\" (another instrument type). Check the number.'**
-  String identitasSeriJenisLain(String nama);
-
-  /// No description provided for @identitasSeriSudahAda.
-  ///
-  /// In en, this message translates to:
-  /// **'Serial number already registered. \"{nama}\" is used instead of creating a duplicate.'**
-  String identitasSeriSudahAda(String nama);
 
   /// No description provided for @identitasTanggalKalibrasi.
   ///

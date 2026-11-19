@@ -54,12 +54,15 @@ EquipmentLookup _a(
   int id,
   String seri, {
   String kategori = 'instrumen-analitik',
+  String pt = '',
+  String? nama,
 }) => EquipmentLookup(
   id: id,
-  namaAlat: 'pH Meter $id',
+  namaAlat: nama ?? 'pH Meter $id',
   serialNumber: seri,
   kategori: kategori,
   status: 'aktif',
+  pelangganNama: pt,
 );
 
 class _Harness {
@@ -533,28 +536,49 @@ void main() {
   });
 
   group('tidak menduplikasi', () {
-    testWidgets('seri sudah dipakai alat jenis LAIN: ditolak di kotak seri, '
-        'tidak dibuat', (tester) async {
-      final lain = _a(77, 'B628755900', kategori: 'suhu');
+    testWidgets('seri sama, kategori sama, JENIS beda: kartu "terdaftar pada '
+        'alat lain" menyebut alat dan PT-nya; tidak ada tombol pakai; tidak '
+        'dibuat, tidak terpasang', (tester) async {
+      final lain = _a(
+        77,
+        'B628755900',
+        nama: 'Turbidimeter Hach',
+        pt: 'PT Milik Orang Lain',
+      );
       final h = _Harness(identitas: _kertas, alat: [lain]);
-      // Tidak ikut pencarian per jenis lembar, tetapi ada di lab.
+      // Tidak ikut pencarian per jenis lembar, tetapi ada di lab (kategori sama).
       h.pencari.sembunyikanDariProfil = {77};
       await h.pasang(tester);
       expect(find.byKey(BlokIdentitasFoto.kunciPanelBaru), findsOneWidget);
 
       await _ketuk(tester, find.byKey(BlokIdentitasFoto.kunciBuatLanjut));
 
+      final kartu = find.byKey(BlokIdentitasFoto.kunciSeriAlatLain);
+      expect(kartu, findsOneWidget);
       expect(
-        find.textContaining('sudah dipakai "pH Meter 77" (jenis alat lain)'),
+        find.descendant(
+          of: kartu,
+          matching: find.textContaining('Turbidimeter Hach'),
+        ),
         findsOneWidget,
       );
+      expect(
+        find.descendant(
+          of: kartu,
+          matching: find.textContaining('PT Milik Orang Lain'),
+        ),
+        findsOneWidget,
+      );
+      expect(find.byKey(BlokIdentitasFoto.kunciPakaiAlatSeri), findsNothing);
       expect(h.layanan.dikirim, isEmpty);
+      expect(h.pt.didaftarkan, 0);
       expect(h.isian.alat, isNull);
     });
 
-    testWidgets('seri diketik ternyata sudah terdaftar (sejenis): alat yang '
-        'ada dipakai, tidak dibuat ganda', (tester) async {
-      final ada = _a(88, 'SN-7777');
+    testWidgets('seri diketik ternyata sudah terdaftar (sejenis): kartu + '
+        '"Pakai alat ini"; BELUM terpasang, tidak dibuat ganda; terpasang '
+        'hanya setelah ketukan', (tester) async {
+      final ada = _a(88, 'SN-7777', pt: 'PT Tirta Contoh Mandiri');
       final h = _Harness(identitas: _kertas, alat: const []);
       await h.pasang(tester);
       // Perangkat lain mendaftarkannya sesudah blok mencocokkan.
@@ -567,9 +591,108 @@ void main() {
 
       await _ketuk(tester, find.byKey(BlokIdentitasFoto.kunciBuatLanjut));
 
+      expect(find.byKey(BlokIdentitasFoto.kunciSeriTerdaftar), findsOneWidget);
       expect(h.layanan.dikirim, isEmpty);
+      expect(h.isian.alat, isNull, reason: 'tidak terpasang diam-diam');
+
+      await _ketuk(tester, find.byKey(BlokIdentitasFoto.kunciPakaiAlatSeri));
+
       expect(h.isian.alat?.id, 88);
-      expect(find.textContaining('tidak dibuat ganda'), findsOneWidget);
+      expect(h.layanan.dikirim, isEmpty);
+      expect(find.byKey(BlokIdentitasFoto.kunciTerpilih), findsOneWidget);
+    });
+
+    testWidgets('seri sama, PT BEDA: kartu menyebut pemilik terdaftar dan '
+        'pemilik di kertas; tidak terpasang sendiri', (tester) async {
+      final ada = _a(88, 'B628755900', pt: 'PT Milik Orang Lain');
+      final h = _Harness(identitas: _kertas, alat: const []);
+      await h.pasang(tester);
+      h.pencari.alat.add(ada);
+
+      await _ketuk(tester, find.byKey(BlokIdentitasFoto.kunciBuatLanjut));
+
+      final kartu = find.byKey(BlokIdentitasFoto.kunciSeriTerdaftar);
+      expect(kartu, findsOneWidget);
+      expect(
+        find.descendant(
+          of: kartu,
+          matching: find.textContaining('PT Milik Orang Lain'),
+        ),
+        findsWidgets,
+      );
+      expect(
+        find.descendant(
+          of: kartu,
+          matching: find.textContaining('PT Tirta Contoh Mandiri'),
+        ),
+        findsWidgets,
+        reason: 'pemilik di kertas disebut',
+      );
+      expect(h.isian.alat, isNull);
+      expect(h.layanan.dikirim, isEmpty);
+    });
+
+    testWidgets('mengubah nomor seri menutup kartu "sudah terdaftar"', (
+      tester,
+    ) async {
+      final h = _Harness(identitas: _kertas, alat: const []);
+      await h.pasang(tester);
+      h.pencari.alat.add(_a(88, 'B628755900', pt: 'PT Milik Orang Lain'));
+      await _ketuk(tester, find.byKey(BlokIdentitasFoto.kunciBuatLanjut));
+      expect(find.byKey(BlokIdentitasFoto.kunciSeriTerdaftar), findsOneWidget);
+
+      await tester.enterText(
+        find.byKey(BlokIdentitasFoto.kunciKotakSeri),
+        'B628755901',
+      );
+      await tester.pump();
+
+      expect(find.byKey(BlokIdentitasFoto.kunciSeriTerdaftar), findsNothing);
+    });
+
+    testWidgets('seri placeholder di panel ("N/A"): ditolak seperti seri '
+        'kosong; tanpa pencarian, tanpa PT, tanpa alat', (tester) async {
+      final h = _Harness(
+        identitas: const IdentitasKertas(
+          namaAlat: 'pH Meter',
+          pemilik: 'PT Tirta Contoh Mandiri',
+        ),
+        alat: [_a(12, 'NA', pt: 'PT Tirta Contoh Mandiri')],
+      );
+      await h.pasang(tester);
+      await tester.enterText(
+        find.byKey(BlokIdentitasFoto.kunciKotakSeri),
+        'N/A',
+      );
+      await tester.pump();
+      final kueriSebelum = h.pencari.dipanggil;
+
+      await _ketuk(tester, find.byKey(BlokIdentitasFoto.kunciBuatLanjut));
+
+      expect(
+        find.text('Nomor seri tidak terbaca. Ketik dari badan alat.'),
+        findsOneWidget,
+      );
+      expect(h.pencari.dipanggil, kueriSebelum);
+      expect(h.layanan.dikirim, isEmpty);
+      expect(h.pt.didaftarkan, 0);
+      expect(h.isian.alat, isNull);
+    });
+
+    testWidgets('seri di kertas berupa placeholder ("-"): sama dengan seri '
+        'kosong, tanpa kueri server', (tester) async {
+      final h = _Harness(
+        identitas: const IdentitasKertas(
+          namaAlat: 'pH Meter',
+          seri: '-',
+          pemilik: 'PT Tirta Contoh Mandiri',
+        ),
+        alat: [_a(12, 'NA', pt: 'PT Tirta Contoh Mandiri')],
+      );
+      await h.pasang(tester);
+
+      expect(h.pencari.dipanggil, 0);
+      expect(find.byKey(BlokIdentitasFoto.kunciPanelBaru), findsOneWidget);
     });
 
     testWidgets('dua ketukan cepat "Buat dan lanjut": satu alat', (

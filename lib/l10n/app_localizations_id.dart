@@ -10028,21 +10028,26 @@ class AppLocalizationsId extends AppLocalizations {
       'Belum berhasil. Periksa sinyal lalu coba lagi.';
 
   @override
+  String identitasSeriSudahTerdaftar(String alat, String pt) {
+    return 'Nomor seri ini sudah terdaftar pada alat \"$alat\" ($pt). Pakai alat itu, atau ubah nomor serinya.';
+  }
+
+  @override
+  String identitasSeriAlatLain(String alat, String pt) {
+    return 'Nomor seri ini terdaftar pada alat lain: \"$alat\" ($pt), bukan jenis alat lembar ini. Alat itu tidak dipakai dan tidak ada alat baru yang dibuat. Periksa nomor serinya.';
+  }
+
+  @override
+  String identitasSeriPemilikBeda(String pemilik) {
+    return 'Pemilik di kertas: $pemilik. Pemilik alat terdaftar berbeda; periksa dulu sebelum memakainya.';
+  }
+
+  @override
   String get identitasPtMirip =>
       'Ada PT yang mirip. Pilih yang sudah ada, atau tetap buat PT baru.';
 
   @override
   String get identitasPtBaru => 'Tetap buat PT baru';
-
-  @override
-  String identitasSeriJenisLain(String nama) {
-    return 'Nomor seri ini sudah dipakai \"$nama\" (jenis alat lain). Periksa nomor serinya.';
-  }
-
-  @override
-  String identitasSeriSudahAda(String nama) {
-    return 'Nomor seri sudah terdaftar. Alat \"$nama\" dipakai, tidak dibuat ganda.';
-  }
 
   @override
   String identitasTanggalKalibrasi(String tanggal) {

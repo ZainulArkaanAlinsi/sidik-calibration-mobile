@@ -170,6 +170,27 @@ void main() {
     });
 
     test(
+      'seri placeholder ("-", "N/A", "Tidak ada"): seri kosong, TANPA kueri '
+      'server (alat kedua tidak boleh menempel ke alat berseri "NA")',
+      () async {
+        for (final placeholder in ['-', '...', 'N/A', 'NA', 'Tidak ada']) {
+          final p = _Pencari([_a(1, 'NA')]);
+
+          final h = await cocokkanAlat(
+            layanan: p,
+            token: 't',
+            kertas: IdentitasKertas(namaAlat: 'pH Meter', seri: placeholder),
+            profil: profil,
+          );
+
+          expect(h, isA<AlatBaru>(), reason: placeholder);
+          expect((h as AlatBaru).seriKosong, isTrue, reason: placeholder);
+          expect(p.kueri, isEmpty, reason: placeholder);
+        }
+      },
+    );
+
+    test(
       'seri tak terbaca: alat baru dengan seri kosong, TANPA kueri server',
       () async {
         final p = _Pencari([_a(1, 'B628755900')]);

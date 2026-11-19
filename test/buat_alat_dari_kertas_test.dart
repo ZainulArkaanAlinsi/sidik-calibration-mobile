@@ -3,6 +3,8 @@ import 'package:sidik_calibration/models/customer_lookup.dart';
 import 'package:sidik_calibration/models/equipment_lookup.dart';
 import 'package:sidik_calibration/services/auth_service.dart';
 import 'package:sidik_calibration/services/buat_alat_dari_kertas.dart';
+import 'package:sidik_calibration/services/identitas_kertas.dart'
+    show seriBisaDipakai;
 
 import 'support/layanan_alat_uji.dart';
 
@@ -15,12 +17,15 @@ EquipmentLookup _a(
   int id,
   String seri, {
   String kategori = 'instrumen-analitik',
+  String pt = '',
+  String nama = 'pH Meter Lama',
 }) => EquipmentLookup(
   id: id,
-  namaAlat: 'pH Meter Lama',
+  namaAlat: nama,
   serialNumber: seri,
   kategori: kategori,
   status: 'aktif',
+  pelangganNama: pt,
 );
 
 DataAlatBaru _data({
@@ -35,6 +40,7 @@ DataAlatBaru _data({
   merk: 'Mettler',
   model: 'Five Easy',
   kategori: 'instrumen-analitik',
+  profil: 'ph_meter',
   namaAlatKemampuan: 'pH Meter',
 );
 
@@ -64,7 +70,6 @@ void main() {
 
         expect(h, isA<AlatSiap>());
         final siap = h as AlatSiap;
-        expect(siap.sudahAda, isFalse);
         expect(siap.alat.serialNumber, 'SN-4471');
         expect(siap.alat.pelangganNama, 'PT Tirta Contoh');
         expect(siap.alat.pelangganAlamat, 'Jl. Contoh 1');
@@ -100,39 +105,71 @@ void main() {
   });
 
   group('tidak pernah menduplikasi alat', () {
+    test('seri sudah terdaftar (sejenis, PT sama): TIDAK terpasang sendiri, '
+        'menunggu ketukan teknisi; tidak ada POST', () async {
+      final pt = PtUji();
+      final layanan = LayananAlatUji();
+      final h = await _pembuat(
+        pt,
+        PencariAlatUji([_a(12, 'SN-4471', pt: 'PT Tirta Contoh')]),
+        layanan,
+      ).jalankan(_data(seri: 'sn 4471'));
+
+      expect(h, isA<SeriSudahTerdaftar>());
+      expect((h as SeriSudahTerdaftar).alat.id, 12);
+      expect(h.pemilikBeda, isFalse);
+      expect(layanan.dikirim, isEmpty, reason: 'tidak membuat alat kembar');
+      expect(
+        pt.didaftarkan,
+        0,
+        reason: 'tidak ada PT yatim untuk alat yang ada',
+      );
+    });
+
+    test('seri sama, jenis sama, PT BEDA: kartu dengan penanda pemilik beda, '
+        'tidak terpasang', () async {
+      final pt = PtUji();
+      final layanan = LayananAlatUji();
+      final h = await _pembuat(
+        pt,
+        PencariAlatUji([_a(12, 'SN-4471', pt: 'PT Milik Orang Lain')]),
+        layanan,
+      ).jalankan(_data());
+
+      expect(h, isNot(isA<AlatSiap>()));
+      expect(h, isA<SeriSudahTerdaftar>());
+      expect((h as SeriSudahTerdaftar).pemilikBeda, isTrue);
+      expect(h.alat.pelangganNama, 'PT Milik Orang Lain');
+      expect(layanan.dikirim, isEmpty);
+      expect(pt.didaftarkan, 0);
+    });
+
+    test('seri sama, KATEGORI sama tetapi JENIS beda (kategori terlalu kasar): '
+        'seri milik alat lain, tidak dipasang, tidak dibuat', () async {
+      final pt = PtUji();
+      final layanan = LayananAlatUji();
+      // Satu kategori memuat banyak jenis: alat ini tidak ikut pencarian per
+      // profil lembar, tetapi ada di lab dengan kategori yang SAMA.
+      final cari = PencariAlatUji([
+        _a(12, 'SN-4471', nama: 'Turbidimeter Hach', pt: 'PT Milik Orang Lain'),
+      ])..sembunyikanDariProfil = {12};
+      final h = await _pembuat(pt, cari, layanan).jalankan(_data());
+
+      expect(h, isNot(isA<AlatSiap>()));
+      expect(h, isA<SeriMilikAlatLain>());
+      expect((h as SeriMilikAlatLain).alat.namaAlat, 'Turbidimeter Hach');
+      expect(layanan.dikirim, isEmpty);
+      expect(pt.didaftarkan, 0);
+    });
+
     test(
-      'seri sudah terdaftar (sejenis): alat yang ada dipakai, tidak ada POST',
+      'seri milik alat KATEGORI lain: tetap ditolak dengan alasan, tidak dibuat',
       () async {
         final pt = PtUji();
         final layanan = LayananAlatUji();
-        final h = await _pembuat(
-          pt,
-          PencariAlatUji([_a(12, 'SN-4471')]),
-          layanan,
-        ).jalankan(_data(seri: 'sn 4471'));
-
-        expect(h, isA<AlatSiap>());
-        expect((h as AlatSiap).sudahAda, isTrue);
-        expect(h.alat.id, 12);
-        expect(layanan.dikirim, isEmpty, reason: 'tidak membuat alat kembar');
-        expect(
-          pt.didaftarkan,
-          0,
-          reason: 'tidak ada PT yatim untuk alat yang ada',
-        );
-      },
-    );
-
-    test(
-      'seri milik alat JENIS LAIN: ditolak dengan alasan, tidak dibuat',
-      () async {
-        final pt = PtUji();
-        final layanan = LayananAlatUji();
-        final h = await _pembuat(
-          pt,
-          PencariAlatUji([_a(12, 'SN-4471', kategori: 'suhu')]),
-          layanan,
-        ).jalankan(_data());
+        final cari = PencariAlatUji([_a(12, 'SN-4471', kategori: 'suhu')])
+          ..sembunyikanDariProfil = {12};
+        final h = await _pembuat(pt, cari, layanan).jalankan(_data());
 
         expect(h, isA<SeriMilikAlatLain>());
         expect((h as SeriMilikAlatLain).alat.id, 12);
@@ -142,13 +179,13 @@ void main() {
     );
 
     test(
-      'server menolak seri kembar (422, balapan): alat yang ada dipakai',
+      'server menolak seri kembar (422, balapan): juga TIDAK terpasang sendiri',
       () async {
         final cari = PencariAlatUji();
         final layanan = LayananAlatUji(
           sebelumSimpan: (_) async {
             // Di antara pengecekan dan POST, perangkat lain mendaftarkannya.
-            cari.alat.add(_a(33, 'SN-4471'));
+            cari.alat.add(_a(33, 'SN-4471', pt: 'PT Tirta Contoh'));
             throw const ApiException(
               'Nomor seri sudah dipakai.',
               status: 422,
@@ -163,11 +200,52 @@ void main() {
 
         final h = await _pembuat(PtUji(), cari, layanan).jalankan(_data());
 
-        expect(h, isA<AlatSiap>());
-        expect((h as AlatSiap).sudahAda, isTrue);
-        expect(h.alat.id, 33);
+        expect(h, isNot(isA<AlatSiap>()));
+        expect(h, isA<SeriSudahTerdaftar>());
+        expect((h as SeriSudahTerdaftar).alat.id, 33);
       },
     );
+
+    for (final placeholder in [
+      '-',
+      '--',
+      '...',
+      '?',
+      'N/A',
+      'n/a',
+      'NA',
+      'NIL',
+      'Tidak ada',
+      'TANPA SERI',
+      '   ',
+      '000',
+    ]) {
+      test(
+        'seri placeholder "$placeholder" ditolak: tanpa pencarian, tanpa PT, '
+        'tanpa alat (alat kedua tidak menempel diam-diam ke alat pertama)',
+        () async {
+          final pt = PtUji();
+          final layanan = LayananAlatUji();
+          final cari = PencariAlatUji([_a(12, 'NA', pt: 'PT Tirta Contoh')]);
+          final h = await _pembuat(
+            pt,
+            cari,
+            layanan,
+          ).jalankan(_data(seri: placeholder));
+
+          expect(h, isA<SeriTidakValid>());
+          expect(cari.dipanggil, 0);
+          expect(layanan.dikirim, isEmpty);
+          expect(pt.didaftarkan, 0);
+        },
+      );
+    }
+
+    test('seri bernomor biasa tetap lolos (bukan placeholder)', () async {
+      for (final seri in ['SN-4471', 'B628755900', 'NA-1234', 'A1']) {
+        expect(seriBisaDipakai(seri), isTrue, reason: seri);
+      }
+    });
 
     test(
       '422 yang BUKAN soal seri tidak disamarkan: gagal dengan pesannya',

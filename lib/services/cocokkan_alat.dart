@@ -122,7 +122,8 @@ Future<HasilCocokAlat> cocokkanAlat({
 }) async {
   final seri = kertas.seri?.trim() ?? '';
   final kunci = kunciSeri(seri);
-  if (seri.isEmpty || kunci.isEmpty) {
+  // Kosong, strip, "N/A", "Tidak ada": bukan nomor seri; tidak ada yang dicari.
+  if (!seriBisaDipakai(seri)) {
     return const AlatBaru(seriKosong: true);
   }
 

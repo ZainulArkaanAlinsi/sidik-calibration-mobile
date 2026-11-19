@@ -411,6 +411,36 @@ void main() {
       expect(kunciSeri(' b628755900 '), 'B628755900');
     });
 
+    test('seriBisaDipakai: strip, titik, N/A, "tidak ada", nol semua = bukan '
+        'nomor seri', () {
+      for (final bukan in [
+        '',
+        '  ',
+        '-',
+        '--',
+        '...',
+        '?',
+        '/',
+        'N/A',
+        'n.a.',
+        'NA',
+        'NIL',
+        'None',
+        'null',
+        'Tidak ada',
+        'TIDAK TERBACA',
+        'TANPA SERI',
+        'Tanpa nomor',
+        '0',
+        '0000',
+      ]) {
+        expect(seriBisaDipakai(bukan), isFalse, reason: '"$bukan"');
+      }
+      for (final nomor in ['SN-4471', 'B628755900', 'NA-1234', 'A1', 'N4']) {
+        expect(seriBisaDipakai(nomor), isTrue, reason: '"$nomor"');
+      }
+    });
+
     test('kunciSeriLonggar: O jadi 0 dan I jadi 1, hanya untuk pencocokan', () {
       expect(
         kunciSeriLonggar('BO28-755I00'),

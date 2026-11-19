@@ -5,7 +5,7 @@ import 'auth_service.dart' show ApiException;
 import 'customer_lookup_service.dart';
 import 'equipment_lookup_service.dart';
 import 'equipment_service.dart';
-import 'identitas_kertas.dart' show kunciSeri;
+import 'identitas_kertas.dart' show kunciSeri, seriBisaDipakai;
 import 'simpanan_pelanggan.dart' show SimpananPelanggan;
 
 /// Isian panel "Alat baru" (diisi dari kertas, diedit teknisi).
@@ -15,6 +15,7 @@ class DataAlatBaru {
     required this.seri,
     required this.pemilik,
     required this.kategori,
+    required this.profil,
     this.merk = '',
     this.model = '',
     this.noIdentifikasi = '',
@@ -29,6 +30,10 @@ class DataAlatBaru {
   /// Kode kategori dan jenis kemampuan ditentukan LEMBAR yang dibuka
   /// (`bentuk.alatBaru`), bukan tebakan dari kertas.
   final String kategori;
+
+  /// Kode lembar (jenis alat): alat yang SUDAH ada hanya dianggap sejenis bila
+  /// ketemu lewat pencarian per profil ini; kategori terlalu kasar.
+  final String profil;
   final String? namaAlatKemampuan;
   final String merk;
   final String model;
@@ -41,14 +46,31 @@ sealed class HasilBuatAlat {
   const HasilBuatAlat();
 }
 
-/// Alat siap dipakai. [sudahAda] = nomor serinya SUDAH terdaftar (dicek sebelum
-/// membuat, atau server menolak seri kembar), jadi alat yang ada dipakai dan
-/// tidak ada duplikat.
+/// Alat BARU yang baru saja dibuat (atau dibuat lebih dulu oleh percobaan yang
+/// sama dan dilanjutkan): siap dipakai. Alat yang SUDAH ada sebelum ketukan ini
+/// tidak pernah dikembalikan di sini ([SeriSudahTerdaftar]), karena memasang alat
+/// orang lain tanpa ketukan berarti profil dan hitungan salah tanpa galat.
 class AlatSiap extends HasilBuatAlat {
-  const AlatSiap(this.alat, {required this.sudahAda});
+  const AlatSiap(this.alat);
 
   final EquipmentLookup alat;
-  final bool sudahAda;
+}
+
+/// Nomor seri ini SUDAH terdaftar pada alat SEJENIS (ketemu lewat pencarian per
+/// profil lembar). Tidak terpasang dan tidak dibuat kembar: kartu dengan ketukan
+/// "Pakai alat ini" (atau teknisi mengubah serinya). [pemilikBeda] = PT alat itu
+/// tidak sama dengan PT di panel.
+class SeriSudahTerdaftar extends HasilBuatAlat {
+  const SeriSudahTerdaftar(this.alat, {required this.pemilikBeda});
+
+  final EquipmentLookup alat;
+  final bool pemilikBeda;
+}
+
+/// Isian seri bukan nomor seri (kosong, "-", "N/A", "Tidak ada", ...). Tidak ada
+/// pencarian, PT, atau alat yang dibuat.
+class SeriTidakValid extends HasilBuatAlat {
+  const SeriTidakValid();
 }
 
 /// Server menemukan PT yang MIRIP (bukan nama persis sama): teknisi memilih
@@ -59,9 +81,9 @@ class PtPerluDipilih extends HasilBuatAlat {
   final List<CustomerLookup> kandidat;
 }
 
-/// Nomor seri ini sudah dipakai alat dari JENIS LAIN: tidak dipakai ulang dan
-/// tidak dibuat kembar. Teknisi memperbaiki serinya (salah baca) atau memilih
-/// alat yang benar.
+/// Nomor seri ini terdaftar pada alat dari JENIS LAIN (bukan jenis lembar ini,
+/// walau kategorinya sama): tidak dipakai dan tidak dibuat kembar. Teknisi
+/// memperbaiki serinya (salah baca); tidak ada ketukan untuk memakai alat itu.
 class SeriMilikAlatLain extends HasilBuatAlat {
   const SeriMilikAlatLain(this.alat);
 
@@ -84,8 +106,10 @@ class GagalBuatAlat extends HasilBuatAlat {
 ///  - PT: nama yang sama (huruf besar-kecil/tanda baca diabaikan) dicari dulu;
 ///    409 "nama persis sudah ada" memakai PT itu; 409 "mirip" TIDAK menembus
 ///    otomatis, teknisi yang memilih.
-///  - Alat: nomor seri dicari dulu (unik per lab); 422 seri kembar dijawab
-///    dengan mencari alat yang ada, bukan membuat lagi.
+///  - Alat: nomor seri dicari dulu (unik per lab; jenis lembar ini lebih dulu,
+///    lalu semua jenis); 422 seri kembar dijawab dengan mencari alat yang ada,
+///    bukan membuat lagi. Alat yang SUDAH ada tidak pernah terpasang otomatis
+///    ([SeriSudahTerdaftar] / [SeriMilikAlatLain] menunggu ketukan teknisi).
 ///  - Hasil langkah yang sudah berhasil dipegang di sini, jadi mengulang setelah
 ///    gagal sebagian tidak membuat PT atau alat ganda.
 ///
@@ -131,12 +155,16 @@ class PembuatAlatDariKertas {
     bool tetapBuatPt,
   ) async {
     try {
+      // Bukan nomor seri (kosong, "-", "N/A", ...): alat kedua akan menempel
+      // diam-diam ke alat pertama yang berseri sama. Tidak ada yang dikerjakan.
+      if (!seriBisaDipakai(d.seri)) return const SeriTidakValid();
+
       final tok = await token();
 
       // Alat yang sudah berhasil dibuat untuk seri ini tidak dibuat lagi.
       final siap = _alatSiap;
       if (siap != null && kunciSeri(siap.serialNumber) == kunciSeri(d.seri)) {
-        return AlatSiap(siap, sudahAda: false);
+        return AlatSiap(siap);
       }
 
       // 1. Seri yang sudah terdaftar dipakai, tidak dibuat kembar. Dicek SEBELUM
@@ -207,26 +235,48 @@ class PembuatAlatDariKertas {
       );
       _alatSiap = lookup;
 
-      return AlatSiap(lookup, sudahAda: false);
+      return AlatSiap(lookup);
     } catch (e) {
       return GagalBuatAlat(e);
     }
   }
 
-  /// Alat dengan seri ini yang SUDAH terdaftar: sejenis = dipakai, jenis lain =
-  /// ditolak dengan alasan. `null` = belum ada.
+  /// Alat dengan seri ini yang SUDAH terdaftar. Sejenis (ketemu lewat pencarian
+  /// per profil lembar) = [SeriSudahTerdaftar]; ketemu hanya tanpa profil = jenis
+  /// lain = [SeriMilikAlatLain] (kategori sama TIDAK cukup: satu kategori memuat
+  /// banyak jenis, dan server memilih profil dari alat yang dikirim). Keduanya
+  /// menunggu ketukan teknisi. `null` = belum ada.
   Future<HasilBuatAlat?> _cariSeri(String tok, DataAlatBaru d) async {
     final kunci = kunciSeri(d.seri);
-    final hasil = await cariAlat.cari(tok, search: d.seri.trim());
-    for (final a in hasil) {
-      if (kunciSeri(a.serialNumber) != kunci) continue;
+    final seri = d.seri.trim();
 
-      return a.kategori == d.kategori
-          ? AlatSiap(a, sudahAda: true)
-          : SeriMilikAlatLain(a);
+    EquipmentLookup? persis(List<EquipmentLookup> hasil) {
+      for (final a in hasil) {
+        if (kunciSeri(a.serialNumber) == kunci) return a;
+      }
+
+      return null;
     }
 
-    return null;
+    final sejenis = persis(
+      await cariAlat.cari(tok, search: seri, profil: d.profil),
+    );
+    if (sejenis != null) {
+      return SeriSudahTerdaftar(sejenis, pemilikBeda: _pemilikBeda(sejenis, d));
+    }
+
+    final lain = persis(await cariAlat.cari(tok, search: seri));
+
+    return lain == null ? null : SeriMilikAlatLain(lain);
+  }
+
+  /// PT alat yang sudah ada berbeda dari PT di panel (keduanya terisi).
+  bool _pemilikBeda(EquipmentLookup a, DataAlatBaru d) {
+    final terdaftar = a.pelangganNama.trim();
+    final kertas = d.pemilik.trim();
+    if (terdaftar.isEmpty || kertas.isEmpty) return false;
+
+    return _normal(terdaftar) != _normal(kertas);
   }
 
   Future<Object> _resolusiPt(String tok, DataAlatBaru d, bool tetapBuat) async {

@@ -96,6 +96,13 @@ class BlokIdentitasFoto extends ConsumerStatefulWidget {
   static const kunciPtBaru = ValueKey('identitas-pt-baru');
   static const kunciKategoriKosong = ValueKey('identitas-kategori-kosong');
 
+  /// Seri yang diketik sudah terdaftar: kartu penjelasan. [kunciSeriTerdaftar]
+  /// = alat SEJENIS (ada tombol [kunciPakaiAlatSeri], ketukan teknisi);
+  /// [kunciSeriAlatLain] = jenis lain (tanpa tombol pakai).
+  static const kunciSeriTerdaftar = ValueKey('identitas-seri-terdaftar');
+  static const kunciPakaiAlatSeri = ValueKey('identitas-pakai-alat-seri');
+  static const kunciSeriAlatLain = ValueKey('identitas-seri-alat-lain');
+
   /// Layar sempit: kartu ringkas pengganti panel inline (panelnya sendiri ada di
   /// lembar bawah), dan tombolnya yang membuka lembar bawah itu.
   static const kunciAlatBaruRingkas = ValueKey('identitas-alat-baru-ringkas');
@@ -160,6 +167,12 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
 
   PembuatAlatDariKertas? _pembuat;
 
+  /// Seri yang diketik SUDAH terdaftar ([SeriSudahTerdaftar] sejenis, atau
+  /// [SeriMilikAlatLain] jenis lain): kartu penjelasan di panel, tanpa alat yang
+  /// dipasang atau dibuat. Hilang begitu nomor seri diubah.
+  HasilBuatAlat? _bentrok;
+  String _kunciBentrok = '';
+
   // ---- lembar bawah (layar sempit) -------------------------------------------
 
   /// Konteks DI DALAM lembar bawah yang sedang terbuka (`null` = tidak ada).
@@ -184,6 +197,7 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
   /// muncul di bawah kotak isian, dan harus dibawa ke layar.
   final _gulirPtMirip = GlobalKey();
   final _gulirGalat = GlobalKey();
+  final _gulirBentrok = GlobalKey();
 
   /// Akun yang sedang masuk (`null` = belum diketahui, atau tidak ada) dan
   /// "generasi" akun: naik tiap akun berganti, supaya hasil pencocokan atau
@@ -260,7 +274,12 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
   }
 
   void _kotakBerubah() {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    // Nomor seri diubah: kartu "seri sudah terdaftar" tidak berlaku lagi.
+    if (_bentrok != null && kunciSeri(_seri.text) != _kunciBentrok) {
+      _bentrok = null;
+    }
+    setState(() {});
   }
 
   /// Ganti akun di tengah lembar: apa pun yang sudah dicocokkan milik akun lama.
@@ -354,7 +373,9 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
 
     setState(() {
       _errNama = _nama.text.trim().isEmpty ? l10n.custFieldRequired : null;
-      _errSeri = _seri.text.trim().isEmpty ? l10n.identitasSeriWajib : null;
+      // Kosong, strip, "N/A", "Tidak ada": bukan nomor seri (alat kedua akan
+      // menempel diam-diam ke alat pertama berseri sama).
+      _errSeri = !seriBisaDipakai(_seri.text) ? l10n.identitasSeriWajib : null;
       _errPemilik = _pemilik.text.trim().isEmpty
           ? l10n.custFieldRequired
           : null;
@@ -375,6 +396,7 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
       model: _model.text.trim(),
       noIdentifikasi: widget.identitas.idAlat ?? '',
       kategori: kategori,
+      profil: widget.profil,
       namaAlatKemampuan: bekal?.namaAlatKemampuan,
     );
   }
@@ -397,6 +419,7 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
     setState(() {
       _membuat = true;
       _galat = null;
+      _bentrok = null;
     });
 
     final hasil = await _pembuatAlat.jalankan(
@@ -407,7 +430,7 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
     if (!mounted || generasi != _generasi) return;
 
     switch (hasil) {
-      case AlatSiap(:final alat, :final sudahAda):
+      case AlatSiap(:final alat):
         _selaraskanLembar(data);
         // Daftar alat lembar ini dan daftar Master Alat memuat alat baru.
         ref.invalidate(equipmentLookupProfilProvider(widget.profil));
@@ -419,13 +442,7 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
         });
         // Lembar bawah (layar sempit) menutup sendiri: alat sudah terpasang.
         messenger.showSnackBar(
-          SnackBar(
-            content: Text(
-              sudahAda
-                  ? l10n.identitasSeriSudahAda(alat.namaAlat)
-                  : l10n.lkAlatBaruTersimpan(alat.namaAlat),
-            ),
-          ),
+          SnackBar(content: Text(l10n.lkAlatBaruTersimpan(alat.namaAlat))),
         );
       case PtPerluDipilih(:final kandidat):
         setState(() {
@@ -433,10 +450,18 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
           _ptKandidat = kandidat;
         });
         _bawaKeLayar(_gulirPtMirip);
-      case SeriMilikAlatLain(:final alat):
+      case SeriSudahTerdaftar() || SeriMilikAlatLain():
+        // Alat yang sudah ada TIDAK dipasang sendiri: kartu, lalu ketukan.
         setState(() {
           _membuat = false;
-          _errSeri = l10n.identitasSeriJenisLain(alat.namaAlat);
+          _bentrok = hasil;
+          _kunciBentrok = kunciSeri(data.seri);
+        });
+        _bawaKeLayar(_gulirBentrok);
+      case SeriTidakValid():
+        setState(() {
+          _membuat = false;
+          _errSeri = l10n.identitasSeriWajib;
         });
         _fokusiKotakSalah();
       case GagalBuatAlat(:final galat):
@@ -1025,7 +1050,7 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
         l10n.equipSerialNumber,
         galat:
             _errSeri ??
-            (_seriKosong && _seri.text.trim().isEmpty
+            (_seriKosong && !seriBisaDipakai(_seri.text)
                 ? l10n.identitasSeriWajib
                 : null),
         wajib: true,
@@ -1047,6 +1072,13 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
         l10n.identitasAlamat,
         maxBaris: 3,
       ),
+      if (_bentrok != null) ...[
+        const SizedBox(height: AppSpacing.sm),
+        KeyedSubtree(
+          key: lembarBawah ? _gulirBentrok : null,
+          child: _kartuSeriBentrok(l10n),
+        ),
+      ],
       if (_ptKandidat case final kandidat?) ...[
         const SizedBox(height: AppSpacing.sm),
         KeyedSubtree(
@@ -1075,6 +1107,70 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
       const SizedBox(height: AppSpacing.sm),
       Text(l10n.identitasLengkapiNanti, style: tema.textTheme.bodySmall),
     ];
+  }
+
+  /// Kartu "nomor seri ini sudah terdaftar": alat SEJENIS (tombol "Pakai alat
+  /// ini": satu-satunya jalan alat yang sudah ada terpasang dari panel) atau
+  /// alat JENIS LAIN (hanya penjelasan; ubah nomor serinya). Menyebut alat dan
+  /// PT-nya, dan pemilik di kertas bila berbeda.
+  Widget _kartuSeriBentrok(AppLocalizations l10n) {
+    final tema = Theme.of(context);
+    final hasil = _bentrok!;
+    final (alat, sejenis, pemilikBeda) = switch (hasil) {
+      SeriSudahTerdaftar(:final alat, :final pemilikBeda) => (
+        alat,
+        true,
+        pemilikBeda,
+      ),
+      SeriMilikAlatLain(:final alat) => (alat, false, false),
+      _ => throw StateError('bukan hasil seri terdaftar'),
+    };
+    final pt = alat.pelangganNama.trim().isEmpty ? '-' : alat.pelangganNama;
+
+    return Container(
+      key: sejenis
+          ? BlokIdentitasFoto.kunciSeriTerdaftar
+          : BlokIdentitasFoto.kunciSeriAlatLain,
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      decoration: BoxDecoration(
+        color: kuningPerluDicek.withValues(alpha: 0.14),
+        border: Border.all(color: kuningPerluDicek),
+        borderRadius: BorderRadius.circular(AppSpacing.sm),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            sejenis
+                ? l10n.identitasSeriSudahTerdaftar(alat.namaAlat, pt)
+                : l10n.identitasSeriAlatLain(alat.namaAlat, pt),
+            style: tema.textTheme.bodySmall,
+          ),
+          if (pemilikBeda) ...[
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              l10n.identitasSeriPemilikBeda(_pemilik.text.trim()),
+              style: tema.textTheme.bodySmall,
+            ),
+          ],
+          if (sejenis) ...[
+            const SizedBox(height: AppSpacing.xs),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: FilledButton(
+                key: BlokIdentitasFoto.kunciPakaiAlatSeri,
+                onPressed: () {
+                  setState(() => _bentrok = null);
+                  _pakai(alat);
+                },
+                child: Text(l10n.identitasPakaiAlat),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 
   /// Baris tombol panel "Alat baru": Batal dan "Buat dan lanjut".
