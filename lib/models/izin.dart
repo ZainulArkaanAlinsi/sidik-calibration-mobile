@@ -246,4 +246,10 @@ abstract final class NamaIzin {
   static const kalibrasiPulihkan = 'kalibrasi.pulihkan';
   static const penugasanUbah = 'penugasan.ubah';
   static const penugasanBatalkan = 'penugasan.batalkan';
+
+  /// Selesaikan / buka lagi penugasan (PR #284, 19 Nov 2026): `selesaikan`
+  /// admin dan super admin, `buka-lagi` HANYA super admin. Baru di server:
+  /// ditanya dengan `cadangan: false`.
+  static const penugasanSelesaikan = 'penugasan.selesaikan';
+  static const penugasanBukaLagi = 'penugasan.buka-lagi';
 }
