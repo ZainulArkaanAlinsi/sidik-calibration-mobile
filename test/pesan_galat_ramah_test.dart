@@ -34,9 +34,9 @@ const _teksServer404 =
 
 const _userId = 7;
 
-DrafLokal _draf() => DrafLokal(
+DrafLokal _draf({int? sesiId = 25}) => DrafLokal(
   userId: _userId,
-  sesiId: 25,
+  sesiId: sesiId,
   clientRequestId: '0b7c6a52-3f7e-4d55-9a3b-2c1d0e9f8a71',
   profil: 'ph_meter',
   disimpanPada: DateTime.now().toUtc().subtract(const Duration(minutes: 2)),
@@ -72,11 +72,12 @@ class _TolakPut implements PengirimDrafService {
 }
 
 Future<(SimpananDrafLokalMemori, _TolakPut, HasilSinkronDraf)> _tolak(
-  Object galat,
-) async {
+  Object galat, {
+  int? sesiId = 25,
+}) async {
   final simpanan = SimpananDrafLokalMemori();
   final pengirim = _TolakPut(galat);
-  await simpanan.simpan(_draf());
+  await simpanan.simpan(_draf(sesiId: sesiId));
   final s = SinkronDrafLokal(
     simpanan: simpanan,
     pengirim: pengirim,
@@ -126,6 +127,95 @@ void main() {
       }
       // Status tak dikenal menyebut kodenya supaya bisa dilaporkan.
       expect(pesanPenolakanDraf(410), contains('410'));
+    });
+  });
+
+  group('404 pada draf BARU lain dari 404 pada draf yang sudah ada', () {
+    test('kalimat murni: tanpa sesi di server tidak menyebut diarsipkan', () {
+      final baru = pesanPenolakanDraf(404, sudahDiServer: false);
+      final ada = pesanPenolakanDraf(404);
+
+      expect(baru, isNot(contains('diarsipkan')));
+      expect(baru, isNot(contains('dihapus admin')));
+      expect(baru, contains('tidak mengenali'));
+      expect(ada, contains('diarsipkan atau dihapus admin'));
+      expect(baru, isNot(ada));
+    });
+
+    test('POST draf baru (tanpa sesiId) dijawab 404: kalimat tujuan tidak '
+        'dikenal, bukan "diarsipkan"', () async {
+      final (simpanan, _, hasil) = await _tolak(
+        const ApiException(_teksServer404, status: 404),
+        sesiId: null,
+      );
+
+      expect(hasil.ditolak, 1);
+      final d = (await simpanan.daftar(_userId)).single;
+      expect(d.pesan, pesanPenolakanDraf(404, sudahDiServer: false));
+      expect(d.pesan, isNot(contains('diarsipkan')));
+    });
+  });
+
+  group('422 tidak membuang pesan validasi', () {
+    test('pesan validasi pertama ikut, dipotong bila panjang', () {
+      final p = pesanPenolakanDraf(
+        422,
+        badan: {
+          'errors': {
+            'measurements.2.pembacaan': ['Pembacaan titik 3 wajib diisi.'],
+            'lain': ['abaikan'],
+          },
+        },
+      );
+      expect(p, contains('Pembacaan titik 3 wajib diisi.'));
+      expect(p, isNot(contains('abaikan')));
+
+      final panjang = pesanPenolakanDraf(
+        422,
+        badan: {
+          'errors': {
+            'x': ['a' * 400],
+          },
+        },
+      );
+      expect(panjang.length, lessThan(190));
+    });
+
+    test('tanpa errors: kalimat dasar; errors kosong/aneh tidak crash', () {
+      final dasar = pesanPenolakanDraf(422);
+
+      expect(dasar, contains('periksa isiannya'));
+      for (final badan in <Map<String, dynamic>>[
+        {'errors': <String, dynamic>{}},
+        {'errors': 'x'},
+        {
+          'errors': {'a': <String>[]},
+        },
+        {
+          'errors': {'a': '   '},
+        },
+      ]) {
+        expect(pesanPenolakanDraf(422, badan: badan), dasar, reason: '$badan');
+      }
+    });
+
+    test('lewat antrean: 422 dengan errors menyimpan pesan validasi', () async {
+      final (simpanan, _, _) = await _tolak(
+        const ApiException(
+          'The pembacaan field is required.',
+          status: 422,
+          body: {
+            'errors': {
+              'pembacaan': ['Pembacaan titik 3 wajib diisi.'],
+            },
+          },
+        ),
+      );
+
+      final d = (await simpanan.daftar(_userId)).single;
+      expect(d.pesan, contains('Pembacaan titik 3 wajib diisi.'));
+      // Kalimat server berbahasa Inggris tidak ikut; hanya `errors` yang dibaca.
+      expect(d.pesan, isNot(contains('field is required')));
     });
   });
 

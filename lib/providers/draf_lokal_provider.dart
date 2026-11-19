@@ -305,7 +305,12 @@ class SinkronDrafLokal {
             status: StatusDrafLokal.perluDiperbaiki,
             // Kalimat dari STATUS, bukan `e.message`: 404 draf yang diarsipkan
             // admin dulu tampil sebagai nama kelas model Eloquent.
-            pesan: pesanPenolakanDraf(e.status),
+            // 404 hanya "diarsipkan" untuk draf yang SUDAH ada di server.
+            pesan: pesanPenolakanDraf(
+              e.status,
+              sudahDiServer: d.sesiId != null || idBaru != null,
+              badan: e.body,
+            ),
           );
         }
 
