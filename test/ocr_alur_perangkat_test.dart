@@ -288,7 +288,6 @@ void main() {
                     children: [
                       BannerJenisDariFoto(
                         info: info(),
-                        perluAlat: true,
                         onGanti: () => diketuk++,
                       ),
                     ],
@@ -326,11 +325,7 @@ void main() {
         _bungkus(
           mode: Brightness.light,
           skala: 2.0,
-          isi: (_) => BannerJenisDariFoto(
-            info: info(),
-            perluAlat: true,
-            onGanti: () {},
-          ),
+          isi: (_) => BannerJenisDariFoto(info: info(), onGanti: () {}),
         ),
       );
       await tester.pumpAndSettle();
