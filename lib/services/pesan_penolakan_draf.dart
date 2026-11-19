@@ -12,10 +12,11 @@
 ///
 /// Salinan di HP TIDAK hilang saat ditolak (ditandai, tetap tersimpan), dan
 /// kalimat 404 menyebut itu supaya teknisi tidak menulis ulang dari nol.
+/// Kalimatnya sengaja pendek: kartu antrean memotong keterangan di tiga baris.
 String pesanPenolakanDraf(int status) => switch (status) {
   404 =>
-    'Draf ini sudah diarsipkan atau dihapus admin. Salinan di HP ini tetap '
-        'tersimpan; minta admin memulihkannya bila masih dibutuhkan.',
+    'Draf ini sudah diarsipkan atau dihapus admin. Salinan di HP tetap '
+        'tersimpan.',
   403 =>
     'Akun ini tidak lagi boleh mengubah draf ini. Hubungi admin bila perlu.',
   409 =>

@@ -104,7 +104,7 @@ void main() {
       final p = pesanPenolakanDraf(404);
 
       expect(p, contains('Draf ini sudah diarsipkan atau dihapus admin'));
-      expect(p, contains('Salinan di HP ini tetap tersimpan'));
+      expect(p, contains('Salinan di HP tetap tersimpan'));
     });
 
     test('tiap status punya kalimat sendiri dan tidak ada yang kosong', () {
