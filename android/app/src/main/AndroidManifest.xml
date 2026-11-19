@@ -136,6 +136,40 @@
         <meta-data
             android:name="com.google.mlkit.vision.DEPENDENCIES"
             android:value="ocr,barcode" />
+        <!-- Sentry (paket LAB-UI-2): SDK native MENYALA begitu `--dart-define=
+             SENTRY_DSN` diisi (event Dart dikirim lewat transport native), dan
+             `beforeSend` Dart TIDAK berlaku untuk event yang lahir di native.
+             Nilai di bawah dibaca `ManifestMetadataReader` sentry-android-core
+             8.64.0 SEBELUM callback inisialisasi Flutter dan menutup penangkap
+             native bawaan: crash NDK (`io.sentry.ndk.enable` bawaan TRUE),
+             ANR, tombstone, handler pengecualian native, breadcrumb native,
+             sesi, tangkapan layar, dan hierarki tampilan. Crash native tetap
+             dilaporkan Crashlytics. Nama kunci diperiksa dari bytecode
+             sentry-android-core 8.64.0. Efeknya di HP BELUM diuji.
+             Tanpa DSN SDK tidak pernah dijalankan (provider auto-init dicabut
+             manifest plugin), jadi blok ini tidak berbuat apa-apa. Tidak ada
+             izin yang ditambahkan. -->
+        <meta-data android:name="io.sentry.ndk.enable" android:value="false" />
+        <meta-data android:name="io.sentry.ndk.scope-sync.enable" android:value="false" />
+        <meta-data android:name="io.sentry.ndk.app-hang.enable" android:value="false" />
+        <meta-data android:name="io.sentry.anr.enable" android:value="false" />
+        <meta-data android:name="io.sentry.tombstone.enable" android:value="false" />
+        <meta-data android:name="io.sentry.uncaught-exception-handler.enable" android:value="false" />
+        <meta-data android:name="io.sentry.auto-session-tracking.enable" android:value="false" />
+        <meta-data android:name="io.sentry.attach-screenshot" android:value="false" />
+        <meta-data android:name="io.sentry.attach-view-hierarchy" android:value="false" />
+        <meta-data android:name="io.sentry.attach-threads" android:value="false" />
+        <meta-data android:name="io.sentry.send-default-pii" android:value="false" />
+        <meta-data android:name="io.sentry.send-client-reports" android:value="false" />
+        <meta-data android:name="io.sentry.max-breadcrumbs" android:value="0" />
+        <meta-data android:name="io.sentry.breadcrumbs.activity-lifecycle" android:value="false" />
+        <meta-data android:name="io.sentry.breadcrumbs.app-components" android:value="false" />
+        <meta-data android:name="io.sentry.breadcrumbs.app-lifecycle" android:value="false" />
+        <meta-data android:name="io.sentry.breadcrumbs.network-events" android:value="false" />
+        <meta-data android:name="io.sentry.breadcrumbs.system-events" android:value="false" />
+        <meta-data android:name="io.sentry.breadcrumbs.user-interaction" android:value="false" />
+        <meta-data android:name="io.sentry.logs.enabled" android:value="false" />
+        <meta-data android:name="io.sentry.metrics.enabled" android:value="false" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
