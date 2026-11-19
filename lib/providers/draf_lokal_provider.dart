@@ -305,7 +305,7 @@ class SinkronDrafLokal {
             status: StatusDrafLokal.perluDiperbaiki,
             // Kalimat dari STATUS, bukan `e.message`: 404 draf yang diarsipkan
             // admin dulu tampil sebagai nama kelas model Eloquent.
-            pesan: e is ApiException ? pesanPenolakanDraf(e.status) : null,
+            pesan: pesanPenolakanDraf(e.status),
           );
         }
 
