@@ -7,6 +7,7 @@ import '../../l10n/app_localizations.dart';
 import '../../models/calibration_detail.dart' show CalibrationDetail;
 import '../../models/izin.dart';
 import '../../models/calibration_history_item.dart';
+import '../../models/penerbitan_ditahan.dart';
 import '../../models/perhitungan.dart';
 import '../../models/validasi.dart';
 import '../../providers/history_provider.dart';
@@ -23,6 +24,7 @@ import '../calibration/instrument_picker_screen.dart'
 import '../calibration/lembar_kerja_screen.dart';
 import 'widgets/data_administrasi.dart';
 import 'widgets/dialog_setujui.dart';
+import 'widgets/penerbitan_ditahan.dart';
 import 'bandingkan_screen.dart';
 import 'widgets/blok_kondisi.dart';
 import 'widgets/panel_temuan.dart';
@@ -116,6 +118,16 @@ class _PerhitunganScreenState extends ConsumerState<PerhitunganScreen> {
     final hasil = await _aksi.periksa();
     if (mounted) setState(() => _validasi = hasil);
   });
+
+  /// Tombol PERIKSA: hitung ulang + baca ulang detail sesi. Penahanan
+  /// penerbitan dilepas Technical Manager di server tanpa rilis aplikasi, jadi
+  /// admin yang menunggunya perlu cara membaca ulang tanpa keluar-masuk layar.
+  /// Hanya dari tombol: pemeriksaan otomatis saat layar dibuka tidak perlu
+  /// membaca detail dua kali.
+  Future<void> _periksaUlang() {
+    ref.invalidate(calibrationDetailProvider(widget.calibrationId));
+    return _periksa();
+  }
 
   /// Order Number baru disimpan dari layar ini. Detail sesinya sedang dimuat
   /// ulang, dan selama itu Riverpod masih memegang nilai LAMA (kosong) —
@@ -241,6 +253,20 @@ class _PerhitunganScreenState extends ConsumerState<PerhitunganScreen> {
       return;
     }
 
+    // Penerbitan jenis alat ini ditahan menunggu Technical Manager (PR #280).
+    // Diperiksa PALING AWAL di server, jadi tidak ada yang bisa dikonfirmasi
+    // atau dilengkapi: dialog yang terbaca (bukan SnackBar 373 karakter),
+    // lalu detail sesi dibaca ulang supaya banner dan tombol Setujui ikut
+    // keadaan server. Status sesi dan nomor yang diketik tidak berubah.
+    if (hasil!.kode == KodeGalat.profilDitahan) {
+      ref.invalidate(calibrationDetailProvider(widget.calibrationId));
+      await tampilkanDialogPenerbitanDitahan(
+        context,
+        hasil!.penahanan ?? PenerbitanDitahan.tidak,
+      );
+      return;
+    }
+
     // Peringatan nahan SEKALI. Admin lihat temuannya, lalu lanjut secara
     // sadar — bukan tombol yang diam-diam ngirim ulang sendiri.
     if (hasil!.butuhKonfirmasi) {
@@ -348,6 +374,13 @@ class _PerhitunganScreenState extends ConsumerState<PerhitunganScreen> {
       cadangan: ref.watch(authProvider).value?.role.hakAdmin ?? false,
     );
 
+    // Penahanan penerbitan hanya relevan selagi sesinya masih bisa diputuskan.
+    final penahanan = detail.value?.penerbitanDitahan;
+    final ditahan =
+        (penahanan?.ditahan ?? false) &&
+        (widget.statusSesi == null ||
+            widget.statusSesi == CalibrationStatus.menungguApproval);
+
     final c = NeuColors.of(context);
 
     return Scaffold(
@@ -372,6 +405,7 @@ class _PerhitunganScreenState extends ConsumerState<PerhitunganScreen> {
         AsyncData(:final value) => _Isi(
           perhitungan: value,
           validasi: _validasi,
+          penahanan: ditahan ? penahanan : null,
           calibrationId: widget.calibrationId,
           onBukaLembar: bisaDisunting ? _bukaLembar : null,
           onBandingkan: bolehBandingkan ? _bandingkan : null,
@@ -387,8 +421,9 @@ class _PerhitunganScreenState extends ConsumerState<PerhitunganScreen> {
               sibuk: _sibuk,
               validasi: _validasi,
               statusSesi: widget.statusSesi,
+              ditahan: ditahan,
               perluNomorOrder: _perluNomorOrder(detail.value),
-              onPeriksa: _periksa,
+              onPeriksa: _periksaUlang,
               onSetujui: _setujui,
             )
           : null,
@@ -401,12 +436,16 @@ class _Isi extends StatelessWidget {
     required this.perhitungan,
     required this.validasi,
     required this.calibrationId,
+    this.penahanan,
     this.onBukaLembar,
     this.onBandingkan,
   });
 
   final Perhitungan perhitungan;
   final HasilValidasi? validasi;
+
+  /// Tidak null = penerbitan ditahan (banner di paling atas).
+  final PenerbitanDitahan? penahanan;
   final int calibrationId;
   final VoidCallback? onBukaLembar;
   final VoidCallback? onBandingkan;
@@ -420,6 +459,11 @@ class _Isi extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
       children: [
+        if (penahanan != null) ...[
+          BannerPenerbitanDitahan(penahanan: penahanan!),
+          const SizedBox(height: AppSpacing.md),
+        ],
+
         if (validasi != null) ...[
           PanelTemuan(validasi: validasi!),
           const SizedBox(height: AppSpacing.md),
@@ -654,11 +698,17 @@ class _BilahAksi extends StatelessWidget {
     required this.onPeriksa,
     required this.onSetujui,
     this.perluNomorOrder = false,
+    this.ditahan = false,
   });
 
   final bool sibuk;
   final HasilValidasi? validasi;
   final CalibrationStatus? statusSesi;
+
+  /// Penerbitan ditahan menunggu Technical Manager: Setujui dimatikan dan
+  /// satu baris petunjuk menunjuk ke banner. Server tetap yang memutuskan
+  /// (`422 profil_ditahan`) bila datanya ternyata basi.
+  final bool ditahan;
 
   /// Order Number kosong menurut detail sesi — Setujui akan memintanya dulu.
   final bool perluNomorOrder;
@@ -747,7 +797,20 @@ class _BilahAksi extends StatelessWidget {
                   onPressed: onPeriksa,
                 ),
               ] else ...[
-                if (perluNomorOrder && !diblokir) ...[
+                if (ditahan) ...[
+                  Text(
+                    l10n.ditahanSetujuTertahan,
+                    key: const ValueKey('petunjuk-setujui-ditahan'),
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      color: c.textMuted,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                ],
+                if (perluNomorOrder && !diblokir && !ditahan) ...[
                   Text(
                     l10n.adminNomorOrderWajibSetujui,
                     key: const ValueKey('petunjuk-nomor-order'),
@@ -778,7 +841,7 @@ class _BilahAksi extends StatelessWidget {
                   label: l10n.perhitSetujui,
                   icon: Icons.verified_outlined,
                   isLoading: sibuk,
-                  onPressed: diblokir ? null : onSetujui,
+                  onPressed: diblokir || ditahan ? null : onSetujui,
                 ),
               ],
             ],
