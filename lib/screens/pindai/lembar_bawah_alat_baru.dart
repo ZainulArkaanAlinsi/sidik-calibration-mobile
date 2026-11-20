@@ -89,51 +89,57 @@ class KerangkaLembarAlatBaru extends StatelessWidget {
 
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: SafeArea(
-        top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(
-                left: AppSpacing.md,
-                right: AppSpacing.xs,
-                top: AppSpacing.xs,
+      // Urutan fokus mengikuti urutan widget (judul, kotak, tombol). Urutan
+      // bawaan memakai LETAK di layar: kotak yang tergulir keluar dari layar
+      // dianggap "di bawah" tombol Batal/Buat dan dilompati.
+      child: FocusTraversalGroup(
+        policy: WidgetOrderTraversalPolicy(),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: AppSpacing.md,
+                  right: AppSpacing.xs,
+                  top: AppSpacing.xs,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(child: Semantics(header: true, child: judul)),
+                    tutup,
+                  ],
+                ),
               ),
-              child: Row(
-                children: [
-                  Expanded(child: Semantics(header: true, child: judul)),
-                  tutup,
-                ],
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    AppSpacing.xs,
+                    AppSpacing.md,
+                    AppSpacing.sm,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
+                    children: badan,
+                  ),
+                ),
               ),
-            ),
-            Flexible(
-              child: SingleChildScrollView(
+              Divider(height: 1, color: tema.colorScheme.outlineVariant),
+              Padding(
                 padding: const EdgeInsets.fromLTRB(
                   AppSpacing.md,
-                  AppSpacing.xs,
+                  AppSpacing.sm,
                   AppSpacing.md,
                   AppSpacing.sm,
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisSize: MainAxisSize.min,
-                  children: badan,
-                ),
+                child: aksi,
               ),
-            ),
-            Divider(height: 1, color: tema.colorScheme.outlineVariant),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.md,
-                AppSpacing.sm,
-                AppSpacing.md,
-                AppSpacing.sm,
-              ),
-              child: aksi,
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
