@@ -10125,6 +10125,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get identitasMaksudAnda => 'Did you mean?';
 
   @override
+  String identitasSeriDiKertas(String seri) {
+    return 'Serial number on the paper: $seri';
+  }
+
+  @override
   String get identitasBukanSatuPun => 'None of these, new instrument';
 
   @override

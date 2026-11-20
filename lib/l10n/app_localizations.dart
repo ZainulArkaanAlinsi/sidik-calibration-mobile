@@ -17270,6 +17270,12 @@ abstract class AppLocalizations {
   /// **'Did you mean?'**
   String get identitasMaksudAnda;
 
+  /// No description provided for @identitasSeriDiKertas.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial number on the paper: {seri}'**
+  String identitasSeriDiKertas(String seri);
+
   /// No description provided for @identitasBukanSatuPun.
   ///
   /// In en, this message translates to:

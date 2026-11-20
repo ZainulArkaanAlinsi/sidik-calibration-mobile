@@ -902,6 +902,13 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
       tutup: _tombolTutup(l10n),
       children: [
         Text(l10n.identitasMaksudAnda, style: tema.textTheme.titleSmall),
+        // Seri di kertas ditulis di sini: teknisi membandingkannya dengan seri
+        // tiap pilihan sebelum mengetuk.
+        if ((widget.identitas.seri?.trim() ?? '').isNotEmpty)
+          Text(
+            l10n.identitasSeriDiKertas(widget.identitas.seri!.trim()),
+            style: tema.textTheme.bodySmall,
+          ),
         const SizedBox(height: AppSpacing.xs),
         Wrap(
           spacing: AppSpacing.sm,

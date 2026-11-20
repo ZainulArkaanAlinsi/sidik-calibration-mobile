@@ -3916,6 +3916,8 @@
   "identitasAlatTerdaftar": "Alat terdaftar: {nama}",
   "identitasPakaiAlat": "Pakai alat ini",
   "identitasMaksudAnda": "Maksud Anda?",
+  "identitasSeriDiKertas": "Nomor seri di kertas: {seri}",
+  "@identitasSeriDiKertas": {"placeholders": {"seri": {"type": "String"}}},
   "identitasBukanSatuPun": "Bukan salah satunya, alat baru",
   "identitasAlatBaruPetunjuk": "Diisi dari kertas. Periksa dulu, lalu buat.",
   "identitasBuatLanjut": "Buat dan lanjut",

@@ -9972,6 +9972,11 @@ class AppLocalizationsId extends AppLocalizations {
   String get identitasMaksudAnda => 'Maksud Anda?';
 
   @override
+  String identitasSeriDiKertas(String seri) {
+    return 'Nomor seri di kertas: $seri';
+  }
+
+  @override
   String get identitasBukanSatuPun => 'Bukan salah satunya, alat baru';
 
   @override

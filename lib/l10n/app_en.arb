@@ -5553,6 +5553,8 @@
   "@identitasAlatTerdaftar": {"placeholders": {"nama": {"type": "String"}}},
   "identitasPakaiAlat": "Use this instrument",
   "identitasMaksudAnda": "Did you mean?",
+  "identitasSeriDiKertas": "Serial number on the paper: {seri}",
+  "@identitasSeriDiKertas": {"placeholders": {"seri": {"type": "String"}}},
   "identitasBukanSatuPun": "None of these, new instrument",
   "identitasAlatBaruPetunjuk": "Filled from the paper. Check it, then create.",
   "identitasBuatLanjut": "Create and continue",

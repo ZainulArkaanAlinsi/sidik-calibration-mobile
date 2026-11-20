@@ -289,6 +289,26 @@ void main() {
       ]);
     });
 
+    test('nomor seri yang beda dilaporkan (pilihan "Maksud Anda?" memakainya); '
+        'beda format saja bukan selisih', () {
+      final s = selisihIdentitas(
+        const IdentitasKertas(seri: 'B628755901'),
+        alat,
+      );
+      expect(s, const [
+        SelisihIdentitas(
+          kode: 'alat_serial_number',
+          kertas: 'B628755901',
+          terdaftar: 'B628755900',
+        ),
+      ]);
+
+      expect(
+        selisihIdentitas(const IdentitasKertas(seri: 'b 628-755 900'), alat),
+        isEmpty,
+      );
+    });
+
     test(
       'kosong di salah satu sisi bukan selisih (tidak ada yang dibantah)',
       () {

@@ -82,6 +82,9 @@ String _rata(String s) => SimpananPelanggan.normalkan(s);
 
 /// Bidang yang tertulis di kertas DAN di data terdaftar tetapi tidak sama.
 /// Bidang yang kosong di salah satu sisi bukan selisih (tidak ada yang dibantah).
+/// Nomor seri dibandingkan lewat [kunciSeri] (beda format bukan selisih); yang
+/// tampil di sini hanya alat yang dipilih dari "Maksud Anda?" (seri MIRIP,
+/// bukan persis).
 List<SelisihIdentitas> selisihIdentitas(
   IdentitasKertas kertas,
   EquipmentLookup alat,
@@ -95,6 +98,20 @@ List<SelisihIdentitas> selisihIdentitas(
     if (_rata(k) == _rata(t)) return;
 
     hasil.add(SelisihIdentitas(kode: kode, kertas: k, terdaftar: t));
+  }
+
+  final seriKertas = kertas.seri?.trim() ?? '';
+  final seriAlat = alat.serialNumber.trim();
+  if (seriKertas.isNotEmpty &&
+      seriAlat.isNotEmpty &&
+      kunciSeri(seriKertas) != kunciSeri(seriAlat)) {
+    hasil.add(
+      SelisihIdentitas(
+        kode: 'alat_serial_number',
+        kertas: seriKertas,
+        terdaftar: seriAlat,
+      ),
+    );
   }
 
   banding('alat_merk', kertas.merk, alat.merk);
