@@ -98,14 +98,84 @@ class GagalBuatAlat extends HasilBuatAlat {
   final Object galat;
 }
 
+/// Keadaan PT yang akan dipakai untuk pemilik yang tertulis di panel, TANPA
+/// membuat apa pun ([PembuatAlatDariKertas.periksaPt]).
+sealed class StatusPt {
+  const StatusPt();
+}
+
+/// Nama yang sama (huruf besar-kecil, tanda baca diabaikan) sudah terdaftar:
+/// dipakai.
+class PtTerdaftar extends StatusPt {
+  const PtTerdaftar(this.pt);
+
+  final CustomerLookup pt;
+}
+
+/// Belum ada yang persis, tetapi ada PT yang namanya MIRIP ([ptMirip]):
+/// "Buat dan lanjut" menanyakannya dulu.
+class PtMiripAda extends StatusPt {
+  const PtMiripAda(this.kandidat);
+
+  final List<CustomerLookup> kandidat;
+}
+
+/// Tidak ada yang persis atau mirip: "Buat dan lanjut" MENDAFTARKAN PT baru
+/// bernama [nama] (panel mengatakannya terus terang).
+class PtAkanDidaftarkan extends StatusPt {
+  const PtAkanDidaftarkan(this.nama);
+
+  final String nama;
+}
+
+const _awalanBadanUsaha = {'pt', 'cv', 'ud'};
+const _akhiranBadanUsaha = {'tbk', 'persero', 'indonesia'};
+
+/// Inti nama PT untuk membandingkan: huruf kecil, tanda baca jadi spasi, tanpa
+/// awalan badan usaha (PT/CV/UD) dan akhiran (Tbk/Persero/Indonesia). Nama yang
+/// hanya terdiri dari kata-kata itu tidak dikosongkan.
+String intiNamaPt(String nama) {
+  final kata = SimpananPelanggan.normalkan(
+    nama,
+  ).split(' ').where((k) => k.isNotEmpty).toList();
+  while (kata.length > 1 && _awalanBadanUsaha.contains(kata.first)) {
+    kata.removeAt(0);
+  }
+  while (kata.length > 1 && _akhiranBadanUsaha.contains(kata.last)) {
+    kata.removeLast();
+  }
+
+  return kata.join(' ');
+}
+
+/// Dua nama PT yang BUKAN persis sama tetapi MIRIP: inti namanya (lihat
+/// [intiNamaPt]) sama, atau yang satu memuat yang lain sebagai kata-kata utuh,
+/// dan inti yang lebih pendek sedikitnya 4 karakter. Server hanya menandai nama
+/// yang sama setelah normalisasi huruf/tanda baca ("PT Maju" lawan "PT Maju
+/// Tbk" lolos), jadi yang ini ditanyakan ke teknisi, tidak pernah diputuskan
+/// sendiri.
+bool ptMirip(String a, String b) {
+  if (SimpananPelanggan.normalkan(a) == SimpananPelanggan.normalkan(b)) {
+    return false;
+  }
+  final x = intiNamaPt(a);
+  final y = intiNamaPt(b);
+  final pendek = x.length <= y.length ? x : y;
+  final panjang = x.length <= y.length ? y : x;
+  if (pendek.length < 4) return false;
+
+  return panjang == pendek || ' $panjang '.contains(' $pendek ');
+}
+
 /// Membuat PT dan alat dari panel "Alat baru" LEWAT layanan yang sama dengan
 /// form Alat dan PT cepat (`POST /customers/cepat`, `POST /equipments`), dalam
 /// urutan PT -> alat. Tidak atomik (dua permintaan), tetapi tiap langkah
 /// IDEMPOTEN:
 ///
 ///  - PT: nama yang sama (huruf besar-kecil/tanda baca diabaikan) dicari dulu;
-///    409 "nama persis sudah ada" memakai PT itu; 409 "mirip" TIDAK menembus
-///    otomatis, teknisi yang memilih.
+///    nama yang MIRIP ([ptMirip]: "PT X" lawan "PT X Tbk") dan 409 "mirip" dari
+///    server TIDAK menembus otomatis, teknisi yang memilih; 409 "nama persis
+///    sudah ada" memakai PT itu.
 ///  - Alat: nomor seri dicari dulu (unik per lab; jenis lembar ini lebih dulu,
 ///    lalu semua jenis); 422 seri kembar dijawab dengan mencari alat yang ada,
 ///    bukan membuat lagi. Alat yang SUDAH ada tidak pernah terpasang otomatis
@@ -132,6 +202,18 @@ class PembuatAlatDariKertas {
   Future<HasilBuatAlat>? _berjalan;
 
   static String _normal(String s) => SimpananPelanggan.normalkan(s);
+
+  /// Apa yang akan terjadi pada PT [nama] bila "Buat dan lanjut" ditekan,
+  /// TANPA membuat apa pun: dipakai (persis), ditanyakan (mirip), atau
+  /// didaftarkan baru. Galat jaringan dilempar ke pemanggil.
+  Future<StatusPt> periksaPt(String nama) async {
+    final tok = await token();
+    final hasil = await _cariPt(tok, nama.trim());
+    if (hasil.persis != null) return PtTerdaftar(hasil.persis!);
+    if (hasil.mirip.isNotEmpty) return PtMiripAda(hasil.mirip);
+
+    return PtAkanDidaftarkan(nama.trim());
+  }
 
   /// [ptDipilih] = PT yang diketuk teknisi dari kandidat mirip; [tetapBuatPt] =
   /// teknisi menegaskan PT ini perusahaan lain (menembus yang MIRIP, tidak yang
@@ -279,21 +361,63 @@ class PembuatAlatDariKertas {
     return _normal(terdaftar) != _normal(kertas);
   }
 
+  /// Pencarian PT untuk [nama]: yang persis sama, dan yang MIRIP. Dicari dengan
+  /// nama apa adanya; bila tidak ada yang persis, dicari lagi dengan INTI nama
+  /// supaya PT terdaftar yang namanya LEBIH PENDEK dari yang di kertas
+  /// ("PT X" lawan "PT X Indonesia") ikut terjaring (pencarian server memakai
+  /// LIKE pada nama lengkap).
+  Future<({CustomerLookup? persis, List<CustomerLookup> mirip})> _cariPt(
+    String tok,
+    String nama,
+  ) async {
+    final normal = _normal(nama);
+
+    CustomerLookup? persisDari(List<CustomerLookup> daftar) {
+      final sama = [
+        for (final c in daftar)
+          if (_normal(c.nama) == normal) c,
+      ];
+      if (sama.isEmpty) return null;
+
+      return sama.firstWhere((c) => c.nama == nama, orElse: () => sama.first);
+    }
+
+    final semua = <int, CustomerLookup>{};
+    final pertama = await pelanggan.cari(tok, search: nama);
+    for (final c in pertama) {
+      semua[c.id] = c;
+    }
+    final persis = persisDari(pertama);
+    if (persis != null)
+      return (persis: persis, mirip: const <CustomerLookup>[]);
+
+    final inti = intiNamaPt(nama);
+    if (inti.length >= 4 && inti != normal) {
+      for (final c in await pelanggan.cari(tok, search: inti)) {
+        semua[c.id] = c;
+      }
+      final lagi = persisDari(semua.values.toList());
+      if (lagi != null) return (persis: lagi, mirip: const <CustomerLookup>[]);
+    }
+
+    return (
+      persis: null,
+      mirip: [
+        for (final c in semua.values)
+          if (ptMirip(c.nama, nama)) c,
+      ],
+    );
+  }
+
   Future<Object> _resolusiPt(String tok, DataAlatBaru d, bool tetapBuat) async {
     final nama = d.pemilik.trim();
     final normal = _normal(nama);
 
-    // Nama yang sama sudah terdaftar: pakai.
-    final ada = await pelanggan.cari(tok, search: nama);
-    final sama = [
-      for (final c in ada)
-        if (_normal(c.nama) == normal) c,
-    ];
-    if (sama.isNotEmpty) {
-      return _PtSiap(
-        sama.firstWhere((c) => c.nama == nama, orElse: () => sama.first),
-      );
-    }
+    // Nama yang sama sudah terdaftar: pakai. Nama yang MIRIP: tanyakan (kecuali
+    // teknisi sudah menegaskan ini PT lain).
+    final cari = await _cariPt(tok, nama);
+    if (cari.persis != null) return _PtSiap(cari.persis!);
+    if (cari.mirip.isNotEmpty && !tetapBuat) return PtPerluDipilih(cari.mirip);
 
     try {
       final baru = await pelanggan.daftarkan(

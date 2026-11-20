@@ -535,6 +535,85 @@ void main() {
     });
   });
 
+  group('PT di panel "Alat baru": dikatakan terus terang', () {
+    testWidgets('PT belum terdaftar: panel menulis "PT baru akan didaftarkan: '
+        '<nama>"', (tester) async {
+      final h = _Harness(identitas: _kertas, alat: const []);
+      await h.pasang(tester);
+
+      final kalimat = find.byKey(BlokIdentitasFoto.kunciPtBaruAkan);
+      expect(kalimat, findsOneWidget);
+      expect(
+        tester.widget<Text>(kalimat).data,
+        'PT baru akan didaftarkan: PT Tirta Contoh Mandiri',
+      );
+      expect(h.pt.didaftarkan, 0, reason: 'hanya dikatakan, belum dibuat');
+    });
+
+    testWidgets('PT sudah terdaftar: tidak ada kalimat itu', (tester) async {
+      final h = _Harness(
+        identitas: _kertas,
+        alat: const [],
+        pt: PtUji(
+          ada: const [CustomerLookup(id: 5, nama: 'PT Tirta Contoh Mandiri')],
+        ),
+      );
+      await h.pasang(tester);
+
+      expect(find.byKey(BlokIdentitasFoto.kunciPanelBaru), findsOneWidget);
+      expect(find.byKey(BlokIdentitasFoto.kunciPtBaruAkan), findsNothing);
+    });
+
+    testWidgets(
+      'nama pemilik diubah: kalimat lama hilang (tidak menyebut nama '
+      'yang salah), dan dibuat lagi untuk nama baru saat kotak ditinggalkan',
+      (tester) async {
+        final h = _Harness(identitas: _kertas, alat: const []);
+        await h.pasang(tester);
+        expect(find.byKey(BlokIdentitasFoto.kunciPtBaruAkan), findsOneWidget);
+
+        await tester.enterText(
+          find.byKey(BlokIdentitasFoto.kunciKotakPemilik),
+          'PT Sumber Baru',
+        );
+        await tester.pump();
+        expect(find.byKey(BlokIdentitasFoto.kunciPtBaruAkan), findsNothing);
+
+        // Kotak ditinggalkan (fokus pindah): diperiksa ulang.
+        await tester.tap(find.byKey(BlokIdentitasFoto.kunciKotakModel));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('PT baru akan didaftarkan: PT Sumber Baru'),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets('PT terdaftar "X Tbk", kertas "X": "Buat dan lanjut" '
+        'menanyakan (PT mirip), tidak membuat PT atau alat', (tester) async {
+      final h = _Harness(
+        identitas: _kertas,
+        alat: const [],
+        pt: PtUji(
+          ada: const [
+            CustomerLookup(id: 5, nama: 'PT Tirta Contoh Mandiri Tbk'),
+          ],
+        ),
+      );
+      await h.pasang(tester);
+      // PT mirip bukan PT baru: kalimat "akan didaftarkan" tidak boleh tampil.
+      expect(find.byKey(BlokIdentitasFoto.kunciPtBaruAkan), findsNothing);
+
+      await _ketuk(tester, find.byKey(BlokIdentitasFoto.kunciBuatLanjut));
+
+      expect(find.byKey(BlokIdentitasFoto.kunciPtMirip), findsOneWidget);
+      expect(h.pt.didaftarkan, 0);
+      expect(h.layanan.dikirim, isEmpty);
+      expect(h.isian.alat, isNull);
+    });
+  });
+
   group('tidak menduplikasi', () {
     testWidgets('seri sama, kategori sama, JENIS beda: kartu "terdaftar pada '
         'alat lain" menyebut alat dan PT-nya; tidak ada tombol pakai; tidak '

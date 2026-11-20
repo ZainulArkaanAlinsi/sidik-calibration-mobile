@@ -17390,6 +17390,12 @@ abstract class AppLocalizations {
   /// **'Create as a new company'**
   String get identitasPtBaru;
 
+  /// No description provided for @identitasPtBaruAkanDidaftarkan.
+  ///
+  /// In en, this message translates to:
+  /// **'A new company will be registered: {nama}'**
+  String identitasPtBaruAkanDidaftarkan(String nama);
+
   /// No description provided for @identitasTanggalKalibrasi.
   ///
   /// In en, this message translates to:

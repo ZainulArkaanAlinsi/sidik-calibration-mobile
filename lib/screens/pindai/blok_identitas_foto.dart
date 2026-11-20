@@ -18,6 +18,7 @@ import '../../services/auth_service.dart' show AuthException;
 import '../../services/buat_alat_dari_kertas.dart';
 import '../../services/cocokkan_alat.dart';
 import '../../services/identitas_kertas.dart';
+import '../../services/simpanan_pelanggan.dart' show SimpananPelanggan;
 import '../calibration/lembar_kerja_state.dart'
     show LembarKerjaState, kuningPerluDicek;
 import 'identitas_foto_isian.dart';
@@ -100,6 +101,9 @@ class BlokIdentitasFoto extends ConsumerStatefulWidget {
   /// = alat SEJENIS (ada tombol [kunciPakaiAlatSeri], ketukan teknisi);
   /// [kunciSeriAlatLain] = jenis lain (tanpa tombol pakai).
   static const kunciSeriTerdaftar = ValueKey('identitas-seri-terdaftar');
+
+  /// Kalimat "PT baru akan didaftarkan: <nama>" di panel "Alat baru".
+  static const kunciPtBaruAkan = ValueKey('identitas-pt-baru-akan');
   static const kunciPakaiAlatSeri = ValueKey('identitas-pakai-alat-seri');
   static const kunciSeriAlatLain = ValueKey('identitas-seri-alat-lain');
 
@@ -173,6 +177,12 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
   HasilBuatAlat? _bentrok;
   String _kunciBentrok = '';
 
+  /// Hasil pemeriksaan PT untuk [nama] yang tertulis di kotak pemilik waktu itu
+  /// (`null` = belum/gagal diperiksa). Kalimat "PT baru akan didaftarkan" hanya
+  /// tampil bila namanya masih sama dengan kotak: tidak pernah menyebut nama
+  /// yang sudah diubah teknisi.
+  ({String nama, StatusPt status})? _ptDicek;
+
   // ---- lembar bawah (layar sempit) -------------------------------------------
 
   /// Konteks DI DALAM lembar bawah yang sedang terbuka (`null` = tidak ada).
@@ -244,6 +254,11 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
     for (final c in _semuaKotak) {
       c.addListener(_kotakBerubah);
     }
+    // Kotak pemilik ditinggalkan: PT-nya diperiksa lagi (kalimat "PT baru akan
+    // didaftarkan" mengikuti nama yang sekarang).
+    _fokusPemilik.addListener(() {
+      if (!_fokusPemilik.hasFocus && _fase == _Fase.baru) _periksaPt();
+    });
 
     if (!id.adaIsi) {
       _fase = _Fase.tidakTerbaca;
@@ -337,6 +352,7 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
         case AlatBaru(:final seriKosong):
           _seriKosong = seriKosong;
           _fase = _Fase.baru;
+          _periksaPt();
         case CocokGagal():
           _fase = _Fase.gagalCocok;
       }
@@ -365,6 +381,23 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
       return token;
     },
   );
+
+  /// Apakah PT pemilik akan dibuat baru? Hanya memeriksa (tidak membuat apa
+  /// pun). Gagal (jaringan, sesi) = tidak ada kalimat; "Buat dan lanjut" tetap
+  /// memeriksa sendiri.
+  Future<void> _periksaPt() async {
+    final nama = _pemilik.text.trim();
+    if (nama.isEmpty || !_bisaBuat || !mounted) return;
+
+    final generasi = _generasi;
+    try {
+      final status = await _pembuatAlat.periksaPt(nama);
+      if (!mounted || generasi != _generasi) return;
+      setState(() => _ptDicek = (nama: nama, status: status));
+    } catch (_) {
+      // Tanpa kalimat; bukan galat yang perlu ditampilkan.
+    }
+  }
 
   DataAlatBaru? _dataPanel() {
     final l10n = AppLocalizations.of(context);
@@ -548,6 +581,7 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
   /// teratas); blok menampilkan kartu ringkas dan menunggu ketukan.
   void _masukBaru() {
     setState(() => _fase = _Fase.baru);
+    _periksaPt();
     if (_bisaBuat && _sempit()) _bukaLembar();
   }
 
@@ -1065,6 +1099,17 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
         wajib: true,
         fokus: _fokusPemilik,
       ),
+      if (_ptDicek case (:final nama, :final status)?
+          when status is PtAkanDidaftarkan &&
+              SimpananPelanggan.normalkan(nama) ==
+                  SimpananPelanggan.normalkan(_pemilik.text)) ...[
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          l10n.identitasPtBaruAkanDidaftarkan(nama),
+          key: BlokIdentitasFoto.kunciPtBaruAkan,
+          style: tema.textTheme.bodySmall,
+        ),
+      ],
       const SizedBox(height: AppSpacing.sm),
       _kotak(
         BlokIdentitasFoto.kunciKotakAlamat,

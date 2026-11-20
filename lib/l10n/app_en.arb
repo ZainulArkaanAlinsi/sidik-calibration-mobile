@@ -5579,6 +5579,8 @@
   "@identitasSeriPemilikBeda": {"placeholders": {"pemilik": {"type": "String"}}},
   "identitasPtMirip": "Similar companies exist. Pick an existing one, or create a new company anyway.",
   "identitasPtBaru": "Create as a new company",
+  "identitasPtBaruAkanDidaftarkan": "A new company will be registered: {nama}",
+  "@identitasPtBaruAkanDidaftarkan": {"placeholders": {"nama": {"type": "String"}}},
   "identitasTanggalKalibrasi": "Calibration date on the paper: {tanggal}",
   "@identitasTanggalKalibrasi": {"placeholders": {"tanggal": {"type": "String"}}},
   "identitasTanggalTerima": "Received date on the paper: {tanggal}",

@@ -10203,6 +10203,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get identitasPtBaru => 'Create as a new company';
 
   @override
+  String identitasPtBaruAkanDidaftarkan(String nama) {
+    return 'A new company will be registered: $nama';
+  }
+
+  @override
   String identitasTanggalKalibrasi(String tanggal) {
     return 'Calibration date on the paper: $tanggal';
   }

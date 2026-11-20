@@ -10050,6 +10050,11 @@ class AppLocalizationsId extends AppLocalizations {
   String get identitasPtBaru => 'Tetap buat PT baru';
 
   @override
+  String identitasPtBaruAkanDidaftarkan(String nama) {
+    return 'PT baru akan didaftarkan: $nama';
+  }
+
+  @override
   String identitasTanggalKalibrasi(String tanggal) {
     return 'Tanggal kalibrasi di kertas: $tanggal';
   }

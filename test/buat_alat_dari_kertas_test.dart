@@ -335,6 +335,163 @@ void main() {
     );
   });
 
+  group('PT yang namanya hampir sama (Tbk, Indonesia, PT/CV) ditanyakan', () {
+    test(
+      'inti nama: awalan PT/CV/UD dan akhiran Tbk/Persero/Indonesia dibuang',
+      () {
+        expect(intiNamaPt('PT. Maju Jaya Tbk'), 'maju jaya');
+        expect(intiNamaPt('CV Maju Jaya'), 'maju jaya');
+        expect(intiNamaPt('UD  maju  jaya (Persero)'), 'maju jaya');
+        expect(intiNamaPt('PT Maju Jaya Indonesia Tbk'), 'maju jaya');
+        expect(intiNamaPt('PT Tirta Contoh Mandiri'), 'tirta contoh mandiri');
+        // Nama yang hanya terdiri dari kata badan tidak dikosongkan.
+        expect(intiNamaPt('PT Indonesia'), 'indonesia');
+      },
+    );
+
+    test(
+      'ptMirip: saling mengandung (kata utuh), bukan persis, inti >= 4 huruf',
+      () {
+        expect(ptMirip('PT Maju Jaya', 'PT Maju Jaya Tbk'), isTrue);
+        expect(ptMirip('PT Maju Jaya Indonesia', 'PT Maju Jaya'), isTrue);
+        expect(ptMirip('PT Maju Jaya', 'CV Maju Jaya'), isTrue);
+        expect(ptMirip('PT Tirta Contoh', 'PT Tirta Contoh Mandiri'), isTrue);
+        // Persis (huruf besar dan tanda baca diabaikan): bukan "mirip", itu sama.
+        expect(ptMirip('PT. Maju  Jaya', 'pt maju jaya'), isFalse);
+        // Berbeda.
+        expect(ptMirip('PT Maju Jaya', 'PT Maju Mundur'), isFalse);
+        // Potongan kata bukan kata utuh.
+        expect(ptMirip('PT Maju', 'PT Majulah Jaya'), isFalse);
+        // Terlalu pendek untuk dibandingkan.
+        expect(ptMirip('PT A', 'PT A Jaya'), isFalse);
+        expect(ptMirip('PT AB', 'PT ABC'), isFalse);
+      },
+    );
+
+    test(
+      'PT terdaftar "X Tbk", kertas "X": berhenti dengan kandidat, tidak ada '
+      'PT baru dan tidak ada alat',
+      () async {
+        final pt = PtUji(
+          ada: const [CustomerLookup(id: 7, nama: 'PT Tirta Contoh Tbk')],
+        );
+        final layanan = LayananAlatUji();
+        final h = await _pembuat(
+          pt,
+          PencariAlatUji(),
+          layanan,
+        ).jalankan(_data());
+
+        expect(h, isA<PtPerluDipilih>());
+        expect((h as PtPerluDipilih).kandidat.map((c) => c.id), [7]);
+        expect(pt.didaftarkan, 0);
+        expect(layanan.dikirim, isEmpty);
+      },
+    );
+
+    test('PT terdaftar "X", kertas "X Indonesia" (kertas LEBIH PANJANG): tetap '
+        'ditanyakan, lewat pencarian inti nama', () async {
+      final pt = PtUji(
+        ada: const [CustomerLookup(id: 7, nama: 'PT Tirta Contoh')],
+      );
+      final h = await _pembuat(
+        pt,
+        PencariAlatUji(),
+        LayananAlatUji(),
+      ).jalankan(_data(pemilik: 'PT Tirta Contoh Indonesia'));
+
+      expect(h, isA<PtPerluDipilih>());
+      expect((h as PtPerluDipilih).kandidat.map((c) => c.id), [7]);
+      expect(pt.didaftarkan, 0);
+    });
+
+    test('PT terdaftar "CV X", kertas "PT X": ditanyakan (badan usaha beda, '
+        'nama sama)', () async {
+      final pt = PtUji(
+        ada: const [CustomerLookup(id: 7, nama: 'CV Tirta Contoh')],
+      );
+      final h = await _pembuat(
+        pt,
+        PencariAlatUji(),
+        LayananAlatUji(),
+      ).jalankan(_data());
+
+      expect(h, isA<PtPerluDipilih>());
+    });
+
+    test(
+      'PT yang BERBEDA (bukan saling mengandung): PT baru, tidak ditanya',
+      () async {
+        final pt = PtUji(
+          ada: const [CustomerLookup(id: 7, nama: 'PT Tirta Mundur')],
+        );
+        final h = await _pembuat(
+          pt,
+          PencariAlatUji(),
+          LayananAlatUji(),
+        ).jalankan(_data());
+
+        expect(h, isA<AlatSiap>());
+        expect(pt.didaftarkan, 1);
+      },
+    );
+
+    test(
+      'teknisi memilih kandidat lokal: alat untuk PT itu, tanpa PT baru',
+      () async {
+        const ada = CustomerLookup(id: 7, nama: 'PT Tirta Contoh Tbk');
+        final pt = PtUji(ada: const [ada]);
+        final layanan = LayananAlatUji();
+        final p = _pembuat(pt, PencariAlatUji(), layanan);
+
+        await p.jalankan(_data());
+        final h = await p.jalankan(_data(), ptDipilih: ada);
+
+        expect(h, isA<AlatSiap>());
+        expect(layanan.dikirim.single.pelangganId, 7);
+        expect(pt.didaftarkan, 0);
+      },
+    );
+
+    test('"Tetap buat PT baru" menembus kandidat lokal', () async {
+      final pt = PtUji(
+        ada: const [CustomerLookup(id: 7, nama: 'PT Tirta Contoh Tbk')],
+      );
+      final layanan = LayananAlatUji();
+      final p = _pembuat(pt, PencariAlatUji(), layanan);
+
+      await p.jalankan(_data());
+      final h = await p.jalankan(_data(), tetapBuatPt: true);
+
+      expect(h, isA<AlatSiap>());
+      expect(pt.didaftarkan, 1);
+      expect(layanan.dikirim.single.pelangganId, isNot(7));
+    });
+
+    test('periksaPt: terdaftar persis, mirip, atau akan didaftarkan', () async {
+      final pt = PtUji(
+        ada: const [
+          CustomerLookup(id: 5, nama: 'PT. Tirta  Contoh'),
+          CustomerLookup(id: 8, nama: 'PT Maju Jaya Tbk'),
+        ],
+      );
+      final p = _pembuat(pt, PencariAlatUji(), LayananAlatUji());
+
+      final ada = await p.periksaPt('PT Tirta Contoh');
+      expect(ada, isA<PtTerdaftar>());
+      expect((ada as PtTerdaftar).pt.id, 5);
+
+      final mirip = await p.periksaPt('PT Maju Jaya');
+      expect(mirip, isA<PtMiripAda>());
+      expect((mirip as PtMiripAda).kandidat.map((c) => c.id), [8]);
+
+      final baru = await p.periksaPt('PT Sumber Baru Sejahtera');
+      expect(baru, isA<PtAkanDidaftarkan>());
+      expect((baru as PtAkanDidaftarkan).nama, 'PT Sumber Baru Sejahtera');
+      expect(pt.didaftarkan, 0, reason: 'memeriksa tidak membuat apa pun');
+    });
+  });
+
   group('gagal sebagian aman diulang', () {
     test(
       'PT berhasil, alat gagal (sinyal): ulang tidak mendaftarkan PT lagi',
@@ -354,13 +511,14 @@ void main() {
         final pertama = await p.jalankan(_data());
         expect(pertama, isA<GagalBuatAlat>());
         expect(pt.didaftarkan, 1);
+        final pencarianSesudahPertama = pt.jumlahCari;
 
         final kedua = await p.jalankan(_data());
         expect(kedua, isA<AlatSiap>());
         expect(pt.didaftarkan, 1, reason: 'PT tidak kembar');
         expect(
           pt.jumlahCari,
-          1,
+          pencarianSesudahPertama,
           reason: 'PT yang sudah beres dipakai ulang tanpa mencari lagi',
         );
         expect(layanan.dikirim, hasLength(1));

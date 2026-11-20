@@ -3939,6 +3939,8 @@
   "@identitasSeriPemilikBeda": {"placeholders": {"pemilik": {"type": "String"}}},
   "identitasPtMirip": "Ada PT yang mirip. Pilih yang sudah ada, atau tetap buat PT baru.",
   "identitasPtBaru": "Tetap buat PT baru",
+  "identitasPtBaruAkanDidaftarkan": "PT baru akan didaftarkan: {nama}",
+  "@identitasPtBaruAkanDidaftarkan": {"placeholders": {"nama": {"type": "String"}}},
   "identitasTanggalKalibrasi": "Tanggal kalibrasi di kertas: {tanggal}",
   "identitasTanggalTerima": "Tanggal terima di kertas: {tanggal}",
   "identitasPakaiTanggal": "Pakai tanggal ini",
