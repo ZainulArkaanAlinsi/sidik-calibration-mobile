@@ -388,8 +388,9 @@ class PembuatAlatDariKertas {
       semua[c.id] = c;
     }
     final persis = persisDari(pertama);
-    if (persis != null)
+    if (persis != null) {
       return (persis: persis, mirip: const <CustomerLookup>[]);
+    }
 
     final inti = intiNamaPt(nama);
     if (inti.length >= 4 && inti != normal) {

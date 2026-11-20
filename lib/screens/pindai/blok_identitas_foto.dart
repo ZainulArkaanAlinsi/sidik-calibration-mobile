@@ -102,7 +102,7 @@ class BlokIdentitasFoto extends ConsumerStatefulWidget {
   /// [kunciSeriAlatLain] = jenis lain (tanpa tombol pakai).
   static const kunciSeriTerdaftar = ValueKey('identitas-seri-terdaftar');
 
-  /// Kalimat "PT baru akan didaftarkan: <nama>" di panel "Alat baru".
+  /// Kalimat "PT baru akan didaftarkan: [nama]" di panel "Alat baru".
   static const kunciPtBaruAkan = ValueKey('identitas-pt-baru-akan');
   static const kunciPakaiAlatSeri = ValueKey('identitas-pakai-alat-seri');
   static const kunciSeriAlatLain = ValueKey('identitas-seri-alat-lain');
