@@ -18,6 +18,7 @@ import 'package:sidik_calibration/providers/master_data_provider.dart'
 import 'package:sidik_calibration/screens/calibration/lembar_kerja_state.dart';
 import 'package:sidik_calibration/screens/pindai/blok_identitas_foto.dart';
 import 'package:sidik_calibration/screens/pindai/identitas_foto_isian.dart';
+import 'package:sidik_calibration/services/auth_service.dart' show ApiException;
 import 'package:sidik_calibration/services/equipment_lookup_service.dart'
     show EquipmentLookupService, daftarAlatMock;
 import 'package:sidik_calibration/services/identitas_kertas.dart';
@@ -613,6 +614,167 @@ void main() {
       expect(h.isian.alat, isNull);
     });
   });
+
+  group('MIRIP: selisih nomor seri terlihat', () {
+    testWidgets(
+      'kartu "Maksud Anda?" menyebut seri di kertas; sesudah memilih, '
+      'baris selisih seri tampil dengan "Pakai yang terdaftar"',
+      (tester) async {
+        final h = _Harness(identitas: _kertas, alat: [_a(21, 'B628755901')]);
+        await h.pasang(tester);
+
+        expect(find.byKey(BlokIdentitasFoto.kunciMirip), findsOneWidget);
+        expect(
+          find.text('Nomor seri di kertas: B628755900'),
+          findsOneWidget,
+          reason: 'teknisi membandingkan seri kertas dengan seri tiap pilihan',
+        );
+
+        await _ketuk(tester, find.byKey(BlokIdentitasFoto.kunciPilihMirip(21)));
+
+        expect(h.isian.alat?.id, 21);
+        expect(
+          find.byKey(BlokIdentitasFoto.kunciBeda('alat_serial_number')),
+          findsOneWidget,
+        );
+        expect(
+          find.byKey(
+            BlokIdentitasFoto.kunciPakaiTerdaftar('alat_serial_number'),
+          ),
+          findsOneWidget,
+        );
+
+        await _ketuk(
+          tester,
+          find.byKey(
+            BlokIdentitasFoto.kunciPakaiTerdaftar('alat_serial_number'),
+          ),
+        );
+
+        expect(_teks(h.isian, 'alat_serial_number'), 'B628755901');
+        expect(
+          find.byKey(BlokIdentitasFoto.kunciBeda('alat_serial_number')),
+          findsNothing,
+        );
+      },
+    );
+  });
+
+  group('galat server saat membuat: pesan server untuk penolakan 4xx', () {
+    for (final (nama, galat, pesan) in <(String, Object, String)>[
+      (
+        '403',
+        const ApiException(
+          'Kamu nggak punya akses ke sini.',
+          status: 403,
+          body: {'message': 'Kamu nggak punya akses ke sini.'},
+        ),
+        'Alat belum dibuat: Kamu nggak punya akses ke sini.',
+      ),
+      (
+        '422 kategori nonaktif',
+        const ApiException(
+          'Kategori alat ini tidak aktif.',
+          status: 422,
+          body: {
+            'message': 'Kategori alat ini tidak aktif.',
+            'errors': {
+              'kategori': ['tidak aktif'],
+            },
+          },
+        ),
+        'Alat belum dibuat: Kategori alat ini tidak aktif.',
+      ),
+      (
+        '422 seri dipegang alat yang dihapus',
+        const ApiException(
+          'Nomor seri ini dipegang alat yang sudah dihapus.',
+          status: 422,
+          body: {
+            'message': 'Nomor seri ini dipegang alat yang sudah dihapus.',
+            'errors': {
+              'serial_number': ['dipegang alat terhapus'],
+            },
+          },
+        ),
+        'Alat belum dibuat: Nomor seri ini dipegang alat yang sudah dihapus.',
+      ),
+    ]) {
+      testWidgets('$nama: pesan server tampil, BUKAN "periksa sinyal"', (
+        tester,
+      ) async {
+        final h = _Harness(identitas: _kertas, alat: const []);
+        h.layanan.sebelumSimpan = (_) async => throw galat;
+        await h.pasang(tester);
+
+        await _ketuk(tester, find.byKey(BlokIdentitasFoto.kunciBuatLanjut));
+
+        expect(find.text(pesan), findsOneWidget);
+        expect(find.textContaining('Periksa sinyal'), findsNothing);
+        expect(h.isian.alat, isNull);
+      });
+    }
+
+    testWidgets('galat tanpa jenis (tak terduga) tetap "periksa sinyal"', (
+      tester,
+    ) async {
+      final h = _Harness(identitas: _kertas, alat: const []);
+      h.layanan.sebelumSimpan = (_) async => throw StateError('aneh');
+      await h.pasang(tester);
+
+      await _ketuk(tester, find.byKey(BlokIdentitasFoto.kunciBuatLanjut));
+
+      expect(find.textContaining('Periksa sinyal'), findsOneWidget);
+    });
+  });
+
+  group(
+    'selagi alat dibuat: tombol terkunci (dibuktikan, bukan diandaikan)',
+    () {
+      testWidgets('server belum menjawab: "Buat dan lanjut" dan Batal mati, '
+          'ketukan lagi tidak membuat apa pun; sesudah jawaban satu alat', (
+        tester,
+      ) async {
+        final h = _Harness(identitas: _kertas, alat: const []);
+        final tahan = Completer<void>();
+        h.layanan.sebelumSimpan = (_) => tahan.future;
+        await h.pasang(tester);
+
+        await tester.ensureVisible(
+          find.byKey(BlokIdentitasFoto.kunciBuatLanjut),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(BlokIdentitasFoto.kunciBuatLanjut));
+        await tester.pump(const Duration(milliseconds: 200));
+
+        FilledButton buat() => tester.widget<FilledButton>(
+          find.byKey(BlokIdentitasFoto.kunciBuatLanjut),
+        );
+        expect(buat().onPressed, isNull, reason: 'terkunci selama dibuat');
+        expect(find.text('Membuat…'), findsOneWidget);
+        expect(
+          tester
+              .widget<TextButton>(find.byKey(BlokIdentitasFoto.kunciBatalBaru))
+              .onPressed,
+          isNull,
+        );
+
+        // Ketukan kedua pada tombol yang mati tidak berarti apa-apa.
+        await tester.tap(
+          find.byKey(BlokIdentitasFoto.kunciBuatLanjut),
+          warnIfMissed: false,
+        );
+        await tester.pump(const Duration(milliseconds: 200));
+        expect(h.layanan.dikirim, isEmpty);
+
+        tahan.complete();
+        await tester.pumpAndSettle();
+
+        expect(h.layanan.dikirim, hasLength(1));
+        expect(h.isian.alat, isNotNull);
+      });
+    },
+  );
 
   group('tidak menduplikasi', () {
     testWidgets('seri sama, kategori sama, JENIS beda: kartu "terdaftar pada '
