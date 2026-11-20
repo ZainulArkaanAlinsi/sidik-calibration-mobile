@@ -10108,4 +10108,232 @@ class AppLocalizationsEn extends AppLocalizations {
   String pindaiBannerRingkas(String jenis) {
     return '$jenis · from photo';
   }
+
+  @override
+  String get identitasMencocokkan =>
+      'Matching the instrument to registered data…';
+
+  @override
+  String identitasAlatTerdaftar(String nama) {
+    return 'Registered instrument: $nama';
+  }
+
+  @override
+  String get identitasPakaiAlat => 'Use this instrument';
+
+  @override
+  String get identitasMaksudAnda => 'Did you mean?';
+
+  @override
+  String identitasSeriDiKertas(String seri) {
+    return 'Serial number on the paper: $seri';
+  }
+
+  @override
+  String get identitasBukanSatuPun => 'None of these, new instrument';
+
+  @override
+  String get identitasAlatBaruPetunjuk =>
+      'Filled from the paper. Check it, then create.';
+
+  @override
+  String get identitasBuatLanjut => 'Create and continue';
+
+  @override
+  String get identitasSedangMembuat => 'Creating…';
+
+  @override
+  String get identitasBatal => 'Cancel';
+
+  @override
+  String get identitasTutup => 'Dismiss';
+
+  @override
+  String get identitasSeriWajib =>
+      'Serial number not readable. Type it from the instrument body.';
+
+  @override
+  String identitasJenisAlat(String jenis) {
+    return 'Type: $jenis';
+  }
+
+  @override
+  String get identitasAlamat => 'Address';
+
+  @override
+  String identitasBedaBaris(String label, String kertas, String terdaftar) {
+    return '$label: paper \"$kertas\", registered \"$terdaftar\"';
+  }
+
+  @override
+  String get identitasPakaiTerdaftar => 'Use registered';
+
+  @override
+  String get identitasTidakTerbaca =>
+      'The identity on the paper could not be read. Pick an instrument below, or create a new one.';
+
+  @override
+  String get identitasGagalCocok =>
+      'Could not match the instrument (server unreachable). Pick one below.';
+
+  @override
+  String identitasGagalBuat(String pesan) {
+    return 'Instrument not created: $pesan';
+  }
+
+  @override
+  String get identitasGagalUmum =>
+      'Not done yet. Check the signal and try again.';
+
+  @override
+  String identitasSeriSudahTerdaftar(String alat, String pt) {
+    return 'This serial number is already registered to \"$alat\" ($pt). Use that instrument, or change the serial number.';
+  }
+
+  @override
+  String identitasSeriAlatLain(String alat, String pt) {
+    return 'This serial number is registered to another instrument: \"$alat\" ($pt), not this worksheet\'s instrument type. It is not used and no new instrument is created. Check the serial number.';
+  }
+
+  @override
+  String identitasSeriPemilikBeda(String pemilik) {
+    return 'Owner on the paper: $pemilik. The registered owner is different; check before using it.';
+  }
+
+  @override
+  String get identitasPtMirip =>
+      'Similar companies exist. Pick an existing one, or create a new company anyway.';
+
+  @override
+  String get identitasPtBaru => 'Create as a new company';
+
+  @override
+  String identitasPtBaruAkanDidaftarkan(String nama) {
+    return 'A new company will be registered: $nama';
+  }
+
+  @override
+  String identitasTanggalKalibrasi(String tanggal) {
+    return 'Calibration date on the paper: $tanggal';
+  }
+
+  @override
+  String identitasTanggalTerima(String tanggal) {
+    return 'Received date on the paper: $tanggal';
+  }
+
+  @override
+  String get identitasPakaiTanggal => 'Use this date';
+
+  @override
+  String get identitasLengkapiNanti =>
+      'Range and resolution can be completed later in Instrument master.';
+
+  @override
+  String get identitasBukaAlatBaru => 'Check and create the instrument';
+
+  @override
+  String get ditahanJudul => 'Issuance on hold';
+
+  @override
+  String get ditahanIsi =>
+      'Certificate issuance for this instrument type is on hold, waiting for the Technical Manager. The worksheet can still be filled in and calculated.';
+
+  @override
+  String ditahanRujukan(String rujukan) {
+    return 'TM reference: $rujukan';
+  }
+
+  @override
+  String ditahanVarian(String varian) {
+    return 'Applies to: $varian';
+  }
+
+  @override
+  String get ditahanSelengkapnya => 'Read the full reason';
+
+  @override
+  String get ditahanSetujuTertahan =>
+      'Approve becomes available once the Technical Manager lifts the hold.';
+
+  @override
+  String get ditahanDialogJudul => 'Certificate issuance is on hold';
+
+  @override
+  String get ditahanDialogIsi =>
+      'This certificate cannot be issued yet. The session is still waiting for approval and the certificate number you typed is not used.';
+
+  @override
+  String get ditahanDialogAlasan => 'Reason';
+
+  @override
+  String get ditahanDialogTutup => 'Got it';
+
+  @override
+  String get crudPenugasanAksiSelesaikan => 'Complete';
+
+  @override
+  String get crudPenugasanAksiBukaLagi => 'Reopen';
+
+  @override
+  String get crudPenugasanSiapDitutup => 'Ready to complete';
+
+  @override
+  String crudPenugasanSelesaiPada(String tanggal) {
+    return 'Completed $tanggal';
+  }
+
+  @override
+  String crudPenugasanSelesaiJudul(String judul) {
+    return 'Complete the assignment \"$judul\"?';
+  }
+
+  @override
+  String get crudPenugasanSelesaiIsi =>
+      'All equipment rows are done. The assignment is marked Completed and its members are notified. Only a super admin can reopen it.';
+
+  @override
+  String get crudPenugasanSelesaiAksi => 'Complete';
+
+  @override
+  String get crudPenugasanSelesaiBerhasil => 'Assignment completed.';
+
+  @override
+  String get crudPenugasanSudahSelesai =>
+      'This assignment was already completed.';
+
+  @override
+  String crudPenugasanBukaLagiJudul(String judul) {
+    return 'Reopen the assignment \"$judul\"?';
+  }
+
+  @override
+  String get crudPenugasanBukaLagiIsi =>
+      'The assignment becomes Active again: technicians can report progress and it can be completed again. Reported progress does not change. Members are notified with your reason.';
+
+  @override
+  String get crudPenugasanBukaLagiAksi => 'Reopen';
+
+  @override
+  String get crudPenugasanBukaLagiBerhasil => 'Assignment reopened.';
+
+  @override
+  String crudGalatPenugasanBelumTuntas(int persen) {
+    return 'This assignment is only $persen% complete. Have the technician report progress on every row first, then try again.';
+  }
+
+  @override
+  String get crudGalatPenugasanBelumTuntasUmum =>
+      'This assignment is not complete yet. Have the technician report progress on every row first, then try again.';
+
+  @override
+  String get crudGalatPenugasanTidakSelesai =>
+      'This assignment is not marked Completed, so it cannot be reopened. A cancelled assignment is never reopened; create a new one.';
+
+  @override
+  String get perhitSesiTidakAda =>
+      'This session no longer exists on the server. It may have been archived or deleted by an admin.';
+
+  @override
+  String get crudPenugasanSudahAktif => 'This assignment was already reopened.';
 }

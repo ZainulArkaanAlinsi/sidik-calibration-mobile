@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app.dart';
 import 'core/config/app_config.dart';
 import 'core/pelapor_galat.dart';
+import 'core/pelapor_galat_sentry.dart';
 import 'providers/versi_provider.dart';
 import 'services/ketukan_push.dart';
 import 'services/mock_store.dart';
@@ -41,10 +42,21 @@ Future<void> main() async {
   // sudah dikabari lewat websocket Reverb selama aplikasinya kebuka.
   final firebaseHidup = await _nyalakanFirebase();
 
+  // Sentry NONAKTIF kecuali build diberi `--dart-define=SENTRY_DSN=...`; tanpa
+  // DSN tidak ada panggilan SDK sama sekali. Tidak pernah melempar dan tidak
+  // menahan start lebih dari beberapa detik. Isi yang keluar dibatasi keras
+  // (jenis galat + jejak tumpukan saja): lihat `pelapor_galat_sentry.dart`.
+  final pelaporSentry = AppConfig.useMock ? null : await nyalakanSentry();
+
   // Galat yang lolos dari semua `try` dilaporkan (tanpa isi data) lalu
   // aplikasinya JALAN TERUS; widget yang gagal dibangun tampil sebagai kartu
   // ramah. Lihat [pasangPenangkapGalat].
-  pasangPenangkapGalat(pelapor: await _pelaporGalat(firebaseHidup));
+  pasangPenangkapGalat(
+    pelapor: susunPelaporAktif(
+      crashlytics: await _pelaporGalat(firebaseHidup),
+      sentry: pelaporSentry,
+    ),
+  );
 
   // Pembaruan Windows yang sudah diunduh di pembukaan sebelumnya dipasang di
   // sini, SEBELUM jendela digambar: skrip pemasangnya menunggu proses ini mati

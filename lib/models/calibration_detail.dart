@@ -1,6 +1,7 @@
 import 'autoclave_hasil.dart';
 import 'calibration_history_item.dart';
 import '../core/utils/parse_list.dart';
+import 'penerbitan_ditahan.dart';
 import 'titik_sesi.dart';
 
 /// Standar acuan ringkas — dipakai di level sesi dan bisa di-override per
@@ -1026,7 +1027,13 @@ class CalibrationDetail {
     this.administrasi = const AdministrasiSesi(),
     this.diubahPada,
     this.titikSesi,
+    this.penerbitanDitahan = PenerbitanDitahan.tidak,
   });
+
+  /// `data.penerbitan_ditahan` (PR #280, aditif): penerbitan sertifikat jenis
+  /// alat ini ditahan menunggu Technical Manager. Server lama yang tidak
+  /// mengirim kuncinya = tidak ditahan. Lihat [PenerbitanDitahan].
+  final PenerbitanDitahan penerbitanDitahan;
 
   /// `meta.titik_sesi` respons `GET /calibrations/{id}` — set titik ukur sesi
   /// yang disimpan server. `null` = server lama / sesi tanpa kontrak titik.
@@ -1250,6 +1257,7 @@ class CalibrationDetail {
         _ => null,
       },
       titikSesi: meta is Map ? MetaTitikSesi.dariJson(meta['titik_sesi']) : null,
+      penerbitanDitahan: PenerbitanDitahan.fromJson(json['penerbitan_ditahan']),
     );
   }
 }

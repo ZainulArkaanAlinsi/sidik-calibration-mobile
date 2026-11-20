@@ -15,6 +15,7 @@ class Penugasan {
     this.catatan,
     this.dibuatOleh,
     this.batal,
+    this.diselesaikanPada,
     this.teknisi = const [],
     this.baris = const [],
   });
@@ -39,11 +40,23 @@ class Penugasan {
   /// selama belum dibatalkan. Penugasan lama yang dibatalkan lewat panel
   /// berisi alasan `null`.
   final PenugasanBatal? batal;
+
+  /// Kapan ditutup (`diselesaikan_pada`, ISO-8601; PR #284, field ADDITIVE):
+  /// `null` selama belum `selesai` dan sesudah dibuka lagi.
+  final DateTime? diselesaikanPada;
   final List<AnggotaPenugasan> teknisi;
   final List<BarisPenugasan> baris;
 
   bool get grup => tipe == 'grup';
   bool get aktif => status == 'aktif';
+  bool get selesai => status == 'selesai';
+
+  /// Semua baris sudah tuntas dan penugasan masih `aktif`: tombol Selesaikan
+  /// pantas ditekan. Kontrak #284: "`persen_tuntas` = 100 di detail penugasan
+  /// berarti hal yang sama" dengan `siap_ditutup` — kunci `siap_ditutup` hanya
+  /// ikut di respons lapor-progres, tidak di daftar/detail. Server tetap yang
+  /// memutuskan (`422 penugasan_belum_tuntas`).
+  bool get siapDitutup => aktif && persenTuntas >= 100;
   AnggotaPenugasan? get ketua =>
       teknisi.where((t) => t.peran == 'ketua').firstOrNull;
 
@@ -60,6 +73,10 @@ class Penugasan {
     batal: switch (json['batal']) {
       final Map<String, dynamic> m => PenugasanBatal.fromJson(m),
       final Map m => PenugasanBatal.fromJson(Map<String, dynamic>.from(m)),
+      _ => null,
+    },
+    diselesaikanPada: switch (json['diselesaikan_pada']) {
+      final String t => DateTime.tryParse(t),
       _ => null,
     },
     teknisi: [

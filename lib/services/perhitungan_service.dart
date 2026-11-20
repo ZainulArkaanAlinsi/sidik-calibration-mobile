@@ -1,3 +1,4 @@
+import '../models/penerbitan_ditahan.dart';
 import '../models/perhitungan.dart';
 import '../models/validasi.dart';
 import 'api_client.dart';
@@ -15,6 +16,7 @@ class HasilApprove {
     this.pesan,
     this.kode,
     this.pemilikNomor,
+    this.penahanan,
   });
 
   final bool disetujui;
@@ -34,6 +36,10 @@ class HasilApprove {
   /// Nomor sertifikat yang memegang nomor bentrok (`nomor_sertifikat_dipakai`,
   /// `sertifikat.nomor` di badan 422) — untuk kalimat "dipakai sertifikat X".
   final String? pemilikNomor;
+
+  /// Isi penahanan waktu [kode] = `profil_ditahan` (alasan, rujukan TM, varian
+  /// dari badan 422). `null` untuk penolakan lain.
+  final PenerbitanDitahan? penahanan;
 }
 
 /// Layar utama admin: lembar PERHITUNGAN + periksa/setujui (spesifikasi poin
@@ -128,6 +134,9 @@ class ApiPerhitunganService implements PerhitunganService {
         pesan: e.message,
         kode: kodeDariBadan(e.body),
         pemilikNomor: _pemilikNomorDari(e.body),
+        penahanan: kodeDariBadan(e.body) == KodeGalat.profilDitahan
+            ? PenerbitanDitahan.dariBadan422(e.body)
+            : null,
       );
     }
   }
@@ -179,6 +188,7 @@ class MockPerhitunganService implements PerhitunganService {
     this.thermohygroBelumDipilih = false,
     this.wajibNomorOrder = false,
     this.kodeTolakApprove,
+    this.penerbitanDitahan = PenerbitanDitahan.tidak,
   });
 
   final bool gagal;
@@ -190,6 +200,11 @@ class MockPerhitunganService implements PerhitunganService {
 
   /// Kode 422 yang SELALU dipulangkan approve (mis. `pemisahan_wewenang`).
   final String? kodeTolakApprove;
+
+  /// Niru PR #280: bila [PenerbitanDitahan.ditahan], approve dijawab `422
+  /// profil_ditahan` PALING AWAL (sebelum Order Number, nomor sertifikat, dan
+  /// peringatan), apa pun isiannya.
+  final PenerbitanDitahan penerbitanDitahan;
 
   /// Order Number terakhir yang disimpan lewat [simpanKolomAdmin].
   String? nomorOrderTersimpan;
@@ -366,6 +381,19 @@ class MockPerhitunganService implements PerhitunganService {
     if (gagal) throw Exception('server nggak nyaut');
     aksi.add(('setujui', abaikanPeringatan));
     nomorSertifikatDikirim.add(nomorSertifikat);
+
+    if (penerbitanDitahan.ditahan) {
+      return HasilApprove(
+        disetujui: false,
+        butuhKonfirmasi: false,
+        kode: KodeGalat.profilDitahan,
+        penahanan: penerbitanDitahan,
+        pesan:
+            'Penerbitan sertifikat jenis alat ini ditahan menunggu keputusan '
+            'Technical Manager: ${penerbitanDitahan.alasanTampil ?? ''} '
+            'Lembar tetap bisa diisi dan dihitung.',
+      );
+    }
 
     if (kodeTolakApprove != null) {
       return HasilApprove(

@@ -7,6 +7,8 @@ import '../../models/penugasan.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/dashboard_provider.dart' show TokenHilangException;
 import '../../providers/penugasan_kelola_provider.dart';
+import '../../services/auth_service.dart' show ApiException;
+import '../../services/kode_galat.dart' show kodeDariBadan;
 import '../../widgets/app_button.dart';
 import '../../widgets/readable_width.dart';
 import '../../widgets/skeleton.dart';
@@ -15,16 +17,19 @@ import '../super_admin/widgets/dialog_isian.dart';
 import '../super_admin/widgets/pesan_layar.dart';
 import 'hak_crud_lab.dart';
 import 'penugasan_ubah_screen.dart';
+import 'widgets/dialog_konfirmasi_crud.dart';
 import 'widgets/kartu_penugasan.dart';
 import 'widgets/pesan_galat_crud.dart';
 
 /// Papan penugasan untuk dikelola: ubah dan batalkan penugasan yang masih
-/// aktif (kontrak CRUD lengkap §4). MEMBUAT penugasan tetap di layar lama;
+/// aktif (kontrak CRUD lengkap §4), selesaikan yang sudah tuntas, dan buka lagi
+/// yang sudah selesai (PR #284). MEMBUAT penugasan tetap di layar lama;
 /// teknisi melaporkan progres di layar lama juga — keduanya tidak disentuh.
 ///
-/// Tiap tombol mengikuti izin server: `penugasan.ubah`, `penugasan.batalkan`.
-/// Batalkan mewajibkan alasan 5–400 karakter. Semua aksi mengambil ulang papan
-/// dari server sesudah sukses.
+/// Tiap tombol mengikuti izin server: `penugasan.ubah`, `penugasan.batalkan`,
+/// `penugasan.selesaikan` (admin dan super admin), `penugasan.buka-lagi` (super
+/// admin saja). Batalkan dan Buka lagi mewajibkan alasan 5–400 karakter. Semua
+/// aksi mengambil ulang papan dari server sesudah sukses.
 class PenugasanKelolaScreen extends ConsumerStatefulWidget {
   const PenugasanKelolaScreen({super.key});
 
@@ -100,12 +105,106 @@ class _PenugasanKelolaScreenState extends ConsumerState<PenugasanKelolaScreen> {
     }
   }
 
+  /// Tutup penugasan yang sudah tuntas. Server memutuskan; yang dikirim hanya
+  /// niat "tutup". Dialog konfirmasi karena anggota langsung diberi tahu dan
+  /// hanya super admin yang bisa membukanya lagi.
+  Future<void> _selesaikan(Penugasan p) async {
+    final l10n = AppLocalizations.of(context);
+    var sudahSelesai = false;
+    final ok = await tampilkanDialogKonfirmasiCrud(
+      context,
+      judul: l10n.crudPenugasanSelesaiJudul(p.judul),
+      isi: l10n.crudPenugasanSelesaiIsi,
+      labelAksi: l10n.crudPenugasanSelesaiAksi,
+      destruktif: false,
+      aksi: () async {
+        final token = await ref.read(tokenStorageProvider).read();
+        if (token == null) throw const TokenHilangException();
+        try {
+          await ref
+              .read(penugasanKelolaServiceProvider)
+              .selesaikan(token, p.id);
+        } on ApiException catch (e) {
+          // Kirim ulang sesudah balasan hilang dijawab 422
+          // `penugasan_sudah_selesai` (kontrak #284, sengaja bukan 200). Itu
+          // bukan galat: tujuannya sudah tercapai.
+          if (kodeDariBadan(e.body) != KodeCrud.penugasanSudahSelesai) rethrow;
+          sudahSelesai = true;
+        }
+      },
+      saatGalat: (e) {
+        if (perluMuatUlangCrud(e)) _ctl.muatUlang();
+      },
+    );
+    if (ok) {
+      _ctl.muatUlang();
+      _kabari(
+        sudahSelesai
+            ? l10n.crudPenugasanSudahSelesai
+            : l10n.crudPenugasanSelesaiBerhasil,
+      );
+    }
+  }
+
+  /// Buka lagi penugasan selesai (super admin). Alasan 5–400 karakter masuk
+  /// jejak audit dan sampai ke anggota; progres teknisi tidak tersentuh.
+  Future<void> _bukaLagi(Penugasan p) async {
+    final l10n = AppLocalizations.of(context);
+    var sudahAktif = false;
+    final ok = await tampilkanDialogIsian(
+      context,
+      judul: l10n.crudPenugasanBukaLagiJudul(p.judul),
+      isi: l10n.crudPenugasanBukaLagiIsi,
+      labelKolom: l10n.crudAlasanWajib,
+      catatan: l10n.crudAlasanCatatan,
+      labelAksi: l10n.crudPenugasanBukaLagiAksi,
+      panjangMinimal: 5,
+      panjangMaksimal: 400,
+      pesanPendek: l10n.crudAlasanPendek,
+      pesanPanjang: l10n.crudAlasanPanjang,
+      petakanGalat: (e) => pesanGalatCrud(l10n, e),
+      aksi: (alasan) async {
+        final token = await ref.read(tokenStorageProvider).read();
+        if (token == null) throw const TokenHilangException();
+        try {
+          await ref
+              .read(penugasanKelolaServiceProvider)
+              .bukaLagi(token, p.id, alasan: alasan);
+        } on ApiException catch (e) {
+          // Kirim ulang sesudah balasan hilang: penugasan sudah dibuka dan kini
+          // `aktif`, jadi server menjawab 422 `penugasan_tidak_selesai` dengan
+          // `status: aktif`. Tujuannya sudah tercapai (cermin Selesaikan yang
+          // menganggap `penugasan_sudah_selesai` berhasil). Status `dibatalkan`
+          // tetap galat: itu tidak pernah dibuka lagi.
+          final aktif =
+              kodeDariBadan(e.body) == KodeCrud.penugasanTidakSelesai &&
+              e.body['status'] == 'aktif';
+          if (!aktif) rethrow;
+          sudahAktif = true;
+        }
+      },
+      saatGalat: (e) {
+        if (perluMuatUlangCrud(e)) _ctl.muatUlang();
+      },
+    );
+    if (ok) {
+      _ctl.muatUlang();
+      _kabari(
+        sudahAktif
+            ? l10n.crudPenugasanSudahAktif
+            : l10n.crudPenugasanBukaLagiBerhasil,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final boleh = ref.bolehUbahPenugasan || ref.bolehBatalkanPenugasan;
     final bolehUbah = ref.bolehUbahPenugasan;
     final bolehBatal = ref.bolehBatalkanPenugasan;
+    final bolehSelesai = ref.bolehSelesaikanPenugasan;
+    final bolehBuka = ref.bolehBukaLagiPenugasan;
+    final boleh = bolehUbah || bolehBatal || bolehSelesai || bolehBuka;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.crudPenugasanJudul)),
@@ -120,6 +219,8 @@ class _PenugasanKelolaScreenState extends ConsumerState<PenugasanKelolaScreen> {
                   saatMuatLagi: _muatLagi,
                   saatUbah: bolehUbah ? _ubah : null,
                   saatBatalkan: bolehBatal ? _batalkan : null,
+                  saatSelesaikan: bolehSelesai ? _selesaikan : null,
+                  saatBukaLagi: bolehBuka ? _bukaLagi : null,
                 ),
               ),
       ),
@@ -133,12 +234,16 @@ class _Papan extends ConsumerWidget {
     required this.saatMuatLagi,
     required this.saatUbah,
     required this.saatBatalkan,
+    required this.saatSelesaikan,
+    required this.saatBukaLagi,
   });
 
   final bool memuatLagi;
   final VoidCallback saatMuatLagi;
   final ValueChanged<Penugasan>? saatUbah;
   final ValueChanged<Penugasan>? saatBatalkan;
+  final ValueChanged<Penugasan>? saatSelesaikan;
+  final ValueChanged<Penugasan>? saatBukaLagi;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -175,6 +280,10 @@ class _Papan extends ConsumerWidget {
             penugasan: p,
             saatUbah: saatUbah == null ? null : () => saatUbah!(p),
             saatBatalkan: saatBatalkan == null ? null : () => saatBatalkan!(p),
+            saatSelesaikan: saatSelesaikan == null
+                ? null
+                : () => saatSelesaikan!(p),
+            saatBukaLagi: saatBukaLagi == null ? null : () => saatBukaLagi!(p),
           ),
         );
       };

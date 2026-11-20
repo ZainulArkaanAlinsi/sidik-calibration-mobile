@@ -136,6 +136,21 @@ dependencies:
   # runtime-nya sudah ada di APK; ONNX Runtime menambah +29..57 MB.
   tflite_flutter: ^0.12.1
 
+  # Pelapor galat Sentry, BERPENYARING KERAS (keputusan pemilik 19 Nov 2026;
+  # lisensi MIT). NONAKTIF kecuali build diberi `--dart-define=SENTRY_DSN=...`;
+  # tidak ada DSN di repo, dan tanpa DSN Sentry tidak diinisialisasi sama
+  # sekali (nol jaringan, nol penangkap). Yang keluar dari HP hanya NAMA JENIS
+  # galat + jejak tumpukan kode kita, versi aplikasi, dan label konteks buatan
+  # kode (pola yang sama dengan Crashlytics: `lib/core/pelapor_galat.dart`).
+  # Tidak ada tangkapan layar, hierarki tampilan, breadcrumb ketuk/teks,
+  # badan permintaan/respons HTTP, pengguna, performa, atau replay. SDK native
+  # Android MENYALA begitu DSN diisi (event Dart dikirim lewat transport
+  # native; `autoInitializeNativeSdk` tidak diubah), tetapi penangkap native
+  # (NDK, ANR, handler pengecualian, breadcrumb, sesi) dimatikan lewat
+  # meta-data AndroidManifest. Efek native belum diuji di HP. Lihat
+  # `lib/core/pelapor_galat_sentry.dart` dan `docs/pihak-ketiga-ocr.md`.
+  sentry_flutter: ^10.5.0
+
   # sha256 berkas model diadu ke meta.json sebelum dimuat. Sudah ada di lock
   # sebagai dependensi transitif; dijadikan langsung karena dipakai langsung.
   crypto: ^3.0.6

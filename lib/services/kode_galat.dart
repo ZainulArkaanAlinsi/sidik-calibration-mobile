@@ -20,6 +20,12 @@ abstract final class KodeGalat {
   static const nomorSertifikatTidakValid = 'nomor_sertifikat_tidak_valid';
   static const nomorSertifikatDipakai = 'nomor_sertifikat_dipakai';
 
+  /// Approve ditolak: penerbitan sertifikat jenis alat ini DITAHAN menunggu
+  /// keputusan Technical Manager (PR #280 API). Diperiksa paling awal, tidak
+  /// ditembus peran apa pun, status sesi dan nomor yang diketik tidak berubah.
+  /// Badan 422 membawa `alasan`, `rujukan_tm`, `varian`.
+  static const profilDitahan = 'profil_ditahan';
+
   /// Tarik sertifikat: sandi akun yang menarik salah.
   static const konfirmasiSandiSalah = 'konfirmasi_sandi_salah';
 }

@@ -9956,4 +9956,230 @@ class AppLocalizationsId extends AppLocalizations {
   String pindaiBannerRingkas(String jenis) {
     return '$jenis · dari foto';
   }
+
+  @override
+  String get identitasMencocokkan => 'Mencocokkan alat dengan data terdaftar…';
+
+  @override
+  String identitasAlatTerdaftar(String nama) {
+    return 'Alat terdaftar: $nama';
+  }
+
+  @override
+  String get identitasPakaiAlat => 'Pakai alat ini';
+
+  @override
+  String get identitasMaksudAnda => 'Maksud Anda?';
+
+  @override
+  String identitasSeriDiKertas(String seri) {
+    return 'Nomor seri di kertas: $seri';
+  }
+
+  @override
+  String get identitasBukanSatuPun => 'Bukan salah satunya, alat baru';
+
+  @override
+  String get identitasAlatBaruPetunjuk =>
+      'Diisi dari kertas. Periksa dulu, lalu buat.';
+
+  @override
+  String get identitasBuatLanjut => 'Buat dan lanjut';
+
+  @override
+  String get identitasSedangMembuat => 'Membuat…';
+
+  @override
+  String get identitasBatal => 'Batal';
+
+  @override
+  String get identitasTutup => 'Tutup';
+
+  @override
+  String get identitasSeriWajib =>
+      'Nomor seri tidak terbaca. Ketik dari badan alat.';
+
+  @override
+  String identitasJenisAlat(String jenis) {
+    return 'Jenis: $jenis';
+  }
+
+  @override
+  String get identitasAlamat => 'Alamat';
+
+  @override
+  String identitasBedaBaris(String label, String kertas, String terdaftar) {
+    return '$label: kertas \"$kertas\", terdaftar \"$terdaftar\"';
+  }
+
+  @override
+  String get identitasPakaiTerdaftar => 'Pakai yang terdaftar';
+
+  @override
+  String get identitasTidakTerbaca =>
+      'Identitas di kertas belum terbaca. Pilih alat di bawah, atau buat alat baru.';
+
+  @override
+  String get identitasGagalCocok =>
+      'Belum bisa mencocokkan alat (server tidak terjangkau). Pilih alat di bawah.';
+
+  @override
+  String identitasGagalBuat(String pesan) {
+    return 'Alat belum dibuat: $pesan';
+  }
+
+  @override
+  String get identitasGagalUmum =>
+      'Belum berhasil. Periksa sinyal lalu coba lagi.';
+
+  @override
+  String identitasSeriSudahTerdaftar(String alat, String pt) {
+    return 'Nomor seri ini sudah terdaftar pada alat \"$alat\" ($pt). Pakai alat itu, atau ubah nomor serinya.';
+  }
+
+  @override
+  String identitasSeriAlatLain(String alat, String pt) {
+    return 'Nomor seri ini terdaftar pada alat lain: \"$alat\" ($pt), bukan jenis alat lembar ini. Alat itu tidak dipakai dan tidak ada alat baru yang dibuat. Periksa nomor serinya.';
+  }
+
+  @override
+  String identitasSeriPemilikBeda(String pemilik) {
+    return 'Pemilik di kertas: $pemilik. Pemilik alat terdaftar berbeda; periksa dulu sebelum memakainya.';
+  }
+
+  @override
+  String get identitasPtMirip =>
+      'Ada PT yang mirip. Pilih yang sudah ada, atau tetap buat PT baru.';
+
+  @override
+  String get identitasPtBaru => 'Tetap buat PT baru';
+
+  @override
+  String identitasPtBaruAkanDidaftarkan(String nama) {
+    return 'PT baru akan didaftarkan: $nama';
+  }
+
+  @override
+  String identitasTanggalKalibrasi(String tanggal) {
+    return 'Tanggal kalibrasi di kertas: $tanggal';
+  }
+
+  @override
+  String identitasTanggalTerima(String tanggal) {
+    return 'Tanggal terima di kertas: $tanggal';
+  }
+
+  @override
+  String get identitasPakaiTanggal => 'Pakai tanggal ini';
+
+  @override
+  String get identitasLengkapiNanti =>
+      'Rentang dan resolusi alat bisa dilengkapi nanti di Master Alat.';
+
+  @override
+  String get identitasBukaAlatBaru => 'Periksa dan buat alat baru';
+
+  @override
+  String get ditahanJudul => 'Penerbitan ditahan';
+
+  @override
+  String get ditahanIsi =>
+      'Penerbitan sertifikat jenis alat ini ditahan menunggu keputusan Technical Manager. Lembar tetap bisa diisi dan dihitung.';
+
+  @override
+  String ditahanRujukan(String rujukan) {
+    return 'Rujukan TM: $rujukan';
+  }
+
+  @override
+  String ditahanVarian(String varian) {
+    return 'Berlaku untuk: $varian';
+  }
+
+  @override
+  String get ditahanSelengkapnya => 'Baca alasan lengkap';
+
+  @override
+  String get ditahanSetujuTertahan =>
+      'Setujui bisa dipakai setelah Technical Manager melepas penahanan.';
+
+  @override
+  String get ditahanDialogJudul => 'Penerbitan sertifikat ditahan';
+
+  @override
+  String get ditahanDialogIsi =>
+      'Sertifikat ini belum bisa diterbitkan. Sesi tetap menunggu persetujuan dan nomor sertifikat yang diketik belum terpakai.';
+
+  @override
+  String get ditahanDialogAlasan => 'Alasan';
+
+  @override
+  String get ditahanDialogTutup => 'Mengerti';
+
+  @override
+  String get crudPenugasanAksiSelesaikan => 'Selesaikan';
+
+  @override
+  String get crudPenugasanAksiBukaLagi => 'Buka lagi';
+
+  @override
+  String get crudPenugasanSiapDitutup => 'Siap diselesaikan';
+
+  @override
+  String crudPenugasanSelesaiPada(String tanggal) {
+    return 'Selesai $tanggal';
+  }
+
+  @override
+  String crudPenugasanSelesaiJudul(String judul) {
+    return 'Selesaikan penugasan \"$judul\"?';
+  }
+
+  @override
+  String get crudPenugasanSelesaiIsi =>
+      'Semua baris alat sudah tuntas. Penugasan ditandai Selesai dan anggota mendapat pemberitahuan. Hanya Super Admin yang bisa membukanya lagi.';
+
+  @override
+  String get crudPenugasanSelesaiAksi => 'Selesaikan';
+
+  @override
+  String get crudPenugasanSelesaiBerhasil => 'Penugasan diselesaikan.';
+
+  @override
+  String get crudPenugasanSudahSelesai => 'Penugasan ini sudah selesai.';
+
+  @override
+  String crudPenugasanBukaLagiJudul(String judul) {
+    return 'Buka lagi penugasan \"$judul\"?';
+  }
+
+  @override
+  String get crudPenugasanBukaLagiIsi =>
+      'Penugasan kembali Aktif: teknisi bisa melapor lagi dan penugasan bisa diselesaikan lagi. Progres yang sudah dilaporkan tidak berubah. Anggota diberi tahu beserta alasan Anda.';
+
+  @override
+  String get crudPenugasanBukaLagiAksi => 'Buka lagi';
+
+  @override
+  String get crudPenugasanBukaLagiBerhasil => 'Penugasan dibuka lagi.';
+
+  @override
+  String crudGalatPenugasanBelumTuntas(int persen) {
+    return 'Penugasan ini baru $persen% tuntas. Minta teknisi melaporkan progres semua barisnya dulu, lalu coba lagi.';
+  }
+
+  @override
+  String get crudGalatPenugasanBelumTuntasUmum =>
+      'Penugasan ini belum tuntas. Minta teknisi melaporkan progres semua barisnya dulu, lalu coba lagi.';
+
+  @override
+  String get crudGalatPenugasanTidakSelesai =>
+      'Penugasan ini tidak berstatus Selesai, jadi tidak bisa dibuka lagi. Penugasan yang dibatalkan tidak dibuka lagi; buat penugasan baru.';
+
+  @override
+  String get perhitSesiTidakAda =>
+      'Sesi ini sudah tidak ada di server. Mungkin diarsipkan atau dihapus admin.';
+
+  @override
+  String get crudPenugasanSudahAktif => 'Penugasan ini sudah dibuka lagi.';
 }

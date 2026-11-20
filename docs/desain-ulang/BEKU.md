@@ -179,3 +179,47 @@ gambar acuan tidak bergeser. Menurunkan patokan itu butuh golden baru lewat
 `test/pindai_lembar_flow_test.dart`, `test/pindai_lembar_foto_awal_test.dart`,
 `test/lembar_kerja_cara_isi_test.dart`, `test/keputusan_pindai_lembar_test.dart`,
 `test/ocr_alur_perangkat_test.dart`.
+
+## Addendum — buka-kunci `lembar_kerja_screen.dart` untuk alur foto LINEAR (19 Nov 2026)
+
+**Persetujuan.** Arahan pemilik 19 Nov 2026 (eksplisit, dicatat di brief paket
+OCR-LINEAR): setelah foto TIDAK ada kartu pilihan, lembar langsung terisi dari
+yang TERTULIS di kertas, lalu diperiksa dan dikirim. Paket ini hanya sampai PNG
+dan persetujuan pemilik; belum di-push dan belum di-merge. Bila pemilik tidak
+setuju, revert cabang `feat/ocr-alur-linear`.
+
+Satu berkas, satu kali lagi: `lib/screens/calibration/lembar_kerja_screen.dart`.
+`lembar_kerja_state.dart` TIDAK disentuh (penuangan identitas ke kotak lembar
+lewat ekstensi di `lib/screens/pindai/identitas_foto_isian.dart`, memakai
+`isianDariFoto` + `cekIsian` yang sudah ada).
+
+**Yang berubah (hanya jalur foto; jalur manual "Mulai kalibrasi" tidak).**
+
+- `DariFotoLembar.alatAwal` dihapus. Lembar dari foto tidak pernah membawa alat:
+  `_equipmentId` hanya dari salinan HP, dan `isiDariAlat()` tidak dipanggil dari
+  `initState`. Alat dipasang HANYA oleh ketukan teknisi di blok identitas.
+- Baca foto otomatis jalan untuk SEMUA lembar dari foto (syarat `alatAwal != null`
+  dibuang), dan `_fotoLembar` tidak lagi menolak "Pilih alatnya dulu" bila
+  `dariFoto != null`. Kunci peta formulir memuat `kodeDokumen` (kode formulir
+  tercetak) supaya server memilih peta varian tanpa alat. Sebelum pembacaan,
+  identitas kertas dituang sebagai saran kuning.
+- Banner tanpa petunjuk "Pilih alat di bawah..."; tombol foto hanya SATU
+  ("Foto ulang") dan baru muncul sesudah percobaan pertama ("Isi dari foto"
+  dihapus). Gagal baca = pesan saja, tanpa dialog Tutup/Foto ulang
+  (`tanpaDialogFotoUlang`, hanya jalur foto).
+- Satu widget baru di atas lembar: `BlokIdentitasFoto`, lewat `_denganBlokIdentitas`
+  yang membungkus lembar di dalam jatahnya sendiri (blok setinggi isinya,
+  dibatasi terhadap jatah itu dan menggulir di dalamnya; lembar mendapat sisanya;
+  `dariFoto == null` = lembar apa adanya). `_PilihAlat` memuat alat terpilih yang di luar halaman
+  pertama daftar (agar Dropdown tidak melempar).
+
+**Yang TIDAK berubah.** Aturan OCR (hanya di perangkat, hasil = saran, tanpa
+"terima semua", sel kosong tetap kosong, tulisan tangan kata tidak pernah hijau),
+gerbang wajib-cek (#241), pemisahan wewenang, `input_method` dan konfirmasi
+pembacaan sesudah kirim, `siap_pindai` / mode uji / `perlu_konfirmasi_lab`,
+tampilan lembar tanpa `dariFoto` (golden `test/beku/goldens/` TIDAK diperbarui).
+
+**Bukti.** Hash baru di `test/beku/berkas_beku_test.dart` (cabang yang sama).
+Tes: `test/blok_identitas_foto_test.dart`, `test/pindai_lembar_flow_test.dart`,
+`test/pindai_lembar_foto_awal_test.dart`, `test/identitas_foto_isian_test.dart`.
+PNG untuk persetujuan: lihat `DAFTAR.txt` di folder PNG paket ini.

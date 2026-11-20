@@ -17245,6 +17245,360 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{jenis} · from photo'**
   String pindaiBannerRingkas(String jenis);
+
+  /// No description provided for @identitasMencocokkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Matching the instrument to registered data…'**
+  String get identitasMencocokkan;
+
+  /// No description provided for @identitasAlatTerdaftar.
+  ///
+  /// In en, this message translates to:
+  /// **'Registered instrument: {nama}'**
+  String identitasAlatTerdaftar(String nama);
+
+  /// No description provided for @identitasPakaiAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this instrument'**
+  String get identitasPakaiAlat;
+
+  /// No description provided for @identitasMaksudAnda.
+  ///
+  /// In en, this message translates to:
+  /// **'Did you mean?'**
+  String get identitasMaksudAnda;
+
+  /// No description provided for @identitasSeriDiKertas.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial number on the paper: {seri}'**
+  String identitasSeriDiKertas(String seri);
+
+  /// No description provided for @identitasBukanSatuPun.
+  ///
+  /// In en, this message translates to:
+  /// **'None of these, new instrument'**
+  String get identitasBukanSatuPun;
+
+  /// No description provided for @identitasAlatBaruPetunjuk.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled from the paper. Check it, then create.'**
+  String get identitasAlatBaruPetunjuk;
+
+  /// No description provided for @identitasBuatLanjut.
+  ///
+  /// In en, this message translates to:
+  /// **'Create and continue'**
+  String get identitasBuatLanjut;
+
+  /// No description provided for @identitasSedangMembuat.
+  ///
+  /// In en, this message translates to:
+  /// **'Creating…'**
+  String get identitasSedangMembuat;
+
+  /// No description provided for @identitasBatal.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get identitasBatal;
+
+  /// No description provided for @identitasTutup.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get identitasTutup;
+
+  /// No description provided for @identitasSeriWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial number not readable. Type it from the instrument body.'**
+  String get identitasSeriWajib;
+
+  /// No description provided for @identitasJenisAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Type: {jenis}'**
+  String identitasJenisAlat(String jenis);
+
+  /// No description provided for @identitasAlamat.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get identitasAlamat;
+
+  /// No description provided for @identitasBedaBaris.
+  ///
+  /// In en, this message translates to:
+  /// **'{label}: paper \"{kertas}\", registered \"{terdaftar}\"'**
+  String identitasBedaBaris(String label, String kertas, String terdaftar);
+
+  /// No description provided for @identitasPakaiTerdaftar.
+  ///
+  /// In en, this message translates to:
+  /// **'Use registered'**
+  String get identitasPakaiTerdaftar;
+
+  /// No description provided for @identitasTidakTerbaca.
+  ///
+  /// In en, this message translates to:
+  /// **'The identity on the paper could not be read. Pick an instrument below, or create a new one.'**
+  String get identitasTidakTerbaca;
+
+  /// No description provided for @identitasGagalCocok.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not match the instrument (server unreachable). Pick one below.'**
+  String get identitasGagalCocok;
+
+  /// No description provided for @identitasGagalBuat.
+  ///
+  /// In en, this message translates to:
+  /// **'Instrument not created: {pesan}'**
+  String identitasGagalBuat(String pesan);
+
+  /// No description provided for @identitasGagalUmum.
+  ///
+  /// In en, this message translates to:
+  /// **'Not done yet. Check the signal and try again.'**
+  String get identitasGagalUmum;
+
+  /// No description provided for @identitasSeriSudahTerdaftar.
+  ///
+  /// In en, this message translates to:
+  /// **'This serial number is already registered to \"{alat}\" ({pt}). Use that instrument, or change the serial number.'**
+  String identitasSeriSudahTerdaftar(String alat, String pt);
+
+  /// No description provided for @identitasSeriAlatLain.
+  ///
+  /// In en, this message translates to:
+  /// **'This serial number is registered to another instrument: \"{alat}\" ({pt}), not this worksheet\'s instrument type. It is not used and no new instrument is created. Check the serial number.'**
+  String identitasSeriAlatLain(String alat, String pt);
+
+  /// No description provided for @identitasSeriPemilikBeda.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner on the paper: {pemilik}. The registered owner is different; check before using it.'**
+  String identitasSeriPemilikBeda(String pemilik);
+
+  /// No description provided for @identitasPtMirip.
+  ///
+  /// In en, this message translates to:
+  /// **'Similar companies exist. Pick an existing one, or create a new company anyway.'**
+  String get identitasPtMirip;
+
+  /// No description provided for @identitasPtBaru.
+  ///
+  /// In en, this message translates to:
+  /// **'Create as a new company'**
+  String get identitasPtBaru;
+
+  /// No description provided for @identitasPtBaruAkanDidaftarkan.
+  ///
+  /// In en, this message translates to:
+  /// **'A new company will be registered: {nama}'**
+  String identitasPtBaruAkanDidaftarkan(String nama);
+
+  /// No description provided for @identitasTanggalKalibrasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration date on the paper: {tanggal}'**
+  String identitasTanggalKalibrasi(String tanggal);
+
+  /// No description provided for @identitasTanggalTerima.
+  ///
+  /// In en, this message translates to:
+  /// **'Received date on the paper: {tanggal}'**
+  String identitasTanggalTerima(String tanggal);
+
+  /// No description provided for @identitasPakaiTanggal.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this date'**
+  String get identitasPakaiTanggal;
+
+  /// No description provided for @identitasLengkapiNanti.
+  ///
+  /// In en, this message translates to:
+  /// **'Range and resolution can be completed later in Instrument master.'**
+  String get identitasLengkapiNanti;
+
+  /// No description provided for @identitasBukaAlatBaru.
+  ///
+  /// In en, this message translates to:
+  /// **'Check and create the instrument'**
+  String get identitasBukaAlatBaru;
+
+  /// No description provided for @ditahanJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Issuance on hold'**
+  String get ditahanJudul;
+
+  /// No description provided for @ditahanIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate issuance for this instrument type is on hold, waiting for the Technical Manager. The worksheet can still be filled in and calculated.'**
+  String get ditahanIsi;
+
+  /// No description provided for @ditahanRujukan.
+  ///
+  /// In en, this message translates to:
+  /// **'TM reference: {rujukan}'**
+  String ditahanRujukan(String rujukan);
+
+  /// No description provided for @ditahanVarian.
+  ///
+  /// In en, this message translates to:
+  /// **'Applies to: {varian}'**
+  String ditahanVarian(String varian);
+
+  /// No description provided for @ditahanSelengkapnya.
+  ///
+  /// In en, this message translates to:
+  /// **'Read the full reason'**
+  String get ditahanSelengkapnya;
+
+  /// No description provided for @ditahanSetujuTertahan.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve becomes available once the Technical Manager lifts the hold.'**
+  String get ditahanSetujuTertahan;
+
+  /// No description provided for @ditahanDialogJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate issuance is on hold'**
+  String get ditahanDialogJudul;
+
+  /// No description provided for @ditahanDialogIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'This certificate cannot be issued yet. The session is still waiting for approval and the certificate number you typed is not used.'**
+  String get ditahanDialogIsi;
+
+  /// No description provided for @ditahanDialogAlasan.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get ditahanDialogAlasan;
+
+  /// No description provided for @ditahanDialogTutup.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get ditahanDialogTutup;
+
+  /// No description provided for @crudPenugasanAksiSelesaikan.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete'**
+  String get crudPenugasanAksiSelesaikan;
+
+  /// No description provided for @crudPenugasanAksiBukaLagi.
+  ///
+  /// In en, this message translates to:
+  /// **'Reopen'**
+  String get crudPenugasanAksiBukaLagi;
+
+  /// No description provided for @crudPenugasanSiapDitutup.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready to complete'**
+  String get crudPenugasanSiapDitutup;
+
+  /// No description provided for @crudPenugasanSelesaiPada.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed {tanggal}'**
+  String crudPenugasanSelesaiPada(String tanggal);
+
+  /// No description provided for @crudPenugasanSelesaiJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete the assignment \"{judul}\"?'**
+  String crudPenugasanSelesaiJudul(String judul);
+
+  /// No description provided for @crudPenugasanSelesaiIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'All equipment rows are done. The assignment is marked Completed and its members are notified. Only a super admin can reopen it.'**
+  String get crudPenugasanSelesaiIsi;
+
+  /// No description provided for @crudPenugasanSelesaiAksi.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete'**
+  String get crudPenugasanSelesaiAksi;
+
+  /// No description provided for @crudPenugasanSelesaiBerhasil.
+  ///
+  /// In en, this message translates to:
+  /// **'Assignment completed.'**
+  String get crudPenugasanSelesaiBerhasil;
+
+  /// No description provided for @crudPenugasanSudahSelesai.
+  ///
+  /// In en, this message translates to:
+  /// **'This assignment was already completed.'**
+  String get crudPenugasanSudahSelesai;
+
+  /// No description provided for @crudPenugasanBukaLagiJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Reopen the assignment \"{judul}\"?'**
+  String crudPenugasanBukaLagiJudul(String judul);
+
+  /// No description provided for @crudPenugasanBukaLagiIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'The assignment becomes Active again: technicians can report progress and it can be completed again. Reported progress does not change. Members are notified with your reason.'**
+  String get crudPenugasanBukaLagiIsi;
+
+  /// No description provided for @crudPenugasanBukaLagiAksi.
+  ///
+  /// In en, this message translates to:
+  /// **'Reopen'**
+  String get crudPenugasanBukaLagiAksi;
+
+  /// No description provided for @crudPenugasanBukaLagiBerhasil.
+  ///
+  /// In en, this message translates to:
+  /// **'Assignment reopened.'**
+  String get crudPenugasanBukaLagiBerhasil;
+
+  /// No description provided for @crudGalatPenugasanBelumTuntas.
+  ///
+  /// In en, this message translates to:
+  /// **'This assignment is only {persen}% complete. Have the technician report progress on every row first, then try again.'**
+  String crudGalatPenugasanBelumTuntas(int persen);
+
+  /// No description provided for @crudGalatPenugasanBelumTuntasUmum.
+  ///
+  /// In en, this message translates to:
+  /// **'This assignment is not complete yet. Have the technician report progress on every row first, then try again.'**
+  String get crudGalatPenugasanBelumTuntasUmum;
+
+  /// No description provided for @crudGalatPenugasanTidakSelesai.
+  ///
+  /// In en, this message translates to:
+  /// **'This assignment is not marked Completed, so it cannot be reopened. A cancelled assignment is never reopened; create a new one.'**
+  String get crudGalatPenugasanTidakSelesai;
+
+  /// No description provided for @perhitSesiTidakAda.
+  ///
+  /// In en, this message translates to:
+  /// **'This session no longer exists on the server. It may have been archived or deleted by an admin.'**
+  String get perhitSesiTidakAda;
+
+  /// No description provided for @crudPenugasanSudahAktif.
+  ///
+  /// In en, this message translates to:
+  /// **'This assignment was already reopened.'**
+  String get crudPenugasanSudahAktif;
 }
 
 class _AppLocalizationsDelegate

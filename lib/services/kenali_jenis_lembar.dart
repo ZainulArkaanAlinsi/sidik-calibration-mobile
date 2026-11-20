@@ -37,6 +37,12 @@ typedef PutarFoto = Future<img.Image> Function(img.Image foto, int sudut);
 /// [jpegAsli] = JPEG kamera apa adanya (dibaca ML Kit langsung, tanpa encode
 /// ulang PNG). Orientasinya dihitung dari EXIF [foto] dan [sudut] seperti
 /// `JalankanPindaiAsli._kenali`, dan [MlKitPembacaHalaman] menjaga bingkainya.
+///
+/// [padaTeksHalaman] (opsional) dipanggil SEKALI dengan elemen teks + kotaknya
+/// dari putaran yang menghasilkan hasil yang dikembalikan (kertas sudah tegak).
+/// Itu bahan membaca identitas kertas (`bacaIdentitasKertas`) tanpa membaca
+/// halaman kedua kali; tidak dipanggil bila tidak ada petunjuk sama sekali.
+/// Teks hanya dipegang di memori; tidak ada citra yang keluar dari sini.
 Future<HasilJenisLembar?> kenaliJenisLembar({
   required img.Image foto,
   required PembacaHalaman halaman,
@@ -44,11 +50,13 @@ Future<HasilJenisLembar?> kenaliJenisLembar({
   Uint8List? jpegAsli,
   PutarFoto putar = putarFotoDiIsolate,
   List<int> sudut = urutanSudutKenali,
+  void Function(List<TeksTerbaca> terbaca)? padaTeksHalaman,
 }) async {
   final ifd = foto.exif.imageIfd;
   final orientasiAsal = ifd.hasOrientation ? ifd.orientation ?? 1 : 1;
 
   HasilJenisLembar? terbaik;
+  List<TeksTerbaca>? teksTerbaik;
 
   for (final s in sudut) {
     // Citra yang dibaca = EXIF dipanggang lalu diputar [s]; foto asli dipakai
@@ -67,10 +75,19 @@ Future<HasilJenisLembar?> kenaliJenisLembar({
 
     final hasil = identifikasiLembar(teksHalaman(terbaca), dikenal: dikenal);
     if (hasil == null) continue;
-    if (_cukupUntukBerhenti(hasil)) return hasil;
+    if (_cukupUntukBerhenti(hasil)) {
+      padaTeksHalaman?.call(terbaca);
 
-    if (terbaik == null || _lebihBaik(hasil, terbaik)) terbaik = hasil;
+      return hasil;
+    }
+
+    if (terbaik == null || _lebihBaik(hasil, terbaik)) {
+      terbaik = hasil;
+      teksTerbaik = terbaca;
+    }
   }
+
+  if (teksTerbaik != null) padaTeksHalaman?.call(teksTerbaik);
 
   return terbaik;
 }

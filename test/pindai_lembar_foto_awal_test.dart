@@ -57,11 +57,11 @@ import 'support/daftar_pindai_uji.dart';
 ///  - `dariFoto` null (bawaan, jalur manual "Mulai kalibrasi"): TIDAK ada
 ///    dialog "Mau diisi bagaimana?" dan tidak ada banner; satu tombol foto
 ///    kecil membuka kamera;
-///  - `dariFoto` + alat: foto dibaca OTOMATIS begitu lembar siap (tanpa
-///    kamera, dialog, atau tombol kedua); SESUDAH hasil, SATU tombol "Foto
-///    ulang" yang membuka kamera, sekali pakai;
-///  - `dariFoto` tanpa alat: tidak ada yang berjalan sendiri; "Isi dari foto"
-///    memakai foto beranda (bukan kamera) sesudah alat dipilih;
+///  - `dariFoto` (alur LINEAR, tanpa alat yang dipilihkan): foto dibaca
+///    OTOMATIS begitu lembar siap (tanpa kamera, dialog, tombol kedua, atau
+///    menunggu alat); kode formulir ikut ke server sebagai `kode_dokumen`;
+///    gagal baca = pesan saja (tanpa dialog dua tombol); SESUDAH percobaan
+///    pertama, SATU tombol kecil "Foto ulang" yang membuka kamera;
 ///  - alur beranda membawa byte JPEG yang sama persis ke lembar kerja, dan
 ///    kamera cuma dibuka satu kali dari beranda sampai sel dibaca.
 const _teknisi = 'mock-token-2';
@@ -181,11 +181,17 @@ class _LayananAsliTerkendali extends MockWorksheetScanService {
     String token,
     String kode, {
     int? equipmentId,
+    String? kodeDokumen,
   }) {
     final t = tahan;
     if (t != null) return t.future;
 
-    return super.templateAsli(token, kode, equipmentId: equipmentId);
+    return super.templateAsli(
+      token,
+      kode,
+      equipmentId: equipmentId,
+      kodeDokumen: kodeDokumen,
+    );
   }
 }
 
@@ -224,14 +230,18 @@ class _AlatSatu extends MockEquipmentLookupService {
 }
 
 /// Bekal lembar dari foto beranda untuk tes yang membuka `LembarKerjaScreen`
-/// langsung. [tanpaAlat] = alat belum ditentukan alur.
-DariFotoLembar _dariFoto({bool tanpaAlat = false}) => DariFotoLembar(
+/// langsung. Alur LINEAR: tidak pernah membawa alat.
+DariFotoLembar _dariFoto({String? kodeDokumen}) => DariFotoLembar(
   jpeg: _fotoBeranda,
   jenis: 'pH Meter',
   otomatis: true,
-  alatAwal: tanpaAlat ? null : daftarAlatMock.firstWhere((a) => a.id == 14),
+  kodeDokumen: kodeDokumen,
   gantiJenis: (_) async => null,
 );
+
+/// Pesan gagal baca di lembar dari foto (snackbar), pengganti dialog dua tombol.
+final _pesanGagal = find.byKey(const ValueKey('pesan-foto-gagal'));
+bool _adaPesanGagal() => _pesanGagal.evaluate().isNotEmpty;
 
 final _dialogUlang = find.byKey(const ValueKey('dialog-foto-ulang'));
 final _tombolUlang = find.byKey(const ValueKey('foto-ulang'));
@@ -387,8 +397,9 @@ void main() {
     });
 
     testWidgets(
-      'dariFoto + alat: foto beranda dibaca OTOMATIS tanpa dialog dan '
-      'tanpa tombol; kamera tidak dibuka; hasilnya lewat layar periksa',
+      'dariFoto (tanpa alat): foto beranda dibaca OTOMATIS tanpa dialog, '
+      'tanpa tombol, tanpa menunggu alat; kamera tidak dibuka; hasilnya lewat '
+      'layar periksa',
       (tester) async {
         await pasang(tester, dariFoto: _dariFoto(), mesinSukses: true);
 
@@ -417,20 +428,28 @@ void main() {
       },
     );
 
-    testWidgets('dariFoto + alat: SESUDAH hasil, tepat satu tombol "Foto '
-        'ulang" (bukan "Foto worksheet"); menekannya = kamera', (tester) async {
-      // Mesin gagal-mutu (pembaca tiruan kosong): dialog "Foto ulang" muncul.
+    testWidgets('gagal baca: pesan saja (TANPA dialog dua tombol); sesudah '
+        'percobaan pertama tepat satu tombol kecil "Foto ulang" = kamera', (
+      tester,
+    ) async {
+      // Mesin sungguhan dengan pembaca tiruan kosong: kode tidak terbaca.
       await pasang(tester, dariFoto: _dariFoto());
-      await _tunggu(tester, _adaDialogUlang);
+      await _tunggu(tester, _adaPesanGagal);
+      expect(_pesanGagal, findsOneWidget);
+      expect(
+        _dialogUlang,
+        findsNothing,
+        reason: 'tidak ada dialog Tutup/Foto ulang',
+      );
+      expect(_tombolUlang, findsNothing);
+      expect(_tutupUlang, findsNothing);
       expect(kamera.jumlahAmbil, 0, reason: 'percobaan pertama = foto beranda');
       expect(pembaca.jpeg, isNotEmpty);
       for (final j in pembaca.jpeg) {
         expect(j, orderedEquals(_fotoBeranda));
       }
 
-      // Tutup dialog "Foto ulang" milik alur: hasil sudah ada, jalan ulang
-      // sekarang lewat SATU tombol di lembar.
-      await tester.tap(_tutupUlang);
+      // Jalan ulang lewat SATU tombol di lembar.
       await tester.pumpAndSettle();
       expect(_tombolFoto, findsOneWidget);
       expect(find.byIcon(Icons.photo_camera_outlined), findsOneWidget);
@@ -442,70 +461,57 @@ void main() {
       await tester.tap(_tombolFoto);
       await tester.pump();
       await _tunggu(tester, () => pembaca.jpeg.length > bacaPertama);
-      await _tunggu(tester, _adaDialogUlang);
 
       expect(kamera.jumlahAmbil, 1, reason: 'foto awal sekali pakai');
       for (final j in pembaca.jpeg.sublist(bacaPertama)) {
         expect(j, orderedEquals(_fotoKamera));
       }
+      expect(_dialogUlang, findsNothing);
     });
 
-    testWidgets('dariFoto TANPA alat: tidak dibaca otomatis; banner memberi '
-        'petunjuk; "Isi dari foto" memakai foto beranda (bukan kamera) '
-        'sesudah alat dipilih', (tester) async {
-      await pasang(tester, dariFoto: _dariFoto(tanpaAlat: true));
-
-      // Tidak ada yang berjalan sendiri. Decode jalan di Isolate (waktu
-      // nyata), jadi ditunggu dulu; tanpa menunggu, tes ini lolos walau
-      // pindainya jalan.
-      await _tunggu(
+    testWidgets('alur linear: TANPA alat foto tetap dibaca otomatis; kode '
+        'formulir ikut ke server sebagai kode_dokumen; tidak ada petunjuk '
+        '"pilih alat" dan tidak ada "Isi dari foto"', (tester) async {
+      final layanan = MockWorksheetScanService(formulirAsli: _formulirAsli());
+      await pasang(
         tester,
-        () => pembacaDibuat > 0 || kamera.jumlahAmbil > 0 || _adaDialogUlang(),
-        maks: 30,
+        dariFoto: _dariFoto(kodeDokumen: 'SIDIK-FM-CAL-0509'),
+        layanan: layanan,
       );
-      expect(kamera.jumlahAmbil, 0);
-      expect(pembacaDibuat, 0);
-      expect(find.byType(AlertDialog), findsNothing);
-      expect(find.byKey(BannerJenisDariFoto.kunciPetunjukAlat), findsOneWidget);
-      // SATU tombol foto, berlabel "Isi dari foto".
-      expect(_tombolFoto, findsOneWidget);
-      expect(find.text('Isi dari foto'), findsOneWidget);
-      expect(find.text('Foto worksheet'), findsNothing);
+      await _tunggu(tester, _adaPesanGagal);
 
-      await _pilihAlat(tester);
-      expect(pembacaDibuat, 0, reason: 'memilih alat tidak memulai pindai');
-
-      await tester.tap(_tombolFoto);
-      await tester.pump();
-      await _tunggu(tester, _adaDialogUlang);
-
-      expect(kamera.jumlahAmbil, 0, reason: 'memakai foto beranda');
+      // Dibaca sendiri, dari foto beranda, tanpa alat.
       expect(pembacaDibuat, 1);
+      expect(kamera.jumlahAmbil, 0);
       for (final j in pembaca.jpeg) {
         expect(j, orderedEquals(_fotoBeranda));
       }
-      expect(_dialogUlang, findsOneWidget);
+      // Peta formulir diminta TANPA alat tetapi DENGAN kode formulir.
+      expect(
+        layanan.kodeAsliDiminta.map((e) => e.equipmentId),
+        everyElement(isNull),
+      );
+      expect(layanan.kodeDokumenDiminta, contains('SIDIK-FM-CAL-0509'));
+      expect(
+        find.text(
+          'Pilih alatnya dulu, lalu ketuk tombol kamera "Foto worksheet" di atas lembar.',
+        ),
+        findsNothing,
+      );
+      expect(
+        find.text('Pilih alat di bawah, lalu ketuk "Isi dari foto".'),
+        findsNothing,
+        reason: 'petunjuk lama "pilih alat dulu" sudah dibuang',
+      );
+      expect(find.text('Isi dari foto'), findsNothing);
       expect(pembaca.jumlahTutup, 1, reason: 'pembaca ditutup');
-
-      // Foto ulang: kamera dibuka, dan yang dibaca foto KAMERA.
-      final bacaPertama = pembaca.jpeg.length;
-      await tester.tap(_tombolUlang);
-      await tester.pump();
-      await _tunggu(tester, () => pembaca.jpeg.length > bacaPertama);
-      await _tunggu(tester, _adaDialogUlang);
-
-      expect(kamera.jumlahAmbil, 1);
-      for (final j in pembaca.jpeg.sublist(bacaPertama)) {
-        expect(j, orderedEquals(_fotoKamera), reason: 'bukan foto beranda');
-      }
     });
 
     testWidgets('foto beranda SEKALI pakai walau lembar dibangun ulang '
         '(didUpdateWidget tidak boleh membacanya lagi)', (tester) async {
       await pasang(tester, dariFoto: _dariFoto());
-      await _tunggu(tester, _adaDialogUlang);
+      await _tunggu(tester, _adaPesanGagal);
       expect(kamera.jumlahAmbil, 0);
-      await tester.tap(_tutupUlang);
       await tester.pumpAndSettle();
       final dibaca = pembaca.jpeg.length;
 
@@ -544,7 +550,6 @@ void main() {
       await tester.tap(_tombolFoto);
       await tester.pump();
       await _tunggu(tester, () => pembaca.jpeg.length > dibaca);
-      await _tunggu(tester, _adaDialogUlang);
 
       expect(kamera.jumlahAmbil, 1, reason: 'foto awal tidak hidup lagi');
       for (final j in pembaca.jpeg.sublist(dibaca)) {
@@ -553,8 +558,8 @@ void main() {
     });
 
     testWidgets('formulir BELUM siap waktu lembar dibuka: pesan jujur, foto '
-        'beranda TIDAK hangus; sesudah siap, "Isi dari foto" memakainya (bukan '
-        'kamera)', (tester) async {
+        'beranda TIDAK hangus; sesudah siap, tombol "Foto ulang" memakainya '
+        '(bukan kamera)', (tester) async {
       final layanan = _LayananAsliTerkendali(_formulirAsli());
       layanan.tahan = Completer<WorksheetTemplate?>();
       await pasang(tester, dariFoto: _dariFoto(), layanan: layanan);
@@ -576,18 +581,24 @@ void main() {
       final container = ProviderScope.containerOf(
         tester.element(find.byType(LembarKerjaScreen)),
       );
-      // 14 = pH Meter Mettler Toledo di MockEquipmentLookupService.
+      // Alur linear: peta diminta tanpa alat dan tanpa kode formulir (bekal
+      // `_dariFoto()` tidak membawa kode).
       container.invalidate(
-        formulirAsliProvider((kode: 'ph_meter', equipmentId: 14)),
+        formulirAsliProvider((
+          kode: 'ph_meter',
+          equipmentId: null,
+          kodeDokumen: null,
+        )),
       );
       await tester.pump();
       await tester.pumpAndSettle();
       expect(_tombolFoto, findsOneWidget);
-      expect(find.text('Isi dari foto'), findsOneWidget);
+      expect(find.text('Foto ulang'), findsOneWidget);
+      expect(find.text('Isi dari foto'), findsNothing);
 
       await tester.tap(_tombolFoto);
       await tester.pump();
-      await _tunggu(tester, _adaDialogUlang);
+      await _tunggu(tester, _adaPesanGagal);
 
       expect(kamera.jumlahAmbil, 0, reason: 'foto awal belum pernah dipakai');
       expect(pembacaDibuat, 1);
@@ -596,17 +607,16 @@ void main() {
       }
     });
 
-    testWidgets('lembar ditutup sebelum foto sempat dibaca (tanpa alat): '
-        'tidak memicu apa pun', (tester) async {
-      await pasang(tester, dariFoto: _dariFoto(tanpaAlat: true));
+    testWidgets('lembar ditutup selagi foto dibaca: tidak melempar dan tidak '
+        'membuka kamera', (tester) async {
+      await pasang(tester, dariFoto: _dariFoto());
 
-      // Layar diganti: lembar kerja ditutup tanpa foto dipakai.
+      // Layar diganti: lembar kerja ditutup di tengah/sesudah pembacaan.
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pumpAndSettle();
+      await _tunggu(tester, () => false, maks: 10);
 
       expect(kamera.jumlahAmbil, 0);
-      expect(pembacaDibuat, 0);
-      expect(pembaca.jumlahBaca, 0);
       expect(tester.takeException(), isNull);
     });
   });
@@ -624,6 +634,7 @@ void main() {
       Uint8List? bitaAwal,
       List<int>? bitaKamera,
       bool Function()? selesai,
+      bool tanpaDialog = false,
     }) async {
       final kamera = _KameraSegar(dir, bitaKamera ?? _fotoKamera);
       final isian = LembarKerjaState(
@@ -650,6 +661,7 @@ void main() {
                       template: template,
                       mesin: mesin,
                       bitaAwal: bitaAwal,
+                      tanpaDialogFotoUlang: tanpaDialog,
                     );
                   },
                   child: const Text('foto'),
@@ -707,6 +719,27 @@ void main() {
 
       await tester.tap(_tutupUlang);
       await tester.pumpAndSettle();
+      expect(await r.hasil, 0);
+    });
+
+    testWidgets('tanpaDialogFotoUlang: foto buram = pesan saja, TANPA dialog '
+        'dan tanpa membuka kamera; hasilnya 0 (jalur manual tetap berdialog)', (
+      tester,
+    ) async {
+      final mesin = _MesinGagalMutu();
+      final r = await mulai(
+        tester,
+        mesin: mesin,
+        bitaAwal: _fotoBeranda,
+        tanpaDialog: true,
+        selesai: _adaPesanGagal,
+      );
+
+      expect(_pesanGagal, findsOneWidget);
+      expect(_dialogUlang, findsNothing);
+      expect(_tombolUlang, findsNothing);
+      expect(r.kamera.jumlahAmbil, 0);
+      expect(mesin.diterima, hasLength(1));
       expect(await r.hasil, 0);
     });
 
@@ -867,11 +900,12 @@ void main() {
       expect(lembar.profil, 'ph_meter');
       expect(lembar.dariFoto, isNotNull);
       expect(lembar.dariFoto!.jpeg, orderedEquals(_fotoBeranda));
-      expect(lembar.dariFoto!.alatAwal!.id, 14);
+      // Linear: satu-satunya alat jenis ini TIDAK dipilih sendiri.
+      expect(find.text('pH Meter Mettler Toledo · B628755900'), findsNothing);
 
       // Foto SAMA dibaca di lembar: kamera tetap satu kali, pembaca kedua
       // (pindai sel) menerima byte yang persis sama.
-      await _tunggu(tester, _adaDialogUlang);
+      await _tunggu(tester, _adaPesanGagal);
       expect(kamera.jumlahAmbil, 1, reason: 'tidak memotret dua kali');
       expect(pembacaDibuat, 2, reason: 'mengenali jenis + membaca isi');
       expect(pembaca.jpeg.length, greaterThan(1));
@@ -879,9 +913,11 @@ void main() {
         expect(j, orderedEquals(_fotoBeranda));
       }
 
-      // Kode formulir tidak terbaca di pembaca tiruan -> Foto ulang -> kamera.
-      expect(_dialogUlang, findsOneWidget);
-      await tester.tap(_tombolUlang);
+      // Kode formulir tidak terbaca di pembaca tiruan -> pesan + tombol kecil
+      // "Foto ulang" di lembar -> kamera.
+      expect(_dialogUlang, findsNothing);
+      await tester.pumpAndSettle();
+      await tester.tap(_tombolFoto);
       await tester.pump();
       await _tunggu(tester, () => kamera.jumlahAmbil >= 2);
       expect(kamera.jumlahAmbil, 2, reason: 'foto ulang = kamera lagi');

@@ -5,6 +5,7 @@ import '../../../core/theme/bentuk_lab.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../models/order_kelola.dart' show tanggalDariServer;
 import '../../../models/penugasan.dart';
+import '../../../widgets/app_button.dart';
 import '../../../widgets/status_badge.dart';
 import '../../super_admin/widgets/format_sa.dart';
 
@@ -12,17 +13,30 @@ import '../../super_admin/widgets/format_sa.dart';
 /// progres, target, dan jejak pembatalan. Menu ⋮ memuat hanya aksi yang BOLEH
 /// ([saatUbah]/[saatBatalkan] null = tidak digambar), dan hanya untuk
 /// penugasan aktif (server menolak sisanya `422 penugasan_tidak_aktif`).
+///
+/// Dua aksi penutup (PR #284) sengaja DITAMPILKAN sebagai tombol, bukan
+/// disembunyikan di menu: "Selesaikan" muncul hanya untuk penugasan yang siap
+/// ditutup ([Penugasan.siapDitutup]) dan "Buka lagi" hanya untuk yang sudah
+/// selesai — keduanya keputusan orang yang menunggu dipencet, bukan aksi langka.
 class KartuPenugasan extends StatelessWidget {
   const KartuPenugasan({
     super.key,
     required this.penugasan,
     this.saatUbah,
     this.saatBatalkan,
+    this.saatSelesaikan,
+    this.saatBukaLagi,
   });
 
   final Penugasan penugasan;
   final VoidCallback? saatUbah;
   final VoidCallback? saatBatalkan;
+
+  /// null = tidak ada izin `penugasan.selesaikan`: tombol tidak digambar.
+  final VoidCallback? saatSelesaikan;
+
+  /// null = bukan super admin (`penugasan.buka-lagi`): tombol tidak digambar.
+  final VoidCallback? saatBukaLagi;
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +54,9 @@ class KartuPenugasan extends StatelessWidget {
     final target = p.tanggalTarget;
     final batal = p.batal;
     final batalTanggal = tanggalDariServer(batal?.pada);
+    final selesaiTanggal = p.selesai
+        ? tanggalDariServer(p.diselesaikanPada)
+        : null;
     final redup = tema.textTheme.bodySmall?.copyWith(
       color: tema.colorScheme.onSurfaceVariant,
     );
@@ -118,6 +135,12 @@ class KartuPenugasan extends StatelessWidget {
                       tone: BadgeTone.warning,
                       icon: Icons.schedule,
                     ),
+                  if (p.siapDitutup)
+                    StatusBadge(
+                      label: l10n.crudPenugasanSiapDitutup,
+                      tone: BadgeTone.success,
+                      icon: Icons.task_alt,
+                    ),
                 ],
               ),
             ),
@@ -156,6 +179,10 @@ class KartuPenugasan extends StatelessWidget {
                   l10n.crudPenugasanBaris(p.baris.length),
                   if (target != null)
                     l10n.crudPenugasanTarget(tanggalSa(context, target)),
+                  if (selesaiTanggal != null)
+                    l10n.crudPenugasanSelesaiPada(
+                      tanggalSa(context, selesaiTanggal),
+                    ),
                 ].join(' · '),
                 style: redup,
                 maxLines: 4,
@@ -181,9 +208,46 @@ class KartuPenugasan extends StatelessWidget {
                 ),
               ),
             ],
+            if (p.siapDitutup && saatSelesaikan != null)
+              _AksiBawah(
+                child: AppButton(
+                  key: Key('selesaikan-penugasan-${p.id}'),
+                  label: l10n.crudPenugasanAksiSelesaikan,
+                  icon: Icons.task_alt,
+                  ringkas: true,
+                  onPressed: saatSelesaikan,
+                ),
+              ),
+            if (p.selesai && saatBukaLagi != null)
+              _AksiBawah(
+                child: AppButton(
+                  key: Key('buka-lagi-penugasan-${p.id}'),
+                  label: l10n.crudPenugasanAksiBukaLagi,
+                  icon: Icons.replay,
+                  variant: AppButtonVariant.secondary,
+                  ringkas: true,
+                  onPressed: saatBukaLagi,
+                ),
+              ),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Tombol penutup di dasar kartu, rata ke ujung supaya tidak berlomba dengan
+/// teks kartu di layar sempit.
+class _AksiBawah extends StatelessWidget {
+  const _AksiBawah({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.sm, right: AppSpacing.sm),
+      child: Align(alignment: AlignmentDirectional.centerEnd, child: child),
     );
   }
 }

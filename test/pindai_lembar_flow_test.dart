@@ -26,6 +26,7 @@ import 'package:sidik_calibration/screens/calibration/lembar_kerja_screen.dart';
 import 'package:sidik_calibration/screens/calibration/widgets/tanda_cek_sel.dart'
     show PanelGerbangCek;
 import 'package:sidik_calibration/screens/pindai/banner_jenis_dari_foto.dart';
+import 'package:sidik_calibration/screens/pindai/blok_identitas_foto.dart';
 import 'package:sidik_calibration/screens/pindai/pindai_lembar_flow.dart';
 import 'package:sidik_calibration/services/calibration_service.dart';
 import 'package:sidik_calibration/services/catatan_identifikasi_lembar.dart';
@@ -47,6 +48,7 @@ import 'package:sidik_calibration/widgets/pilih_jenis_ringkas_sheet.dart';
 import 'package:sidik_calibration/widgets/tombol_pindai_lembar.dart';
 
 import 'support/daftar_pindai_uji.dart';
+import 'support/halaman_identitas_uji.dart';
 
 /// Alur "Pindai lembar kerja" dari beranda — SATU pintu foto: foto -> jenis
 /// dikenali OTOMATIS (kode unik + skor tinggi) -> lembar yang tepat terbuka ->
@@ -104,6 +106,23 @@ class _PembacaPutaran implements PembacaHalaman {
     jumlahTutup++;
     if (tutupMelempar) throw StateError('tutup gagal');
   }
+}
+
+/// Pembaca halaman yang menyerahkan ELEMEN teks berikut kotaknya (seperti ML
+/// Kit sehalaman) pada pembacaan pertama, lalu kosong. Bahan identitas kertas.
+class _PembacaElemen implements PembacaHalaman {
+  _PembacaElemen(this.halaman);
+
+  final List<TeksTerbaca> halaman;
+  int jumlahBaca = 0;
+  int jumlahTutup = 0;
+
+  @override
+  Future<List<TeksTerbaca>> baca(img.Image citra, {FotoAsli? asli}) async =>
+      jumlahBaca++ == 0 ? halaman : const [];
+
+  @override
+  Future<void> tutup() async => jumlahTutup++;
 }
 
 /// [daftarTemplate] yang bisa dibuat gagal (tanpa koneksi).
@@ -244,7 +263,7 @@ class _Uji {
   }
 
   final List<WorksheetTemplate> daftar;
-  final _PembacaPutaran? pembaca;
+  final PembacaHalaman? pembaca;
   final bool fotoRusak;
   final bool batalKamera;
   final Object? galatKamera;
@@ -414,7 +433,9 @@ void main() {
       final dari = lembar.dariFoto!;
       expect(dari.otomatis, isTrue);
       expect(dari.jenis, 'pH Meter');
-      expect(dari.alatAwal, _alatPh, reason: 'satu-satunya alat jenis ini');
+      // Alur LINEAR: satu-satunya alat jenis ini TIDAK dipilih sendiri; kode
+      // formulir yang terbaca dibawa untuk memilih peta tanpa alat.
+      expect(dari.kodeDokumen, 'SIDIK-FM-CAL-0509');
       // Foto yang sama: byte JPEG kamera apa adanya, bukan citra hasil decode.
       expect(dari.jpeg, orderedEquals(bitaKamera));
       // Dibungkus BekuLembarKerja (kontrak L1a): tema beku, bukan tema app.
@@ -730,139 +751,174 @@ void main() {
     });
   });
 
-  group('alat: satu = otomatis, beberapa = satu ketukan', () {
-    testWidgets('satu alat aktif (alat nonaktif diabaikan): dipilih sendiri, '
-        'tanpa daftar alat', (tester) async {
-      final uji = _Uji(
-        daftar: _daftar(),
-        pembaca: _PembacaPutaran([_kakiPh]),
-        alat: [
-          _alatPh,
-          _alat(31, 'pH Meter Lama', status: 'nonaktif'),
-        ],
-        mesin: _MesinPalsu(),
-      );
-      await _pasang(tester, uji);
-      await _pindai(tester);
+  group(
+    'alur LINEAR: tidak ada alat yang dipilihkan sebelum kertas dibaca',
+    () {
+      final alatDipilih = find.text('pH Meter Mettler Toledo · B628755900');
 
-      expect(find.byType(PilihAlatRingkasSheet), findsNothing);
-      expect(_lembar(tester).dariFoto!.alatAwal!.id, 14);
-      // Daftar alat diminta per jenis (profil), bukan semua alat lab.
-      expect(uji.profilAlatDiminta, contains('ph_meter'));
-    });
-
-    testWidgets('beberapa alat: daftar pendek, SATU ketukan, lembar dibuka '
-        'dengan alat itu', (tester) async {
-      final uji = _Uji(
-        daftar: _daftar(),
-        pembaca: _PembacaPutaran([_kakiPh]),
-        alat: [
-          _alatPh,
-          _alat(21, 'pH Meter Hanna', pelanggan: 'PT CONTOH'),
-        ],
-        mesin: _MesinPalsu(),
-      );
-      await _pasang(tester, uji);
-      await _pindai(tester);
-
-      expect(find.byType(PilihAlatRingkasSheet), findsOneWidget);
-      expect(find.text('Pilih alat'), findsOneWidget);
-      expect(
-        find.text('Ada 2 alat pH Meter. Pilih yang sedang dikalibrasi.'),
-        findsOneWidget,
-      );
-      expect(find.byType(LembarKerjaScreen), findsNothing);
-      expect(find.byKey(PilihAlatRingkasSheet.kunciCari), findsNothing);
-
-      await tester.tap(find.byKey(PilihAlatRingkasSheet.kunciBaris(21)));
-      await tester.pump();
-      await _tunggu(tester, _adaLembar);
-
-      expect(_lembar(tester).dariFoto!.alatAwal!.id, 21);
-    });
-
-    testWidgets(
-      '"Pilih nanti di lembar": lembar terbuka tanpa alat, foto TIDAK '
-      'dibaca sebelum alat dipilih, banner memberi petunjuk',
-      (tester) async {
+      testWidgets('satu alat terdaftar untuk jenis ini: TIDAK dipilih sendiri, '
+          'tanpa daftar alat; kertas dibaca tanpa alat dengan kode formulir', (
+        tester,
+      ) async {
         final mesin = _MesinPalsu();
         final uji = _Uji(
           daftar: _daftar(),
           pembaca: _PembacaPutaran([_kakiPh]),
-          alat: [_alatPh, _alat(21, 'pH Meter Hanna')],
+          alat: [
+            _alatPh,
+            _alat(31, 'pH Meter Lama', status: 'nonaktif'),
+          ],
           mesin: mesin,
         );
         await _pasang(tester, uji);
         await _pindai(tester);
 
-        await tester.tap(find.byKey(PilihAlatRingkasSheet.kunciNanti));
-        await tester.pump();
-        await _tunggu(tester, _adaLembar);
-        await tester.pump(const Duration(milliseconds: 600));
-        await _tunggu(tester, () => mesin.diterima.isNotEmpty, maks: 20);
+        expect(find.byType(PilihAlatRingkasSheet), findsNothing);
+        expect(alatDipilih, findsNothing, reason: 'alat tidak dipilihkan');
+        await _tunggu(tester, () => mesin.diterima.isNotEmpty);
+        // Peta formulir diminta TANPA alat, DENGAN kode formulir dari kertas.
+        expect(uji.layanan.kodeAsliDiminta.map((e) => e.equipmentId), [null]);
+        expect(uji.layanan.kodeDokumenDiminta, ['SIDIK-FM-CAL-0509']);
+      });
 
-        expect(_lembar(tester).dariFoto!.alatAwal, isNull);
-        expect(mesin.diterima, isEmpty, reason: 'belum ada alat, belum dibaca');
+      testWidgets(
+        'beberapa alat: tidak ada daftar pendek, tidak ada yang dipilih',
+        (tester) async {
+          final uji = _Uji(
+            daftar: _daftar(),
+            pembaca: _PembacaPutaran([_kakiPh]),
+            alat: [
+              _alatPh,
+              _alat(21, 'pH Meter Hanna', pelanggan: 'PT CONTOH'),
+            ],
+            mesin: _MesinPalsu(),
+          );
+          await _pasang(tester, uji);
+          await _pindai(tester);
+
+          expect(find.byType(PilihAlatRingkasSheet), findsNothing);
+          expect(find.byType(LembarKerjaScreen), findsOneWidget);
+          expect(alatDipilih, findsNothing);
+          expect(find.text('pH Meter Hanna · SN-21'), findsNothing);
+        },
+      );
+
+      testWidgets('daftar alat gagal dimuat: lembar tetap terbuka, tanpa galat '
+          'mentah', (tester) async {
+        final uji = _Uji(
+          daftar: _daftar(),
+          pembaca: _PembacaPutaran([_kakiPh]),
+          alatGagal: true,
+          mesin: _MesinPalsu(),
+        );
+        await _pasang(tester, uji);
+        await _pindai(tester);
+
+        expect(find.byType(LembarKerjaScreen), findsOneWidget);
+        expect(find.textContaining('Exception'), findsNothing);
+        expect(find.byType(PilihAlatRingkasSheet), findsNothing);
+      });
+
+      testWidgets(
+        'kode bersama (0504): jenis yang diketuk dari kandidat memakai '
+        'KODE TERCETAK sebagai kode_dokumen',
+        (tester) async {
+          final uji = _Uji(
+            daftar: _daftar(),
+            pembaca: _PembacaPutaran(['Revise : 4 SIDIK-FM-CAL-0504']),
+            mesin: _MesinPalsu(),
+          );
+          await _pasang(tester, uji);
+          await _pindai(tester);
+
+          await tester.tap(_baris('oven'));
+          await tester.pump();
+          await _tunggu(tester, _adaLembar);
+
+          expect(_lembar(tester).profil, 'oven');
+          expect(_lembar(tester).dariFoto!.kodeDokumen, 'SIDIK-FM-CAL-0504');
+        },
+      );
+
+      testWidgets('identitas TERTULIS di kertas dibaca dari halaman yang SAMA: '
+          'masuk lembar sebagai saran kuning yang wajib dicek, alat cocok '
+          'menunggu ketukan, kertas menang atas master', (tester) async {
+        final pembaca = _PembacaElemen(
+          halamanPhUji(
+            nama: 'pH Meter',
+            seri: 'B628755900',
+            merk: 'Mettler',
+            pemilik: 'PT Tirta Contoh Mandiri',
+            kalibrasi: '13 Nov 2026',
+          ),
+        );
+        final uji = _Uji(daftar: _daftar(), pembaca: pembaca);
+        await _pasang(tester, uji);
+        await _pindai(tester);
+
+        // Halaman dibaca SEKALI untuk jenis dan identitas (pembacaan berikutnya
+        // milik pipa sel). Tidak ada alat yang dipilih.
+        expect(find.byKey(BlokIdentitasFoto.kunciCocok), findsOneWidget);
         expect(
-          find.byKey(BannerJenisDariFoto.kunciPetunjukAlat),
+          find.text('Alat terdaftar: pH Meter Mettler Toledo'),
           findsOneWidget,
         );
-        expect(uji.sumber.jumlahAmbil, 1);
-      },
-    );
+        expect(alatDipilih, findsNothing);
 
-    testWidgets('tidak ada alat untuk jenis ini: lembar terbuka tanpa alat dan '
-        'tanpa daftar', (tester) async {
-      final uji = _Uji(
-        daftar: _daftar(),
-        pembaca: _PembacaPutaran([_kakiPh]),
-        alat: const [],
-        mesin: _MesinPalsu(),
+        // Identitas kertas ada di kotak lembar dan ditandai wajib-cek.
+        String isi(String label) {
+          final kotak = find.byWidgetPredicate(
+            (w) => w is TextField && w.controller?.text == label,
+          );
+          return kotak.evaluate().isEmpty ? '' : label;
+        }
+
+        expect(isi('B628755900'), 'B628755900');
+        expect(isi('Mettler'), 'Mettler');
+        expect(isi('PT Tirta Contoh Mandiri'), 'PT Tirta Contoh Mandiri');
+        expect(
+          find.byKey(const ValueKey('panel-cek-tahan')),
+          findsOneWidget,
+          reason: 'saran identitas ikut gerbang wajib-cek',
+        );
+        expect(
+          find.byKey(BlokIdentitasFoto.kunciTanggalKalibrasi),
+          findsOneWidget,
+          reason: 'tanggal kertas beda dari hari ini: saran, bukan otomatis',
+        );
+
+        // Satu ketukan teknisi memasang alat; kertas tetap menang.
+        await tester.ensureVisible(
+          find.byKey(BlokIdentitasFoto.kunciPakaiAlat),
+        );
+        await tester.tap(find.byKey(BlokIdentitasFoto.kunciPakaiAlat));
+        await tester.pumpAndSettle();
+
+        expect(alatDipilih, findsWidgets);
+        expect(isi('Mettler'), 'Mettler', reason: 'kertas menang atas master');
+      });
+
+      testWidgets(
+        'identitas tidak terbaca: lembar tetap terbuka, tidak ada alat '
+        'dipilih atau dibuat, pesan jujur',
+        (tester) async {
+          final uji = _Uji(
+            daftar: _daftar(),
+            pembaca: _PembacaElemen(halamanPhUji()),
+          );
+          await _pasang(tester, uji);
+          await _pindai(tester);
+
+          expect(
+            find.byKey(BlokIdentitasFoto.kunciTidakTerbaca),
+            findsOneWidget,
+          );
+          expect(alatDipilih, findsNothing);
+          expect(find.byKey(BlokIdentitasFoto.kunciPanelBaru), findsNothing);
+        },
       );
-      await _pasang(tester, uji);
-      await _pindai(tester);
-
-      expect(find.byType(PilihAlatRingkasSheet), findsNothing);
-      expect(_lembar(tester).dariFoto!.alatAwal, isNull);
-    });
-
-    testWidgets('menutup daftar alat tanpa memilih: tidak ada lembar', (
-      tester,
-    ) async {
-      final uji = _Uji(
-        daftar: _daftar(),
-        pembaca: _PembacaPutaran([_kakiPh]),
-        alat: [_alatPh, _alat(21, 'pH Meter Hanna')],
-      );
-      await _pasang(tester, uji);
-      await _pindai(tester);
-
-      Navigator.of(tester.element(find.byType(PilihAlatRingkasSheet))).pop();
-      await tester.pumpAndSettle();
-
-      expect(find.byType(LembarKerjaScreen), findsNothing);
-      expect(find.byType(SnackBar), findsNothing);
-    });
-
-    testWidgets('daftar alat gagal dimuat: lembar tetap terbuka (dropdown '
-        'lembar yang menampilkan keadaannya), tanpa galat mentah', (
-      tester,
-    ) async {
-      final uji = _Uji(
-        daftar: _daftar(),
-        pembaca: _PembacaPutaran([_kakiPh]),
-        alatGagal: true,
-        mesin: _MesinPalsu(),
-      );
-      await _pasang(tester, uji);
-      await _pindai(tester);
-
-      expect(find.byType(LembarKerjaScreen), findsOneWidget);
-      expect(_lembar(tester).dariFoto!.alatAwal, isNull);
-      expect(find.textContaining('Exception'), findsNothing);
-      expect(find.byType(PilihAlatRingkasSheet), findsNothing);
-    });
-  });
+    },
+  );
 
   group('SATU pintu foto: tidak ada dialog dan tombol foto ganda', () {
     testWidgets('lembar dari foto beranda: tanpa dialog "Mau diisi '

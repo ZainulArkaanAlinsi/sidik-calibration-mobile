@@ -98,10 +98,17 @@ abstract class WorksheetScanService {
   /// "Pindai formulir kertas" cukup tidak digambar. Error lain (jaringan, 500,
   /// 403) tetap dilempar — menyamarkannya jadi "belum dipetakan" bikin tombol
   /// lenyap tanpa alasan yang kebaca.
+  ///
+  /// [kodeDokumen] = kode formulir (`SIDIK-FM-CAL-…`, dengan atau tanpa
+  /// `_Rev.n`) yang DIBACA dari kertas: server memakainya memilih peta varian
+  /// (0508/0508.A, 0522.A-D, flowmeter) tanpa perlu alat. Dikirim sebagai
+  /// `kode_dokumen` (didukung `GET /worksheet-templates/{kode}`); `null` = peta
+  /// bawaan alat.
   Future<WorksheetTemplate?> templateAsli(
     String token,
     String kode, {
     int? equipmentId,
+    String? kodeDokumen,
   });
 
   /// Kirim hasil baca satu lembar — `POST /api/worksheet-scans`.
@@ -192,10 +199,13 @@ class ApiWorksheetScanService implements WorksheetScanService {
     String token,
     String kode, {
     int? equipmentId,
+    String? kodeDokumen,
   }) async {
     final q = <String>[
       'kertas=asli',
       if (equipmentId != null) 'equipment_id=$equipmentId',
+      if (kodeDokumen != null && kodeDokumen.trim().isNotEmpty)
+        'kode_dokumen=${Uri.encodeQueryComponent(kodeDokumen.trim())}',
     ];
 
     try {
@@ -261,7 +271,9 @@ class ApiWorksheetScanService implements WorksheetScanService {
     await _api.post(
       '/worksheet-scans/$scanId/koreksi',
       token: token,
-      body: {'koreksi': [for (final k in koreksi) k.toJson()]},
+      body: {
+        'koreksi': [for (final k in koreksi) k.toJson()],
+      },
     );
   }
 
@@ -347,8 +359,10 @@ class MockWorksheetScanService implements WorksheetScanService {
     String token,
     String kode, {
     int? equipmentId,
+    String? kodeDokumen,
   }) async {
     kodeAsliDiminta.add((kode: kode, equipmentId: equipmentId));
+    kodeDokumenDiminta.add(kodeDokumen);
 
     return formulirAsli;
   }
@@ -358,6 +372,10 @@ class MockWorksheetScanService implements WorksheetScanService {
   /// tidak ikut bikin bukti `standard_id`/`titik_ukur` sel beda konteks dengan
   /// kiriman pindainya.
   final List<({String kode, int? equipmentId})> kodeAsliDiminta = [];
+
+  /// `kode_dokumen` yang dikirim tiap [templateAsli] (sejajar dengan
+  /// [kodeAsliDiminta]); `null` = tidak dikirim.
+  final List<String?> kodeDokumenDiminta = [];
 
   @override
   Future<WorksheetTemplate> template(

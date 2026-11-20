@@ -8,13 +8,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:sidik_calibration/models/arsip_draf.dart';
+import 'package:sidik_calibration/models/calibration_history_item.dart'
+    show CalibrationStatus;
+import 'package:sidik_calibration/models/penerbitan_ditahan.dart';
+import 'package:sidik_calibration/models/validasi.dart';
 import 'package:sidik_calibration/models/category.dart';
 import 'package:sidik_calibration/models/izin.dart';
 import 'package:sidik_calibration/models/order.dart';
 import 'package:sidik_calibration/models/order_kelola.dart';
 import 'package:sidik_calibration/models/penugasan.dart';
 import 'package:sidik_calibration/models/penugasan_kelola.dart';
+import 'package:sidik_calibration/providers/calibration_input_provider.dart'
+    show standardServiceProvider;
+import 'package:sidik_calibration/providers/draf_lokal_provider.dart';
 import 'package:sidik_calibration/providers/history_provider.dart';
+import 'package:sidik_calibration/providers/perhitungan_provider.dart';
+import 'package:sidik_calibration/screens/admin/antrean_approval_screen.dart';
+import 'package:sidik_calibration/screens/admin/perhitungan_screen.dart';
 import 'package:sidik_calibration/screens/crud_lab/arsip_draf_screen.dart';
 import 'package:sidik_calibration/screens/crud_lab/kategori_kelola_screen.dart';
 import 'package:sidik_calibration/screens/crud_lab/penugasan_kelola_screen.dart';
@@ -26,14 +36,20 @@ import 'package:sidik_calibration/screens/crud_lab/order_list_screen.dart';
 import 'package:sidik_calibration/screens/crud_lab/pengelolaan_data_screen.dart';
 import 'package:sidik_calibration/services/arsip_draf_service.dart';
 import 'package:sidik_calibration/services/auth_service.dart';
+import 'package:sidik_calibration/services/draf_lokal.dart';
 import 'package:sidik_calibration/services/history_service.dart';
 import 'package:sidik_calibration/services/kategori_kelola_service.dart';
 import 'package:sidik_calibration/services/order_kelola_service.dart';
 import 'package:sidik_calibration/services/pengguna_sa_service.dart';
 import 'package:sidik_calibration/services/penugasan_kelola_service.dart';
+import 'package:sidik_calibration/services/perhitungan_service.dart';
+import 'package:sidik_calibration/services/pesan_penolakan_draf.dart';
+import 'package:sidik_calibration/services/standard_service.dart';
 
 import 'crud_uji.dart';
 import 'layar_sa_uji.dart' show ketukDi;
+import 'antrean_ditahan_uji.dart';
+import 'riwayat_ditahan_uji.dart';
 import 'super_admin_uji.dart' show namaSangatPanjang;
 
 class KeadaanCrud {
@@ -321,6 +337,48 @@ final penugasanBurukCrud = <Penugasan>[
     terlambat: false,
     persenTuntas: 100,
   ),
+  // PR #284: aktif dan semua baris tuntas = siap diselesaikan.
+  const Penugasan(
+    id: 65,
+    judul:
+        'Kalibrasi ulang seluruh timbangan dan neraca analitik gudang pusat '
+        'dan semua cabang',
+    tipe: 'grup',
+    status: 'aktif',
+    terlambat: false,
+    persenTuntas: 100,
+    teknisi: [
+      AnggotaPenugasan(id: 21, nama: 'Dedi Teknisi', peran: 'ketua'),
+      AnggotaPenugasan(id: 22, nama: 'Eko Prasetyo', peran: 'anggota'),
+    ],
+    baris: [
+      BarisPenugasan(
+        id: 5,
+        jenisAlat: 'Timbangan',
+        jumlah: 4,
+        jumlahSelesai: 4,
+      ),
+    ],
+  ),
+  // Selesai dengan stempel waktu (`diselesaikan_pada`).
+  Penugasan(
+    id: 66,
+    judul: 'Termometer ruang proses selesai dikerjakan tepat waktu',
+    tipe: 'personal',
+    status: 'selesai',
+    terlambat: false,
+    persenTuntas: 100,
+    diselesaikanPada: DateTime.utc(2026, 11, 19, 3, 15),
+    teknisi: const [AnggotaPenugasan(id: 21, nama: 'Dedi', peran: 'ketua')],
+    baris: const [
+      BarisPenugasan(
+        id: 6,
+        jenisAlat: 'Termometer',
+        jumlah: 3,
+        jumlahSelesai: 3,
+      ),
+    ],
+  ),
 ];
 
 /// Kategori buruk: nama/kode super panjang, hitungan besar, nonaktif.
@@ -409,6 +467,24 @@ class _TolakBatal extends MockPenugasanKelolaService {
   );
 }
 
+/// Papan menampilkan 100%, tetapi di server penugasan itu ternyata baru 80%
+/// (laporan dikoreksi sesudah papan dimuat): `422 penugasan_belum_tuntas`.
+class _TolakSelesaiBelumTuntas extends MockPenugasanKelolaService {
+  _TolakSelesaiBelumTuntas() : super(awal: penugasanBurukCrud);
+
+  @override
+  Future<Penugasan> selesaikan(String token, int id) async =>
+      throw const ApiException(
+        'x',
+        status: 422,
+        body: {
+          'message': 'x',
+          'kode': 'penugasan_belum_tuntas',
+          'persen_tuntas': 80,
+        },
+      );
+}
+
 class _KategoriDipakai extends MockKategoriKelolaService {
   _KategoriDipakai() : super(awal: kategoriBurukCrud);
 
@@ -468,6 +544,35 @@ Future<void> _menuPenugasan(WidgetTester tester, int id, String aksi) async {
 
 Future<void> _batalDialog(WidgetTester tester) =>
     _menuPenugasan(tester, 61, 'Batalkan penugasan');
+
+Future<void> _selesaikanDialog(WidgetTester tester) async {
+  await ketukDi(tester, find.byKey(const Key('selesaikan-penugasan-65')));
+  await tester.pumpAndSettle();
+}
+
+Future<void> _selesaikanBelumTuntas(WidgetTester tester) async {
+  await _selesaikanDialog(tester);
+  await tester.tap(find.byKey(const Key('aksi-dialog')));
+  await tester.pumpAndSettle();
+}
+
+Future<void> _saringSelesai(WidgetTester tester) async {
+  await ketukDi(tester, find.byKey(const Key('saring-penugasan-selesai')));
+  await tester.pumpAndSettle();
+}
+
+Future<void> _bukaLagiDialog(WidgetTester tester) async {
+  await _saringSelesai(tester);
+  await ketukDi(tester, find.byKey(const Key('buka-lagi-penugasan-66')));
+  await tester.pumpAndSettle();
+}
+
+Future<void> _bukaLagiPendek(WidgetTester tester) async {
+  await _bukaLagiDialog(tester);
+  await tester.enterText(find.byKey(const Key('isian-dialog')), 'abc');
+  await tester.tap(find.byKey(const Key('aksi-dialog')));
+  await tester.pumpAndSettle();
+}
 
 Future<void> _batalGagal(WidgetTester tester) async {
   await _batalDialog(tester);
@@ -571,6 +676,113 @@ Future<void> _arsipkanGagal(WidgetTester tester) async {
   await tester.tap(find.byKey(const Key('aksi-dialog')));
   await tester.pumpAndSettle();
 }
+
+/// Keadaan server untuk keadaan `perhitungan-ditahan-422`: detail sesi baru
+/// ikut menahan SESUDAH approve ditolak (klien yang datanya basi).
+var _serverMenahanUji = false;
+
+/// `GET /calibrations/{id}/validasi` untuk sesi yang penerbitannya ditahan:
+/// kontrak PR #280 memuat penahanannya sebagai temuan `error` berkode
+/// `menunggu_keputusan_tm`, jadi `boleh_terbit` false.
+const _validasiDitahanUji = HasilValidasi(
+  valid: false,
+  bolehTerbit: false,
+  temuan: [
+    Temuan(
+      tingkat: TingkatTemuan.error,
+      kode: 'menunggu_keputusan_tm',
+      pesan:
+          'Ditahan menunggu keputusan Technical Manager (TM-4): '
+          '$alasanProvingRingUji.',
+      konteks: {'penyimpangan': 'profil_ditahan'},
+    ),
+  ],
+  ringkasan: {
+    TingkatTemuan.error: 1,
+    TingkatTemuan.peringatan: 0,
+    TingkatTemuan.info: 0,
+  },
+);
+
+LapisanUjiCrud _lapisanPerhitungan({
+  bool ditahan = false,
+  bool klienBasi = false,
+}) {
+  _serverMenahanUji = false;
+  final penahanan = ditahan || klienBasi
+      ? ditahanProvingRingUji
+      : PenerbitanDitahan.tidak;
+  return LapisanUjiCrud(
+    tambahan: [
+      perhitunganServiceProvider.overrideWithValue(
+        MockPerhitunganService(
+          penerbitanDitahan: penahanan,
+          validasi: ditahan ? _validasiDitahanUji : null,
+        ),
+      ),
+      historyServiceProvider.overrideWithValue(
+        RiwayatSesiDitahan(
+          () => ditahan || _serverMenahanUji
+              ? ditahanProvingRingUji
+              : PenerbitanDitahan.tidak,
+        ),
+      ),
+      standardServiceProvider.overrideWithValue(MockStandardService()),
+    ],
+  );
+}
+
+/// Kartu Antrean Approval: Setujui dijawab `422 profil_ditahan`.
+Future<void> _setujuiAntreanDitahan(WidgetTester tester) async {
+  await tester.tap(find.text('Setujui'));
+  await tester.pumpAndSettle();
+  await tester.enterText(
+    find.byKey(const ValueKey('isian-nomor-sertifikat')),
+    'CAL/KT/H-proving_ring',
+  );
+  await tester.tap(find.byKey(const ValueKey('simpan-setujui')));
+  await tester.pumpAndSettle();
+}
+
+Widget _layarPerhitungan() => const PerhitunganScreen(
+  calibrationId: 30,
+  statusSesi: CalibrationStatus.menungguApproval,
+);
+
+Future<void> _bukaAlasanDitahan(WidgetTester tester) async {
+  await ketukDi(tester, find.byKey(const ValueKey('baca-alasan-ditahan')));
+  await tester.pumpAndSettle();
+}
+
+/// Klien yang datanya basi menekan Setujui: server menjawab `422
+/// profil_ditahan`, dialog terbuka, dan detail sesi dibaca ulang.
+Future<void> _setujuiKeDitahan(WidgetTester tester) async {
+  _serverMenahanUji = true;
+  await tester.tap(find.text('Setujui'));
+  await tester.pumpAndSettle();
+  await tester.enterText(
+    find.byKey(const ValueKey('isian-nomor-sertifikat')),
+    'CAL/KT/H-proving_ring',
+  );
+  await tester.tap(find.byKey(const ValueKey('simpan-setujui')));
+  await tester.pumpAndSettle();
+}
+
+/// Draf di antrean HP yang ditolak server karena diarsipkan admin (404).
+List<DrafLokal> _drafLokalDiarsipkan() => [
+  DrafLokal(
+    userId: 2,
+    sesiId: 25,
+    clientRequestId: '0b7c6a52-3f7e-4d55-9a3b-2c1d0e9f8a71',
+    profil: 'ph_meter',
+    disimpanPada: DateTime.utc(2026, 11, 19, 3),
+    status: StatusDrafLokal.perluDiperbaiki,
+    pesan: pesanPenolakanDraf(404),
+    judul: 'pH Meter · SN-12345',
+    kiriman: const {'status': 'draft'},
+    isian: const {},
+  ),
+];
 
 LapisanUjiCrud _lapisanDraf({ArsipDrafService? arsip}) => LapisanUjiCrud(
   arsipDraf: arsip,
@@ -765,6 +977,71 @@ final List<KeadaanCrud> keadaanLainCrud = [
     sesudah: _batalDialog,
   ),
   KeadaanCrud(
+    'penugasan-siap-ditutup',
+    () => const PenugasanKelolaScreen(),
+    () => LapisanUjiCrud(
+      penugasan: MockPenugasanKelolaService(
+        awal: [
+          penugasanBurukCrud.firstWhere((p) => p.id == 65),
+          penugasanBurukCrud.firstWhere((p) => p.id == 62),
+          penugasanBurukCrud.firstWhere((p) => p.id == 61),
+        ],
+      ),
+    ),
+  ),
+  KeadaanCrud(
+    'penugasan-selesaikan-dialog',
+    () => const PenugasanKelolaScreen(),
+    () => LapisanUjiCrud(
+      penugasan: MockPenugasanKelolaService(awal: penugasanBurukCrud),
+    ),
+    sesudah: _selesaikanDialog,
+  ),
+  KeadaanCrud(
+    'penugasan-selesaikan-belum-tuntas',
+    () => const PenugasanKelolaScreen(),
+    () => LapisanUjiCrud(penugasan: _TolakSelesaiBelumTuntas()),
+    sesudah: _selesaikanBelumTuntas,
+  ),
+  KeadaanCrud(
+    'penugasan-selesai-super-admin',
+    () => const PenugasanKelolaScreen(),
+    () => LapisanUjiCrud(
+      penugasan: MockPenugasanKelolaService(awal: penugasanBurukCrud),
+    ),
+    token: tokenSuperAdminCrud,
+    izin: izinSuperAdminCrud,
+    sesudah: _saringSelesai,
+  ),
+  KeadaanCrud(
+    'penugasan-selesai-admin',
+    () => const PenugasanKelolaScreen(),
+    () => LapisanUjiCrud(
+      penugasan: MockPenugasanKelolaService(awal: penugasanBurukCrud),
+    ),
+    sesudah: _saringSelesai,
+  ),
+  KeadaanCrud(
+    'penugasan-buka-lagi-dialog',
+    () => const PenugasanKelolaScreen(),
+    () => LapisanUjiCrud(
+      penugasan: MockPenugasanKelolaService(awal: penugasanBurukCrud),
+    ),
+    token: tokenSuperAdminCrud,
+    izin: izinSuperAdminCrud,
+    sesudah: _bukaLagiDialog,
+  ),
+  KeadaanCrud(
+    'penugasan-buka-lagi-pendek',
+    () => const PenugasanKelolaScreen(),
+    () => LapisanUjiCrud(
+      penugasan: MockPenugasanKelolaService(awal: penugasanBurukCrud),
+    ),
+    token: tokenSuperAdminCrud,
+    izin: izinSuperAdminCrud,
+    sesudah: _bukaLagiPendek,
+  ),
+  KeadaanCrud(
     'penugasan-batal-pendek',
     () => const PenugasanKelolaScreen(),
     () => LapisanUjiCrud(
@@ -925,5 +1202,58 @@ final List<KeadaanCrud> keadaanLainCrud = [
     token: tokenTeknisiCrud,
     izin: izinTeknisiCrud,
     sesudah: _arsipkanGagal,
+  ),
+  // ------------------------------- PAKET LAB-UI-2: galat ramah draf diarsipkan
+  KeadaanCrud(
+    'draf-lokal-diarsipkan',
+    () => const DrafScreen(),
+    () => LapisanUjiCrud(
+      tambahan: [
+        historyServiceProvider.overrideWithValue(MockHistoryService()),
+        drafLokalProvider.overrideWith((ref) async => _drafLokalDiarsipkan()),
+      ],
+    ),
+    token: tokenTeknisiCrud,
+    izin: izinTeknisiCrud,
+  ),
+  // ------------------------- PAKET LAB-UI-2: penerbitan ditahan (PR #280)
+  KeadaanCrud(
+    'antrean-approval-ditahan-dialog',
+    () => const AntreanApprovalScreen(),
+    () => LapisanUjiCrud(
+      tambahan: [
+        historyServiceProvider.overrideWithValue(AntreanSatuUji()),
+        approvalServiceProvider.overrideWithValue(ApprovalDitahanUji()),
+        perhitunganServiceProvider.overrideWithValue(MockPerhitunganService()),
+      ],
+    ),
+    sesudah: _setujuiAntreanDitahan,
+    tinggiBesar: false,
+  ),
+  KeadaanCrud(
+    'perhitungan-normal',
+    _layarPerhitungan,
+    () => _lapisanPerhitungan(),
+    tinggiBesar: false,
+  ),
+  KeadaanCrud(
+    'perhitungan-ditahan',
+    _layarPerhitungan,
+    () => _lapisanPerhitungan(ditahan: true),
+    tinggiBesar: false,
+  ),
+  KeadaanCrud(
+    'perhitungan-ditahan-dialog',
+    _layarPerhitungan,
+    () => _lapisanPerhitungan(ditahan: true),
+    sesudah: _bukaAlasanDitahan,
+    tinggiBesar: false,
+  ),
+  KeadaanCrud(
+    'perhitungan-ditahan-422',
+    _layarPerhitungan,
+    () => _lapisanPerhitungan(klienBasi: true),
+    sesudah: _setujuiKeDitahan,
+    tinggiBesar: false,
   ),
 ];

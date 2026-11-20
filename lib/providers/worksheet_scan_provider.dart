@@ -95,7 +95,15 @@ final mesinPindaiAsliProvider = Provider<JalankanPindaiAsli?>((ref) => null);
 /// `equipmentId` masuk kunci karena satuan, resolusi, dan desimal per baris
 /// lahir dari alat pelanggan — template tanpa alat balikin ketiganya `null`,
 /// dan layar nggak boleh ngisi nilai bawaan sendiri.
-typedef KunciTemplatePindai = ({String kode, int? equipmentId});
+///
+/// `kodeDokumen` = kode formulir yang dibaca dari kertas (`null` = tidak ada,
+/// peta bawaan alat). Ia memilih peta VARIAN di server tanpa perlu alat, jadi
+/// foto yang dibuka tanpa alat tetap memakai peta kertas yang sebenarnya.
+typedef KunciTemplatePindai = ({
+  String kode,
+  int? equipmentId,
+  String? kodeDokumen,
+});
 
 /// Bentuk + kesiapan lembar buat dipindai.
 ///
@@ -135,5 +143,10 @@ final formulirAsliProvider =
 
       return ref
           .read(worksheetScanServiceProvider)
-          .templateAsli(token, kunci.kode, equipmentId: kunci.equipmentId);
+          .templateAsli(
+            token,
+            kunci.kode,
+            equipmentId: kunci.equipmentId,
+            kodeDokumen: kunci.kodeDokumen,
+          );
     }, retry: (retryCount, error) => null);

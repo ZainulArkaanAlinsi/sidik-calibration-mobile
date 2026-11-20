@@ -20,6 +20,10 @@ abstract final class KodeCrud {
   static const hanyaAdmin = 'hanya_admin';
   static const penugasanTidakAktif = 'penugasan_tidak_aktif';
   static const penugasanSudahSelesai = 'penugasan_sudah_selesai';
+
+  /// Selesaikan / buka lagi penugasan (PR #284).
+  static const penugasanBelumTuntas = 'penugasan_belum_tuntas';
+  static const penugasanTidakSelesai = 'penugasan_tidak_selesai';
   static const itemSudahDikerjakan = 'item_sudah_dikerjakan';
 }
 
@@ -75,6 +79,13 @@ String pesanGalatCrud(
         return l10n.crudGalatPenugasanSelesai;
       case KodeCrud.itemSudahDikerjakan:
         return l10n.crudGalatItemSudahDikerjakan;
+      case KodeCrud.penugasanBelumTuntas:
+        final persen = badan['persen_tuntas'];
+        return persen is num
+            ? l10n.crudGalatPenugasanBelumTuntas(persen.toInt())
+            : l10n.crudGalatPenugasanBelumTuntasUmum;
+      case KodeCrud.penugasanTidakSelesai:
+        return l10n.crudGalatPenugasanTidakSelesai;
     }
     if (galat.status == 401) return l10n.historySessionExpired;
     if (galat.status == 403) return l10n.crudGalat403;
@@ -105,7 +116,9 @@ bool perluMuatUlangCrud(Object galat) {
       kode == KodeCrud.bukanDraf ||
       kode == KodeCrud.statusBerubah ||
       kode == KodeCrud.penugasanTidakAktif ||
-      kode == KodeCrud.penugasanSudahSelesai;
+      kode == KodeCrud.penugasanSudahSelesai ||
+      kode == KodeCrud.penugasanBelumTuntas ||
+      kode == KodeCrud.penugasanTidakSelesai;
 }
 
 /// Pesan pertama kolom [kunci] dari badan 422 Laravel (`errors.<kolom>[0]`).

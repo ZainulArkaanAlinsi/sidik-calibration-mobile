@@ -4,6 +4,7 @@ import 'package:sidik_calibration/providers/draf_lokal_provider.dart';
 import 'package:sidik_calibration/services/auth_service.dart';
 import 'package:sidik_calibration/services/draf_lokal.dart';
 import 'package:sidik_calibration/services/pengirim_draf_service.dart';
+import 'package:sidik_calibration/services/pesan_penolakan_draf.dart';
 
 /// Pengirim antrean draf offline.
 ///
@@ -178,8 +179,8 @@ void main() {
     },
   );
 
-  test('422: ditandai perlu_diperbaiki dengan pesan server, dan nggak '
-      'dicoba ulang', () async {
+  test('422: ditandai perlu_diperbaiki dengan kalimat dari statusnya (bukan '
+      'teks server), dan nggak dicoba ulang', () async {
     server.tolak422 = true;
     await simpanan.simpan(antre());
     final s = sinkron();
@@ -189,7 +190,10 @@ void main() {
     expect(hasil.ditolak, 1);
     final d = (await simpanan.daftar(userId)).single;
     expect(d.status, StatusDrafLokal.perluDiperbaiki);
-    expect(d.pesan, 'The equipment id field is required.');
+    // Dulu `e.message` apa adanya ("The equipment id field is required.").
+    // Kini dari status: teks server boleh berbahasa Inggris atau nama kelas.
+    expect(d.pesan, pesanPenolakanDraf(422));
+    expect(d.pesan, isNot(contains('equipment id field')));
 
     server.log.clear();
     await s.jalankan();

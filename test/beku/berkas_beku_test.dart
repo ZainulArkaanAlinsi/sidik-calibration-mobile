@@ -86,6 +86,22 @@ import 'package:flutter_test/flutter_test.dart';
 /// mati) untuk pintu foto per tabel. Lembar tanpa `dariFoto` tampil identik, dan
 /// golden `test/beku/goldens/` TIDAK diperbarui. Rincian: addendum 18 Nov di
 /// `docs/desain-ulang/BEKU.md`. Hash sebelumnya: `8c337c08...`.
+/// ## Perubahan hash lewat buka-kunci: foto LINEAR, identitas dari kertas (19 Nov 2026)
+///
+/// STATUS PERSETUJUAN: arahan EKSPLISIT pemilik 19 Nov 2026 (brief paket
+/// OCR-LINEAR): setelah foto tidak ada kartu pilihan, lembar langsung terisi dari
+/// yang TERTULIS di kertas. Cabang `feat/ocr-alur-linear` belum di-push dan belum
+/// di-merge; PNG menunggu persetujuan pemilik, dan bila tidak setuju cabangnya
+/// direvert. `lembar_kerja_screen.dart` berubah hash LAGI, hanya jalur foto:
+/// `DariFotoLembar.alatAwal` dibuang (tidak ada alat yang dipilihkan; `isiDariAlat`
+/// tidak dipanggil dari `initState`), baca foto otomatis untuk semua lembar dari
+/// foto, kunci peta formulir memuat `kodeDokumen`, identitas kertas dituang
+/// sebagai saran kuning, banner tanpa petunjuk pilih alat, tombol foto hanya
+/// "Foto ulang", `BlokIdentitasFoto` di atas lembar (lewat `_denganBlokIdentitas`), dan `_PilihAlat` memuat alat
+/// terpilih yang di luar halaman pertama daftar. `lembar_kerja_state.dart` TIDAK
+/// berubah. Lembar tanpa `dariFoto` tampil identik, dan golden
+/// `test/beku/goldens/` TIDAK diperbarui. Rincian: addendum 19 Nov di
+/// `docs/desain-ulang/BEKU.md`. Hash sebelumnya: `dde86ae4...`.
 const Map<String, String> _hashBeku = {
   // ── Lembar kerja (`lib/screens/calibration/`), 17 berkas dari BEKU.md ────────
   // Hash tiga layar (lembar_kerja_screen, temperatur_indikator_gerbang_screen,
@@ -93,7 +109,7 @@ const Map<String, String> _hashBeku = {
   // pemanggil di dalam berkas); lainnya masih hash L0. `lembar_kerja_screen`
   // berubah lagi 15 Nov 2026 (foto awal "Pindai lembar kerja", lihat atas).
   'lib/screens/calibration/lembar_kerja_screen.dart':
-      'dde86ae4abc8c0ea789d38bf72cbbcaf119dc896f3569beca402b5c612a581e9',
+      'e76811ee717933c2d95d164178d74eeed6dea419ad1f4ecf2675a8973b702aae',
   'lib/screens/calibration/lembar_kerja_state.dart':
       '6e6005a486d13dfcc002fa339e38d0bee5c3b3054cbdf0e9ed843266c16cc093',
   'lib/screens/calibration/kinerja_lembar.dart':

@@ -10,6 +10,7 @@ import '../core/config/app_config.dart';
 import '../services/auth_service.dart' show ApiException, gagalJaringan;
 import '../services/draf_lokal.dart';
 import '../services/pengirim_draf_service.dart';
+import '../services/pesan_penolakan_draf.dart';
 import 'auth_provider.dart';
 import 'history_provider.dart' show drafProvider;
 
@@ -302,7 +303,14 @@ class SinkronDrafLokal {
         if (penolakan) {
           sisa = sisa.copyWith(
             status: StatusDrafLokal.perluDiperbaiki,
-            pesan: e.message,
+            // Kalimat dari STATUS, bukan `e.message`: 404 draf yang diarsipkan
+            // admin dulu tampil sebagai nama kelas model Eloquent.
+            // 404 hanya "diarsipkan" untuk draf yang SUDAH ada di server.
+            pesan: pesanPenolakanDraf(
+              e.status,
+              sudahDiServer: d.sesiId != null || idBaru != null,
+              badan: e.body,
+            ),
           );
         }
 

@@ -10,7 +10,8 @@ import '../../providers/izin_provider.dart';
 /// Menyembunyikan tombol BUKAN kontrol akses: server tetap menolak (403).
 ///
 /// - **Kunci BARU** di server (`kategori.kelola`, `penugasan.ubah`,
-///   `penugasan.batalkan`, `kalibrasi.arsipkan`, `kalibrasi.pulihkan`) ditanya
+///   `penugasan.batalkan`, `penugasan.selesaikan`, `penugasan.buka-lagi`,
+///   `kalibrasi.arsipkan`, `kalibrasi.pulihkan`) ditanya
 ///   dengan `cadangan: false`: bila server tidak menyebutnya, jawabannya TIDAK.
 /// - **Order** belum punya kunci izin sendiri di `MatriksIzin::PETA`. Rute
 ///   tulisnya (`POST/PUT/DELETE /orders`) satu grup `role:admin` dengan
@@ -32,6 +33,13 @@ extension HakCrudLab on WidgetRef {
   bool get bolehBatalkanPenugasan =>
       bolehkah(NamaIzin.penugasanBatalkan, cadangan: false);
 
+  bool get bolehSelesaikanPenugasan =>
+      bolehkah(NamaIzin.penugasanSelesaikan, cadangan: false);
+
+  /// Hanya super admin (kontrak #284); admin biasa `403` untuk ID mana pun.
+  bool get bolehBukaLagiPenugasan =>
+      bolehkah(NamaIzin.penugasanBukaLagi, cadangan: false);
+
   bool get bolehArsipkanDraf =>
       bolehkah(NamaIzin.kalibrasiArsipkan, cadangan: false);
 
@@ -47,5 +55,7 @@ extension HakCrudLab on WidgetRef {
       bolehKelolaKategori ||
       bolehUbahPenugasan ||
       bolehBatalkanPenugasan ||
+      bolehSelesaikanPenugasan ||
+      bolehBukaLagiPenugasan ||
       bolehPulihkanDraf;
 }
