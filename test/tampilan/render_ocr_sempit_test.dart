@@ -24,6 +24,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:sidik_calibration/core/theme/beku_lembar_kerja.dart';
 import 'package:sidik_calibration/models/customer_lookup.dart';
+import 'package:sidik_calibration/models/equipment_lookup.dart';
 import 'package:sidik_calibration/screens/calibration/lembar_kerja_screen.dart';
 import 'package:sidik_calibration/screens/pindai/blok_identitas_foto.dart';
 import 'package:sidik_calibration/services/identitas_kertas.dart';
@@ -307,6 +308,84 @@ void main() {
     aksi: (tester, d, u) async {
       await bukaPanel(tester);
       await ketuk(tester, find.byKey(BlokIdentitasFoto.kunciBuatLanjut));
+    },
+  );
+
+  // 9. PT belum terdaftar: panel mengatakannya terus terang.
+  keadaan(
+    '09-pt-baru-akan-didaftarkan',
+    dunia: baru,
+    aksi: (tester, d, u) async {
+      await bukaPanel(tester);
+      final kalimat = find.byKey(BlokIdentitasFoto.kunciPtBaruAkan);
+      await tester.ensureVisible(kalimat);
+      await tenangUji(tester);
+    },
+  );
+
+  // 10. Seri milik alat JENIS LAIN (kategori sama): kartu, tanpa tombol pakai.
+  keadaan(
+    '10-seri-milik-alat-lain',
+    dunia: () {
+      final d = DuniaLembarFoto(
+        mesin: MesinBacaUji(),
+        alat: const [
+          EquipmentLookup(
+            id: 77,
+            namaAlat: 'Turbidimeter Hach',
+            serialNumber: 'B628755900',
+            kategori: 'instrumen-analitik',
+            status: 'aktif',
+            pelangganNama: 'PT Milik Orang Lain',
+          ),
+        ],
+      );
+      // Tidak ikut pencarian per jenis lembar, tetapi ada di lab.
+      d.pencari.sembunyikanDariProfil = {77};
+
+      return d;
+    },
+    aksi: (tester, d, u) async {
+      await bukaPanel(tester);
+      await ketuk(tester, find.byKey(BlokIdentitasFoto.kunciBuatLanjut));
+      await tester.ensureVisible(
+        find.byKey(BlokIdentitasFoto.kunciSeriAlatLain),
+      );
+      await tenangUji(tester);
+    },
+  );
+
+  // 11. Seri yang diketik sudah terdaftar pada alat SEJENIS milik PT lain:
+  // kartu dengan "Pakai alat ini" (ketukan teknisi), tidak terpasang sendiri.
+  keadaan(
+    '11-seri-sudah-terdaftar-pt-beda',
+    dunia: () => DuniaLembarFoto(
+      mesin: MesinBacaUji(),
+      alat: const [
+        EquipmentLookup(
+          id: 88,
+          namaAlat: 'pH Meter Mettler Toledo',
+          serialNumber: 'SN-7777',
+          kategori: 'instrumen-analitik',
+          status: 'aktif',
+          pelangganNama: 'PT Milik Orang Lain',
+        ),
+      ],
+    ),
+    aksi: (tester, d, u) async {
+      await bukaPanel(tester);
+      await tester.ensureVisible(find.byKey(BlokIdentitasFoto.kunciKotakSeri));
+      await tester.pump();
+      await tester.enterText(
+        find.byKey(BlokIdentitasFoto.kunciKotakSeri),
+        'SN-7777',
+      );
+      await tester.pump();
+      await ketuk(tester, find.byKey(BlokIdentitasFoto.kunciBuatLanjut));
+      await tester.ensureVisible(
+        find.byKey(BlokIdentitasFoto.kunciSeriTerdaftar),
+      );
+      await tenangUji(tester);
     },
   );
 }
