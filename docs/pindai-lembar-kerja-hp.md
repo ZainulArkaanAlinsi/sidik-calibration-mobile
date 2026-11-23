@@ -75,13 +75,23 @@ terukur di foto nyata; parser diuji dengan teks sintetis.
 
 ## Aturan yang mengikat kode ini
 
-1. **Foto tidak pernah keluar dari perangkat ke pihak ketiga.** OCR dan
+1. **Bawaan: foto tidak keluar dari perangkat ke pihak ketiga.** OCR dan
    pembacaan QR jalan on-device (`google_mlkit_text_recognition`,
    `google_mlkit_barcode_scanning` — dua-duanya model bundled, tanpa API key).
-   Tidak ada biaya per foto.
-2. **Yang naik ke server bukan foto, tapi hasil bacanya**: teks per sel, kotak
-   koordinat, skor mutu, geometri. Citra hasil warp ikut naik sebagai lampiran
-   audit dan boleh gagal naik tanpa membatalkan hasil pindai.
+   Tidak ada biaya per foto. **Satu pengecualian, sejak 23 Nov 2026 (keputusan
+   pemilik):** OCR awan Google Cloud Vision (`DOCUMENT_TEXT_DETECTION`) boleh
+   membaca SELURUH foto halaman, HANYA lewat backend `POST /api/ocr/halaman`,
+   lewat sakelar developer yang bawaannya MATI. Tidak ada kunci, kredensial,
+   atau URL Google di aplikasi/APK; gagal atau waktu habis = jatuh ke pembaca
+   on-device tanpa crash dan sel ditandai perlu dicek. Jangan dinyalakan untuk
+   teknisi sungguhan sebelum pemilik memastikan kontrak pelanggan dan ISO/IEC
+   17025 §4.2 mengizinkan foto halaman (nama, nomor sertifikat) dikirim ke
+   pihak ketiga. Hasilnya tetap USULAN.
+2. **Yang naik ke server KITA (bukan pihak ketiga) bukan foto mentah, tapi hasil
+   bacanya**: teks per sel, kotak koordinat, skor mutu, geometri. Citra hasil
+   warp ikut naik ke server kita sebagai lampiran audit dan boleh gagal naik
+   tanpa membatalkan hasil pindai. (Foto halaman yang diteruskan server ke
+   Google hanya lewat jalur OCR awan di butir 1.)
 3. **Frontend tidak menghitung apa pun.** Tidak ada rata-rata, tidak ada
    koreksi, dan **tidak ada tebakan koma**. `133659` dikirim `133659`.
 4. **Bentuk lembar tidak pernah di-hardcode.** Jumlah titik, kolom, satuan,

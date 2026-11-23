@@ -60,9 +60,14 @@ Jangan ubah nilai kolom `role`.
 6. **Master ditiru, tidak dibetulkan diam-diam**; kejanggalan → pertanyaan lab bernomor.
    Sertifikat harus sama persis dengan lembar SERTIFIKAT master (keputusan K-50-15).
    Sertifikat terbit beku (snapshot); nilai yang diisi teknisi tidak pernah dihapus (ISO 17025 7.5.2).
-7. **OCR**: hanya di HP (ML Kit + TFLite sendiri, tidak cloud); saran saja, tanpa "terima semua";
-   tidak ada hijau palsu; sel kosong tetap kosong; model TFLite digit MATI sampai "Gerbang 0";
-   jangan klaim akurasi tanpa angka.
+7. **OCR**: bawaannya di HP (ML Kit + TFLite sendiri). **Sejak 23 Nov 2026 OCR awan diizinkan**: Google Cloud
+   Vision `DOCUMENT_TEXT_DETECTION` boleh membaca SELURUH foto halaman, HANYA lewat backend
+   (`POST /api/ocr/halaman`), dengan sakelar developer bawaan MATI; tidak ada kunci/kredensial Google di
+   aplikasi atau APK; jangan dinyalakan untuk teknisi sungguhan sebelum pemilik memastikan kontrak pelanggan
+   mengizinkan foto halaman (nama, nomor sertifikat) dikirim ke pihak ketiga dan ISO/IEC 17025 §4.2 tidak
+   dilanggar. Saran saja, tanpa "terima semua"; tidak ada hijau palsu (tulisan tangan tidak pernah hijau);
+   sel kosong tetap kosong; model TFLite digit MATI sampai "Gerbang 0"; jangan klaim akurasi tanpa angka
+   dari foto nyata berlabel manusia.
 8. Laptop pemilik lemah (pernah bluescreen saat emulator + build). **Jangan jalankan emulator.**
    Satu proses berat sekaligus. Pemilik yang menguji di HP sungguhan.
 
