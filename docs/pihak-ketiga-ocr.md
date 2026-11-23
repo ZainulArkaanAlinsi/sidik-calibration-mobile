@@ -159,3 +159,22 @@ Angka pasti = bandingkan `flutter build apk --release` sebelum dan sesudah.
 native `sentry-native` untuk desktop dan pod `Sentry` untuk macOS), dan perilaku di HP nyata dengan DSN sungguhan.
 Mengisi `SENTRY_DSN` di workflow rilis adalah keputusan pemilik (berkas workflow tidak diubah paket ini).
 
+## Google Cloud Vision (OCR awan, lewat backend) — diizinkan 23 Nov 2026, BAWAAN MATI
+
+Keputusan pemilik 23 Nov 2026. **Bukan paket Flutter dan bukan SDK di aplikasi**: aplikasi tidak memuat apa pun dari
+Google untuk ini. Aplikasi hanya mengirim foto halaman ke backend kita (`POST /api/ocr/halaman`); backend yang memanggil
+`vision.googleapis.com` (fitur `DOCUMENT_TEXT_DETECTION`) dengan kredensial service account di env server.
+
+| Apa | Sumber | Dipakai untuk | Batasan |
+|---|---|---|---|
+| Google Cloud Vision API, `images:annotate` | https://cloud.google.com/vision/docs/ocr | OCR mentah seluruh halaman (blok, kata, kotak, keyakinan) | hanya dari backend; bawaan mati; hasil usulan |
+
+**Yang keluar dari HP ke server kita:** foto halaman utuh. **Yang diteruskan server ke Google:** foto halaman utuh (nama
+pelanggan dan nomor sertifikat ikut terbaca di gambar). Gambar dan teks hasil tidak disimpan di log; log hanya mencatat waktu,
+unit, ukuran, durasi, dan status.
+
+**Syarat menyalakan untuk teknisi sungguhan (belum terpenuhi):** pemilik memastikan kontrak pelanggan mengizinkan foto halaman
+dikirim ke pihak ketiga dan ISO/IEC 17025 bagian 4.2 tidak dilanggar. **Tidak ada kunci/kredensial Google di kode Flutter atau
+di APK.** Tidak ada klaim akurasi atau biaya sebelum diukur dengan foto uji nyata berlabel manusia (satu unit = satu gambar
+masih ASUMSI). Kontrak: `docs/kontrak-api.md` bagian 22 di repo API.
+

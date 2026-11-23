@@ -32,7 +32,9 @@ memberi ML Kit murni, model tidak dibuka. Sakelar menyala: model dimuat malas pa
 memuat runtime/model (atau galat saat membaca satu sel) → sisa lembar dibaca ML Kit, tanpa crash; sel
 bertinta yang tak muat di kanvas model (lebar > 320 px) dibaca ML Kit satu per satu, mesin tetap aktif.
 Pemuatan runtime yang gagal diingat per proses (paling banyak 2 percobaan, lalu aset tidak dibaca lagi).
-Aturan keras tetap: OCR hanya di HP, hasil hanya usulan, sel kosong tetap kosong, tulisan tangan tidak pernah
+Aturan keras tetap: mesin angka ini hanya di HP (OCR awan Google Cloud Vision untuk foto halaman penuh adalah
+jalur TERPISAH lewat backend, diizinkan sejak 23 Nov 2026, bawaan mati, dan bukan bagian dokumen ini), hasil
+hanya usulan, sel kosong tetap kosong, tulisan tangan tidak pernah
 hijau, `siap_pindai`/pintu server tidak disentuh, tidak ada perhitungan kalibrasi di HP.
 
 ## 1. Arsitektur
