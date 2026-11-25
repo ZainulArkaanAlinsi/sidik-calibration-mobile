@@ -224,6 +224,10 @@ const Map<String, String> _sengajaTidakBeku = {
   'lib/screens/calibration/penjaga_draf_lokal.dart': 'LOGIKA (tanpa tampilan)',
   'lib/screens/calibration/ringkasan_sebelum_kirim.dart':
       'LOGIKA (gerbang ButirRingkasan)',
+  'lib/screens/calibration/widgets/panel_usulan_ocr_awan.dart':
+      'DESAIN Usulan bacaan awan (PNG menunggu persetujuan pemilik)',
+  'lib/screens/calibration/widgets/teks_ocr_awan.dart':
+      'LOGIKA (teks panel Usulan bacaan awan)',
 };
 
 /// SHA-256 isi [bytes] dengan CRLF (`\r\n`) dinormalkan ke LF. `\r` yang berdiri
