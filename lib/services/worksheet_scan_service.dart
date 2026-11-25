@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import '../models/ocr_awan.dart';
 import '../models/worksheet_scan.dart';
 import '../models/worksheet_template.dart';
 import 'api_client.dart';
@@ -152,6 +153,25 @@ abstract class WorksheetScanService {
   /// bersama, galeri, atau folder yang ikut ter-backup ke cloud.
   Future<Uint8List?> cropSel(String token, int scanId, String kunci);
 
+  /// OCR awan atas POTONGAN sel angka hasil pindai yang SUDAH tersimpan di
+  /// server (`POST /worksheet-scans/{id}/ocr-awan`).
+  ///
+  /// Tidak ada gambar dari klien: server memotong sendiri dari citra hasil
+  /// pindai, jadi body hanya memuat [kunci]. Satu permintaan boleh memuat
+  /// banyak sel (maks [maksKunciOcrAwan]); jangan memanggil per sel.
+  ///
+  /// [kunci] `null` = server memilih sendiri sel angka yang belum hijau dan
+  /// tidak kosong. Daftar kosong, kunci `isian|`/`centang|`, atau lebih dari
+  /// [maksKunciOcrAwan] kunci unik melempar [ArgumentError] SEBELUM jaringan.
+  ///
+  /// Hasilnya USULAN, bukan nilai: tidak menulis apa pun ke sel di server dan
+  /// tidak boleh langsung mengisi sel di layar. Lihat [HasilOcrAwan].
+  ///
+  /// Galat yang harus jatuh ke jalur lama (pembaca di HP / isi manual) dilempar
+  /// sebagai [GalatOcrAwan]. **Tidak diulang otomatis**: `429` dan `502` memakai
+  /// jatah dan biaya tiap kali.
+  Future<HasilOcrAwan> ocrAwan(String token, int scanId, {List<String>? kunci});
+
   /// URL potongan citra satu sel — dipakai layar review buat mbandingin angka
   /// bacaan mesin sama coretan aslinya di layar yang sama.
   ///
@@ -282,6 +302,36 @@ class ApiWorksheetScanService implements WorksheetScanService {
       _api.ambilBytes(urlCrop(scanId, kunci), token: token);
 
   @override
+  Future<HasilOcrAwan> ocrAwan(
+    String token,
+    int scanId, {
+    List<String>? kunci,
+  }) async {
+    // Diperiksa sebelum jaringan: kunci salah adalah bug pemanggil, bukan
+    // sesuatu yang layak memakai jatah panggilan server.
+    final dikirim = kunci == null ? null : periksaKunciOcrAwan(kunci);
+
+    try {
+      // Tanpa `client_request_id` dengan sengaja: [ApiClient.post] hanya
+      // mengulang otomatis kiriman yang punya kunci itu, dan `ocr-awan` TIDAK
+      // boleh diulang diam-diam. Batas tunggu: bawaan POST tanpa ulang (60
+      // detik), karena menyerah duluan membuat server tetap bekerja dan jatah
+      // tetap terpakai.
+      final json = await _api.post(
+        '/worksheet-scans/$scanId/ocr-awan',
+        token: token,
+        body: {'kunci': ?dikirim},
+      );
+
+      return HasilOcrAwan.fromJson(json);
+    } on ApiException catch (e) {
+      final galat = GalatOcrAwan.dariRespons(e);
+      if (galat != null) throw galat;
+      rethrow;
+    }
+  }
+
+  @override
   String urlCrop(int scanId, String kunci) =>
       '/worksheet-scans/$scanId/sel/${Uri.encodeComponent(kunci)}/crop';
 }
@@ -300,6 +350,8 @@ class MockWorksheetScanService implements WorksheetScanService {
     this.templateLengkap,
     this.formulirAsli,
     this.daftar,
+    this.hasilOcrAwan,
+    this.galatOcrAwan,
   });
 
   /// Jawaban [daftarTemplate]. `null` = satu entri bawaan TANPA kunci `asli`
@@ -437,6 +489,41 @@ class MockWorksheetScanService implements WorksheetScanService {
   @override
   Future<Uint8List?> cropSel(String token, int scanId, String kunci) async =>
       crop;
+
+  /// Jawaban [ocrAwan]. `null` (bawaan) = keadaan produksi sekarang: OCR awan
+  /// belum aktif, jadi [ocrAwan] melempar [GalatOcrAwan] `awanBelumSiap`.
+  final HasilOcrAwan? hasilOcrAwan;
+
+  /// Bila diisi, [ocrAwan] melemparnya (mensimulasikan 429/502/dst).
+  final GalatOcrAwan? galatOcrAwan;
+
+  /// Kunci yang diminta tiap pemanggilan [ocrAwan] (`null` = server memilih).
+  final List<List<String>?> permintaanOcrAwan = [];
+
+  @override
+  Future<HasilOcrAwan> ocrAwan(
+    String token,
+    int scanId, {
+    List<String>? kunci,
+  }) async {
+    final dikirim = kunci == null ? null : periksaKunciOcrAwan(kunci);
+    permintaanOcrAwan.add(dikirim);
+
+    final galat = galatOcrAwan;
+    if (galat != null) throw galat;
+
+    final h = hasilOcrAwan;
+    if (h == null) {
+      throw const GalatOcrAwan(
+        status: 503,
+        kode: 'ocr_cloud_belum_aktif',
+        jenis: JenisGalatOcrAwan.awanBelumSiap,
+        pesan: 'Pembacaan awan belum aktif. Isi manual atau pakai pembaca di HP.',
+      );
+    }
+
+    return h;
+  }
 
   @override
   String urlCrop(int scanId, String kunci) =>

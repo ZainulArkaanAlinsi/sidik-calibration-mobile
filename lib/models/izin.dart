@@ -28,6 +28,7 @@ class Izin {
     required this.role,
     required this.boleh,
     this.batasan = const {},
+    this.fiturNonaktif = const {},
   });
 
   /// Belum tau apa-apa — semua pertanyaan dijawab pakai cadangan.
@@ -47,6 +48,18 @@ class Izin {
   /// Tanpa ini, mobile nggak bisa bedain tombol yang disembunyiin dari layar
   /// yang kebuka tapi datanya lebih sedikit — dan itu dua hal beda.
   final Map<String, dynamic> batasan;
+
+  /// Kode fitur yang sedang DIMATIKAN Super Admin (`fitur_nonaktif`). Kosong =
+  /// semua fitur nyala; field yang tidak dikirim backend dibaca kosong, dan kode
+  /// yang tidak dikenal klien diabaikan.
+  ///
+  /// Saklar ini hanya bisa mematikan. Menyembunyikan tombol bukan kontrol
+  /// akses: server tetap menjawab `503 fitur_dimatikan` bila tombol sampai
+  /// tertekan (lihat [KodeFitur]).
+  final Set<String> fiturNonaktif;
+
+  /// `true` bila Super Admin mematikan fitur [kode].
+  bool fiturMati(String kode) => fiturNonaktif.contains(kode);
 
   bool get adaJawaban => boleh.isNotEmpty;
 
@@ -89,6 +102,13 @@ class Izin {
         final Map m => Map<String, dynamic>.from(m),
         _ => const {},
       },
+      fiturNonaktif: switch (data['fitur_nonaktif']) {
+        final List l => {
+          for (final e in l)
+            if (e is String && e.isNotEmpty) e,
+        },
+        _ => const {},
+      },
     );
   }
 
@@ -108,6 +128,16 @@ class Izin {
     }
     return const {};
   }
+}
+
+/// Kode saklar fitur (`fitur_nonaktif` di `GET /me/permissions`). Hanya yang
+/// dibaca kode OCR awan; daftar lengkapnya ada di `GET /admin/fitur`.
+abstract final class KodeFitur {
+  /// Pindai lembar kerja secara umum.
+  static const pindaiLembar = 'pindai_lembar';
+
+  /// OCR awan atas potongan sel (`POST /worksheet-scans/{id}/ocr-awan`).
+  static const ocrCloudSel = 'ocr_cloud_sel';
 }
 
 /// Nama izin yang dipakai mobile.
