@@ -8,7 +8,8 @@ import 'package:sidik_calibration/providers/sakelar_ocr_provider.dart';
 
 /// Kapan tombol OCR awan BOLEH ditawarkan.
 ///
-/// Aturan: sakelar klien menyala (bawaan MATI), backend sudah menjawab izin, dan
+/// Aturan: sakelar klien menyala (bawaan provider MENYALA, konstruktor MATI),
+/// backend sudah menjawab izin, dan
 /// `fitur_nonaktif` tidak memuat `ocr_cloud_sel` maupun `pindai_lembar`. Ini
 /// hanya menyembunyikan tombol; penegaknya server (`503 fitur_dimatikan`).
 void main() {
@@ -77,15 +78,15 @@ void main() {
   });
 
   group('sakelar klien', () {
-    test('bawaan MATI', () {
+    test('konstruktor const SakelarOcr() tetap MATI', () {
       expect(const SakelarOcr().ocrAwanSel, isFalse);
     });
 
-    test('sakelarOcrProvider tanpa --dart-define = mati', () {
+    test('sakelarOcrProvider tanpa --dart-define = MENYALA (keputusan pemilik 26 Nov)', () {
       final kontainer = ProviderContainer();
       addTearDown(kontainer.dispose);
 
-      expect(kontainer.read(sakelarOcrProvider).ocrAwanSel, isFalse);
+      expect(kontainer.read(sakelarOcrProvider).ocrAwanSel, isTrue);
     });
   });
 
