@@ -561,6 +561,9 @@ Future<int> _pindaiSekali({
       templateId: template.templateId,
       kertas: 'asli',
       kodeDokumen: template.kodeDokumen,
+      // Alat yang sama dengan kunci formulir asli (`_kunciAsli` di lembar
+      // kerja). Null = lembar dari foto tanpa alat terpilih: field tidak dikirim.
+      equipmentId: isian.alat?.id,
     );
 
     mintaUsulanAwan =

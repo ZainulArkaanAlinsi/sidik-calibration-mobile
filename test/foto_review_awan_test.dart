@@ -250,6 +250,103 @@ void main() {
       expect(isi(tester).first, '4,02');
     });
 
+    // Persen keyakinan itu milik pembaca di HP. Sel yang isinya sudah angka
+    // awan tidak boleh memamerkan persen HP di sebelahnya.
+    group('label "Keyakinan N%" milik pembaca HP', () {
+      Finder persen(int n) => find.text('Keyakinan $n%');
+
+      testWidgets('tampil untuk semua sel sebelum usulan dipakai', (
+        tester,
+      ) async {
+        await bukaDenganMock(tester);
+        await ketukMinta(tester);
+
+        expect(persen(30), findsOneWidget);
+        expect(persen(82), findsOneWidget);
+        expect(persen(20), findsOneWidget);
+        expect(persen(25), findsOneWidget);
+      });
+
+      testWidgets('Pakai menyembunyikan label sel itu saja', (tester) async {
+        await bukaDenganMock(tester);
+        await ketukMinta(tester);
+
+        await tester.tap(find.byKey(const ValueKey('usulan-pakai-$kunciB')));
+        await tester.pumpAndSettle();
+
+        expect(persen(82), findsNothing);
+        expect(persen(30), findsOneWidget, reason: 'sel A belum dipakai');
+        expect(persen(20), findsOneWidget);
+        expect(persen(25), findsOneWidget);
+
+        await tester.tap(find.byKey(const ValueKey('usulan-pakai-$kunciA')));
+        await tester.pumpAndSettle();
+
+        expect(persen(30), findsNothing);
+        expect(persen(20), findsOneWidget, reason: 'C dan D tidak dipakai');
+        expect(persen(25), findsOneWidget);
+      });
+
+      testWidgets('Batalkan mengembalikan labelnya', (tester) async {
+        await bukaDenganMock(tester);
+        await ketukMinta(tester);
+
+        await tester.tap(find.byKey(const ValueKey('usulan-pakai-$kunciB')));
+        await tester.pumpAndSettle();
+        expect(persen(82), findsNothing);
+
+        await tester.tap(
+          find.byKey(const ValueKey('usulan-kembalikan-$kunciB')),
+        );
+        await tester.pumpAndSettle();
+
+        expect(persen(82), findsOneWidget);
+      });
+
+      testWidgets('Ubah (angka teknisi dari panel) juga menyembunyikan', (
+        tester,
+      ) async {
+        await bukaDenganMock(tester);
+        await ketukMinta(tester);
+
+        await tester.tap(find.byKey(const ValueKey('usulan-ubah-$kunciA')));
+        await tester.pumpAndSettle();
+        await tester.enterText(
+          find.byKey(const ValueKey('usulan-isian-$kunciA')),
+          '4,05',
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('usulan-simpan-$kunciA')));
+        await tester.pumpAndSettle();
+
+        expect(persen(30), findsNothing);
+      });
+
+      testWidgets('usulan yang hanya dilihat/ditolak tidak mengubah label', (
+        tester,
+      ) async {
+        await bukaDenganMock(tester);
+        await ketukMinta(tester);
+
+        expect(persen(30), findsOneWidget);
+
+        await tester.tap(find.byKey(const ValueKey('usulan-tolak-$kunciA')));
+        await tester.pumpAndSettle();
+
+        expect(persen(30), findsOneWidget);
+        expect(persen(82), findsOneWidget);
+      });
+
+      testWidgets('tanpa penerus awan label tidak pernah disembunyikan', (
+        tester,
+      ) async {
+        await buka(tester);
+
+        expect(persen(30), findsOneWidget);
+        expect(persen(82), findsOneWidget);
+      });
+    });
+
     testWidgets('tombol Masukkan tetap mati selama sel merah masih kosong', (
       tester,
     ) async {

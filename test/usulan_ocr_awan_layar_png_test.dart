@@ -142,7 +142,7 @@ void main() {
     (tester) async {
       // Bawaan Mock = galat produksi sekarang: 503 ocr_cloud_belum_aktif.
       final service = MockOcrAwanSelService();
-      await bukaLayar(tester, service: service, tinggi: 1160);
+      await bukaLayar(tester, service: service, tinggi: 1230);
 
       await ketuk(tester, const ValueKey('minta-usulan-awan'));
 

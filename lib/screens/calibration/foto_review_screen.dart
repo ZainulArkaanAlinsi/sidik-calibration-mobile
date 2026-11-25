@@ -849,7 +849,15 @@ class _FotoReviewScreenState extends State<FotoReviewScreen> {
                 // dari mesin angka ([kunciSkorMentah]) tanpa angka, hanya
                 // "usulan mesin"; sel yang ditahan (merah) tanpa keterangan
                 // karena tidak ada usulan. Baris ML Kit tidak ikut label ini.
-                b.keyakinan == null
+                //
+                // Sel yang kotaknya diisi dari usulan awan ("Pakai"/"Ubah")
+                // tanpa label sama sekali: persen itu milik pembaca di HP
+                // atas nilai yang sudah tidak ada di kotak. "Batalkan"/"Tolak"
+                // mengembalikan labelnya (kuncinya keluar dari
+                // [_sebelumUsulan]).
+                _sebelumUsulan.containsKey(_kunci(b))
+                    ? ''
+                    : b.keyakinan == null
                     ? l10n.fotoReviewKeyakinanTakAda
                     : !widget.kunciSkorMentah.contains(_kunci(b))
                     ? l10n.fotoReviewKeyakinan((b.keyakinan! * 100).round())
