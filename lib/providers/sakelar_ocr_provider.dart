@@ -23,12 +23,13 @@ import '../services/ocr_angka/sesi_inferensi_tflite.dart'
 ///   masa ONNX supaya tes dan skrip lama tetap jalan; runtime-nya kini TFLite.
 ///
 /// - [ocrAwanSel]: tawarkan OCR awan atas POTONGAN sel angka
-///   (`POST /worksheet-scans/{id}/ocr-awan`, lewat backend; app tidak memegang
-///   kunci atau URL Google dan tidak mengirim foto). Hasilnya usulan yang wajib
-///   dikonfirmasi manusia. Ini hanya sakelar sisi klien: server punya sakelar
-///   sendiri (`GOOGLE_VISION_AKTIF`, `ocr_cloud_sel`) dan menang bila mati. Jangan
-///   dinyalakan untuk teknisi nyata sebelum pemilik memastikan kontrak pelanggan
-///   dan ISO/IEC 17025 §4.2. Lihat `ocrAwanTersediaProvider`.
+///   (`POST /api/ocr/sel-awan`, kontrak 22B: HP memotong sendiri sel angka lalu
+///   mengunggah potongannya lewat backend; app tidak memegang kunci atau URL
+///   Google dan tidak mengirim foto utuh). Hasilnya usulan yang wajib
+///   dikonfirmasi manusia per sel. Ini hanya sakelar sisi klien: server punya
+///   sakelar sendiri (`GOOGLE_VISION_AKTIF`, `ocr_cloud_sel`) dan menang bila
+///   mati. Jangan dinyalakan untuk teknisi nyata sebelum pemilik memastikan
+///   kontrak pelanggan dan ISO/IEC 17025 §4.2. Lihat `ocrAwanBolehDitawarkan`.
 ///
 /// Layar diagnostik `Ukur OCR` bukan sakelar di kelas ini: lihat
 /// [tampilkanUkurOcrAktif] (const).

@@ -17599,6 +17599,372 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This assignment was already reopened.'**
   String get crudPenugasanSudahAktif;
+
+  /// No description provided for @ocrAwanJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud reading suggestions'**
+  String get ocrAwanJudul;
+
+  /// No description provided for @ocrAwanPenjelasan.
+  ///
+  /// In en, this message translates to:
+  /// **'These are suggestions, not results. Compare each number with the paper, then decide one by one.'**
+  String get ocrAwanPenjelasan;
+
+  /// No description provided for @ocrAwanSisa.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah, plural, =0{All suggestions are decided.} =1{1 suggestion is not decided yet.} other{{jumlah} suggestions are not decided yet.}}'**
+  String ocrAwanSisa(int jumlah);
+
+  /// No description provided for @ocrAwanSebagian.
+  ///
+  /// In en, this message translates to:
+  /// **'Some cells were not read by the cloud in time.'**
+  String get ocrAwanSebagian;
+
+  /// No description provided for @ocrAwanDilewati.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah, plural, =1{1 cell was not read by the cloud. Fill it in yourself or use the reader on the phone.} other{{jumlah} cells were not read by the cloud. Fill them in yourself or use the reader on the phone.}}'**
+  String ocrAwanDilewati(int jumlah);
+
+  /// No description provided for @ocrAwanLabelAwan.
+  ///
+  /// In en, this message translates to:
+  /// **'Read by the cloud'**
+  String get ocrAwanLabelAwan;
+
+  /// No description provided for @ocrAwanLabelNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'Tidied into a number'**
+  String get ocrAwanLabelNormal;
+
+  /// No description provided for @ocrAwanLabelUsulan.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested number'**
+  String get ocrAwanLabelUsulan;
+
+  /// No description provided for @ocrAwanDuaBentukBeda.
+  ///
+  /// In en, this message translates to:
+  /// **'These two forms differ. Choose the one that matches the paper.'**
+  String get ocrAwanDuaBentukBeda;
+
+  /// No description provided for @ocrAwanPakai.
+  ///
+  /// In en, this message translates to:
+  /// **'Use suggestion'**
+  String get ocrAwanPakai;
+
+  /// No description provided for @ocrAwanUbah.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get ocrAwanUbah;
+
+  /// No description provided for @ocrAwanTolak.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get ocrAwanTolak;
+
+  /// No description provided for @ocrAwanBatalkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get ocrAwanBatalkan;
+
+  /// No description provided for @ocrAwanSimpan.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get ocrAwanSimpan;
+
+  /// No description provided for @ocrAwanBatal.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get ocrAwanBatal;
+
+  /// No description provided for @ocrAwanPerluDicek.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs checking'**
+  String get ocrAwanPerluDicek;
+
+  /// No description provided for @ocrAwanDipakai.
+  ///
+  /// In en, this message translates to:
+  /// **'Used'**
+  String get ocrAwanDipakai;
+
+  /// No description provided for @ocrAwanDiubah.
+  ///
+  /// In en, this message translates to:
+  /// **'Edited'**
+  String get ocrAwanDiubah;
+
+  /// No description provided for @ocrAwanDitolak.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get ocrAwanDitolak;
+
+  /// No description provided for @ocrAwanLabelIsian.
+  ///
+  /// In en, this message translates to:
+  /// **'Number from the paper'**
+  String get ocrAwanLabelIsian;
+
+  /// No description provided for @ocrAwanGalatIsian.
+  ///
+  /// In en, this message translates to:
+  /// **'Numbers only, e.g. 4,01'**
+  String get ocrAwanGalatIsian;
+
+  /// No description provided for @ocrAwanNilaiPegangan.
+  ///
+  /// In en, this message translates to:
+  /// **'Value: {teks}'**
+  String ocrAwanNilaiPegangan(String teks);
+
+  /// No description provided for @ocrAwanJudulTanpaUsulan.
+  ///
+  /// In en, this message translates to:
+  /// **'No suggestion, fill in yourself'**
+  String get ocrAwanJudulTanpaUsulan;
+
+  /// No description provided for @ocrAwanTanpaMerah.
+  ///
+  /// In en, this message translates to:
+  /// **'The cloud reading is not used. Fill it in yourself from the paper.'**
+  String get ocrAwanTanpaMerah;
+
+  /// No description provided for @ocrAwanTanpaKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'The cloud saw no writing in this cell. It stays empty until you fill it in.'**
+  String get ocrAwanTanpaKosong;
+
+  /// No description provided for @ocrAwanTanpaBentukTakDikenal.
+  ///
+  /// In en, this message translates to:
+  /// **'The cloud reading is not a plain number, so it is not offered. Fill it in yourself.'**
+  String get ocrAwanTanpaBentukTakDikenal;
+
+  /// No description provided for @ocrAwanTanpaIdentitas.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity fields are not read by the cloud. Fill them in yourself.'**
+  String get ocrAwanTanpaIdentitas;
+
+  /// No description provided for @ocrAwanAlasanTeksMeluber.
+  ///
+  /// In en, this message translates to:
+  /// **'The writing runs outside the box and may have been read from the next column.'**
+  String get ocrAwanAlasanTeksMeluber;
+
+  /// No description provided for @ocrAwanAlasanDiLuarRentang.
+  ///
+  /// In en, this message translates to:
+  /// **'The number is outside the normal range for this point.'**
+  String get ocrAwanAlasanDiLuarRentang;
+
+  /// No description provided for @ocrAwanAlasanMagnitudoMeleset.
+  ///
+  /// In en, this message translates to:
+  /// **'The number is far from the standard value of this point.'**
+  String get ocrAwanAlasanMagnitudoMeleset;
+
+  /// No description provided for @ocrAwanAlasanAdaKoreksiKarakter.
+  ///
+  /// In en, this message translates to:
+  /// **'A letter was guessed to be a digit.'**
+  String get ocrAwanAlasanAdaKoreksiKarakter;
+
+  /// No description provided for @ocrAwanAlasanDesimalKebanyakan.
+  ///
+  /// In en, this message translates to:
+  /// **'It has more decimals than the instrument resolution.'**
+  String get ocrAwanAlasanDesimalKebanyakan;
+
+  /// No description provided for @ocrAwanAlasanBukanKelipatanResolusi.
+  ///
+  /// In en, this message translates to:
+  /// **'This number cannot come from an instrument with this resolution.'**
+  String get ocrAwanAlasanBukanKelipatanResolusi;
+
+  /// No description provided for @ocrAwanAlasanJauhDariRepeatLain.
+  ///
+  /// In en, this message translates to:
+  /// **'The number differs a lot from the other Repeats in this row.'**
+  String get ocrAwanAlasanJauhDariRepeatLain;
+
+  /// No description provided for @ocrAwanAlasanSebarRepeatTidakDiuji.
+  ///
+  /// In en, this message translates to:
+  /// **'Too few Repeats were read to compare.'**
+  String get ocrAwanAlasanSebarRepeatTidakDiuji;
+
+  /// No description provided for @ocrAwanAlasanTerlaluBanyakSubstitusi.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many letters had to be guessed.'**
+  String get ocrAwanAlasanTerlaluBanyakSubstitusi;
+
+  /// No description provided for @ocrAwanAlasanKarakterDiLuarWhitelist.
+  ///
+  /// In en, this message translates to:
+  /// **'There is a character that is not a digit, so the reading is rejected.'**
+  String get ocrAwanAlasanKarakterDiLuarWhitelist;
+
+  /// No description provided for @ocrAwanAlasanSpasiDiDalamAngka.
+  ///
+  /// In en, this message translates to:
+  /// **'There is a space inside the number.'**
+  String get ocrAwanAlasanSpasiDiDalamAngka;
+
+  /// No description provided for @ocrAwanAlasanPemisahRibuan.
+  ///
+  /// In en, this message translates to:
+  /// **'There is a thousands separator (e.g. 1.234,56). It is not removed automatically.'**
+  String get ocrAwanAlasanPemisahRibuan;
+
+  /// No description provided for @ocrAwanAlasanBentukAngkaTidakWajar.
+  ///
+  /// In en, this message translates to:
+  /// **'The shape of the number does not make sense.'**
+  String get ocrAwanAlasanBentukAngkaTidakWajar;
+
+  /// No description provided for @ocrAwanAlasanDigitKebanyakan.
+  ///
+  /// In en, this message translates to:
+  /// **'It has too many digits for this column.'**
+  String get ocrAwanAlasanDigitKebanyakan;
+
+  /// No description provided for @ocrAwanAlasanPemisahDesimalTidakWajar.
+  ///
+  /// In en, this message translates to:
+  /// **'The comma or dot is in an odd place.'**
+  String get ocrAwanAlasanPemisahDesimalTidakWajar;
+
+  /// No description provided for @ocrAwanAlasanDesimalAmbigu.
+  ///
+  /// In en, this message translates to:
+  /// **'It is unclear whether the dot is a decimal comma or a thousands separator.'**
+  String get ocrAwanAlasanDesimalAmbigu;
+
+  /// No description provided for @ocrAwanAlasanMinusDiTengah.
+  ///
+  /// In en, this message translates to:
+  /// **'There is a minus sign inside the number.'**
+  String get ocrAwanAlasanMinusDiTengah;
+
+  /// No description provided for @ocrAwanAlasanMinusTidakDiizinkan.
+  ///
+  /// In en, this message translates to:
+  /// **'This column must not be negative.'**
+  String get ocrAwanAlasanMinusTidakDiizinkan;
+
+  /// No description provided for @ocrAwanAlasanTakDikenal.
+  ///
+  /// In en, this message translates to:
+  /// **'The server sent a note this app does not know yet. Check it against the paper.'**
+  String get ocrAwanAlasanTakDikenal;
+
+  /// No description provided for @ocrAwanMinta.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask for cloud suggestions'**
+  String get ocrAwanMinta;
+
+  /// No description provided for @ocrAwanMeminta.
+  ///
+  /// In en, this message translates to:
+  /// **'Asking for cloud suggestions ({selesai} of {total})...'**
+  String ocrAwanMeminta(int selesai, int total);
+
+  /// No description provided for @ocrAwanKeterangan.
+  ///
+  /// In en, this message translates to:
+  /// **'Only image crops of number cells are sent to the cloud service, not the whole photo and not identity fields. The result is only a suggestion; the technician still decides each cell.'**
+  String get ocrAwanKeterangan;
+
+  /// No description provided for @ocrAwanTertahanDiHp.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah, plural, =1{1 crop was not sent because its size is out of range. Fill it in yourself or use the reader on the phone.} other{{jumlah} crops were not sent because their size is out of range. Fill them in yourself or use the reader on the phone.}}'**
+  String ocrAwanTertahanDiHp(int jumlah);
+
+  /// No description provided for @ocrAwanBelumTerkirim.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah, plural, =1{1 cell was not sent in time. Fill it in yourself or use the reader on the phone.} other{{jumlah} cells were not sent in time. Fill them in yourself or use the reader on the phone.}}'**
+  String ocrAwanBelumTerkirim(int jumlah);
+
+  /// No description provided for @ocrAwanGagalTidakAdaSel.
+  ///
+  /// In en, this message translates to:
+  /// **'No cell needs to be sent to the cloud.'**
+  String get ocrAwanGagalTidakAdaSel;
+
+  /// No description provided for @ocrAwanGagalFiturMati.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud reading is switched off by an admin. Continue with the reader on the phone or fill in yourself.'**
+  String get ocrAwanGagalFiturMati;
+
+  /// No description provided for @ocrAwanGagalAwanBelumSiap.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud reading is not active on the server yet. Continue with the reader on the phone or fill in yourself.'**
+  String get ocrAwanGagalAwanBelumSiap;
+
+  /// No description provided for @ocrAwanGagalJatahHabis.
+  ///
+  /// In en, this message translates to:
+  /// **'The cloud reading quota for this sheet is used up. Continue with the reader on the phone or fill in yourself.'**
+  String get ocrAwanGagalJatahHabis;
+
+  /// No description provided for @ocrAwanGagalTerlaluSering.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud reading was requested too often. Try again later, or continue with the reader on the phone or fill in yourself.'**
+  String get ocrAwanGagalTerlaluSering;
+
+  /// No description provided for @ocrAwanGagalAwanGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'The cloud could not read these crops. Continue with the reader on the phone or fill in yourself.'**
+  String get ocrAwanGagalAwanGagal;
+
+  /// No description provided for @ocrAwanGagalDitolakServer.
+  ///
+  /// In en, this message translates to:
+  /// **'The server did not accept these crops. Continue with the reader on the phone or fill in yourself.'**
+  String get ocrAwanGagalDitolakServer;
+
+  /// No description provided for @ocrAwanGagalAkses.
+  ///
+  /// In en, this message translates to:
+  /// **'This account may not use cloud reading. Continue with the reader on the phone or fill in yourself.'**
+  String get ocrAwanGagalAkses;
+
+  /// No description provided for @ocrAwanGagalJaringan.
+  ///
+  /// In en, this message translates to:
+  /// **'There is no network or the connection dropped. Continue with the reader on the phone or fill in yourself.'**
+  String get ocrAwanGagalJaringan;
+
+  /// No description provided for @ocrAwanGagalLainnya.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud reading is not available right now. Continue with the reader on the phone or fill in yourself.'**
+  String get ocrAwanGagalLainnya;
 }
 
 class _AppLocalizationsDelegate

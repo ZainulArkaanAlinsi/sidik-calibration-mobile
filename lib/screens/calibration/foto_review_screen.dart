@@ -3,12 +3,30 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_ukuran.dart';
 import '../../core/theme/beku_lembar_kerja.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/review_foto.dart';
+import '../../models/usulan_ocr_awan.dart';
 import '../../services/peta_tabel_foto.dart';
+import '../../services/saran_ocr_awan.dart';
 import '../../services/vonis_sel_foto.dart';
 import 'widgets/keypad_angka.dart';
+import 'widgets/panel_usulan_ocr_awan.dart';
+import 'widgets/teks_ocr_awan.dart';
+
+/// Meminta usulan OCR awan untuk sel yang masih ragu di layar ini. Pemanggil
+/// (alur pindai) yang tahu templat, token, dan gerbang fiturnya; layar hanya
+/// menampilkan hasilnya. TIDAK PERNAH melempar ([PenjalurSaranAwan.minta]).
+///
+/// [dibatalkan] dibaca oleh penjalur sebelum tiap permintaan jaringan, supaya
+/// layar yang sudah ditutup tidak menghabiskan jatah awan.
+typedef PemintaUsulanAwan =
+    Future<HasilSaranAwan> Function({
+      void Function(int selesai, int total)? onKemajuan,
+      bool Function()? dibatalkan,
+    });
 
 /// Layar review hasil **FOTO TABEL INI**, sebelum angkanya mendarat di form.
 ///
@@ -45,6 +63,16 @@ import 'widgets/keypad_angka.dart';
 /// barisnya), sel merah wajib diketik, dan tidak ada nilai yang disalin dari
 /// sel lain.
 ///
+/// ## Usulan OCR awan (25 Nov 2026)
+///
+/// Bila [mintaUsulanAwan] ada, layar menawarkan SATU tombol "Minta usulan awan".
+/// Hasilnya tampil di [PanelUsulanOcrAwan] sebagai USULAN: tidak ada yang masuk
+/// ke kotak sel sebelum teknisi menekan "Pakai usulan" atau mengetik angkanya
+/// untuk sel itu, tidak ada tombol "pakai semua", dan sel yang awan lihat kosong
+/// tetap kosong. Pakai/ubah dihitung sebagai sel sudah dicek. Gagal apa pun
+/// (awan mati, jaringan, jatah) hanya menampilkan satu kalimat; layar tetap
+/// bekerja seperti tanpa awan. Bila `null`, layar identik dengan sebelumnya.
+///
 /// Yang dipulangkan: `null` kalau teknisi membatalkan, atau daftar sel yang
 /// dia setujui — teksnya sudah yang final, termasuk hasil koreksinya.
 class FotoReviewScreen extends StatefulWidget {
@@ -53,7 +81,17 @@ class FotoReviewScreen extends StatefulWidget {
     required this.baris,
     this.catatan = const {},
     this.kunciSkorMentah = const {},
+    this.mintaUsulanAwan,
+    this.kunciServerPerBaris = const {},
   });
+
+  /// Peminta usulan awan; `null` = fitur tidak ditawarkan di layar ini.
+  final PemintaUsulanAwan? mintaUsulanAwan;
+
+  /// Kunci baris review ([kunciSelFoto]) -> kunci templat server. Dipakai untuk
+  /// memetakan usulan (berkunci server) kembali ke kotak selnya. Baris yang
+  /// tidak ada di peta ini tidak pernah punya usulan.
+  final Map<String, String> kunciServerPerBaris;
 
   final List<BarisReviewFoto> baris;
 
@@ -94,6 +132,252 @@ class _FotoReviewScreenState extends State<FotoReviewScreen> {
 
   FocusNode _node(String kunci) => _fokus.putIfAbsent(kunci, FocusNode.new);
 
+  // ---- Usulan OCR awan ----
+
+  /// Kunci server -> kunci baris review (kebalikan [FotoReviewScreen.kunciServerPerBaris]).
+  late final Map<String, String> _barisPerKunciServer = {
+    for (final e in widget.kunciServerPerBaris.entries) e.value: e.key,
+  };
+
+  PapanUsulanAwan? _papan;
+  HasilSaranAwan? _hasilAwan;
+  bool _meminta = false;
+  int _selesaiAwan = 0;
+  int _totalAwan = 0;
+
+  /// Layar sudah ditutup: permintaan yang masih antre tidak boleh jalan terus.
+  bool _ditutup = false;
+
+  /// Isi kotak sel dan status cek SEBELUM "Pakai"/"Ubah", per kunci baris, supaya
+  /// "Tolak"/"Batalkan" bisa mengembalikannya.
+  final Map<String, ({String teks, bool dicek})> _sebelumUsulan = {};
+
+  Future<void> _mintaUsulan() async {
+    final minta = widget.mintaUsulanAwan;
+    if (minta == null || _meminta) return;
+
+    setState(() {
+      _meminta = true;
+      _selesaiAwan = 0;
+      _totalAwan = 0;
+    });
+
+    // `minta` tidak pernah melempar, tetapi layar tidak boleh bergantung pada
+    // janji itu: apa pun yang keluar dianggap "awan tidak tersedia".
+    HasilSaranAwan hasil;
+    try {
+      hasil = await minta(
+        onKemajuan: (selesai, total) {
+          if (!mounted) return;
+          setState(() {
+            _selesaiAwan = selesai;
+            _totalAwan = total;
+          });
+        },
+        dibatalkan: () => _ditutup,
+      );
+    } catch (e) {
+      hasil = HasilSaranAwan(sebabGagal: petakanGalatSaranAwan(e));
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _meminta = false;
+      _hasilAwan = hasil;
+      // Gagal total tidak menimpa papan yang sudah ada.
+      _papan = hasil.papan ?? _papan;
+    });
+  }
+
+  String _labelSelAwan(String kunciServer) {
+    final k = _barisPerKunciServer[kunciServer];
+    if (k == null) return '';
+
+    for (final b in widget.baris) {
+      if (_kunci(b) == k) return b.judul;
+    }
+
+    return '';
+  }
+
+  /// Taruh [teks] di kotak sel milik [kunciServer] dan hitung sebagai sudah dicek.
+  void _isiDariUsulan(String kunciServer, String teks) {
+    final k = _barisPerKunciServer[kunciServer];
+    final c = k == null ? null : _isian[k];
+    if (k == null || c == null) return;
+
+    _sebelumUsulan.putIfAbsent(
+      k,
+      () => (teks: c.text, dicek: _dicek.contains(k)),
+    );
+    c.value = TextEditingValue(
+      text: teks,
+      selection: TextSelection.collapsed(offset: teks.length),
+    );
+    _dicek.add(k);
+  }
+
+  /// Batalkan isian usulan di kotak sel [kunciServer]. Teks yang sudah diubah
+  /// teknisi sesudahnya (tidak sama dengan [teksUsulan]) TIDAK ditimpa.
+  void _cabutUsulan(String kunciServer, String? teksUsulan) {
+    final k = _barisPerKunciServer[kunciServer];
+    final c = k == null ? null : _isian[k];
+    final sebelum = k == null ? null : _sebelumUsulan.remove(k);
+    if (k == null || c == null || sebelum == null) return;
+
+    if (teksUsulan != null && c.text.trim() == teksUsulan.trim()) {
+      c.value = TextEditingValue(
+        text: sebelum.teks,
+        selection: TextSelection.collapsed(offset: sebelum.teks.length),
+      );
+    }
+    if (!sebelum.dicek) _dicek.remove(k);
+  }
+
+  void _pakaiUsulan(String kunciServer) {
+    final papan = _papan;
+    if (papan == null || papan.cari(kunciServer) == null) return;
+
+    setState(() {
+      final baru = papan.pakai(kunciServer);
+      _papan = baru;
+      _isiDariUsulan(kunciServer, baru.cari(kunciServer)!.teksFinal!);
+    });
+  }
+
+  void _ubahUsulan(String kunciServer, String teks) {
+    final papan = _papan;
+    if (papan == null || papan.cari(kunciServer) == null) return;
+
+    final PapanUsulanAwan baru;
+    try {
+      baru = papan.ubah(kunciServer, teks);
+    } on ArgumentError {
+      return; // bukan angka murni: tidak ada yang berubah
+    }
+
+    setState(() {
+      _papan = baru;
+      _isiDariUsulan(kunciServer, baru.cari(kunciServer)!.teksFinal!);
+    });
+  }
+
+  void _tolakUsulan(String kunciServer) {
+    final papan = _papan;
+    final lama = papan?.cari(kunciServer);
+    if (papan == null || lama == null) return;
+
+    setState(() {
+      _papan = papan.tolak(kunciServer);
+      _cabutUsulan(kunciServer, lama.teksFinal);
+    });
+  }
+
+  void _kembalikanUsulan(String kunciServer) {
+    final papan = _papan;
+    final lama = papan?.cari(kunciServer);
+    if (papan == null || lama == null) return;
+
+    setState(() {
+      _papan = papan.kembalikan(kunciServer);
+      _cabutUsulan(kunciServer, lama.teksFinal);
+    });
+  }
+
+  /// Tombol, keterangan, kemajuan, pesan fallback, dan panel usulan awan.
+  /// Kosong sama sekali bila [FotoReviewScreen.mintaUsulanAwan] `null`.
+  Widget _bagianAwan() {
+    if (widget.mintaUsulanAwan == null) return const SizedBox.shrink();
+
+    final theme = Theme.of(context);
+    final t = TeksOcrAwan.dari(context);
+    final hasil = _hasilAwan;
+    final papan = _papan;
+    final sebab = hasil?.sebabGagal;
+    final pesanGagal = sebab == null ? null : t.gagal(sebab);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        0,
+        AppSpacing.md,
+        AppSpacing.md,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Satu putaran permintaan per layar; ulang hanya bila tidak ada satu
+          // pun jawaban (gagal total), atas ketukan teknisi, bukan otomatis.
+          if (papan == null)
+            OutlinedButton.icon(
+              key: const ValueKey('minta-usulan-awan'),
+              style: const ButtonStyle(
+                minimumSize: WidgetStatePropertyAll(
+                  Size(0, AppUkuran.sasaranSentuh),
+                ),
+              ),
+              onPressed: _meminta ? null : _mintaUsulan,
+              icon: const Icon(Icons.cloud_outlined),
+              label: Text(t.minta),
+            ),
+          if (_meminta) ...[
+            const SizedBox(height: AppSpacing.sm),
+            const LinearProgressIndicator(),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              t.meminta(_selesaiAwan, _totalAwan),
+              key: const ValueKey('usulan-awan-kemajuan'),
+              style: theme.textTheme.bodySmall,
+            ),
+          ],
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            t.keterangan,
+            key: const ValueKey('usulan-awan-keterangan'),
+            style: theme.textTheme.bodySmall,
+          ),
+          if (pesanGagal != null) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              pesanGagal,
+              key: const ValueKey('usulan-awan-gagal'),
+              style: theme.textTheme.bodyMedium,
+            ),
+          ],
+          if (hasil != null && hasil.jumlahDitahanDiHp > 0) ...[
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              t.tertahanDiHp(hasil.jumlahDitahanDiHp),
+              key: const ValueKey('usulan-awan-tertahan'),
+              style: theme.textTheme.bodySmall,
+            ),
+          ],
+          if (hasil != null &&
+              !hasil.gagalTotal &&
+              hasil.jumlahTidakTerkirim > 0) ...[
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              t.belumTerkirim(hasil.jumlahTidakTerkirim),
+              key: const ValueKey('usulan-awan-belum-terkirim'),
+              style: theme.textTheme.bodySmall,
+            ),
+          ],
+          if (papan != null) ...[
+            const SizedBox(height: AppSpacing.md),
+            PanelUsulanOcrAwan(
+              papan: papan,
+              labelSel: _labelSelAwan,
+              onPakai: _pakaiUsulan,
+              onUbah: _ubahUsulan,
+              onTolak: _tolakUsulan,
+              onKembalikan: _kembalikanUsulan,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   /// Keypad layar (bukan papan ketik sistem) dipakai di perangkat ini?
   bool get _keypadLayar => bolehKeypadLayar(MediaQuery.of(context));
 
@@ -107,6 +391,7 @@ class _FotoReviewScreenState extends State<FotoReviewScreen> {
 
   @override
   void dispose() {
+    _ditutup = true;
     for (final c in _isian.values) {
       c.dispose();
     }
@@ -297,6 +582,7 @@ class _FotoReviewScreenState extends State<FotoReviewScreen> {
                       ),
                     ),
                   ),
+                  SliverToBoxAdapter(child: _bagianAwan()),
                   SliverPadding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     sliver: SliverList.separated(

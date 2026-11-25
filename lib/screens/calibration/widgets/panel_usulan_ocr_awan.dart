@@ -26,10 +26,13 @@ const _gayaTombol = ButtonStyle(
 ///    diputuskan = warna utama + ikon centang (bukan hijau).
 ///  - `teks_awan` dan `teks_normal` berdampingan bila berbeda.
 ///  - Alasan dalam kalimat manusia ([TeksOcrAwan.alasan]), bukan kode mentah.
+///  - Semua teks lewat l10n ([TeksOcrAwan]); tidak ada string di berkas ini.
 ///  - Nilai yang tampil tidak dibulatkan atau dihitung ulang.
 ///
-/// Belum dipasang di layar mana pun: titik masuknya butuh `scan_id` dari
-/// unggahan hasil pindai, yang belum diputuskan pemilik.
+/// Dipasang di `FotoReviewScreen`, dan hanya tampil sesudah teknisi menekan
+/// "Minta usulan awan" (tombol itu sendiri hanya ada bila sakelar klien,
+/// izin, dan sakelar server mengizinkan). Titik masuknya sejak kontrak 22B
+/// adalah potongan sel yang diunggah HP, bukan `scan_id`.
 class PanelUsulanOcrAwan extends StatelessWidget {
   const PanelUsulanOcrAwan({
     super.key,
@@ -55,28 +58,29 @@ class PanelUsulanOcrAwan extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = TeksOcrAwan.dari(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(TeksOcrAwan.judul, style: theme.textTheme.titleMedium),
+        Text(t.judul, style: theme.textTheme.titleMedium),
         const SizedBox(height: AppSpacing.xs),
-        Text(TeksOcrAwan.penjelasan, style: theme.textTheme.bodyMedium),
+        Text(t.penjelasan, style: theme.textTheme.bodyMedium),
         const SizedBox(height: AppSpacing.xs),
         Text(
-          TeksOcrAwan.sisa(papan.jumlahMenunggu),
+          t.sisa(papan.jumlahMenunggu),
           key: const ValueKey('usulan-sisa'),
           style: theme.textTheme.labelLarge,
         ),
         if (papan.sebagian) ...[
           const SizedBox(height: AppSpacing.xs),
-          Text(TeksOcrAwan.sebagian, style: theme.textTheme.bodySmall),
+          Text(t.sebagian, style: theme.textTheme.bodySmall),
         ],
         if (papan.dilewati.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.xs),
           Text(
-            TeksOcrAwan.dilewati(papan.dilewati.length),
+            t.dilewati(papan.dilewati.length),
             style: theme.textTheme.bodySmall,
           ),
         ],
@@ -95,7 +99,7 @@ class PanelUsulanOcrAwan extends StatelessWidget {
         ],
         if (papan.tanpaUsulan.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.sm),
-          Text(TeksOcrAwan.judulTanpaUsulan, style: theme.textTheme.titleSmall),
+          Text(t.judulTanpaUsulan, style: theme.textTheme.titleSmall),
           const SizedBox(height: AppSpacing.xs),
           for (final s in papan.tanpaUsulan)
             _BarisTanpaUsulan(
@@ -158,6 +162,7 @@ class _KartuUsulanState extends State<_KartuUsulan> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = TeksOcrAwan.dari(context);
     final u = widget.usulan;
     final dua = u.duaBentuk;
 
@@ -194,7 +199,7 @@ class _KartuUsulanState extends State<_KartuUsulan> {
                 children: [
                   Expanded(
                     child: _Bentuk(
-                      judul: TeksOcrAwan.labelAwan,
+                      judul: t.labelAwan,
                       nilai: dua.awan,
                       kunci: const ValueKey('bentuk-awan'),
                     ),
@@ -202,7 +207,7 @@ class _KartuUsulanState extends State<_KartuUsulan> {
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: _Bentuk(
-                      judul: TeksOcrAwan.labelNormal,
+                      judul: t.labelNormal,
                       nilai: dua.normal,
                       kunci: const ValueKey('bentuk-normal'),
                     ),
@@ -210,10 +215,10 @@ class _KartuUsulanState extends State<_KartuUsulan> {
                 ],
               ),
               const SizedBox(height: AppSpacing.xs),
-              Text(TeksOcrAwan.duaBentukBeda, style: theme.textTheme.bodySmall),
+              Text(t.duaBentukBeda, style: theme.textTheme.bodySmall),
             ] else
               _Bentuk(
-                judul: TeksOcrAwan.labelUsulan,
+                judul: t.labelUsulan,
                 nilai: u.teksUsulan,
                 kunci: const ValueKey('bentuk-usulan'),
               ),
@@ -230,7 +235,7 @@ class _KartuUsulanState extends State<_KartuUsulan> {
                   const SizedBox(width: AppSpacing.xs),
                   Expanded(
                     child: Text(
-                      TeksOcrAwan.alasan(kode),
+                      t.alasan(kode),
                       style: theme.textTheme.bodySmall,
                     ),
                   ),
@@ -246,6 +251,7 @@ class _KartuUsulanState extends State<_KartuUsulan> {
   }
 
   Widget _aksi(ThemeData theme, UsulanSelAwan u) {
+    final t = TeksOcrAwan.dari(context);
     final k = u.kunci;
 
     if (u.perluDicek) {
@@ -257,19 +263,19 @@ class _KartuUsulanState extends State<_KartuUsulan> {
             key: ValueKey('usulan-pakai-$k'),
             style: _gayaTombol,
             onPressed: widget.onPakai,
-            child: const Text(TeksOcrAwan.pakai),
+            child: Text(t.pakai),
           ),
           OutlinedButton(
             key: ValueKey('usulan-ubah-$k'),
             style: _gayaTombol,
             onPressed: _mulaiUbah,
-            child: const Text(TeksOcrAwan.ubah),
+            child: Text(t.ubah),
           ),
           TextButton(
             key: ValueKey('usulan-tolak-$k'),
             style: _gayaTombol,
             onPressed: widget.onTolak,
-            child: const Text(TeksOcrAwan.tolak),
+            child: Text(t.tolak),
           ),
         ],
       );
@@ -280,7 +286,7 @@ class _KartuUsulanState extends State<_KartuUsulan> {
         if (u.terkonfirmasi)
           Expanded(
             child: Text(
-              TeksOcrAwan.nilaiPegangan(u.teksFinal!),
+              t.nilaiPegangan(u.teksFinal!),
               key: ValueKey('usulan-nilai-$k'),
               style: theme.textTheme.titleSmall,
             ),
@@ -291,13 +297,14 @@ class _KartuUsulanState extends State<_KartuUsulan> {
           key: ValueKey('usulan-kembalikan-$k'),
           style: _gayaTombol,
           onPressed: widget.onKembalikan,
-          child: const Text(TeksOcrAwan.batalkan),
+          child: Text(t.batalkan),
         ),
       ],
     );
   }
 
   Widget _bentukUbah(ThemeData theme) {
+    final t = TeksOcrAwan.dari(context);
     final k = widget.usulan.kunci;
     final salah = _isian.text.trim().isNotEmpty && !_isianSah;
 
@@ -316,8 +323,8 @@ class _KartuUsulanState extends State<_KartuUsulan> {
             FilteringTextInputFormatter.allow(RegExp(r'[0-9+\-.,]')),
           ],
           decoration: InputDecoration(
-            labelText: TeksOcrAwan.labelIsian,
-            errorText: salah ? TeksOcrAwan.galatIsian : null,
+            labelText: t.labelIsian,
+            errorText: salah ? t.galatIsian : null,
           ),
           onChanged: (_) => setState(() {}),
           onSubmitted: (_) => _simpan(),
@@ -331,13 +338,13 @@ class _KartuUsulanState extends State<_KartuUsulan> {
               key: ValueKey('usulan-simpan-$k'),
               style: _gayaTombol,
               onPressed: _isianSah ? _simpan : null,
-              child: const Text(TeksOcrAwan.simpan),
+              child: Text(t.simpan),
             ),
             TextButton(
               key: ValueKey('usulan-batal-$k'),
               style: _gayaTombol,
               onPressed: () => setState(() => _mengubah = false),
-              child: const Text(TeksOcrAwan.batal),
+              child: Text(t.batal),
             ),
           ],
         ),
@@ -381,26 +388,27 @@ class _Status extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = TeksOcrAwan.dari(context);
 
     final (IconData ikon, String teks, Color warna) = switch (keputusan) {
       KeputusanUsulan.menunggu => (
         Icons.warning_amber_rounded,
-        TeksOcrAwan.perluDicek,
+        t.perluDicek,
         kuningPerluDicek,
       ),
       KeputusanUsulan.dipakai => (
         Icons.check_circle_outline,
-        TeksOcrAwan.dipakai,
+        t.dipakai,
         theme.colorScheme.primary,
       ),
       KeputusanUsulan.diubah => (
         Icons.edit_outlined,
-        TeksOcrAwan.diubah,
+        t.diubah,
         theme.colorScheme.primary,
       ),
       KeputusanUsulan.ditolak => (
         Icons.block,
-        TeksOcrAwan.ditolak,
+        t.ditolak,
         theme.colorScheme.onSurfaceVariant,
       ),
     };
@@ -434,6 +442,7 @@ class _BarisTanpaUsulan extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = TeksOcrAwan.dari(context);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
@@ -442,11 +451,11 @@ class _BarisTanpaUsulan extends StatelessWidget {
         children: [
           Text(label, style: theme.textTheme.labelLarge),
           Text(
-            TeksOcrAwan.tanpaUsulan(sel.sebab),
+            t.tanpaUsulan(sel.sebab),
             style: theme.textTheme.bodySmall,
           ),
           for (final kode in sel.alasan)
-            Text(TeksOcrAwan.alasan(kode), style: theme.textTheme.bodySmall),
+            Text(t.alasan(kode), style: theme.textTheme.bodySmall),
         ],
       ),
     );

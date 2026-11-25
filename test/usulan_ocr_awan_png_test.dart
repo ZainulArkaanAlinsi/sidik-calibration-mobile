@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart' show FontLoader;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sidik_calibration/core/theme/app_theme.dart';
+import 'package:sidik_calibration/l10n/app_localizations.dart';
 import 'package:sidik_calibration/models/usulan_ocr_awan.dart';
 import 'package:sidik_calibration/screens/calibration/widgets/panel_usulan_ocr_awan.dart';
 
@@ -75,6 +76,9 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         debugShowCheckedModeBanner: false,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('id'),
         theme: tema,
         home: Scaffold(
           body: SingleChildScrollView(

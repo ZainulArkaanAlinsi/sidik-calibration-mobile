@@ -1,7 +1,9 @@
 import '../services/auth_service.dart' show ApiException;
 
-/// OCR awan atas POTONGAN SEL angka — `POST /worksheet-scans/{id}/ocr-awan`
-/// (kontrak: `docs/kontrak-api.md` §22A di repo API).
+/// OCR awan atas POTONGAN SEL angka. Dua jalur server berbagi bentuk jawaban ini:
+/// `POST /worksheet-scans/{id}/ocr-awan` (§22A, server memotong dari hasil pindai
+/// yang tersimpan) dan `POST /ocr/sel-awan` (§22B, HP mengunggah potongannya;
+/// jalur yang dipakai aplikasi Lab). Kontrak: `docs/kontrak-api.md` di repo API.
 ///
 /// Tiga hal yang dijaga di berkas ini, dan ketiganya tidak menghasilkan error
 /// bila dilanggar:
@@ -140,6 +142,7 @@ class MetaOcrAwan {
     this.usulan = true,
     this.sebagian = false,
     this.sisaSelScan,
+    this.sisaSelLembar,
     this.dilewatiOtomatis = const {},
   });
 
@@ -156,6 +159,10 @@ class MetaOcrAwan {
 
   /// Sisa jatah sel OCR awan untuk hasil pindai ini (hitungan lunak).
   final int? sisaSelScan;
+
+  /// Sisa hitungan sel lunak per lembar/sesi (§22B, jalur unggah). `null` bila
+  /// jawabannya dari §22A atau server tidak menyebutnya.
+  final int? sisaSelLembar;
 
   /// Sel yang server lewati sendiri, mis. `sudah_hijau_lokal`, `kosong_lokal`.
   final Map<String, int> dilewatiOtomatis;
@@ -176,6 +183,7 @@ class MetaOcrAwan {
       jumlahPanggilan: (json['jumlah_panggilan'] as num?)?.toInt(),
       sebagian: json['sebagian'] == true,
       sisaSelScan: (json['sisa_sel_scan'] as num?)?.toInt(),
+      sisaSelLembar: (json['sisa_sel_lembar'] as num?)?.toInt(),
       dilewatiOtomatis: otomatis,
     );
   }
@@ -253,6 +261,18 @@ enum JenisGalatOcrAwan {
   /// `502 ocr_cloud_gagal` — Google gagal, waktu habis, atau jaringan putus.
   awanGagal,
 
+  /// `422 permintaan_tidak_valid` / `templat_tidak_dikenal` (§22B) — server tidak
+  /// menerima bentuk kiriman atau tidak mengenali templatnya. Bukan salah
+  /// teknisi; teknisi cukup melanjutkan manual.
+  permintaanDitolak,
+
+  /// `422 tidak_ada_potongan_valid` (§22B) — tidak satu pun potongan boleh
+  /// dikirim (semuanya ada di `dilewati[]`).
+  tidakAdaPotongan,
+
+  /// `404 sesi_tidak_ditemukan` / `403 bukan_sesi_anda` (§22B).
+  sesiBermasalah,
+
   /// Galat dengan `fallback_manual: true` yang `kode`-nya belum dikenal klien.
   lainnya,
 }
@@ -310,6 +330,14 @@ class GalatOcrAwan implements Exception {
     'gagal_berulang_per_lembar': JenisGalatOcrAwan.jatahHabis,
     'batas_sel_per_scan': JenisGalatOcrAwan.jatahHabis,
     'ocr_cloud_gagal': JenisGalatOcrAwan.awanGagal,
+    // §22B (`POST /ocr/sel-awan`).
+    'batas_sel_per_lembar': JenisGalatOcrAwan.jatahHabis,
+    'terlalu_sering': JenisGalatOcrAwan.terlaluSering,
+    'permintaan_tidak_valid': JenisGalatOcrAwan.permintaanDitolak,
+    'templat_tidak_dikenal': JenisGalatOcrAwan.permintaanDitolak,
+    'tidak_ada_potongan_valid': JenisGalatOcrAwan.tidakAdaPotongan,
+    'sesi_tidak_ditemukan': JenisGalatOcrAwan.sesiBermasalah,
+    'bukan_sesi_anda': JenisGalatOcrAwan.sesiBermasalah,
   };
 
   /// [ApiException] dari `ocr-awan` → [GalatOcrAwan], atau `null` bila bukan

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sidik_calibration/core/theme/app_colors.dart';
 import 'package:sidik_calibration/core/theme/app_theme.dart';
+import 'package:sidik_calibration/l10n/app_localizations.dart';
 import 'package:sidik_calibration/models/ocr_awan.dart';
 import 'package:sidik_calibration/models/usulan_ocr_awan.dart';
 import 'package:sidik_calibration/screens/calibration/lembar_kerja_state.dart'
@@ -26,6 +27,9 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('id'),
         theme: mode == Brightness.light ? AppTheme.light : AppTheme.dark,
         home: Scaffold(
           body: SingleChildScrollView(

@@ -10336,4 +10336,267 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get crudPenugasanSudahAktif => 'This assignment was already reopened.';
+
+  @override
+  String get ocrAwanJudul => 'Cloud reading suggestions';
+
+  @override
+  String get ocrAwanPenjelasan =>
+      'These are suggestions, not results. Compare each number with the paper, then decide one by one.';
+
+  @override
+  String ocrAwanSisa(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: '$jumlah suggestions are not decided yet.',
+      one: '1 suggestion is not decided yet.',
+      zero: 'All suggestions are decided.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get ocrAwanSebagian =>
+      'Some cells were not read by the cloud in time.';
+
+  @override
+  String ocrAwanDilewati(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other:
+          '$jumlah cells were not read by the cloud. Fill them in yourself or use the reader on the phone.',
+      one:
+          '1 cell was not read by the cloud. Fill it in yourself or use the reader on the phone.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get ocrAwanLabelAwan => 'Read by the cloud';
+
+  @override
+  String get ocrAwanLabelNormal => 'Tidied into a number';
+
+  @override
+  String get ocrAwanLabelUsulan => 'Suggested number';
+
+  @override
+  String get ocrAwanDuaBentukBeda =>
+      'These two forms differ. Choose the one that matches the paper.';
+
+  @override
+  String get ocrAwanPakai => 'Use suggestion';
+
+  @override
+  String get ocrAwanUbah => 'Edit';
+
+  @override
+  String get ocrAwanTolak => 'Reject';
+
+  @override
+  String get ocrAwanBatalkan => 'Undo';
+
+  @override
+  String get ocrAwanSimpan => 'Save';
+
+  @override
+  String get ocrAwanBatal => 'Cancel';
+
+  @override
+  String get ocrAwanPerluDicek => 'Needs checking';
+
+  @override
+  String get ocrAwanDipakai => 'Used';
+
+  @override
+  String get ocrAwanDiubah => 'Edited';
+
+  @override
+  String get ocrAwanDitolak => 'Rejected';
+
+  @override
+  String get ocrAwanLabelIsian => 'Number from the paper';
+
+  @override
+  String get ocrAwanGalatIsian => 'Numbers only, e.g. 4,01';
+
+  @override
+  String ocrAwanNilaiPegangan(String teks) {
+    return 'Value: $teks';
+  }
+
+  @override
+  String get ocrAwanJudulTanpaUsulan => 'No suggestion, fill in yourself';
+
+  @override
+  String get ocrAwanTanpaMerah =>
+      'The cloud reading is not used. Fill it in yourself from the paper.';
+
+  @override
+  String get ocrAwanTanpaKosong =>
+      'The cloud saw no writing in this cell. It stays empty until you fill it in.';
+
+  @override
+  String get ocrAwanTanpaBentukTakDikenal =>
+      'The cloud reading is not a plain number, so it is not offered. Fill it in yourself.';
+
+  @override
+  String get ocrAwanTanpaIdentitas =>
+      'Identity fields are not read by the cloud. Fill them in yourself.';
+
+  @override
+  String get ocrAwanAlasanTeksMeluber =>
+      'The writing runs outside the box and may have been read from the next column.';
+
+  @override
+  String get ocrAwanAlasanDiLuarRentang =>
+      'The number is outside the normal range for this point.';
+
+  @override
+  String get ocrAwanAlasanMagnitudoMeleset =>
+      'The number is far from the standard value of this point.';
+
+  @override
+  String get ocrAwanAlasanAdaKoreksiKarakter =>
+      'A letter was guessed to be a digit.';
+
+  @override
+  String get ocrAwanAlasanDesimalKebanyakan =>
+      'It has more decimals than the instrument resolution.';
+
+  @override
+  String get ocrAwanAlasanBukanKelipatanResolusi =>
+      'This number cannot come from an instrument with this resolution.';
+
+  @override
+  String get ocrAwanAlasanJauhDariRepeatLain =>
+      'The number differs a lot from the other Repeats in this row.';
+
+  @override
+  String get ocrAwanAlasanSebarRepeatTidakDiuji =>
+      'Too few Repeats were read to compare.';
+
+  @override
+  String get ocrAwanAlasanTerlaluBanyakSubstitusi =>
+      'Too many letters had to be guessed.';
+
+  @override
+  String get ocrAwanAlasanKarakterDiLuarWhitelist =>
+      'There is a character that is not a digit, so the reading is rejected.';
+
+  @override
+  String get ocrAwanAlasanSpasiDiDalamAngka =>
+      'There is a space inside the number.';
+
+  @override
+  String get ocrAwanAlasanPemisahRibuan =>
+      'There is a thousands separator (e.g. 1.234,56). It is not removed automatically.';
+
+  @override
+  String get ocrAwanAlasanBentukAngkaTidakWajar =>
+      'The shape of the number does not make sense.';
+
+  @override
+  String get ocrAwanAlasanDigitKebanyakan =>
+      'It has too many digits for this column.';
+
+  @override
+  String get ocrAwanAlasanPemisahDesimalTidakWajar =>
+      'The comma or dot is in an odd place.';
+
+  @override
+  String get ocrAwanAlasanDesimalAmbigu =>
+      'It is unclear whether the dot is a decimal comma or a thousands separator.';
+
+  @override
+  String get ocrAwanAlasanMinusDiTengah =>
+      'There is a minus sign inside the number.';
+
+  @override
+  String get ocrAwanAlasanMinusTidakDiizinkan =>
+      'This column must not be negative.';
+
+  @override
+  String get ocrAwanAlasanTakDikenal =>
+      'The server sent a note this app does not know yet. Check it against the paper.';
+
+  @override
+  String get ocrAwanMinta => 'Ask for cloud suggestions';
+
+  @override
+  String ocrAwanMeminta(int selesai, int total) {
+    return 'Asking for cloud suggestions ($selesai of $total)...';
+  }
+
+  @override
+  String get ocrAwanKeterangan =>
+      'Only image crops of number cells are sent to the cloud service, not the whole photo and not identity fields. The result is only a suggestion; the technician still decides each cell.';
+
+  @override
+  String ocrAwanTertahanDiHp(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other:
+          '$jumlah crops were not sent because their size is out of range. Fill them in yourself or use the reader on the phone.',
+      one:
+          '1 crop was not sent because its size is out of range. Fill it in yourself or use the reader on the phone.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String ocrAwanBelumTerkirim(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other:
+          '$jumlah cells were not sent in time. Fill them in yourself or use the reader on the phone.',
+      one:
+          '1 cell was not sent in time. Fill it in yourself or use the reader on the phone.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get ocrAwanGagalTidakAdaSel =>
+      'No cell needs to be sent to the cloud.';
+
+  @override
+  String get ocrAwanGagalFiturMati =>
+      'Cloud reading is switched off by an admin. Continue with the reader on the phone or fill in yourself.';
+
+  @override
+  String get ocrAwanGagalAwanBelumSiap =>
+      'Cloud reading is not active on the server yet. Continue with the reader on the phone or fill in yourself.';
+
+  @override
+  String get ocrAwanGagalJatahHabis =>
+      'The cloud reading quota for this sheet is used up. Continue with the reader on the phone or fill in yourself.';
+
+  @override
+  String get ocrAwanGagalTerlaluSering =>
+      'Cloud reading was requested too often. Try again later, or continue with the reader on the phone or fill in yourself.';
+
+  @override
+  String get ocrAwanGagalAwanGagal =>
+      'The cloud could not read these crops. Continue with the reader on the phone or fill in yourself.';
+
+  @override
+  String get ocrAwanGagalDitolakServer =>
+      'The server did not accept these crops. Continue with the reader on the phone or fill in yourself.';
+
+  @override
+  String get ocrAwanGagalAkses =>
+      'This account may not use cloud reading. Continue with the reader on the phone or fill in yourself.';
+
+  @override
+  String get ocrAwanGagalJaringan =>
+      'There is no network or the connection dropped. Continue with the reader on the phone or fill in yourself.';
+
+  @override
+  String get ocrAwanGagalLainnya =>
+      'Cloud reading is not available right now. Continue with the reader on the phone or fill in yourself.';
 }
