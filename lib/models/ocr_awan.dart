@@ -376,7 +376,7 @@ List<String> periksaKunciOcrAwan(List<String> kunci) {
     if (k.trim().isEmpty) {
       throw ArgumentError.value(k, 'kunci', 'Kunci sel kosong.');
     }
-    if (_kunciIdentitas(k)) {
+    if (kunciSelIdentitas(k)) {
       throw ArgumentError.value(
         k,
         'kunci',
@@ -399,7 +399,7 @@ List<String> periksaKunciOcrAwan(List<String> kunci) {
 
 /// Sel `isian` (kondisi lingkungan/identitas kop) dan `centang` — server juga
 /// menolak membacanya (`isian_tidak_dikirim`, `centang_tidak_dikirim`).
-bool _kunciIdentitas(String kunci) =>
+bool kunciSelIdentitas(String kunci) =>
     kunci.startsWith('isian|') || kunci.startsWith('centang|');
 
 List<String> _daftarTeks(Object? nilai) => nilai is List
