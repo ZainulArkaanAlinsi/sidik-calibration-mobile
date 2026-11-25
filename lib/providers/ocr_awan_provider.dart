@@ -7,7 +7,7 @@ import 'sakelar_ocr_provider.dart';
 /// Boleh nggak OCR awan atas potongan sel DITAWARKAN ke teknisi?
 ///
 /// Ya hanya bila SEMUA ini benar:
-///  1. sakelar klien [SakelarOcr.ocrAwanSel] menyala (bawaan MATI);
+///  1. sakelar klien [SakelarOcr.ocrAwanSel] menyala (bawaan provider MENYALA sejak 26 Nov 2026; konstruktor `const SakelarOcr()` MATI);
 ///  2. backend sudah menjawab matriks izin ([Izin.adaJawaban]) — selama izin
 ///     belum sampai atau gagal diambil, fitur yang memakai biaya dan data
 ///     pelanggan tidak ditawarkan (gagal tertutup);

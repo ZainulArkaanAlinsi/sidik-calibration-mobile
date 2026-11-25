@@ -304,7 +304,7 @@ void main() {
     }
 
     final kasus = <String, ({SakelarOcr sakelar, Izin izin})>{
-      'sakelar klien mati (bawaan)': (
+      'sakelar klien mati (konstruktor const)': (
         sakelar: const SakelarOcr(),
         izin: izinBoleh,
       ),
