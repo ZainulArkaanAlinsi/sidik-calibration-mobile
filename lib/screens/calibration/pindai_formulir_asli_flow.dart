@@ -8,9 +8,13 @@ import 'package:image/image.dart' as img show Image;
 import 'package:path_provider/path_provider.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../models/izin.dart' show Izin;
 import '../../models/review_foto.dart';
 import '../../models/worksheet_template.dart';
 import '../../providers/contoh_sel_provider.dart';
+import '../../providers/izin_provider.dart';
+import '../../providers/ocr_awan_provider.dart' show ocrAwanBolehDitawarkan;
+import '../../providers/ocr_awan_sel_provider.dart';
 import '../../providers/sakelar_ocr_provider.dart';
 import '../../providers/sumber_foto_provider.dart';
 import '../../providers/worksheet_scan_provider.dart';
@@ -20,10 +24,12 @@ import '../../services/foto_untuk_ocr.dart';
 import '../../services/jalankan_pindai.dart' show GagalPindai;
 import '../../services/kumpulkan_contoh_sel.dart';
 import '../../services/modul_pembaca_teks.dart';
+import '../../services/ocr_awan_sel_service.dart' show KonteksOcrAwanSel;
 import '../../services/jalankan_pindai_asli.dart';
 import '../../services/pembaca_halaman.dart'
     show PembacaHalaman, sapuBerkasPindaiLama;
 import '../../services/pembaca_sel.dart' show PembacaSel;
+import '../../services/saran_ocr_awan.dart';
 import '../../services/urutan_kertas.dart';
 import '../../services/pesan_galat_pindai.dart';
 import '../../services/peta_tabel_foto.dart' show SelTabelFoto;
@@ -348,6 +354,9 @@ Future<int> _pindaiSekali({
   // Teks OCR ASLI per baris review (sebelum aturan/vonis) — ikut contoh latih
   // sebagai `bacaan_ocr`, supaya beda OCR lawan nilai akhir terlihat.
   final bacaanOcr = <String, String>{};
+  // Kunci baris review -> kunci templat server, hanya baris tabel (isian Env./
+  // header tidak punya kunci server). Dipakai usulan OCR awan.
+  final kunciServerPerBaris = <String, String>{};
   final urutTabel = [for (final t in template.tabel) t.tabelId];
   // Peringkat letak di kertas (tabel, baris demi baris, kiri ke kanan): urutan
   // sel di layar review. Bukan nomor baris/Repeat templat: geometrinya yang jujur.
@@ -439,6 +448,7 @@ Future<int> _pindaiSekali({
           if (alasan.contains(a)) teksAlasanAturan(l10n, a),
       ];
     }
+    kunciServerPerBaris[kunciSelFoto(urut, s.repeatNo, fieldId)] = s.kunci;
     final crop = hasil.potongan[s.kunci];
     if (crop != null) {
       potongan[kunciSelFoto(urut, s.repeatNo, fieldId)] = crop;
@@ -535,12 +545,51 @@ Future<int> _pindaiSekali({
       ? ref.read(penampungContohSelProvider.future)
       : null;
 
+  // Usulan OCR awan atas POTONGAN sel angka (kontrak 22B). Tombolnya hanya ada
+  // bila sakelar klien, matriks izin, dan sakelar fitur Super Admin mengizinkan;
+  // selain itu layar review identik dengan sebelumnya dan tidak ada panggilan
+  // jaringan. Kegagalan apa pun jatuh ke pembaca di HP / isi manual
+  // (`PenjalurSaranAwan.minta` tidak pernah melempar).
+  PemintaUsulanAwan? mintaUsulanAwan;
+  if (ocrAwanBolehDitawarkan(
+    sakelar: ref.read(sakelarOcrProvider),
+    izin: ref.read(izinProvider).value ?? Izin.kosong,
+  )) {
+    final penjalur = ref.read(penjalurSaranAwanProvider);
+    final kunciAngka = kunciSelAngka(template);
+    final konteks = KonteksOcrAwanSel(
+      templateId: template.templateId,
+      kertas: 'asli',
+      kodeDokumen: template.kodeDokumen,
+      // Alat yang sama dengan kunci formulir asli (`_kunciAsli` di lembar
+      // kerja). Null = lembar dari foto tanpa alat terpilih: field tidak dikirim.
+      equipmentId: isian.alat?.id,
+    );
+
+    mintaUsulanAwan =
+        ({
+          void Function(int selesai, int total)? onKemajuan,
+          bool Function()? dibatalkan,
+        }) => penjalur.minta(
+          konteks: konteks,
+          kandidat: pilihKandidatAwan(
+            kunciAngka: kunciAngka,
+            baris: baris,
+            kunciServerPerBaris: kunciServerPerBaris,
+          ),
+          onKemajuan: onKemajuan,
+          dibatalkan: dibatalkan,
+        );
+  }
+
   final disetujui = await Navigator.of(context).push<List<SelTabelFoto>>(
     MaterialPageRoute(
       builder: (_) => FotoReviewScreen(
         baris: baris,
         catatan: catatan,
         kunciSkorMentah: skorMentah,
+        mintaUsulanAwan: mintaUsulanAwan,
+        kunciServerPerBaris: kunciServerPerBaris,
       ),
     ),
   );

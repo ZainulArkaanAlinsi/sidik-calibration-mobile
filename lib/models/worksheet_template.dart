@@ -630,6 +630,7 @@ class BarisTemplate {
     required this.barisKe,
     required this.titikUkur,
     required this.label,
+    this.tipe,
     this.standardId,
     this.satuan,
     this.resolusi,
@@ -639,6 +640,11 @@ class BarisTemplate {
   final int barisKe;
   final double titikUkur;
   final String label;
+
+  /// Bentuk isi baris: `angka` atau `jam` (baris `Time` Autoklaf). `null` = server
+  /// tidak menyebutnya. Dipakai OCR awan: hanya baris `angka` yang potongannya
+  /// boleh dikirim, dan `null` TIDAK dianggap `angka` (gagal tertutup).
+  final String? tipe;
 
   /// Bukti pembanding yang ikut dikirim balik per sel, **bukan** bagian kunci.
   /// Kalau HP ngirim nilai yang beda dari template, seluruh pemetaan dibatalin
@@ -656,6 +662,7 @@ class BarisTemplate {
     barisKe: (json['baris_ke'] as num?)?.toInt() ?? 0,
     titikUkur: (json['titik_ukur'] as num?)?.toDouble() ?? 0,
     label: json['label'] as String? ?? '',
+    tipe: json['tipe'] is String ? json['tipe'] as String : null,
     standardId: (json['standard_id'] as num?)?.toInt(),
     satuan: json['satuan'] as String?,
     resolusi: (json['resolusi'] as num?)?.toDouble(),

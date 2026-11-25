@@ -5,7 +5,8 @@ import '../services/ocr_angka/sesi_inferensi.dart' show BuatSesiCtc;
 import '../services/ocr_angka/sesi_inferensi_tflite.dart'
     show PabrikSesiTfliteBersama;
 
-/// Sakelar OCR lokal. Semuanya bawaan MATI.
+/// Sakelar OCR lokal. Bawaan MATI, kecuali [ocrAwanSel] di
+/// [sakelarOcrProvider] (menyala sejak 26 Nov 2026).
 ///
 /// - [kumpulkanContohSel]: simpan potongan sel yang dikonfirmasi teknisi di
 ///   review foto (JPEG abu-abu + nilai akhir) ke folder privat app. Hanya
@@ -22,22 +23,36 @@ import '../services/ocr_angka/sesi_inferensi_tflite.dart'
 ///   dibuka ([buatSesiOcrAngkaProvider] `null`). Nama field dipertahankan dari
 ///   masa ONNX supaya tes dan skrip lama tetap jalan; runtime-nya kini TFLite.
 ///
+/// - [ocrAwanSel]: tawarkan OCR awan atas POTONGAN sel angka
+///   (`POST /api/ocr/sel-awan`, kontrak 22B: HP memotong sendiri sel angka lalu
+///   mengunggah potongannya lewat backend; app tidak memegang kunci atau URL
+///   Google dan tidak mengirim foto utuh). Hasilnya usulan yang wajib
+///   dikonfirmasi manusia per sel. Ini hanya sakelar sisi klien: server punya
+///   sakelar sendiri (`GOOGLE_VISION_AKTIF`, `ocr_cloud_sel`) dan menang bila
+///   mati. Bawaan provider MENYALA sejak keputusan pemilik 26 Nov 2026
+///   (`--dart-define=OCR_AWAN_SEL=false` mematikannya); pertanyaan kontrak
+///   pelanggan dan ISO/IEC 17025 §4.2 di AGENTS.md masih terbuka. Konstruktor
+///   `const SakelarOcr()` tetap mati. Lihat `ocrAwanBolehDitawarkan`.
+///
 /// Layar diagnostik `Ukur OCR` bukan sakelar di kelas ini: lihat
 /// [tampilkanUkurOcrAktif] (const).
 ///
 /// Dinyalakan lewat `--dart-define=KUMPULKAN_CONTOH_SEL=true` /
 /// `PAKAI_MODEL_DIGIT=true` / `PAKAI_MESIN_ANGKA=true` (tanpa UI; nama lama
 /// `PAKAI_MESIN_ANGKA_ONNX=true` tetap diterima), atau di-override di test.
+/// `OCR_AWAN_SEL` kebalikannya: menyala kecuali diberi `=false`.
 class SakelarOcr {
   const SakelarOcr({
     this.kumpulkanContohSel = false,
     this.pakaiModelDigit = false,
     this.pakaiMesinAngkaOnnx = false,
+    this.ocrAwanSel = false,
   });
 
   final bool kumpulkanContohSel;
   final bool pakaiModelDigit;
   final bool pakaiMesinAngkaOnnx;
+  final bool ocrAwanSel;
 }
 
 /// Layar diagnostik `Ukur OCR` tampil? Selalu di build debug; di rilis hanya
@@ -53,6 +68,11 @@ final sakelarOcrProvider = Provider<SakelarOcr>(
     pakaiMesinAngkaOnnx:
         bool.fromEnvironment('PAKAI_MESIN_ANGKA') ||
         bool.fromEnvironment('PAKAI_MESIN_ANGKA_ONNX'),
+    // Satu-satunya sakelar yang bawaannya MENYALA: pemilik memutuskan 26 Nov
+    // 2026 (di chat) agar tombol usulan awan ikut di APK rilis. Server tetap
+    // gerbangnya (`GOOGLE_VISION_AKTIF` + `ocr_cloud_sel`); build yang harus
+    // mematikannya memakai `--dart-define=OCR_AWAN_SEL=false`.
+    ocrAwanSel: bool.fromEnvironment('OCR_AWAN_SEL', defaultValue: true),
   ),
 );
 

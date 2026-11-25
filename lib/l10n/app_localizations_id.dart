@@ -10182,4 +10182,239 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get crudPenugasanSudahAktif => 'Penugasan ini sudah dibuka lagi.';
+
+  @override
+  String get ocrAwanJudul => 'Usulan bacaan awan';
+
+  @override
+  String get ocrAwanPenjelasan =>
+      'Ini usulan, bukan hasil. Cocokkan tiap angka dengan kertas, lalu putuskan satu per satu.';
+
+  @override
+  String ocrAwanSisa(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: '$jumlah usulan belum diputuskan.',
+      zero: 'Semua usulan sudah diputuskan.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get ocrAwanSebagian => 'Sebagian sel tidak sempat dibaca awan.';
+
+  @override
+  String ocrAwanDilewati(int jumlah) {
+    return '$jumlah sel tidak dibaca awan. Isi sendiri atau pakai pembaca di HP.';
+  }
+
+  @override
+  String get ocrAwanLabelAwan => 'Terbaca awan';
+
+  @override
+  String get ocrAwanLabelNormal => 'Dirapikan jadi angka';
+
+  @override
+  String get ocrAwanLabelUsulan => 'Usulan angka';
+
+  @override
+  String get ocrAwanDuaBentukBeda =>
+      'Dua bentuk ini berbeda. Pilih yang sesuai dengan kertas.';
+
+  @override
+  String get ocrAwanPakai => 'Pakai usulan';
+
+  @override
+  String get ocrAwanUbah => 'Ubah';
+
+  @override
+  String get ocrAwanTolak => 'Tolak';
+
+  @override
+  String get ocrAwanBatalkan => 'Batalkan';
+
+  @override
+  String get ocrAwanSimpan => 'Simpan';
+
+  @override
+  String get ocrAwanBatal => 'Batal';
+
+  @override
+  String get ocrAwanPerluDicek => 'Perlu dicek';
+
+  @override
+  String get ocrAwanDipakai => 'Dipakai';
+
+  @override
+  String get ocrAwanDiubah => 'Diubah';
+
+  @override
+  String get ocrAwanDitolak => 'Ditolak';
+
+  @override
+  String get ocrAwanLabelIsian => 'Angka dari kertas';
+
+  @override
+  String get ocrAwanGalatIsian => 'Hanya angka, mis. 4,01';
+
+  @override
+  String ocrAwanNilaiPegangan(String teks) {
+    return 'Nilai: $teks';
+  }
+
+  @override
+  String get ocrAwanJudulTanpaUsulan => 'Tanpa usulan, isi sendiri';
+
+  @override
+  String get ocrAwanTanpaMerah =>
+      'Bacaan awan tidak dipakai. Isi sendiri dari kertas.';
+
+  @override
+  String get ocrAwanTanpaKosong =>
+      'Awan tidak melihat tulisan di sel ini. Tetap kosong sampai diisi.';
+
+  @override
+  String get ocrAwanTanpaBentukTakDikenal =>
+      'Bacaan awan bukan angka murni, jadi tidak ditawarkan. Isi sendiri.';
+
+  @override
+  String get ocrAwanTanpaIdentitas =>
+      'Kolom identitas tidak dibaca awan. Isi sendiri.';
+
+  @override
+  String get ocrAwanAlasanTeksMeluber =>
+      'Tulisannya keluar dari kotak, bisa jadi terbaca dari kolom sebelah.';
+
+  @override
+  String get ocrAwanAlasanDiLuarRentang =>
+      'Angkanya di luar rentang wajar titik ini.';
+
+  @override
+  String get ocrAwanAlasanMagnitudoMeleset =>
+      'Angkanya jauh dari nilai standar titik ini.';
+
+  @override
+  String get ocrAwanAlasanAdaKoreksiKarakter =>
+      'Ada huruf yang ditebak jadi angka.';
+
+  @override
+  String get ocrAwanAlasanDesimalKebanyakan =>
+      'Desimalnya lebih banyak dari resolusi alat.';
+
+  @override
+  String get ocrAwanAlasanBukanKelipatanResolusi =>
+      'Angkanya tidak mungkin keluar dari alat dengan resolusi ini.';
+
+  @override
+  String get ocrAwanAlasanJauhDariRepeatLain =>
+      'Angkanya jauh beda dari Repeat lain di baris ini.';
+
+  @override
+  String get ocrAwanAlasanSebarRepeatTidakDiuji =>
+      'Repeat yang terbaca terlalu sedikit untuk dibandingkan.';
+
+  @override
+  String get ocrAwanAlasanTerlaluBanyakSubstitusi =>
+      'Terlalu banyak huruf yang harus ditebak.';
+
+  @override
+  String get ocrAwanAlasanKarakterDiLuarWhitelist =>
+      'Ada karakter yang bukan angka, jadi bacaan ditolak.';
+
+  @override
+  String get ocrAwanAlasanSpasiDiDalamAngka => 'Ada spasi di tengah angka.';
+
+  @override
+  String get ocrAwanAlasanPemisahRibuan =>
+      'Ada pemisah ribuan (mis. 1.234,56). Tidak dibuang otomatis.';
+
+  @override
+  String get ocrAwanAlasanBentukAngkaTidakWajar =>
+      'Bentuk angkanya tidak masuk akal.';
+
+  @override
+  String get ocrAwanAlasanDigitKebanyakan =>
+      'Digitnya kebanyakan untuk kolom ini.';
+
+  @override
+  String get ocrAwanAlasanPemisahDesimalTidakWajar =>
+      'Letak koma atau titiknya tidak wajar.';
+
+  @override
+  String get ocrAwanAlasanDesimalAmbigu =>
+      'Tidak jelas titik itu koma desimal atau pemisah ribuan.';
+
+  @override
+  String get ocrAwanAlasanMinusDiTengah => 'Ada tanda minus di tengah angka.';
+
+  @override
+  String get ocrAwanAlasanMinusTidakDiizinkan =>
+      'Kolom ini tidak boleh bernilai negatif.';
+
+  @override
+  String get ocrAwanAlasanTakDikenal =>
+      'Ada catatan dari server yang belum dikenal aplikasi ini. Cocokkan dengan kertas.';
+
+  @override
+  String get ocrAwanMinta => 'Minta usulan awan';
+
+  @override
+  String ocrAwanMeminta(int selesai, int total) {
+    return 'Meminta usulan awan ($selesai dari $total)...';
+  }
+
+  @override
+  String get ocrAwanKeterangan =>
+      'Hanya potongan gambar sel angka yang dikirim ke layanan awan, bukan foto utuh dan bukan kolom identitas. Hasilnya hanya usulan; tiap sel tetap diputuskan teknisi.';
+
+  @override
+  String ocrAwanTertahanDiHp(int jumlah) {
+    return '$jumlah potongan tidak dikirim karena ukurannya di luar batas. Isi sendiri atau pakai pembaca di HP.';
+  }
+
+  @override
+  String ocrAwanBelumTerkirim(int jumlah) {
+    return '$jumlah sel belum sempat dikirim. Isi sendiri atau pakai pembaca di HP.';
+  }
+
+  @override
+  String get ocrAwanGagalTidakAdaSel =>
+      'Tidak ada sel yang perlu dikirim ke awan.';
+
+  @override
+  String get ocrAwanGagalFiturMati =>
+      'Bacaan awan sedang dimatikan admin. Lanjut dengan pembaca di HP atau isi sendiri.';
+
+  @override
+  String get ocrAwanGagalAwanBelumSiap =>
+      'Bacaan awan belum aktif di server. Lanjut dengan pembaca di HP atau isi sendiri.';
+
+  @override
+  String get ocrAwanGagalJatahHabis =>
+      'Jatah bacaan awan untuk lembar ini sudah habis. Lanjut dengan pembaca di HP atau isi sendiri.';
+
+  @override
+  String get ocrAwanGagalTerlaluSering =>
+      'Permintaan bacaan awan terlalu sering. Coba lagi nanti, atau lanjut dengan pembaca di HP atau isi sendiri.';
+
+  @override
+  String get ocrAwanGagalAwanGagal =>
+      'Awan gagal membaca potongan ini. Lanjut dengan pembaca di HP atau isi sendiri.';
+
+  @override
+  String get ocrAwanGagalDitolakServer =>
+      'Server tidak menerima kiriman potongan ini. Lanjut dengan pembaca di HP atau isi sendiri.';
+
+  @override
+  String get ocrAwanGagalAkses =>
+      'Akun ini tidak boleh memakai bacaan awan. Lanjut dengan pembaca di HP atau isi sendiri.';
+
+  @override
+  String get ocrAwanGagalJaringan =>
+      'Tidak ada jaringan atau koneksi terputus. Lanjut dengan pembaca di HP atau isi sendiri.';
+
+  @override
+  String get ocrAwanGagalLainnya =>
+      'Bacaan awan tidak tersedia saat ini. Lanjut dengan pembaca di HP atau isi sendiri.';
 }
