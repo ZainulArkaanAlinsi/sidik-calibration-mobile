@@ -566,15 +566,23 @@ int? _jarakTerikat(String pola, String teks, {int awal = 1, int sisa = 2}) {
 
 typedef _HitJudul = ({FormulirDikenal formulir, int jarak, String terbaca});
 
+/// Satu judul yang diharapkan: [id] pemiliknya dan [nama] ekor judul cetaknya
+/// ("pH Meter", "UV/VIS Spectrophotometer").
+typedef JudulDiharapkan = ({String id, String nama});
+
+/// Satu judul cetak yang cocok dengan [JudulDiharapkan.id]; [jarak] = jarak edit
+/// (0 = persis), [terbaca] = potongan judul cetak yang dibaca.
+typedef HitJudulCetak = ({String id, int jarak, String terbaca});
+
 final _polaLk = RegExp(r'LK\d');
 
-/// Judul dibaca di dekat kata "WORKSHEET" (boleh rusak dua huruf): yang tercetak
-/// sesudahnya, sampai "LK-285-IDN", dicocokkan ke ekor judul tiap jenis
-/// ("pH Meter", "UV/VIS Spectrophotometer"). Judul yang pecah menjadi dua baris
-/// (goresan di tengah kata) disambung dengan baris berikutnya.
-List<_HitJudul> _bacaJudul(List<String> baris, List<FormulirDikenal> dikenal) {
-  final ekor = [for (final d in dikenal) (d, _padat(namaPendekJudul(d.judul)))];
-  final terbaik = <String, _HitJudul>{};
+/// Ekor judul cetak (huruf besar + angka saja) di dekat kata "WORKSHEET"
+/// (boleh rusak dua huruf): yang tercetak sesudahnya, sampai "LK-285-IDN".
+/// Judul yang pecah menjadi dua baris (goresan di tengah kata) disambung dengan
+/// baris berikutnya. Satu entri per baris yang membawa jangkar "WORKSHEET";
+/// kosong bila kata itu tidak terbaca di mana pun.
+List<String> ekorJudulCetak(List<String> baris) {
+  final hasil = <String>[];
 
   String potongSampaiLk(String padat, int dari) {
     final bagian = padat.substring(dari);
@@ -585,7 +593,6 @@ List<_HitJudul> _bacaJudul(List<String> baris, List<FormulirDikenal> dikenal) {
 
   for (var i = 0; i < baris.length; i++) {
     final padat = _padat(baris[i]);
-    final String asli;
 
     final jangkar = _cariSubstring('WORKSHEET', _kanon(padat), maks: 2);
     if (jangkar != null) {
@@ -595,7 +602,7 @@ List<_HitJudul> _bacaJudul(List<String> baris, List<FormulirDikenal> dikenal) {
       if (!adaLk && sisa.length < 4 && i + 1 < baris.length) {
         sisa += potongSampaiLk(_padat(baris[i + 1]), 0);
       }
-      asli = sisa;
+      hasil.add(sisa);
     } else if (i + 1 < baris.length) {
       // Kata "Worksheet" sendiri yang terbelah antar baris ("Worksh" / "et"):
       // cari jangkar pada sambungan, yang harus melintasi sambungannya.
@@ -603,22 +610,38 @@ List<_HitJudul> _bacaJudul(List<String> baris, List<FormulirDikenal> dikenal) {
       final lintas = _cariSubstring('WORKSHEET', _kanon(sambung), maks: 2);
       if (lintas == null || lintas.akhir <= padat.length) continue;
 
-      asli = potongSampaiLk(sambung, lintas.akhir);
-    } else {
-      continue;
+      hasil.add(potongSampaiLk(sambung, lintas.akhir));
     }
+  }
+
+  return hasil;
+}
+
+/// Judul dibaca di dekat kata "WORKSHEET" ([ekorJudulCetak]) dan dicocokkan ke
+/// [calon] dengan jarak edit yang ujung-ujungnya nyaris terikat. Hanya yang
+/// TERDEKAT dikembalikan: dua judul yang sama-sama "lumayan mirip" tidak saling
+/// menggugurkan, tetapi yang lebih jauh dari yang terbaik dibuang. Satu [id]
+/// boleh punya beberapa judul diharapkan; jaraknya yang terkecil dipakai.
+List<HitJudulCetak> cocokkanJudulCetak(
+  List<String> baris,
+  List<JudulDiharapkan> calon,
+) {
+  final ekor = [for (final c in calon) (c.id, _padat(c.nama))];
+  final terbaik = <String, HitJudulCetak>{};
+
+  for (final asli in ekorJudulCetak(baris)) {
     final kanon = _kanon(asli);
 
-    for (final (d, e) in ekor) {
+    for (final (id, e) in ekor) {
       if (e.length < 3) continue;
 
       final jarak = _jarakTerikat(_kanon(e), kanon);
       if (jarak == null || jarak > _toleransiJudul(e.length)) continue;
 
-      final lama = terbaik[d.templateId];
+      final lama = terbaik[id];
       if (lama == null || jarak < lama.jarak) {
-        terbaik[d.templateId] = (
-          formulir: d,
+        terbaik[id] = (
+          id: id,
           jarak: jarak,
           terbaca: asli.length > 32 ? asli.substring(0, 32) : asli,
         );
@@ -627,13 +650,26 @@ List<_HitJudul> _bacaJudul(List<String> baris, List<FormulirDikenal> dikenal) {
   }
   if (terbaik.isEmpty) return const [];
 
-  // Hanya yang terdekat: dua judul yang sama-sama "lumayan mirip" tidak
-  // saling menggugurkan, tetapi yang lebih jauh dari yang terbaik dibuang.
   final minimum = terbaik.values.map((e) => e.jarak).reduce(math.min);
 
   return [
     for (final e in terbaik.values)
       if (e.jarak == minimum) e,
+  ];
+}
+
+/// Judul dibaca di dekat kata "WORKSHEET" (boleh rusak dua huruf): yang tercetak
+/// sesudahnya, sampai "LK-285-IDN", dicocokkan ke ekor judul tiap jenis
+/// ("pH Meter", "UV/VIS Spectrophotometer").
+List<_HitJudul> _bacaJudul(List<String> baris, List<FormulirDikenal> dikenal) {
+  final hit = cocokkanJudulCetak(baris, [
+    for (final d in dikenal) (id: d.templateId, nama: namaPendekJudul(d.judul)),
+  ]);
+  final formulirPerId = {for (final d in dikenal) d.templateId: d};
+
+  return [
+    for (final h in hit)
+      (formulir: formulirPerId[h.id]!, jarak: h.jarak, terbaca: h.terbaca),
   ];
 }
 
