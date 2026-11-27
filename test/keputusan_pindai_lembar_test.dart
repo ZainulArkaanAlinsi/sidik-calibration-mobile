@@ -191,13 +191,76 @@ void main() {
       },
     );
 
-    test('hanya judul tercetak: usulan, tidak pernah dibuka sendiri', () {
+    test('hanya judul tercetak, satu jenis cocok: dibuka sendiri', () {
       final k = _putuskan(
         'PT. SIDIK Calibration Work Sheet - pH Meter LK-285-IDN',
       );
 
-      expect(k, isA<PilihSatu>());
-      expect((k as PilihSatu).alasan, AlasanPilih.judulSaja);
+      expect(k, isA<BukaOtomatis>());
+      expect((k as BukaOtomatis).formulir.templateId, 'ph_meter');
+    });
+
+    test('hanya judul tercetak, jenisnya belum boleh dipindai: jujur', () {
+      final k = _putuskan(
+        'PT. SIDIK Calibration Work Sheet - pH Meter LK-285-IDN',
+        boleh: (_) => false,
+      );
+
+      expect(k, isA<TakDikenali>());
+      expect((k as TakDikenali).alasan, AlasanTakDikenali.belumBisaDipindai);
+    });
+
+    // Keputusan pemilik 27 Nov 2026: yang dikenali dari kertas adalah NAMA ALAT
+    // di judul. Kode dan revisi berubah-ubah, jadi varian berjudul sama
+    // (micrometer 0522.A-D) tidak boleh memunculkan pertanyaan.
+    final varianMicrometer = [
+      _f('mik_a', 'Micrometer', 'SIDIK-FM-CAL-0522.A'),
+      _f('mik_b', 'Micrometer', 'SIDIK-FM-CAL-0522.B'),
+    ];
+    const judulMicrometer =
+        'PT. SIDIK Calibration Work Sheet - Micrometer LK-285-IDN';
+
+    test(
+      'hanya judul tercetak, beberapa varian berjudul sama: dibuka sendiri',
+      () {
+        final hasil = identifikasiLembar(
+          judulMicrometer,
+          dikenal: varianMicrometer,
+        );
+        expect(hasil?.alasan, AlasanPetunjuk.judulSaja);
+        expect(hasil?.peringkat.length, 2);
+
+        final k = putuskanPindaiLembar(hasil, boleh: _semuaBoleh);
+
+        expect(k, isA<BukaOtomatis>());
+        expect(
+          (k as BukaOtomatis).formulir.templateId,
+          hasil!.peringkat.first.formulir.templateId,
+        );
+        expect(k.formulir.judul, contains('Micrometer'));
+      },
+    );
+
+    test('beberapa varian berjudul sama, hanya satu yang boleh: yang itu', () {
+      final hasil = identifikasiLembar(
+        judulMicrometer,
+        dikenal: varianMicrometer,
+      );
+      final k = putuskanPindaiLembar(hasil, boleh: (id) => id == 'mik_b');
+
+      expect(k, isA<BukaOtomatis>());
+      expect((k as BukaOtomatis).formulir.templateId, 'mik_b');
+    });
+
+    test('beberapa varian berjudul sama, tak satu pun boleh: jujur', () {
+      final hasil = identifikasiLembar(
+        judulMicrometer,
+        dikenal: varianMicrometer,
+      );
+      final k = putuskanPindaiLembar(hasil, boleh: (_) => false);
+
+      expect(k, isA<TakDikenali>());
+      expect((k as TakDikenali).alasan, AlasanTakDikenali.belumBisaDipindai);
     });
   });
 
