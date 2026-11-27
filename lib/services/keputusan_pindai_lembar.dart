@@ -14,9 +14,13 @@ import 'jenis_lembar.dart';
 ///    dan cocok persis tepat satu jenis (`AlasanPetunjuk.praPilihKode`), tidak
 ///    ada kandidat lain di peringkat, skor gabungan >= [ambangAutoBuka], dan
 ///    jenis itu memang boleh dipindai (`siap_pindai` / mode uji, bukan
-///    `perlu_konfirmasi_lab`, bukan Temperatur Indikator). Bacaan samar, judul
-///    saja, dan kode yang dipakai beberapa jenis TIDAK pernah membuka lembar
-///    sendiri.
+///    `perlu_konfirmasi_lab`, bukan Temperatur Indikator). Bacaan samar dan
+///    kode yang dipakai beberapa jenis TIDAK pernah membuka lembar sendiri.
+///  - Pengecualian (pemilik, 27 Nov 2026, membalik aturan "judul saja tidak
+///    pernah membuka"): judul tercetak terbaca dan hanya SATU jenis yang
+///    nama alat itu -> dibuka sendiri. Varian berjudul sama (micrometer
+///    0522.A-D) tidak ditanyakan: dibuka yang skornya tertinggi. Hanya bila
+///    kandidatnya beda nama alat tetap [PilihSatu].
 ///  - Kandidat lebih dari satu = [PilihSatu]: teknisi mengetuk SATU kali.
 ///    Tidak pernah dipilihkan.
 ///  - Tidak yakin / tidak terbaca = [TakDikenali]: pesan jujur, tanpa tebakan.
@@ -150,6 +154,28 @@ KeputusanPindai putuskanPindaiLembar(
     }
 
     return BukaOtomatis(tunggal.formulir, tunggal.skor);
+  }
+
+  // ---- 1b. judul tercetak terbaca: nama alat cukup ----------------------------
+  // Keputusan pemilik 27 Nov 2026: kertas yang judulnya terbaca langsung
+  // dibuka, tanpa lembar pilih Rev dan tanpa tanya varian. Kode formulir dan
+  // revisi berubah-ubah; yang tetap adalah nama alat. Varian sebuah alat
+  // (micrometer 0522.A-D, flowmeter 0538.A/B, timbangan 0508) berjudul sama,
+  // jadi dibuka yang skornya tertinggi di antara yang boleh dipindai. Kalau
+  // kandidatnya beda nama alat, judul belum cukup menentukan: tetap bertanya.
+  if (hasil.alasan == AlasanPetunjuk.judulSaja) {
+    final bolehJudul = [
+      for (final k in peringkat)
+        if (boleh(k.formulir.templateId)) k,
+    ];
+    if (bolehJudul.isNotEmpty &&
+        bolehJudul
+                .map((k) => namaPendekJudul(k.formulir.judul))
+                .toSet()
+                .length ==
+            1) {
+      return BukaOtomatis(bolehJudul.first.formulir, bolehJudul.first.skor);
+    }
   }
 
   // ---- 2. satu ketukan: hanya yang boleh dipindai ---------------------------
