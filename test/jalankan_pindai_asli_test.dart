@@ -423,17 +423,6 @@ void main() {
       );
     });
 
-    test('revisi tercetak beda dari yang dipegang sistem', () async {
-      await gagal(GagalPindaiAsli.revisiBeda, kata: kataCetak(revisi: '5'));
-    });
-
-    test('revisi tidak terbaca → berhenti, tidak lanjut diam-diam', () async {
-      await gagal(
-        GagalPindaiAsli.revisiTidakTerbaca,
-        kata: kataCetak(denganRevisi: false),
-      );
-    });
-
     test(
       'formulir yang menyatakan tanpa revisi tercetak tidak ditahan',
       () async {
@@ -460,14 +449,6 @@ void main() {
         );
       },
     );
-
-    test('tanpa deklarasi, revisi tak terbaca tetap menahan', () async {
-      expect(template.revisiTercetak, isTrue);
-      await gagal(
-        GagalPindaiAsli.revisiTidakTerbaca,
-        kata: kataCetak(denganRevisi: false),
-      );
-    });
 
     test('jangkar terlalu sedikit', () async {
       final kode = template.jangkarTeks.firstWhere(
@@ -506,6 +487,37 @@ void main() {
     });
   });
 
+  // Keputusan pemilik 27 Nov 2026: formulir dikenali dari judul/kodenya;
+  // revisi tercetak hanya CATATAN (`statusRevisi`), bukan gerbang. Tes lama
+  // menuntut alur berhenti (revisiBeda / revisiTidakTerbaca); sekarang alur
+  // harus jalan sampai selesai pada foto utuh dan statusnya tercatat.
+  group('revisi tercetak hanya catatan, bukan gerbang', () {
+    Future<HasilBacaAsli> bacaUtuh(List<TeksTerbaca> kata) =>
+        JalankanPindaiAsli(
+          halaman: MockPembacaHalaman(kata),
+          pembaca: MockPembacaSel(bacaan: bacaanSel),
+        ).baca(foto(dicentang: {}), template: template);
+
+    test('revisi tercetak beda → lanjut, dicatat sebagai beda', () async {
+      final hasil = await bacaUtuh(kataCetak(revisi: '5'));
+      expect(hasil.statusRevisi, StatusRevisiAsli.beda);
+      expect(hasil.revisiTerbaca, isNotNull);
+      expect(hasil.sel, hasLength(60));
+    });
+
+    test('revisi tidak terbaca → lanjut, dicatat tidak terbaca', () async {
+      expect(template.revisiTercetak, isTrue);
+      final hasil = await bacaUtuh(kataCetak(denganRevisi: false));
+      expect(hasil.statusRevisi, StatusRevisiAsli.tidakTerbaca);
+      expect(hasil.sel, hasLength(60));
+    });
+
+    test('revisi tercetak sama → dicatat sesuai', () async {
+      final hasil = await bacaUtuh(kataCetak());
+      expect(hasil.statusRevisi, StatusRevisiAsli.sesuai);
+    });
+  });
+
   test(
     'foto HP tegak (formulir terbaring) diputar dulu sebelum dibaca',
     () async {
@@ -523,9 +535,10 @@ void main() {
         tinggi: 300,
       );
 
-      // Revisi sengaja beda supaya alurnya berhenti TEPAT sesudah kenali &
-      // ratakan — cukup buat membuktikan orientasinya benar tanpa meratakan
-      // kanvas penuh.
+      // Revisi sengaja beda: bukan lagi gerbang, jadi alurnya TIDAK berhenti
+      // dengan revisiBeda dan jalan terus sampai gerbang mutu. Foto 400x300 ini
+      // terlalu kecil untuk lolos mutu, jadi yang dinyatakan: berhenti karena
+      // mutu (bukan karena revisi). Yang diuji tetap orientasi.
       await expectLater(
         JalankanPindaiAsli(
           halaman: pembacaHalaman,
@@ -535,7 +548,7 @@ void main() {
           isA<PindaiAsliGagal>().having(
             (e) => e.sebab,
             'sebab',
-            GagalPindaiAsli.revisiBeda,
+            GagalPindaiAsli.mutu,
           ),
         ),
       );
