@@ -13,6 +13,7 @@ import '../../models/review_foto.dart';
 import '../../models/worksheet_template.dart';
 import '../../providers/contoh_sel_provider.dart';
 import '../../providers/izin_provider.dart';
+import '../../providers/kesiapan_pindai_lembar_provider.dart';
 import '../../providers/ocr_awan_provider.dart' show ocrAwanBolehDitawarkan;
 import '../../providers/ocr_awan_sel_provider.dart';
 import '../../providers/sakelar_ocr_provider.dart';
@@ -292,9 +293,18 @@ Future<int> _pindaiSekali({
       pakai = mesinUji;
     } else {
       final pabrik = ref.read(pabrikPembacaPindaiProvider);
+      // Daftar jenis lembar HANYA kalau sudah ada di memori (beranda memuatnya):
+      // tanpa panggilan jaringan baru dan tanpa menunggu. Dipakai mengenali
+      // formulir dari judul tercetak (judul formulir lain yang lebih mirip
+      // menolak, varian bernama sama dikenali ambigu). Kosong = hanya judul
+      // jenis ini yang dibandingkan.
+      final daftarKenal = ref.exists(kesiapanPindaiLembarProvider)
+          ? ref.read(kesiapanPindaiLembarProvider).value?.dikenal
+          : null;
       pakai = JalankanPindaiAsli(
         halaman: halaman = pabrik.halaman(),
         pembaca: pembaca = pabrik.sel(),
+        dikenal: daftarKenal ?? const [],
       );
     }
     // Foto kamera apa adanya (bukan salinan terkompresi): pintu bertipe.
