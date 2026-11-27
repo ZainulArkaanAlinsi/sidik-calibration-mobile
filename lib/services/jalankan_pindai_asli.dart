@@ -9,6 +9,8 @@ import '../models/worksheet_template.dart';
 import 'jalankan_pindai.dart' show AmbangMutu, GagalPindai;
 import 'baca_paralel.dart';
 import 'foto_untuk_ocr.dart';
+import 'jenis_lembar.dart' show FormulirDikenal;
+import 'kenali_formulir_teks.dart';
 import 'modul_pembaca_teks.dart';
 import 'pembaca_halaman.dart';
 import 'ocr_angka/aturan_format_sel.dart' show AturanFormatSel;
@@ -63,7 +65,13 @@ enum GagalPindaiAsli {
 }
 
 class PindaiAsliGagal implements Exception {
-  const PindaiAsliGagal(this.sebab, {this.mutu, this.terbaca, this.jumlah});
+  const PindaiAsliGagal(
+    this.sebab, {
+    this.mutu,
+    this.terbaca,
+    this.jumlah,
+    this.kandidat = const [],
+  });
 
   final GagalPindaiAsli sebab;
 
@@ -77,8 +85,33 @@ class PindaiAsliGagal implements Exception {
   /// Jumlah jangkar cocok / kotak hilang.
   final int? jumlah;
 
+  /// Kode dokumen semua varian yang sama-sama cocok dengan JUDUL tercetak
+  /// ketika kodenya sendiri tidak terbaca ([GagalPindaiAsli.kodeTidakTerbaca]
+  /// dengan [kandidat] terisi = "varian ambigu", bukan "tidak terbaca apa-apa").
+  /// Mesin tidak menebak varian; pemanggil yang menampilkannya lewat jalur
+  /// pesan yang sudah ada.
+  final List<String> kandidat;
+
   @override
   String toString() => 'PindaiAsliGagal(${sebab.name})';
+}
+
+/// Revisi tercetak di foto dibanding revisi template. Tidak pernah menolak
+/// sendirian: formulir dikenali dari judul/kodenya, revisi hanya CATATAN.
+enum StatusRevisiAsli {
+  /// Angka revisi tercetak = revisi template.
+  sesuai,
+
+  /// Angka revisi tercetak BEDA dengan template: tata letak lembar bisa saja
+  /// berubah. Perataan masih dijaga gerbang jangkar (>= 8, 4 kuadran) dan
+  /// [AmbangMutu]; usulannya tetap wajib dikonfirmasi.
+  beda,
+
+  /// Formulirnya mencetak revisi tetapi angkanya tidak terbaca.
+  tidakTerbaca,
+
+  /// Formulir ini memang tidak mencetak revisi.
+  tidakDicetak,
 }
 
 /// Satu sel hasil baca — teks mentah ML Kit + keyakinannya. Hanya USULAN.
@@ -98,7 +131,9 @@ class HasilBacaAsli {
   const HasilBacaAsli({
     required this.sel,
     required this.kodeTerbaca,
+    this.dasarKenali = DasarKenali.kode,
     this.revisiTerbaca,
+    this.statusRevisi = StatusRevisiAsli.sesuai,
     this.isian = const [],
     this.potongan = const {},
     this.gagalDibaca = const {},
@@ -110,8 +145,18 @@ class HasilBacaAsli {
   /// Isian Env./header yang dibuka server (`tahap: 1`) dan ada kotaknya di
   /// peta. Kotak centang TIDAK dibaca: dibiarkan untuk diisi manual.
   final List<IsianAsliTerbaca> isian;
-  final String kodeTerbaca;
+
+  /// Kode formulir tercetak yang terbaca, atau `null` bila lembar dikenali dari
+  /// judulnya saja ([dasarKenali] = [DasarKenali.judul]).
+  final String? kodeTerbaca;
+
+  /// Apa yang membuat lembar ini dikenali: kode, judul, atau keduanya.
+  final DasarKenali dasarKenali;
+
   final String? revisiTerbaca;
+
+  /// Revisi tercetak vs template. Catatan, bukan gerbang.
+  final StatusRevisiAsli statusRevisi;
 
   /// Potongan PNG per kunci sel (dari halaman yang sudah diratakan), buat
   /// layar review — hanya di memori.
@@ -162,6 +207,7 @@ class JalankanPindaiAsli {
     this.registrasi = const RegistrasiJangkarTeks(),
     this.skalaPxPerPt = 3.0,
     this.potongSemua = PemotongSel.potongSemua,
+    this.dikenal = const [],
   });
 
   /// ML Kit SEHALAMAN — buat mengenali formulir & mencari jangkar.
@@ -178,6 +224,14 @@ class JalankanPindaiAsli {
   /// yang dibesarkan [PembacaSel] sebelum dibaca, dan kanvas Letter lanskap
   /// (2376×1836) masih jauh di bawah batas unggah server setelah JPEG.
   final double skalaPxPerPt;
+
+  /// Formulir lain yang dikenal aplikasi (dari daftar yang sudah ada di HP,
+  /// tidak diambil dari jaringan di sini). Dipakai [kenaliFormulirDariTeks]
+  /// supaya judul formulir LAIN yang lebih mirip menolak, dan varian bernama
+  /// sama dikenali sebagai ambigu. Kosong = hanya judul template ini yang
+  /// dibandingkan: tetap tidak meloloskan kertas jenis lain, tetapi tidak bisa
+  /// menyebut "ini formulir X".
+  final List<FormulirDikenal> dikenal;
 
   /// Pemotong sel v2. Hanya untuk test: ditukar fungsi yang melempar untuk
   /// membuktikan pindai tidak jatuh. HARUS fungsi puncak/statik (dikirim ke
@@ -277,27 +331,19 @@ class JalankanPindaiAsli {
         ? null
         : RegExp(r'\d+').firstMatch(revisiTerbaca)?.group(0);
 
-    // Revisi yang tidak terbaca BERHENTI di sini. Dulu null = lanjut, sehingga
-    // formulir revisi lama (kotak bergeser) bisa dibaca seolah revisi ini.
-    // Pengecualian cuma untuk formulir yang menyatakan tak mencetak revisi.
-    final tanpaRevisiTercetak =
-        revisiTerbaca == null && !template.revisiTercetak;
-
-    if (!tanpaRevisiTercetak) {
-      if (revisiTerbaca == null || angkaRevisi == null) {
-        throw PindaiAsliGagal(
-          GagalPindaiAsli.revisiTidakTerbaca,
-          terbaca: revisiTerbaca,
-        );
-      }
-
-      if (int.tryParse(angkaRevisi) != int.tryParse(template.revisi ?? '')) {
-        throw PindaiAsliGagal(
-          GagalPindaiAsli.revisiBeda,
-          terbaca: revisiTerbaca,
-        );
-      }
-    }
+    // Revisi hanya CATATAN. Dulu revisi beda/tidak terbaca menghentikan pindai,
+    // padahal kode dan revisi formulir sering berganti sementara judulnya tetap;
+    // lembar yang jelas jenisnya jadi ditolak. Perlindungan terhadap tata letak
+    // revisi lama (kotak bergeser) kini: gerbang jangkar (>= 8, empat kuadran,
+    // penjaga 180°) di atas, [AmbangMutu] di bawah, dan semua isi tetap usulan
+    // yang wajib dikonfirmasi. Status dibawa di hasil supaya tidak hilang.
+    final statusRevisi = revisiTerbaca == null && !template.revisiTercetak
+        ? StatusRevisiAsli.tidakDicetak
+        : revisiTerbaca == null || angkaRevisi == null
+        ? StatusRevisiAsli.tidakTerbaca
+        : int.tryParse(angkaRevisi) != int.tryParse(template.revisi ?? '')
+        ? StatusRevisiAsli.beda
+        : StatusRevisiAsli.sesuai;
 
     // Perataan kanvas 4,4 MP + ukuran mutunya = kerja per piksel terberat di
     // alur ini → isolate latar, supaya layar tidak beku beberapa detik.
@@ -486,8 +532,10 @@ class JalankanPindaiAsli {
 
     return HasilBacaAsli(
       sel: hasil,
-      kodeTerbaca: dikenali.kode,
+      kodeTerbaca: dikenali.kenali.kodeTerbaca,
+      dasarKenali: dikenali.kenali.dasar!,
       revisiTerbaca: revisiTerbaca,
+      statusRevisi: statusRevisi,
       isian: hasilIsian,
       potongan: potongan,
       gagalDibaca: {...gagalDibaca, ...perluCek},
@@ -495,14 +543,16 @@ class JalankanPindaiAsli {
     );
   }
 
-  /// Cari orientasi yang membuat kode formulir terbaca.
+  /// Cari orientasi yang membuat formulir ini dikenali dari tulisan cetaknya:
+  /// kode formulir ATAU judul/nama alat ([kenaliFormulirDariTeks]).
   ///
   /// Formulir lanskap yang difoto dengan HP tegak muncul TERBARING di foto, dan
   /// ML Kit membaca teks terbaring jauh lebih buruk daripada teks tegak. Jadi
   /// fotonya diputar dulu — kelipatan 90° saja, dipilih dari bentuk fotonya:
   /// foto yang bentuknya sama dengan halaman dicoba 0° lalu 180°, yang
   /// bentuknya beda dicoba 90° lalu 270°. Paling banyak dua kali baca.
-  Future<({img.Image citra, List<TeksTerbaca> terbaca, String kode})> _kenali(
+  Future<({img.Image citra, List<TeksTerbaca> terbaca, HasilKenaliTeks kenali})>
+  _kenali(
     img.Image foto,
     WorksheetTemplate template,
     ({double w, double h}) halamanPt,
@@ -541,7 +591,9 @@ class JalankanPindaiAsli {
         ? const [0, 180]
         : const [90, 270];
 
-    String? kodeLain;
+    // Hasil gagal PERTAMA yang punya bukti (kode/judul formulir lain, atau
+    // varian ambigu). Orientasi lain yang cocok tetap menang atasnya.
+    HasilKenaliTeks? gagalPertama;
 
     for (final s in sudut) {
       final img.Image citra;
@@ -563,20 +615,41 @@ class JalankanPindaiAsli {
                 orientasi: orientasiSetelahPutar(orientasiAsal, s),
               ),
       );
-      final cari = cariKodeDokumen(terbaca, template.kodeDokumen);
+      final kenali = kenaliFormulirDariTeks(
+        terbaca: terbaca,
+        template: template,
+        kode: cariKodeDokumen(terbaca, template.kodeDokumen),
+        dikenal: dikenal,
+      );
 
-      if (cari.cocok != null) {
-        return (citra: citra, terbaca: terbaca, kode: cari.cocok!);
+      if (kenali.keputusan == KeputusanKenali.cocok) {
+        return (citra: citra, terbaca: terbaca, kenali: kenali);
       }
 
-      kodeLain ??= cari.lain;
+      if (kenali.keputusan != KeputusanKenali.tidakTerbaca) {
+        gagalPertama ??= kenali;
+      }
     }
 
-    if (kodeLain != null) {
-      throw PindaiAsliGagal(GagalPindaiAsli.formulirLain, terbaca: kodeLain);
+    switch (gagalPertama?.keputusan) {
+      case KeputusanKenali.formulirLain:
+        throw PindaiAsliGagal(
+          GagalPindaiAsli.formulirLain,
+          terbaca: gagalPertama!.terbaca,
+        );
+      case KeputusanKenali.ambigu:
+        // Bukan tebakan: varian bernama sama dan kodenya tidak terbaca. Sebab
+        // yang dipakai tetap [GagalPindaiAsli.kodeTidakTerbaca] (pesannya minta
+        // memotret kode formulir), kandidatnya dibawa untuk pemanggil.
+        throw PindaiAsliGagal(
+          GagalPindaiAsli.kodeTidakTerbaca,
+          kandidat: gagalPertama!.kandidat,
+        );
+      case KeputusanKenali.cocok:
+      case KeputusanKenali.tidakTerbaca:
+      case null:
+        throw const PindaiAsliGagal(GagalPindaiAsli.kodeTidakTerbaca);
     }
-
-    throw const PindaiAsliGagal(GagalPindaiAsli.kodeTidakTerbaca);
   }
 
   /// Kemiringan sisa sisi atas halaman di foto, dalam derajat, sesudah
