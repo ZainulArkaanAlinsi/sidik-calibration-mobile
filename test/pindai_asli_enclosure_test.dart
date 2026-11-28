@@ -240,23 +240,18 @@ void main() {
     await tinjau(tester);
   }
 
-  /// Tulisan tangan tidak pernah hijau: semua baris dicek satu per satu, baru
-  /// "masukkan" menyala.
-  Future<void> cekSemuaLaluMasukkan(WidgetTester tester) async {
+  /// Tulisan tangan tetap tidak pernah hijau, tetapi sejak keputusan pemilik
+  /// 27 Nov 2026 (disetujui 28 Nov) kuning TIDAK lagi menahan "masukkan":
+  /// bacaan yang tak merah langsung boleh dimasukkan tanpa dicentang satu per
+  /// satu. Hanya sel merah kosong yang menahan (lihat tes "merah wajib
+  /// diketik" di bawah).
+  Future<void> masukkanTanpaGerbangCek(WidgetTester tester) async {
     final masukkan = find.byType(FilledButton);
-    expect(tester.widget<FilledButton>(masukkan).onPressed, isNull);
-
-    final cek = find.byWidgetPredicate(
-      (w) =>
-          w.key is ValueKey &&
-          '${(w.key as ValueKey).value}'.startsWith('cek-'),
+    expect(
+      tester.widget<FilledButton>(masukkan).onPressed,
+      isNotNull,
+      reason: 'kuning belum dicek tidak boleh menahan Masukkan',
     );
-    final n = cek.evaluate().length;
-    for (var i = 0; i < n; i++) {
-      await tester.tap(cek.at(i));
-    }
-    await tester.pump();
-    expect(tester.widget<FilledButton>(masukkan).onPressed, isNotNull);
 
     await tester.tap(masukkan);
     await tester.pumpAndSettle();
@@ -306,7 +301,7 @@ void main() {
       tester,
       isian: isian,
       teks: bacaan(),
-      tinjau: cekSemuaLaluMasukkan,
+      tinjau: masukkanTanpaGerbangCek,
     );
 
     final g = isian.grid!;
@@ -368,6 +363,12 @@ void main() {
         await tester.runAsync(
           () => Future<void>.delayed(const Duration(milliseconds: 10)),
         );
+        // Merah sudah diketik: Masukkan menyala TANPA mencentang kuning.
+        expect(
+          tester.widget<FilledButton>(masukkan).onPressed,
+          isNotNull,
+          reason: 'kuning belum dicek tidak boleh menahan Masukkan',
+        );
 
         final cek = find.byWidgetPredicate(
           (w) =>
@@ -399,7 +400,7 @@ void main() {
       tester,
       isian: isian,
       teks: bacaan(tambah: 50),
-      tinjau: cekSemuaLaluMasukkan,
+      tinjau: masukkanTanpaGerbangCek,
     );
     g = isian.grid!;
     expect(g.setPoint, hasLength(3));

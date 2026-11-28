@@ -4,9 +4,8 @@ import 'lembar_kerja_state.dart';
 /// Jenis satu butir di dialog "Ringkasan sebelum kirim".
 ///
 /// [menahan] `true` = gerbang yang SUDAH ADA di `LembarKerjaScreen._submit`
-/// (alat belum dipilih, suhu, standar belum dicentang, setpoint, jam, dan sel
-/// hasil kamera yang belum dicek): kirim tetap ditahan. `false` = peringatan:
-/// teknisi boleh "Tetap kirim".
+/// (alat belum dipilih, suhu, standar belum dicentang, setpoint, jam): kirim
+/// tetap ditahan. `false` = peringatan: teknisi boleh "Tetap kirim".
 enum JenisButirRingkasan {
   alatBelumDipilih(menahan: true),
   suhuBelumLengkap(menahan: true),
@@ -15,9 +14,11 @@ enum JenisButirRingkasan {
   jamTidakTerbaca(menahan: true),
   identitasKosong(menahan: false),
 
-  /// Sel hasil kamera yang belum dicek teknisi. MENAHAN: dulu hanya saran
-  /// ("bertanda kuning/merah"), dan tombol Kirim tetap jalan.
-  ocrPerluDicek(menahan: true);
+  /// Tidak lagi dihasilkan [susunRingkasanSebelumKirim]: sejak keputusan pemilik
+  /// 27 Nov 2026 sel hasil kamera tidak menahan Kirim (teknisi melihat lembar
+  /// yang terisi, sel kamera tetap bertanda kuning). Nilai enum dipertahankan
+  /// supaya dialog dan pesan lamanya tetap kompatibel.
+  ocrPerluDicek(menahan: false);
 
   const JenisButirRingkasan({required this.menahan});
 
@@ -39,8 +40,8 @@ class ButirRingkasan {
   /// yang bermasalah (`4,00, 7,00`) — persis yang disebut gerbang aslinya.
   final String label;
 
-  /// Hanya dipakai [JenisButirRingkasan.ocrPerluDicek]: jumlah sel yang belum
-  /// dicek.
+  /// Hanya dipakai [JenisButirRingkasan.ocrPerluDicek] (tidak lagi dihasilkan):
+  /// jumlah sel yang belum dicek.
   final int jumlah;
 
   /// Kode sasaran lompat (kode kolom, atau [kodeLompatBagian]); `null` = tidak
@@ -104,7 +105,8 @@ int? halamanSasaranLompat(LembarKerja bentuk, String sasaran) {
 ///
 /// Gerbang (`menahan`) memakai getter yang SAMA dengan yang dipakai
 /// `LembarKerjaScreen._submit`, jadi dialog dan gerbang tidak bisa berbeda
-/// pendapat. Gerbang di `_submit` tetap ada sebagai jaring terakhir.
+/// pendapat. Gerbang di `_submit` tetap ada sebagai jaring terakhir. Sel hasil
+/// kamera yang belum dicek TIDAK termasuk gerbang (keputusan pemilik 27 Nov).
 RingkasanSebelumKirim susunRingkasanSebelumKirim(LembarKerjaState s) {
   final butir = <ButirRingkasan>[];
   final bentuk = s.bentuk;
@@ -187,23 +189,6 @@ RingkasanSebelumKirim susunRingkasanSebelumKirim(LembarKerjaState s) {
         jenis: JenisButirRingkasan.identitasKosong,
         label: f.label,
         lompat: f.kode,
-      ),
-    );
-  }
-
-  // --- (c) Sel hasil kamera yang belum dicek: MENAHAN ---------------------
-
-  final belumDicek = s.jumlahPerluCek;
-  if (belumDicek > 0) {
-    final berikut = s.selCekBerikutnya();
-    final bagianSel = bentuk.bagian
-        .where((b) => b.kode == berikut?.bagianKode)
-        .firstOrNull;
-    butir.add(
-      ButirRingkasan(
-        jenis: JenisButirRingkasan.ocrPerluDicek,
-        jumlah: belumDicek,
-        lompat: bagianSel == null ? lompatTabel : kodeLompatBagian(bagianSel),
       ),
     );
   }

@@ -7,9 +7,11 @@ import 'package:sidik_calibration/services/peta_tabel_foto.dart';
 import 'package:sidik_calibration/services/vonis_sel_foto.dart';
 
 /// Isi cepat di layar review: urutan kertas, keypad angka dengan koma dan
-/// minus, "Konfirmasi dan lanjut" satu ketukan per sel, auto-lanjut. Aturan lama
-/// tidak boleh bergeser: tidak ada "terima semua", merah wajib diketik, kuning
-/// wajib dicek, sel kosong tidak ikut, tidak ada nilai disalin antar sel.
+/// minus, "Konfirmasi dan lanjut" satu ketukan per sel, auto-lanjut. Aturan
+/// yang tidak boleh bergeser: tidak ada "terima semua", merah wajib diketik,
+/// sel kosong tidak ikut, tidak ada nilai disalin antar sel. Kuning (usulan
+/// kamera) TIDAK lagi menahan Masukkan (keputusan pemilik 27 Nov 2026): cek
+/// per sel tetap ada sebagai penanda opsional dan jalur auto-lanjut.
 void main() {
   BarisReviewFoto baris(
     String teks, {
@@ -308,12 +310,24 @@ void main() {
       reason: 'keypad masih terbuka: hanya tombol konfirmasi',
     );
     expect(tester.widget<FilledButton>(konfirmasi).onPressed, isNotNull);
+    expect(
+      tester
+          .widget<Icon>(
+            find.descendant(
+              of: find.byKey(const ValueKey('cek-2.0|1|pembacaan')),
+              matching: find.byType(Icon),
+            ),
+          )
+          .icon,
+      Icons.check_circle_outline,
+      reason: 'sel 2 tidak ikut tercentang oleh ketukan di sel 1',
+    );
     await tester.tap(find.byKey(const ValueKey('keypad-tutup')));
     await tester.pumpAndSettle();
     expect(
       tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
-      isNull,
-      reason: 'sel 2 belum dicek: Masukkan tetap mati',
+      isNotNull,
+      reason: 'tidak ada merah kosong; sel 2 kuning belum dicek tidak menahan',
     );
   });
 
@@ -392,8 +406,8 @@ void main() {
   });
 
   testWidgets(
-    'PENGAMAN urutan kertas: Masukkan mati selama ada merah kosong atau kuning '
-    'belum dicek; penghitung sisa terlihat saat keypad terbuka',
+    'PENGAMAN urutan kertas: Masukkan mati selama ada merah kosong; kuning '
+    'belum dicek tidak menahan; penghitung sisa hanya menghitung merah kosong',
     (tester) async {
       await buka(tester, [
         baris('1,00', keyakinan: 0.99, titikUkur: 1),
@@ -405,39 +419,49 @@ void main() {
       FilledButton masukkan() =>
           tester.widget<FilledButton>(find.byType(FilledButton));
 
-      // Panel tertutup: Masukkan mati dan kedua penghitung lama tampil.
+      // Panel tertutup: Masukkan mati karena merah kosong. Penghitung kuning
+      // sudah tidak ada (kuning bukan gerbang lagi).
       expect(masukkan().onPressed, isNull);
       expect(find.textContaining('1 sel masih kosong'), findsOneWidget);
-      expect(find.textContaining('2 angka kuning belum dicek'), findsOneWidget);
+      expect(find.textContaining('angka kuning belum dicek'), findsNothing);
 
       await tester.tap(mulai);
       await tester.pumpAndSettle();
-      expect(teksSisa(), 'Sisa 3 sel', reason: 'penghitung ikut panel');
+      expect(teksSisa(), 'Sisa 1 sel', reason: 'penghitung ikut panel');
 
       await tester.tap(konfirmasi); // sel 1 beres
       await tester.pumpAndSettle();
-      expect(teksSisa(), 'Sisa 2 sel');
+      expect(teksSisa(), 'Sisa 1 sel', reason: 'merah masih kosong');
 
-      // Tutup panel di tengah jalan: merah masih kosong, sel 3 belum dicek.
+      // Tutup panel di tengah jalan: merah masih kosong, Masukkan tetap mati.
       await tester.tap(find.byKey(const ValueKey('keypad-tutup')));
       await tester.pumpAndSettle();
       expect(masukkan().onPressed, isNull);
 
-      // Merah diketik tapi sel 3 belum dicek: tetap mati.
+      // Merah diketik: Masukkan hidup walau sel 3 (kuning) belum dicek.
       await tester.tap(find.byType(TextField).at(1));
       await tester.pumpAndSettle();
       await ketik(tester, '2,05');
+      expect(teksSisa(), 'Semua sel sudah beres');
       await tester.tap(konfirmasi);
       await tester.pumpAndSettle();
-      expect(teksSisa(), 'Sisa 1 sel');
       await tester.tap(find.byKey(const ValueKey('keypad-tutup')));
       await tester.pumpAndSettle();
-      expect(masukkan().onPressed, isNull, reason: 'sel 3 belum dicek');
+      expect(
+        masukkan().onPressed,
+        isNotNull,
+        reason: 'sel 3 kuning belum dicek, tetapi tidak menahan',
+      );
 
-      // Sel 3 dicek: semua beres, baru Masukkan terbuka.
+      // Mengosongkan lagi sel merah mengunci Masukkan kembali.
+      await tester.enterText(find.byType(TextField).at(1), '');
+      await tester.pump();
+      expect(masukkan().onPressed, isNull, reason: 'merah kosong menahan');
+
+      // Cek sel 3 tetap boleh (opsional) dan tidak mengubah apa pun di sini.
       await tester.tap(find.byKey(const ValueKey('cek-3.0|1|pembacaan')));
       await tester.pump();
-      expect(masukkan().onPressed, isNotNull);
+      expect(masukkan().onPressed, isNull);
     },
   );
 }

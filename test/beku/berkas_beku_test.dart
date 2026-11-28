@@ -102,6 +102,21 @@ import 'package:flutter_test/flutter_test.dart';
 /// berubah. Lembar tanpa `dariFoto` tampil identik, dan golden
 /// `test/beku/goldens/` TIDAK diperbarui. Rincian: addendum 19 Nov di
 /// `docs/desain-ulang/BEKU.md`. Hash sebelumnya: `dde86ae4...`.
+///
+/// ## Perubahan hash lewat buka-kunci: tanpa gerbang "wajib dicek" (28 Nov 2026)
+///
+/// STATUS PERSETUJUAN: EKSPLISIT dari pemilik proyek, 28 Nov 2026 (jawaban atas
+/// pertanyaan di sesi kerja; keputusan produknya diambil 27 Nov 2026). Angka hasil
+/// foto tetap kuning sampai teknisi mengubahnya, tetapi tidak lagi menahan tombol
+/// Kirim. Tiga berkas berubah hash: `lembar_kerja_screen.dart` (panel gerbang,
+/// tombol "cek berikutnya", jaring terakhir di `_submit`, banner "Ganti jenis",
+/// dan tombol "Foto ulang" dibuang), `calibration_input_screen.dart` (panel dan
+/// pemblokiran Kirim dibuang), dan `verifikasi_sel_dicek.dart` (penolakan saat
+/// masih ada sel belum dicek dibuang; yang dikonfirmasi ke server tetap daftar id
+/// baris yang eksplisit). `pengatur_titik.dart` TIDAK berubah. Golden
+/// `test/beku/goldens/` lolos TANPA diperbarui. Rincian: addendum 28 Nov di
+/// `docs/desain-ulang/BEKU.md`. Hash sebelumnya: `e76811ee...` (lembar kerja),
+/// `2f815c59...` (input kalibrasi), `df1d6ae1...` (verifikasi sel dicek).
 const Map<String, String> _hashBeku = {
   // ── Lembar kerja (`lib/screens/calibration/`), 17 berkas dari BEKU.md ────────
   // Hash tiga layar (lembar_kerja_screen, temperatur_indikator_gerbang_screen,
@@ -109,7 +124,7 @@ const Map<String, String> _hashBeku = {
   // pemanggil di dalam berkas); lainnya masih hash L0. `lembar_kerja_screen`
   // berubah lagi 15 Nov 2026 (foto awal "Pindai lembar kerja", lihat atas).
   'lib/screens/calibration/lembar_kerja_screen.dart':
-      'e76811ee717933c2d95d164178d74eeed6dea419ad1f4ecf2675a8973b702aae',
+      'eecd0242f133185dfc910f4eae989f8bc1ed442ab6fc01a7a9c771837e9af373',
   'lib/screens/calibration/lembar_kerja_state.dart':
       '6e6005a486d13dfcc002fa339e38d0bee5c3b3054cbdf0e9ed843266c16cc093',
   'lib/screens/calibration/kinerja_lembar.dart':
@@ -123,7 +138,7 @@ const Map<String, String> _hashBeku = {
   'lib/screens/calibration/temperatur_indikator_gerbang_screen.dart':
       'b9e4bb15b3c0e8d235f4b174215bac674e43d31c39b4212093dab9bdd96d55a6',
   'lib/screens/calibration/calibration_input_screen.dart':
-      '2f815c59ea88c2eeacc652b251cf956ed5408cb037162880788578f8ba33777e',
+      '74ea2de6dcdc8d7c1f4ee25a4003e6b2321fdf9792e29b739f3df44ae3b0024f',
   'lib/screens/calibration/widgets/lembar_kerja_grid.dart':
       '0a83991529881b82d677f48fe2a49d8ed86a54e9dd979bee10e05593187baebc',
   'lib/screens/calibration/widgets/lembar_kerja_matriks.dart':
@@ -150,7 +165,7 @@ const Map<String, String> _hashBeku = {
   'lib/screens/calibration/cek_bacaan_kamera.dart':
       'e2c47872294d237f16eb70d950207754b2b4a5ad91578b9612fc237bbe100457',
   'lib/screens/calibration/verifikasi_sel_dicek.dart':
-      'df1d6ae1693021357c0c666476d6d22df71fd7a54748f1b8843e6c243d21ac48',
+      'ff8058617b9b9b4a4bb1fd8a00fb47e60f12bc1b32fe23fe5ad36496460673cc',
   'lib/screens/calibration/widgets/tanda_cek_sel.dart':
       'b379d160f6f1a2aa6972b4423267f64027d95f30d132defcac981b2ed6df51ab',
 

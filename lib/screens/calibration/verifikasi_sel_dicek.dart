@@ -2,22 +2,22 @@ import '../../services/history_service.dart';
 import '../../services/verifikasi_sel_service.dart';
 import 'lembar_kerja_state.dart';
 
-/// Sesudah "Kirim final" sukses: konfirmasikan ke server baris-baris yang
-/// BOLEH dikonfirmasi — dan hanya itu.
+/// Sesudah "Kirim final" sukses: konfirmasikan ke server baris-baris hasil
+/// kamera yang belum terverifikasi, dengan daftar id yang eksplisit.
 ///
-/// ## Kenapa bukan lagi panggilan massal
+/// ## Kirim = teknisi sudah melihat lembarnya
 ///
-/// Dulu satu dialog konfirmasi disusul `verifikasiPembacaan` tanpa daftar id
-/// (= semua yang belum dicek), jadi satu ketukan mengesahkan seluruh bacaan
-/// kamera. Sekarang gerbang di layar menahan Kirim sampai setiap sel hasil
-/// kamera dicek teknisi satu per satu ([LembarKerjaState.jumlahPerluCek]), dan
-/// yang dikirim ke server adalah daftar id baris yang eksplisit.
+/// Keputusan pemilik 27 Nov 2026: tidak ada lagi tombol/gerbang "cek bacaan
+/// kamera" yang menahan Kirim. Pemeriksaannya ya teknisi itu sendiri melihat
+/// lembar yang terisi otomatis (sel hasil kamera tetap bertanda kuning), lalu
+/// menekan Kirim. Menekan Kirim dihitung konfirmasi teknisi; tanpa itu server
+/// menolak persetujuan (422 "belum diverifikasi") dan setiap lembar foto
+/// harus diverifikasi ulang admin satu per satu.
 ///
 /// Server menandai SEMUA baris sesi ber-`input_method: ocr` sebagai belum
-/// terverifikasi — termasuk yang diketik tangan. Baris tanpa sel kamera di
-/// baliknya memang tidak punya yang perlu dicek; baris yang punya, selnya sudah
-/// dicek (gerbang). Selama masih ada satu saja sel yang belum dicek, TIDAK ada
-/// baris yang dikonfirmasi.
+/// terverifikasi — termasuk yang diketik tangan. Pemisahan wewenang di server
+/// tetap berlaku: yang mengonfirmasi hasil pindai tidak boleh juga
+/// menyetujuinya.
 ///
 /// Mengembalikan jumlah baris yang dikonfirmasi (0 = tidak memanggil server).
 Future<int> verifikasiBarisSelDicek({
@@ -27,10 +27,6 @@ Future<int> verifikasiBarisSelDicek({
   required HistoryService riwayat,
   required VerifikasiSelService verifikasi,
 }) async {
-  // Jaring terakhir: gerbang di layar sudah menahan, ini menolak lagi kalau
-  // ada jalur yang menembusnya.
-  if (isian.jumlahPerluCek > 0) return 0;
-
   // Tidak ada sel hasil kamera sama sekali: tidak ada yang perlu dikonfirmasi.
   if (isian.daftarSelCek().isEmpty && !isian.adaIsianDariFoto) return 0;
 

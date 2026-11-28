@@ -411,8 +411,8 @@ Finder _baris(String id) => find.byKey(PilihJenisRingkasSheet.kunciBaris(id));
 void main() {
   group('kode UNIK terbaca: lembar terbuka sendiri, tanpa layar pilihan', () {
     testWidgets('0509: tidak ada lembar pilihan, lembar pH terbuka dalam tema '
-        'beku membawa foto yang SAMA; banner jenis; foto dibaca sendiri tanpa '
-        'kamera kedua', (tester) async {
+        'beku membawa foto yang SAMA; TANPA banner jenis; foto dibaca sendiri '
+        'tanpa kamera kedua', (tester) async {
       final pembaca = _PembacaPutaran([_kakiPh]);
       final mesin = _MesinPalsu();
       final uji = _Uji(daftar: _daftar(), pembaca: pembaca, mesin: mesin);
@@ -446,11 +446,14 @@ void main() {
         ),
         findsOneWidget,
       );
+      // Keputusan pemilik 27 Nov 2026: banner "Ganti jenis" tidak dipasang di
+      // layar mana pun; teknisi yang melihat jenis keliru memotret ulang.
       expect(
         find.text('Dikenali otomatis: pH Meter (dari foto). Salah?'),
-        findsOneWidget,
+        findsNothing,
       );
-      expect(_gantiJenis, findsOneWidget);
+      expect(_banner, findsNothing);
+      expect(_gantiJenis, findsNothing);
 
       // Pembaca halaman ditutup; kamera dibuka SEKALI (oleh beranda).
       expect(pembaca.ditutup, isTrue);
@@ -578,8 +581,10 @@ void main() {
       expect(lembar.dariFoto!.otomatis, isFalse);
       expect(
         find.text('Jenis lembar: Oven (dipilih dari foto). Salah?'),
-        findsOneWidget,
+        findsNothing,
+        reason: 'banner "Ganti jenis" tidak dipasang lagi (27 Nov 2026)',
       );
+      expect(_banner, findsNothing);
     });
 
     testWidgets('"Foto ulang" dari lembar ringkas: kamera dibuka lagi, foto '
@@ -841,8 +846,8 @@ void main() {
       );
 
       testWidgets('identitas TERTULIS di kertas dibaca dari halaman yang SAMA: '
-          'masuk lembar sebagai saran kuning yang wajib dicek, alat cocok '
-          'menunggu ketukan, kertas menang atas master', (tester) async {
+          'masuk lembar sebagai saran kuning (tanpa gerbang wajib-cek), alat '
+          'cocok menunggu ketukan, kertas menang atas master', (tester) async {
         final pembaca = _PembacaElemen(
           halamanPhUji(
             nama: 'pH Meter',
@@ -865,7 +870,8 @@ void main() {
         );
         expect(alatDipilih, findsNothing);
 
-        // Identitas kertas ada di kotak lembar dan ditandai wajib-cek.
+        // Identitas kertas ada di kotak lembar sebagai saran. Sejak 27 Nov
+        // 2026 tidak ada panel gerbang yang menahan Kirim karenanya.
         String isi(String label) {
           final kotak = find.byWidgetPredicate(
             (w) => w is TextField && w.controller?.text == label,
@@ -878,9 +884,10 @@ void main() {
         expect(isi('PT Tirta Contoh Mandiri'), 'PT Tirta Contoh Mandiri');
         expect(
           find.byKey(const ValueKey('panel-cek-tahan')),
-          findsOneWidget,
-          reason: 'saran identitas ikut gerbang wajib-cek',
+          findsNothing,
+          reason: 'saran identitas tidak lagi ikut gerbang wajib-cek',
         );
+        expect(find.byType(PanelGerbangCek), findsNothing);
         expect(
           find.byKey(BlokIdentitasFoto.kunciTanggalKalibrasi),
           findsOneWidget,
@@ -922,10 +929,8 @@ void main() {
 
   group('SATU pintu foto: tidak ada dialog dan tombol foto ganda', () {
     testWidgets('lembar dari foto beranda: tanpa dialog "Mau diisi '
-        'bagaimana?", tanpa "Foto worksheet", tombol foto baru muncul '
-        'SESUDAH hasil sebagai "Foto ulang" — satu pintu per layar', (
-      tester,
-    ) async {
+        'bagaimana?", tanpa "Foto worksheet", dan tidak ada tombol foto kedua '
+        'pula SESUDAH hasil — satu pintu per layar (beranda)', (tester) async {
       final mesin = _MesinPalsu();
       final uji = _Uji(
         daftar: _daftar(),
@@ -944,18 +949,26 @@ void main() {
       expect(_fotoLembar, findsNothing);
 
       // Hasil baca masuk ke layar periksa; sesudah teknisi menutupnya lembar
-      // menawarkan SATU tombol "Foto ulang".
+      // dari foto beranda TIDAK menawarkan tombol "Foto ulang" (teknisi yang
+      // ingin memotret ulang kembali ke beranda).
       await _tunggu(tester, () => mesin.diterima.isNotEmpty);
       await _tunggu(
         tester,
-        () => find.byType(FilledButton).evaluate().isNotEmpty,
+        () => find.byType(FotoReviewScreen).evaluate().isNotEmpty,
       );
+      await tester.pumpAndSettle();
+      Navigator.of(tester.element(find.byType(FotoReviewScreen))).pop();
+      await tester.pumpAndSettle();
+      expect(find.byType(FotoReviewScreen), findsNothing);
+      expect(_fotoLembar, findsNothing);
+      expect(find.text('Foto ulang'), findsNothing);
+      expect(find.text('Foto worksheet'), findsNothing);
     });
   });
 
   group('e2e: kode unik -> lembar terbuka -> terbaca -> teknisi memeriksa', () {
-    testWidgets('sel yang terbaca masuk lembar sebagai SARAN yang wajib dicek; '
-        'sel yang gagal dibaca tetap kosong sampai diketik teknisi', (
+    testWidgets('sel yang terbaca masuk lembar sebagai SARAN kuning yang tidak '
+        'menahan; sel yang gagal dibaca tetap kosong sampai diketik teknisi', (
       tester,
     ) async {
       final mesin = _MesinPalsu();
@@ -1000,6 +1013,17 @@ void main() {
       await tester.runAsync(
         () => Future<void>.delayed(const Duration(milliseconds: 10)),
       );
+      // Keputusan pemilik 27 Nov 2026: yang menahan Masukkan hanya merah
+      // kosong. Merah sudah diketik, kuning belum dicentang: Masukkan hidup.
+      expect(
+        tester
+            .widget<FilledButton>(
+              find.descendant(of: review, matching: find.byType(FilledButton)),
+            )
+            .onPressed,
+        isNotNull,
+        reason: 'kuning yang belum dicek tidak menahan Masukkan',
+      );
       final cek = find.descendant(
         of: review,
         matching: find.byWidgetPredicate(
@@ -1017,12 +1041,12 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Kembali ke lembar: isinya masuk, ditandai sebagai bacaan kamera (panel
-      // gerbang "wajib dicek" muncul), banner jenis tetap ada, dan satu tombol
-      // "Foto ulang" menggantikan jalan masuk foto.
+      // Kembali ke lembar: isinya masuk (sel kamera tetap kuning di tabel),
+      // tetapi TIDAK ada panel gerbang "wajib dicek", tidak ada banner jenis,
+      // dan tidak ada tombol "Foto ulang" untuk lembar dari foto beranda.
       expect(find.byType(FotoReviewScreen), findsNothing);
-      expect(find.byType(PanelGerbangCek), findsOneWidget);
-      expect(find.textContaining('bacaan kamera'), findsOneWidget);
+      expect(find.byType(PanelGerbangCek), findsNothing);
+      expect(find.textContaining('bacaan kamera'), findsNothing);
       // Dua sel masuk (saran kuning + yang diketik teknisi). Tabelnya ada di
       // halaman 2 lembar, jadi buktinya pemberitahuan dan penanda isian kotor,
       // bukan teks selnya.
@@ -1030,9 +1054,9 @@ void main() {
         find.textContaining(RegExp(r'2 (isian|sel) terisi dari foto')),
         findsOneWidget,
       );
-      expect(_banner, findsOneWidget);
-      expect(_fotoLembar, findsOneWidget);
-      expect(find.text('Foto ulang'), findsOneWidget);
+      expect(_banner, findsNothing);
+      expect(_fotoLembar, findsNothing);
+      expect(find.text('Foto ulang'), findsNothing);
       expect(find.text('Foto worksheet'), findsNothing);
       expect(
         ProviderScope.containerOf(
@@ -1046,72 +1070,52 @@ void main() {
     });
   });
 
-  group('banner "Ganti jenis"', () {
-    testWidgets('satu ketukan ke pilihan jenis lain: lembar diganti dengan '
-        'foto yang SAMA, kamera tidak dibuka lagi', (tester) async {
-      final uji = _Uji(
-        daftar: _daftar(),
-        pembaca: _PembacaPutaran([_kakiPh]),
-        mesin: _MesinPalsu(),
-      );
-      final bita = uji.berkas.readAsBytesSync();
-      await _pasang(tester, uji);
-      await _pindai(tester);
-      expect(_lembar(tester).profil, 'ph_meter');
+  group(
+    'banner "Ganti jenis" tidak dipasang (keputusan pemilik 27 Nov 2026)',
+    () {
+      testWidgets('lembar dari foto: tanpa banner, tanpa tombol "Ganti jenis" '
+          'atau "Foto ulang"; jenis tetap, foto yang SAMA, kamera tidak dibuka '
+          'lagi, tidak ada kejadian ganti_jenis', (tester) async {
+        final uji = _Uji(
+          daftar: _daftar(),
+          pembaca: _PembacaPutaran([_kakiPh]),
+          mesin: _MesinPalsu(),
+        );
+        final bita = uji.berkas.readAsBytesSync();
+        await _pasang(tester, uji);
+        await _pindai(tester);
+        expect(_lembar(tester).profil, 'ph_meter');
 
-      // Selagi foto dibaca tombolnya mati; tunggu layar periksa lalu tutup.
-      await _tunggu(
-        tester,
-        () => find.byType(FilledButton).evaluate().isNotEmpty,
-      );
-      Navigator.of(tester.element(find.byType(FilledButton))).pop();
-      await tester.pumpAndSettle();
+        // Selagi foto dibaca tombolnya mati; tunggu layar periksa lalu tutup.
+        await _tunggu(
+          tester,
+          () => find.byType(FilledButton).evaluate().isNotEmpty,
+        );
+        Navigator.of(tester.element(find.byType(FilledButton))).pop();
+        await tester.pumpAndSettle();
 
-      await tester.ensureVisible(_gantiJenis);
-      await tester.tap(_gantiJenis);
-      await tester.pumpAndSettle();
+        // Tidak ada jalan "Ganti jenis" di lembar: bukan banner, bukan tombol,
+        // bukan lembar bawah pilihan jenis.
+        expect(_banner, findsNothing);
+        expect(_gantiJenis, findsNothing);
+        expect(find.text('Ganti jenis'), findsNothing);
+        expect(find.text('Ganti jenis lembar'), findsNothing);
+        expect(find.byType(PilihJenisRingkasSheet), findsNothing);
+        expect(_fotoLembar, findsNothing);
+        expect(find.text('Foto ulang'), findsNothing);
 
-      // Kandidat lain dari foto tidak ada (kode unik); semua jenis ada di
-      // bawah "Jenis lain", tanpa jenis yang sedang dibuka.
-      expect(find.text('Ganti jenis lembar'), findsOneWidget);
-      await tester.ensureVisible(
-        find.byKey(PilihJenisRingkasSheet.kunciJenisLain),
-      );
-      await tester.tap(find.byKey(PilihJenisRingkasSheet.kunciJenisLain));
-      await tester.pumpAndSettle();
-      expect(_baris('ph_meter'), findsNothing, reason: 'jenis sekarang');
-      expect(find.byKey(PilihJenisRingkasSheet.kunciFotoUlang), findsNothing);
-
-      await tester.ensureVisible(_baris('oven'));
-      await tester.tap(_baris('oven'));
-      await tester.pumpAndSettle();
-
-      // Alat sudah terpilih di lembar pH, jadi meninggalkannya meminta
-      // konfirmasi yang sama dengan tombol kembali. Lanjut ("Keluar").
-      expect(find.text('Keluar tanpa menyimpan?'), findsOneWidget);
-      await tester.tap(find.text('Keluar'));
-      await tester.pump();
-      final lembarOven = find.byWidgetPredicate(
-        (w) => w is LembarKerjaScreen && w.profil == 'oven',
-      );
-      await _tunggu(tester, () => lembarOven.evaluate().isNotEmpty);
-      await tester.pump(const Duration(seconds: 1));
-      await tester.pump(const Duration(seconds: 1));
-
-      expect(_lembar(tester).profil, 'oven');
-      expect(_lembar(tester).dariFoto!.jpeg, orderedEquals(bita));
-      expect(uji.sumber.jumlahAmbil, 1);
-      expect(
-        uji.catatan.baris.map((b) => b['kejadian']),
-        contains('ganti_jenis'),
-      );
-      final ganti = uji.catatan.baris.firstWhere(
-        (b) => b['kejadian'] == 'ganti_jenis',
-      );
-      expect(ganti['dari'], 'ph_meter');
-      expect(ganti['ke'], 'oven');
-    });
-  });
+        // Lembar tetap yang tadi dibuka, membawa foto yang SAMA; kamera hanya
+        // dibuka sekali (oleh beranda) dan tidak ada catatan ganti jenis.
+        expect(_lembar(tester).profil, 'ph_meter');
+        expect(_lembar(tester).dariFoto!.jpeg, orderedEquals(bita));
+        expect(uji.sumber.jumlahAmbil, 1);
+        expect(
+          uji.catatan.baris.map((b) => b['kejadian']),
+          isNot(contains('ganti_jenis')),
+        );
+      });
+    },
+  );
 
   group('privasi dan catatan lokal', () {
     testWidgets('catatan hanya skor, kode cetak, dan keputusan: tanpa citra, '

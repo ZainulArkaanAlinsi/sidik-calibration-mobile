@@ -16,8 +16,9 @@ import 'package:sidik_calibration/services/peta_tabel_foto.dart';
 import 'package:sidik_calibration/services/verifikasi_sel_service.dart';
 import 'package:sidik_calibration/services/vonis_sel_foto.dart';
 
-/// Gerbang "wajib dicek": kirim final ditahan sampai SETIAP sel hasil kamera
-/// dicek teknisi satu per satu.
+/// Status "perlu dicek" sel hasil kamera. Sejak keputusan pemilik 27 Nov 2026
+/// gerbang "wajib dicek" DICABUT: sel kamera tetap kuning sampai teknisi
+/// mengubah angkanya (atau mengonfirmasi sel itu), tetapi TIDAK menahan Kirim.
 ///
 /// Yang dikunci di sini (tanpa layar):
 ///  - sel dianggap dicek HANYA lewat konfirmasi pada sel itu atau lewat
@@ -25,8 +26,10 @@ import 'package:sidik_calibration/services/vonis_sel_foto.dart';
 ///  - tulisan tangan tidak pernah hijau / otomatis dicek;
 ///  - sel kosong tetap kosong dan tidak ikut dihitung;
 ///  - status tahan muat ulang (salinan HP) dan ikut payload;
-///  - ringkasan sebelum kirim memperlakukannya sebagai butir yang MENAHAN;
-///  - konfirmasi ke server berupa daftar id eksplisit, tidak pernah massal.
+///  - ringkasan sebelum kirim TIDAK memperlakukan sel kuning sebagai butir
+///    yang menahan (dan tidak memunculkannya sama sekali);
+///  - konfirmasi ke server berupa daftar id eksplisit, tidak pernah massal,
+///    dan sel yang masih kuning tidak lagi menahan pemanggilannya.
 void main() {
   const alat = EquipmentLookup(
     id: 14,
@@ -304,18 +307,15 @@ void main() {
       expect(status[kunciUnik(4.0)], StatusCekSel.perluCek);
     });
 
-    test(
-      'salinan lama tanpa blok cek_bacaan: penanda kamera tetap menahan',
-      () {
-        final s = dariFoto();
-        final salinan = Map<String, dynamic>.of(s.salinanLokal())
-          ..remove('cek_bacaan');
+    test('salinan lama tanpa blok cek_bacaan: penanda kamera tetap kuning', () {
+      final s = dariFoto();
+      final salinan = Map<String, dynamic>.of(s.salinanLokal())
+        ..remove('cek_bacaan');
 
-        final baru = isianBaru()..pulihkanSalinanLokal(salinan);
+      final baru = isianBaru()..pulihkanSalinanLokal(salinan);
 
-        expect(baru.jumlahPerluCek, 3);
-      },
-    );
+      expect(baru.jumlahPerluCek, 3);
+    });
 
     test('payload memuat daftar perlu_cek dan sudah_dicek', () {
       final s = dariFoto();
@@ -337,21 +337,27 @@ void main() {
   });
 
   group('ringkasan sebelum kirim', () {
-    test('sel belum dicek = butir yang MENAHAN, dengan jumlah', () {
+    test('sel belum dicek: TIDAK jadi butir, TIDAK menahan Kirim', () {
       final s = dariFoto();
+      expect(s.jumlahPerluCek, 3, reason: 'prasyarat: tiga sel masih kuning');
 
       final r = susunRingkasanSebelumKirim(s);
 
-      expect(r.menahan, isTrue);
-      final butir = r.wajib.singleWhere(
-        (b) => b.jenis == JenisButirRingkasan.ocrPerluDicek,
+      expect(r.menahan, isFalse);
+      expect(
+        r.butir.map((b) => b.jenis),
+        isNot(contains(JenisButirRingkasan.ocrPerluDicek)),
       );
-      expect(butir.jumlah, 3);
-      expect(butir.lompat, startsWith('bagian:'));
+      expect(r.wajib, isEmpty);
       expect(r.peringatan, isEmpty);
+      expect(
+        s.jumlahPerluCek,
+        3,
+        reason: 'menyusun ringkasan tidak mengonfirmasi sel apa pun',
+      );
     });
 
-    test('semua dicek satu per satu: butir hilang', () {
+    test('semua dicek satu per satu: ringkasan tetap tidak menahan', () {
       final s = dariFoto();
       for (final k in s.daftarSelCek().map((x) => x.kunci).toList()) {
         s.konfirmasiSelCek(k);
@@ -401,27 +407,58 @@ void main() {
           isVerified: terverifikasi,
         );
 
-    test(
-      'masih ada sel belum dicek: tidak ada panggilan sama sekali',
-      () async {
-        final s = dariFoto();
-        final riwayat = _Riwayat([baris(1, terverifikasi: false)]);
-        final verifikasi = MockVerifikasiSelService();
+    test('sel masih kuning: konfirmasi tetap lewat daftar id, tidak massal, '
+        'dan sel tidak ikut dikonfirmasi', () async {
+      final s = dariFoto();
+      final riwayat = _Riwayat([
+        baris(1, terverifikasi: false),
+        baris(2, terverifikasi: true),
+      ]);
+      final verifikasi = MockVerifikasiSelService();
 
-        final n = await verifikasiBarisSelDicek(
-          token: 't',
-          sesiId: 1,
-          isian: s,
-          riwayat: riwayat,
-          verifikasi: verifikasi,
-        );
+      final n = await verifikasiBarisSelDicek(
+        token: 't',
+        sesiId: 1,
+        isian: s,
+        riwayat: riwayat,
+        verifikasi: verifikasi,
+      );
 
-        expect(n, 0);
-        expect(verifikasi.panggilan, isEmpty);
-        expect(riwayat.diverifikasi, isEmpty);
-        expect(riwayat.detailDiambil, 0);
-      },
-    );
+      // Kuning tidak lagi menahan: baris yang belum terverifikasi dikirim
+      // sebagai daftar id eksplisit (Kirim = teknisi sudah melihat lembar).
+      expect(n, 1);
+      expect(verifikasi.panggilan.single.sesiId, 1);
+      expect(verifikasi.panggilan.single.ids, [1]);
+      expect(
+        riwayat.diverifikasi,
+        isEmpty,
+        reason: 'jalur massal (badan kosong) tidak boleh dipakai',
+      );
+      expect(
+        s.jumlahPerluCek,
+        3,
+        reason: 'sel di layar tidak ikut berubah jadi "sudah dicek"',
+      );
+    });
+
+    test('tanpa sel kamera sama sekali: server tidak dipanggil', () async {
+      final s = isianBaru();
+      final riwayat = _Riwayat([baris(1, terverifikasi: false)]);
+      final verifikasi = MockVerifikasiSelService();
+
+      final n = await verifikasiBarisSelDicek(
+        token: 't',
+        sesiId: 1,
+        isian: s,
+        riwayat: riwayat,
+        verifikasi: verifikasi,
+      );
+
+      expect(n, 0);
+      expect(verifikasi.panggilan, isEmpty);
+      expect(riwayat.diverifikasi, isEmpty);
+      expect(riwayat.detailDiambil, 0);
+    });
 
     test(
       'semua dicek: hanya baris yang belum terverifikasi, lewat daftar id',

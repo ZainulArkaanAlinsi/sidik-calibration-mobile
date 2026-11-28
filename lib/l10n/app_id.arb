@@ -1676,7 +1676,7 @@
   },
   "lkKonfirmasiJudul": "Cek dulu angkanya sebelum dikirim",
   "lkKonfirmasiCatatan": "Rata-rata pembacaan After adjustment. Koreksi & ketidakpastian dihitung server sesudah ini dikirim.",
-  "lkKonfirmasiDariFoto": "Sebagian angka di tabel ini datang dari foto dan sudah kamu cek satu per satu. Dengan mengirim, kamu menyatakan angkanya cocok dengan yang tertera di alat.",
+  "lkKonfirmasiDariFoto": "Sebagian angka di tabel ini terbaca dari foto; yang masih kuning belum kamu ubah. Dengan mengirim, kamu menyatakan sudah melihat semua angka dan cocok dengan yang tertera di alat.",
   "lkKonfirmasiGagalTandai": "Terkirim, tapi penandaan \"sudah dicek\" gagal: {pesan}. Buka sesinya di Riwayat dan tekan \"Saya sudah cek angkanya\".",
   "@lkKonfirmasiGagalTandai": {
     "placeholders": {

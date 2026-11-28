@@ -7174,7 +7174,7 @@ abstract class AppLocalizations {
   /// No description provided for @lkKonfirmasiDariFoto.
   ///
   /// In en, this message translates to:
-  /// **'Some numbers in this table came from a photo and you checked each one. By sending, you confirm they match the instrument.'**
+  /// **'Some numbers in this table were read from a photo; those still yellow have not been changed by you. By sending, you confirm you have seen every number and that they match the instrument.'**
   String get lkKonfirmasiDariFoto;
 
   /// No description provided for @lkKonfirmasiGagalTandai.

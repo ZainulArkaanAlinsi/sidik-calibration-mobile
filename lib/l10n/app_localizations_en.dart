@@ -4024,7 +4024,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lkKonfirmasiDariFoto =>
-      'Some numbers in this table came from a photo and you checked each one. By sending, you confirm they match the instrument.';
+      'Some numbers in this table were read from a photo; those still yellow have not been changed by you. By sending, you confirm you have seen every number and that they match the instrument.';
 
   @override
   String lkKonfirmasiGagalTandai(String pesan) {

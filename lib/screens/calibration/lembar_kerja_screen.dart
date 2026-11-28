@@ -35,7 +35,6 @@ import '../../providers/versi_provider.dart';
 import '../../models/worksheet_template.dart';
 import '../../providers/worksheet_scan_provider.dart';
 import 'pindai_formulir_asli_flow.dart';
-import '../pindai/banner_jenis_dari_foto.dart';
 import '../pindai/blok_identitas_foto.dart';
 import '../pindai/identitas_foto_isian.dart';
 import '../pindai/dari_foto_lembar.dart';
@@ -53,7 +52,6 @@ import '../../widgets/kabar_server_lambat.dart';
 import '../../widgets/label_standar.dart';
 import '../../widgets/sidik_loader.dart';
 import '../../widgets/tampil_masuk.dart';
-import 'cek_bacaan_kamera.dart';
 import 'kinerja_lembar.dart';
 import 'lembar_kerja_state.dart';
 import 'penjaga_draf_lokal.dart';
@@ -86,10 +84,11 @@ const _layarPendek = 700.0;
 /// sekali — jadi layar ini nggak mungkin nampilin kolom yang bukan haknya,
 /// bahkan kalau ada bug di sisi tampilan.
 ///
-/// **Gerbang "wajib dicek" untuk bacaan kamera.** "Kirim final" mati selama ada
-/// sel hasil kamera yang belum dicek teknisi (satu per satu, tidak ada tombol
-/// "terima semua"); panel di atas tombol menyebut jumlahnya dan melompat ke
-/// sel berikutnya. Simpan draf tetap bebas. Lihat `PanelGerbangCek`.
+/// **Bacaan kamera tidak menahan Kirim.** Sejak keputusan pemilik 27 Nov 2026
+/// pemeriksaannya adalah teknisi sendiri melihat lembar yang terisi otomatis
+/// (sel hasil kamera tetap bertanda kuning), lalu menekan Kirim; tidak ada
+/// panel atau tombol "cek berikutnya" lagi. Menekan Kirim final dihitung
+/// konfirmasi teknisi (lihat [verifikasiBarisSelDicek]).
 ///
 /// **Tombol kirim nggak dikunci oleh kolom kosong.** Satu-satunya yang ditahan itu alat
 /// belum dipilih — tanpa itu nggak ada yang bisa dikirim sama sekali. Sisanya
@@ -707,15 +706,9 @@ class _FormState extends ConsumerState<_Form> {
           _isianBerubah();
         }
         await _fotoLembar();
-        // Sesudah percobaan pertama (berhasil, gagal, atau berhenti karena
-        // formulir belum siap) tombol foto boleh muncul sebagai jalan ulang.
-        if (mounted) setState(() => _autoFotoSelesai = true);
       });
     }
   }
-
-  /// Percobaan membaca foto beranda otomatis sudah selesai (apa pun hasilnya).
-  bool _autoFotoSelesai = false;
 
   KunciTemplatePindai get _kunciAsli => (
     kode: widget.profil,
@@ -767,20 +760,6 @@ class _FormState extends ConsumerState<_Form> {
         ],
       ),
     );
-  }
-
-  /// "Ganti jenis" di banner: pilihan jenis lain (dari alur foto), lalu lembar
-  /// pengganti dengan foto yang sama. Isian yang belum disimpan dijaga dengan
-  /// dialog keluar yang sama seperti tombol kembali.
-  Future<void> _gantiJenis() async {
-    final dariFoto = widget.dariFoto;
-    if (dariFoto == null || _sedangMemindai) return;
-
-    final navigator = Navigator.of(context);
-    final rute = await dariFoto.gantiJenis(context);
-    if (rute == null || !mounted) return;
-
-    if (await _bolehKeluar() && mounted) navigator.pushReplacement(rute);
   }
 
   Future<void> _fotoLembar() async {
@@ -1385,7 +1364,8 @@ class _FormState extends ConsumerState<_Form> {
   /// Kalau ketukannya mengubah nilai penentu (`tampil_kalau`), jalur penuh.
   void _isianDiketik() {
     _tandaiKotor();
-    // Gerbang "wajib dicek": mengubah angka sel kamera = sel itu dicek.
+    // Mengubah angka sel kamera = teknisi sudah melihat sel itu, tandanya
+    // kuning dilepas.
     _isian.segarkanCek();
     if (_hitungTandaTampil() != _tandaTampilTerakhir) {
       _isianBerubah();
@@ -1623,18 +1603,6 @@ class _FormState extends ConsumerState<_Form> {
     if (!await _gulirKeBidang(sasaran, kontrol)) _kabarTidakBisaLompat();
   }
 
-  /// Lompat ke satu sel hasil kamera: buka halaman bagiannya, lalu gulir ke
-  /// selnya.
-  Future<void> _lompatKeSelCek(SelCek sel) async {
-    final bentuk = widget.bentuk;
-    final bagianKode = sel.bagianKode;
-    final halaman = bagianKode == null
-        ? null
-        : bentuk.bagian.where((b) => b.kode == bagianKode).firstOrNull?.halaman;
-
-    await _lompatKe(sel.sasaranLompat, halaman: halaman);
-  }
-
   void _kabarTidakBisaLompat() {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -1712,19 +1680,6 @@ class _FormState extends ConsumerState<_Form> {
     if (!draft && !ref.read(kirimTertahanRilisWajibProvider)) {
       if (!await _tinjauRingkasanSebelumKirim()) return;
       if (!mounted) return;
-    }
-
-    // Gerbang "wajib dicek": jaring terakhir. Tombol Kirim sudah mati dan
-    // ringkasan menahan; ini menolak lagi kalau ada jalur yang menembusnya.
-    // Draf tidak ditahan: teknisi boleh menyimpan setengah jalan.
-    if (!draft) {
-      final belumDicek = _isian.jumlahPerluCek;
-      if (belumDicek > 0) {
-        messenger.showSnackBar(
-          SnackBar(content: Text(l10n.cekKirimDitahan(belumDicek))),
-        );
-        return;
-      }
     }
 
     // Satu-satunya yang ditahan: alat belum dipilih. Tanpa itu nggak ada yang
@@ -2052,11 +2007,11 @@ class _FormState extends ConsumerState<_Form> {
       }
     }
 
-    // Gerbang "wajib dicek" sudah memastikan SETIAP sel hasil kamera dicek
-    // teknisi satu per satu sebelum kirim final bisa jalan. Yang dikonfirmasi
-    // ke server sekarang daftar id baris yang eksplisit, BUKAN lagi satu
-    // panggilan massal ("verifikasi semua yang belum dicek") sesudah satu
-    // dialog. Lihat [verifikasiBarisSelDicek].
+    // Kirim final = teknisi sudah melihat lembarnya (keputusan pemilik 27 Nov
+    // 2026), jadi baris hasil kamera yang belum terverifikasi dikonfirmasi ke
+    // server dengan daftar id yang eksplisit, BUKAN satu panggilan massal.
+    // Tanpa ini server menolak persetujuan (422 "belum diverifikasi"). Lihat
+    // [verifikasiBarisSelDicek].
     //
     // Draft dilewat: draft nggak masuk antrean admin, jadi nggak ada yang
     // keblokir, dan selnya masih bisa berubah.
@@ -2635,15 +2590,6 @@ class _FormState extends ConsumerState<_Form> {
                 children: [
                   // Legenda warna isian: tetap kelihatan di halaman mana pun.
                   const LegendaWarnaIsian(),
-                  // Lembar dari foto beranda: jenis yang dikenali + "Ganti jenis".
-                  // Selalu ada selama lembar terbuka (identifikasi belum
-                  // dikalibrasi dengan foto nyata; lembar otomatis tidak boleh
-                  // terasa final).
-                  if (widget.dariFoto case final dariFoto?)
-                    BannerJenisDariFoto(
-                      info: dariFoto,
-                      onGanti: _sedangMemindai ? null : _gantiJenis,
-                    ),
                   // Di atas lembar, bukan di dalamnya: tetap kelihatan di halaman
                   // mana pun dan di dua tata letak — formulir kosong yang kelihatan
                   // persis seperti draft kosong itu yang mau dicegah.
@@ -2666,13 +2612,12 @@ class _FormState extends ConsumerState<_Form> {
                   // tidur), tombol foto yang belum muncul diberi penjelasan.
                   if (ref.watch(formulirAsliProvider(_kunciAsli)).isLoading)
                     const KabarServerLambat(),
-                  // SATU pintu foto per layar. Lembar dari foto beranda: foto
-                  // dibaca otomatis, jadi tombol ini baru muncul sesudahnya dan
-                  // hanya satu: "Foto ulang". Lembar manual: tombol lamanya.
-                  if (_bolehFotoLembar(
+                  // Tombol foto hanya untuk lembar manual. Lembar dari foto
+                  // beranda sudah terbaca otomatis; tidak ada tombol "Foto ulang".
+                  if (widget.dariFoto == null &&
+                      _bolehFotoLembar(
                         ref.watch(formulirAsliProvider(_kunciAsli)).value,
-                      ) &&
-                      (widget.dariFoto == null || _autoFotoSelesai))
+                      ))
                     Padding(
                       padding: const EdgeInsets.fromLTRB(
                         AppSpacing.md,
@@ -2690,9 +2635,7 @@ class _FormState extends ConsumerState<_Form> {
                             size: 18,
                           ),
                           label: Text(
-                            widget.dariFoto == null
-                                ? AppLocalizations.of(context).phCalibCaraFoto
-                                : AppLocalizations.of(context).lkFotoUlang,
+                            AppLocalizations.of(context).phCalibCaraFoto,
                           ),
                         ),
                       ),
@@ -2780,13 +2723,6 @@ class _FormState extends ConsumerState<_Form> {
                                   _KakiVersiAcuan(paket: paket, nomor: nomor),
                                   const SizedBox(height: AppSpacing.sm),
                                 ],
-                                // Gerbang "wajib dicek": jumlah sel kamera yang belum
-                                // dicek, sel berikutnya, dan tautan lompat. Tidak
-                                // menggambar apa-apa kalau lembar ini tanpa sel kamera.
-                                PanelGerbangCek(
-                                  isian: _isian,
-                                  onLompat: _lompatKeSelCek,
-                                ),
                                 // Tombol kirim CUMA di halaman terakhir. Di halaman 1 dia
                                 // ada tapi belum kelihatan semua isinya — teknisi gampang
                                 // ngirim lembar yang tabel hasilnya masih kosong. Di mode
@@ -2794,24 +2730,16 @@ class _FormState extends ConsumerState<_Form> {
                                 // ada yang perlu ditahan.
                                 if (duaKolom ||
                                     _halaman == bentuk.halaman.length - 1)
-                                  ListenableBuilder(
-                                    listenable: _isian.revisiCek,
-                                    builder: (context, _) => AppButton(
-                                      // Admin ngisi lembarnya buat dirinya sendiri — nggak ada
-                                      // "ke admin"-nya. Yang nentuin bentuk formulir juga
-                                      // backend (`untuk: admin`), jadi label ini ikut sumber
-                                      // yang sama, bukan ngecek role sendiri.
-                                      label: bentuk.untukAdmin
-                                          ? l10n.lkKirimAdmin
-                                          : l10n.lkKirim,
-                                      isLoading: _mengirim,
-                                      // Mati SELAMA ada sel hasil kamera yang belum dicek;
-                                      // alasannya tertulis di panel di atasnya. Selain itu
-                                      // selalu aktif (lihat docblock LembarKerjaScreen).
-                                      onPressed: _isian.jumlahPerluCek > 0
-                                          ? null
-                                          : () => _submit(draft: false),
-                                    ),
+                                  AppButton(
+                                    // Admin ngisi lembarnya buat dirinya sendiri — nggak ada
+                                    // "ke admin"-nya. Yang nentuin bentuk formulir juga
+                                    // backend (`untuk: admin`), jadi label ini ikut sumber
+                                    // yang sama, bukan ngecek role sendiri.
+                                    label: bentuk.untukAdmin
+                                        ? l10n.lkKirimAdmin
+                                        : l10n.lkKirim,
+                                    isLoading: _mengirim,
+                                    onPressed: () => _submit(draft: false),
                                   )
                                 else
                                   AppButton(

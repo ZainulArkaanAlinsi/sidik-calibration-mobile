@@ -60,8 +60,9 @@ import 'support/daftar_pindai_uji.dart';
 ///  - `dariFoto` (alur LINEAR, tanpa alat yang dipilihkan): foto dibaca
 ///    OTOMATIS begitu lembar siap (tanpa kamera, dialog, tombol kedua, atau
 ///    menunggu alat); kode formulir ikut ke server sebagai `kode_dokumen`;
-///    gagal baca = pesan saja (tanpa dialog dua tombol); SESUDAH percobaan
-///    pertama, SATU tombol kecil "Foto ulang" yang membuka kamera;
+///    gagal baca = pesan saja (tanpa dialog dua tombol) dan TANPA tombol
+///    "Foto ulang" di lembar (keputusan pemilik 27 Nov 2026: teknisi yang
+///    ingin memotret ulang kembali ke beranda); tidak ada banner jenis;
 ///  - alur beranda membawa byte JPEG yang sama persis ke lembar kerja, dan
 ///    kamera cuma dibuka satu kali dari beranda sampai sel dibaca.
 const _teknisi = 'mock-token-2';
@@ -403,15 +404,18 @@ void main() {
       (tester) async {
         await pasang(tester, dariFoto: _dariFoto(), mesinSukses: true);
 
-        // Segera: lembar terbuka dengan banner; tidak ada dialog pilihan cara,
-        // tidak ada "Foto worksheet", tidak ada tombol foto selagi dibaca.
+        // Segera: lembar terbuka TANPA banner jenis (27 Nov 2026); tidak ada
+        // dialog pilihan cara, tidak ada "Foto worksheet", tidak ada tombol
+        // foto selagi dibaca.
         expect(find.byType(LembarKerjaScreen), findsOneWidget);
         expect(_caraFoto, findsNothing);
         expect(find.text('Foto worksheet'), findsNothing);
         expect(
           find.text('Dikenali otomatis: pH Meter (dari foto). Salah?'),
-          findsOneWidget,
+          findsNothing,
         );
+        expect(find.byKey(BannerJenisDariFoto.kunciBanner), findsNothing);
+        expect(_tombolFoto, findsNothing);
 
         // Mesin menerima byte beranda; kamera tidak dibuka.
         await _tunggu(tester, () => mesin.diterima.isNotEmpty);
@@ -428,10 +432,8 @@ void main() {
       },
     );
 
-    testWidgets('gagal baca: pesan saja (TANPA dialog dua tombol); sesudah '
-        'percobaan pertama tepat satu tombol kecil "Foto ulang" = kamera', (
-      tester,
-    ) async {
+    testWidgets('gagal baca: pesan saja (TANPA dialog dua tombol) dan TANPA '
+        'tombol "Foto ulang" di lembar dari foto beranda', (tester) async {
       // Mesin sungguhan dengan pembaca tiruan kosong: kode tidak terbaca.
       await pasang(tester, dariFoto: _dariFoto());
       await _tunggu(tester, _adaPesanGagal);
@@ -449,23 +451,15 @@ void main() {
         expect(j, orderedEquals(_fotoBeranda));
       }
 
-      // Jalan ulang lewat SATU tombol di lembar.
+      // Keputusan pemilik 27 Nov 2026: tidak ada jalan ulang di lembar. Tidak
+      // ada tombol foto, "Foto ulang", "Foto worksheet", atau "Isi dari foto".
       await tester.pumpAndSettle();
-      expect(_tombolFoto, findsOneWidget);
-      expect(find.byIcon(Icons.photo_camera_outlined), findsOneWidget);
-      expect(find.text('Foto ulang'), findsOneWidget);
+      expect(_tombolFoto, findsNothing);
+      expect(find.byIcon(Icons.photo_camera_outlined), findsNothing);
+      expect(find.text('Foto ulang'), findsNothing);
       expect(find.text('Foto worksheet'), findsNothing);
       expect(find.text('Isi dari foto'), findsNothing);
-
-      final bacaPertama = pembaca.jpeg.length;
-      await tester.tap(_tombolFoto);
-      await tester.pump();
-      await _tunggu(tester, () => pembaca.jpeg.length > bacaPertama);
-
-      expect(kamera.jumlahAmbil, 1, reason: 'foto awal sekali pakai');
-      for (final j in pembaca.jpeg.sublist(bacaPertama)) {
-        expect(j, orderedEquals(_fotoKamera));
-      }
+      expect(kamera.jumlahAmbil, 0, reason: 'kamera tidak dibuka diam-diam');
       expect(_dialogUlang, findsNothing);
     });
 
@@ -545,21 +539,16 @@ void main() {
 
       expect(pembaca.jpeg.length, dibaca, reason: 'tidak dibaca ulang sendiri');
       expect(kamera.jumlahAmbil, 0);
-      expect(_tombolFoto, findsOneWidget, reason: 'tombol ada sesudah rebuild');
-
-      await tester.tap(_tombolFoto);
-      await tester.pump();
-      await _tunggu(tester, () => pembaca.jpeg.length > dibaca);
-
-      expect(kamera.jumlahAmbil, 1, reason: 'foto awal tidak hidup lagi');
-      for (final j in pembaca.jpeg.sublist(dibaca)) {
-        expect(j, orderedEquals(_fotoKamera));
-      }
+      // Lembar dari foto beranda tidak punya tombol foto (27 Nov 2026), jadi
+      // pembangunan ulang juga tidak memunculkan jalan baca ulang apa pun.
+      expect(_tombolFoto, findsNothing, reason: 'rebuild tidak memunculkannya');
+      expect(find.text('Foto ulang'), findsNothing);
+      expect(pembacaDibuat, 1, reason: 'pembaca tidak dibuat lagi');
     });
 
-    testWidgets('formulir BELUM siap waktu lembar dibuka: pesan jujur, foto '
-        'beranda TIDAK hangus; sesudah siap, tombol "Foto ulang" memakainya '
-        '(bukan kamera)', (tester) async {
+    testWidgets('formulir BELUM siap waktu lembar dibuka: pesan jujur; sesudah '
+        'siap, foto beranda tidak dibaca diam-diam dan tidak ada tombol foto '
+        '(kamera tetap tidak dibuka)', (tester) async {
       final layanan = _LayananAsliTerkendali(_formulirAsli());
       layanan.tahan = Completer<WorksheetTemplate?>();
       await pasang(tester, dariFoto: _dariFoto(), layanan: layanan);
@@ -592,19 +581,14 @@ void main() {
       );
       await tester.pump();
       await tester.pumpAndSettle();
-      expect(_tombolFoto, findsOneWidget);
-      expect(find.text('Foto ulang'), findsOneWidget);
+      // Tidak ada tombol "Foto ulang" di lembar dari foto beranda (27 Nov
+      // 2026), dan tidak ada pembacaan otomatis kedua yang diam-diam.
+      expect(_tombolFoto, findsNothing);
+      expect(find.text('Foto ulang'), findsNothing);
       expect(find.text('Isi dari foto'), findsNothing);
-
-      await tester.tap(_tombolFoto);
-      await tester.pump();
-      await _tunggu(tester, _adaPesanGagal);
-
-      expect(kamera.jumlahAmbil, 0, reason: 'foto awal belum pernah dipakai');
-      expect(pembacaDibuat, 1);
-      for (final j in pembaca.jpeg) {
-        expect(j, orderedEquals(_fotoBeranda));
-      }
+      expect(kamera.jumlahAmbil, 0, reason: 'kamera tidak dibuka diam-diam');
+      expect(pembacaDibuat, 0, reason: 'belum pernah dibaca: peta tidak siap');
+      expect(pembaca.jpeg, isEmpty);
     });
 
     testWidgets('lembar ditutup selagi foto dibaca: tidak melempar dan tidak '
@@ -875,7 +859,7 @@ void main() {
 
     testWidgets('byte JPEG beranda yang SAMA dibaca di lembar kerja: kamera '
         'hanya sekali, tanpa layar pilihan, tanpa dialog, tanpa tombol foto '
-        'kedua; "Foto ulang" = kamera', (tester) async {
+        'kedua, tanpa "Foto ulang" sesudah gagal baca', (tester) async {
       await pasang(tester);
 
       // Beranda: foto + pengenalan; kode 0509 unik -> lembar terbuka SENDIRI.
@@ -913,14 +897,13 @@ void main() {
         expect(j, orderedEquals(_fotoBeranda));
       }
 
-      // Kode formulir tidak terbaca di pembaca tiruan -> pesan + tombol kecil
-      // "Foto ulang" di lembar -> kamera.
+      // Kode formulir tidak terbaca di pembaca tiruan -> pesan saja. Tidak ada
+      // tombol "Foto ulang" di lembar (27 Nov 2026): kamera tidak dibuka lagi.
       expect(_dialogUlang, findsNothing);
       await tester.pumpAndSettle();
-      await tester.tap(_tombolFoto);
-      await tester.pump();
-      await _tunggu(tester, () => kamera.jumlahAmbil >= 2);
-      expect(kamera.jumlahAmbil, 2, reason: 'foto ulang = kamera lagi');
+      expect(_tombolFoto, findsNothing);
+      expect(find.text('Foto ulang'), findsNothing);
+      expect(kamera.jumlahAmbil, 1, reason: 'kamera hanya dari beranda');
     });
   });
 }

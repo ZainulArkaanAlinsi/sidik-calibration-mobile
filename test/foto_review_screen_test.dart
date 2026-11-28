@@ -309,7 +309,7 @@ void main() {
     expect(hasil!.firstWhere((s) => s.repeatNo == 2).teks, '7,05');
   });
 
-  testWidgets('sel KUNING wajib dicek satu per satu sebelum Masukkan', (
+  testWidgets('sel KUNING tidak menahan Masukkan; cek hanya opsional', (
     tester,
   ) async {
     await buka(tester, [
@@ -320,27 +320,27 @@ void main() {
     FilledButton tombol() =>
         tester.widget<FilledButton>(find.byType(FilledButton));
 
-    expect(tombol().onPressed, isNull);
+    // Keputusan pemilik 27 Nov 2026: teknisi tidak lagi wajib menyetujui tiap
+    // usulan kuning; lembar yang terisi otomatis itulah pengecekannya. Tidak
+    // ada sel merah kosong di sini, jadi Masukkan langsung hidup.
+    expect(tombol().onPressed, isNotNull);
 
+    // Tanda cek per sel tetap ada sebagai penanda opsional, bukan gerbang.
     await tester.tap(find.byKey(const ValueKey('cek-60.0|1|pembacaan')));
-    await tester.pump();
-    expect(tombol().onPressed, isNull, reason: 'baru satu dari dua');
-
-    await tester.tap(find.byKey(const ValueKey('cek-60.0|2|pembacaan')));
     await tester.pump();
     expect(tombol().onPressed, isNotNull);
 
-    // Batal cek → terkunci lagi.
-    await tester.tap(find.byKey(const ValueKey('cek-60.0|2|pembacaan')));
+    await tester.tap(find.byKey(const ValueKey('cek-60.0|1|pembacaan')));
     await tester.pump();
-    expect(tombol().onPressed, isNull);
+    expect(tombol().onPressed, isNotNull, reason: 'batal cek tidak mengunci');
   });
 
   test('urutan review = URUTAN KERTAS, bukan menurut vonis', () {
     // Dulu (sampai 12 Nov 2026) merah, lalu tidak-diketahui, lalu kuning.
     // Diganti supaya isi cepat dengan auto-lanjut menelusuri lembar seperti
     // mata teknisi. Yang menjaga sel merah tidak terlewat sekarang: tombol
-    // Masukkan mati selama ada merah kosong / kuning belum dicek (diuji di atas).
+    // Masukkan mati selama ada merah kosong (diuji di atas). Kuning tidak
+    // menahan (keputusan pemilik 27 Nov 2026).
     final urut = susunReviewFoto(
       sel: [
         (
@@ -397,7 +397,7 @@ void main() {
   });
 
   testWidgets(
-    'alasan aturan formulir tampil per sel, tanpa melonggarkan konfirmasi',
+    'alasan aturan formulir tampil per sel; merah kosong tetap menahan',
     (tester) async {
       final merah = baris('', keyakinan: 0.0, titikUkur: 1);
       final kuning = baris('50,00112', keyakinan: 0.70, titikUkur: 2);
@@ -417,12 +417,13 @@ void main() {
       expect(find.text('Dua pembacaan UUT berselisih'), findsOneWidget);
       expect(find.byKey(ValueKey('alasan-$kMerah')), findsOneWidget);
 
-      // Konfirmasi tetap: merah wajib diketik, kuning wajib dicek.
+      // Merah kosong wajib diketik. Kuning tidak lagi menahan (keputusan
+      // pemilik 27 Nov 2026), jadi cek kuning hanya penanda opsional.
       final masukkan = find.byType(FilledButton);
       expect(tester.widget<FilledButton>(masukkan).onPressed, isNull);
       await tester.enterText(find.byType(TextField).first, '50,00012');
       await tester.pump();
-      expect(tester.widget<FilledButton>(masukkan).onPressed, isNull);
+      expect(tester.widget<FilledButton>(masukkan).onPressed, isNotNull);
       await tester.tap(find.byKey(ValueKey('cek-$kKuning')));
       await tester.pump();
       expect(tester.widget<FilledButton>(masukkan).onPressed, isNotNull);

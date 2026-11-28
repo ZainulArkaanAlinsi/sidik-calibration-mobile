@@ -12,6 +12,7 @@ import 'package:sidik_calibration/providers/lembar_kerja_provider.dart';
 import 'package:sidik_calibration/screens/calibration/cek_bacaan_kamera.dart';
 import 'package:sidik_calibration/screens/calibration/lembar_kerja_screen.dart';
 import 'package:sidik_calibration/screens/calibration/lembar_kerja_state.dart';
+import 'package:sidik_calibration/screens/calibration/widgets/tanda_cek_sel.dart';
 import 'package:sidik_calibration/services/draf_lokal.dart';
 import 'package:sidik_calibration/services/equipment_lookup_service.dart';
 import 'package:sidik_calibration/services/lembar_kerja_service.dart';
@@ -21,9 +22,12 @@ import 'package:sidik_calibration/services/room_service.dart';
 import 'package:sidik_calibration/services/standard_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 
-/// Gerbang "wajib dicek" di LAYAR lembar kerja: tombol Kirim final mati selama
-/// ada sel hasil kamera yang belum dicek, alasannya tertulis dengan jumlah,
-/// konfirmasi berlaku untuk satu sel, dan tidak ada tombol "terima semua".
+/// Sel hasil kamera di LAYAR lembar kerja SESUDAH gerbang "wajib dicek" dicabut
+/// (keputusan pemilik 27 Nov 2026): sel kamera tetap berwarna kuning ("Perlu
+/// dicek") sampai teknisi mengubah angkanya, tetapi TIDAK menahan Kirim. Tidak
+/// ada lagi panel jumlah, lembar pemeriksa, tombol konfirmasi/lompat/lewati,
+/// maupun pesan "Kirim final ditahan"; Simpan draft tetap bebas; dan tetap
+/// tidak ada tombol "terima semua".
 ///
 /// Sel kamera diantar lewat salinan HP (`DrafLokal.isian`) — jalur pemulihan
 /// yang sama dengan yang dipakai teknisi sesudah aplikasi dibuka ulang, jadi
@@ -189,8 +193,11 @@ void main() {
           .onPressed ==
       null;
 
+  // Sisa kunci gerbang lama. Semuanya harus HILANG dari layar (lihat
+  // [tanpaGerbang]); yang tersisa hanya lencana kuning di selnya.
   final bilahJumlah = find.byKey(const ValueKey('panel-cek-jumlah'));
   final bilahSelesai = find.byKey(const ValueKey('panel-cek-selesai'));
+  final bilahTahan = find.byKey(const ValueKey('panel-cek-tahan'));
   final bukaPemeriksa = find.byKey(const ValueKey('cek-buka-pemeriksa'));
   final jumlahDiLembar = find.byKey(const ValueKey('pemeriksa-cek-jumlah'));
   final selesaiDiLembar = find.byKey(const ValueKey('pemeriksa-cek-selesai'));
@@ -198,6 +205,38 @@ void main() {
   final lompat = find.byKey(const ValueKey('cek-lompat-sel'));
   final lewati = find.byKey(const ValueKey('cek-lewati-sel'));
   final tutup = find.byKey(const ValueKey('cek-tutup-pemeriksa'));
+
+  /// Lencana kuning "Perlu dicek" yang masih menempel di sel hasil kamera.
+  final kuning = find.byWidgetPredicate(
+    (w) => w is TandaCekSel && w.status == StatusCekSel.perluCek,
+  );
+
+  /// Gerbang lama sudah tidak ada: tidak ada panel jumlah, lembar pemeriksa,
+  /// tombol konfirmasi/lompat/lewati, pesan "ditahan", maupun "terima semua".
+  void tanpaGerbang() {
+    for (final f in [
+      bilahJumlah,
+      bilahSelesai,
+      bilahTahan,
+      bukaPemeriksa,
+      jumlahDiLembar,
+      selesaiDiLembar,
+      konfirmasi,
+      lompat,
+      lewati,
+      tutup,
+    ]) {
+      expect(f, findsNothing);
+    }
+    expect(find.textContaining('isian bacaan kamera'), findsNothing);
+    expect(find.textContaining('Kirim final ditahan'), findsNothing);
+    expect(
+      find.textContaining(
+        RegExp('terima semua|semua sekaligus|accept all', caseSensitive: false),
+      ),
+      findsNothing,
+    );
+  }
 
   /// Tidak ada galat tangkapan (mis. RenderFlex meluap); pesannya lengkap supaya
   /// widget penyebabnya kelihatan.
@@ -208,172 +247,205 @@ void main() {
     fail('$langkah: ${galatRinci ?? e}');
   }
 
-  Future<void> bukaLembar(WidgetTester tester) async {
-    await tester.tap(bukaPemeriksa);
+  /// Kotak teks yang isinya [teks] (sel hasil foto, dicari lewat isinya).
+  Finder kotakBerisi(String teks) => find.byWidgetPredicate(
+    (w) => w is TextField && w.controller?.text == teks,
+  );
+
+  /// Menggulir daftar lembar sampai kotak berisi [teks] terbangun dan kelihatan
+  /// (ListView hanya membangun yang dekat layar; di HP pendek sel terbawah
+  /// belum ada di pohon widget).
+  Future<void> tampilkan(WidgetTester tester, String teks) async {
+    final sel = kotakBerisi(teks);
+    if (sel.evaluate().isEmpty) {
+      await tester.scrollUntilVisible(
+        sel,
+        150,
+        scrollable: find
+            .descendant(
+              of: find.byType(ListView),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+        maxScrolls: 80,
+      );
+    }
+    await tester.ensureVisible(sel);
     await tester.pumpAndSettle();
   }
 
-  testWidgets('3 sel kamera belum dicek: Kirim mati, alasan + jumlah tertulis', (
-    tester,
-  ) async {
-    final d = await siapkanDraf();
-    await pasang(tester, app(d.hp, d.draf));
-    await keHalamanTerakhir(tester);
+  testWidgets(
+    '3 sel kamera belum diubah: Kirim HIDUP, tidak ada panel gerbang, sel tetap kuning',
+    (tester) async {
+      final d = await siapkanDraf();
+      await pasang(tester, app(d.hp, d.draf));
+      await keHalamanTerakhir(tester);
 
-    expect(find.text('3 isian bacaan kamera belum dicek'), findsOneWidget);
-    expect(kirimMati(tester), isTrue);
+      // Sel kamera tetap ditandai "Perlu dicek", tetapi tidak menahan apa pun.
+      expect(kuning, findsNWidgets(3));
+      expect(kirimMati(tester), isFalse);
+      tanpaGerbang();
 
-    // Menyimpan draf tidak ditahan.
-    final simpan = tester.widget<OutlinedButton>(
-      find.widgetWithText(OutlinedButton, 'Simpan sebagai draft'),
-    );
-    expect(simpan.onPressed, isNotNull);
+      // Menyimpan draf tetap bebas.
+      final simpan = tester.widget<OutlinedButton>(
+        find.widgetWithText(OutlinedButton, 'Simpan sebagai draft'),
+      );
+      expect(simpan.onPressed, isNotNull);
+    },
+  );
 
-    await bukaLembar(tester);
+  testWidgets(
+    'mengubah angka satu per satu: kuning 3 → 2 → 1 → 0, Kirim hidup di setiap langkah',
+    (tester) async {
+      final d = await siapkanDraf();
+      await pasang(tester, app(d.hp, d.draf));
+      await keHalamanTerakhir(tester);
 
-    // Alasan, tautan lompat, dan konfirmasi per sel ada; "terima semua" tidak.
-    expect(find.textContaining('Kirim final ditahan'), findsOneWidget);
-    expect(lompat, findsOneWidget);
-    expect(konfirmasi, findsOneWidget);
-    expect(
-      find.textContaining(
-        RegExp('terima semua|semua sekaligus|accept all', caseSensitive: false),
-      ),
-      findsNothing,
-    );
-  });
+      expect(kuning, findsNWidgets(3));
+      expect(kirimMati(tester), isFalse, reason: 'awal: belum ada yang diubah');
 
-  testWidgets('konfirmasi satu per satu: 3 → 2 → 1 → 0, lalu Kirim hidup', (
-    tester,
-  ) async {
-    final d = await siapkanDraf();
-    await pasang(tester, app(d.hp, d.draf));
-    await keHalamanTerakhir(tester);
-    await bukaLembar(tester);
+      for (final (i, asli) in d.teksSemua.indexed) {
+        await tester.enterText(kotakBerisi(asli), '9.${i + 1}1');
+        await tester.pumpAndSettle();
 
-    for (final sisa in [2, 1]) {
-      await tester.tap(konfirmasi);
+        expect(
+          kuning,
+          findsNWidgets(2 - i),
+          reason: 'satu angka diubah = satu sel lepas dari kuning',
+        );
+        expect(kirimMati(tester), isFalse);
+        tanpaGerbang();
+      }
+    },
+  );
+
+  testWidgets(
+    'mengubah angka di sel kamera: kuning sel itu lepas, Kirim hidup',
+    (tester) async {
+      final d = await siapkanDraf();
+      await pasang(tester, app(d.hp, d.draf));
+      await keHalamanTerakhir(tester);
+
+      final sel = kotakBerisi(d.teks7);
+      expect(sel, findsOneWidget);
+      expect(
+        find.ancestor(of: sel, matching: kuning),
+        findsOneWidget,
+        reason: 'sebelum diubah: sel itu kuning',
+      );
+
+      await tester.enterText(sel, '7.31');
       await tester.pumpAndSettle();
 
       expect(
-        tester.widget<Text>(jumlahDiLembar).data,
-        '$sisa isian bacaan kamera belum dicek',
-        reason: 'satu ketukan = satu sel',
+        find.ancestor(of: kotakBerisi('7.31'), matching: kuning),
+        findsNothing,
+        reason: 'sudah diubah teknisi: bukan kuning lagi',
       );
-      expect(kirimMati(tester), isTrue);
-    }
+      expect(kuning, findsNWidgets(2), reason: 'dua sel lain tetap kuning');
+      expect(kirimMati(tester), isFalse);
+      tanpaGerbang();
+    },
+  );
 
-    await tester.tap(konfirmasi);
-    await tester.pumpAndSettle();
+  testWidgets(
+    'tidak ada jalur "lewati"/"konfirmasi": kuning hanya lepas karena angkanya diubah',
+    (tester) async {
+      final d = await siapkanDraf();
+      await pasang(tester, app(d.hp, d.draf));
+      await keHalamanTerakhir(tester);
 
-    expect(selesaiDiLembar, findsOneWidget);
-    expect(konfirmasi, findsNothing);
+      // Tidak ada tombol untuk menandai sel "sudah dicek" tanpa mengubah angka:
+      // tidak ada pemeriksa, lewati, lompat, konfirmasi, maupun "Sudah saya cek".
+      tanpaGerbang();
+      expect(find.text('Sudah saya cek'), findsNothing);
+      expect(find.text('Sudah saya cek, berikutnya'), findsNothing);
 
-    await tester.tap(tutup);
-    await tester.pumpAndSettle();
+      // Menyentuh sel (fokus) tanpa mengubah isinya tidak melepas kuning.
+      await tester.tap(kotakBerisi(d.teks7));
+      await tester.pumpAndSettle();
+      expect(kuning, findsNWidgets(3));
+      expect(kirimMati(tester), isFalse);
+    },
+  );
 
-    expect(bilahJumlah, findsNothing);
-    expect(
-      find.text('Semua isian bacaan kamera sudah dicek (3).'),
-      findsOneWidget,
-    );
-    expect(kirimMati(tester), isFalse);
-  });
+  testWidgets(
+    'Kirim dengan sel kamera masih kuning: tidak ada yang menahan, sel tidak dikonfirmasi diam-diam',
+    (tester) async {
+      final d = await siapkanDraf();
+      final lembar = MockLembarKerjaService();
+      await pasang(tester, app(d.hp, d.draf, lembar: lembar));
+      await keHalamanTerakhir(tester);
+      expect(kuning, findsNWidgets(3));
 
-  testWidgets('mengubah angka di sel kamera = sel itu dicek', (tester) async {
-    final d = await siapkanDraf();
-    await pasang(tester, app(d.hp, d.draf));
-    await keHalamanTerakhir(tester);
+      final kirim = find.widgetWithText(FilledButton, 'Kirim ke admin');
+      await tester.ensureVisible(kirim);
+      await tester.tap(kirim);
+      await tester.pumpAndSettle();
 
-    final sel = find.byWidgetPredicate(
-      (w) => w is TextField && w.controller?.text == d.teks7,
-    );
-    expect(sel, findsOneWidget);
-
-    await tester.enterText(sel, '7.31');
-    await tester.pumpAndSettle();
-
-    expect(find.text('2 isian bacaan kamera belum dicek'), findsOneWidget);
-    expect(kirimMati(tester), isTrue);
-  });
-
-  testWidgets('lewati dulu tidak mengonfirmasi apa pun', (tester) async {
-    final d = await siapkanDraf();
-    await pasang(tester, app(d.hp, d.draf));
-    await keHalamanTerakhir(tester);
-    await bukaLembar(tester);
-
-    await tester.tap(lewati);
-    await tester.pumpAndSettle();
-
-    expect(tester.widget<Text>(jumlahDiLembar).data, startsWith('3 isian'));
-    expect(kirimMati(tester), isTrue);
-  });
-
-  testWidgets('lompat menutup lembar dan tidak mengonfirmasi', (tester) async {
-    final d = await siapkanDraf();
-    await pasang(tester, app(d.hp, d.draf));
-    await keHalamanTerakhir(tester);
-    await bukaLembar(tester);
-
-    await tester.tap(lompat);
-    await tester.pumpAndSettle();
-
-    expect(konfirmasi, findsNothing, reason: 'lembar pemeriksa tertutup');
-    expect(find.text('3 isian bacaan kamera belum dicek'), findsOneWidget);
-    expect(kirimMati(tester), isTrue);
-  });
-
-  testWidgets('tombol Kirim yang basi tidak mengirim apa pun', (tester) async {
-    final d = await siapkanDraf();
-    final lembar = MockLembarKerjaService();
-    await pasang(tester, app(d.hp, d.draf, lembar: lembar));
-    await keHalamanTerakhir(tester);
-
-    // Ketiga sel diubah (= dicek): Kirim hidup. Tangkap penangannya.
-    for (final (i, asli) in d.teksSemua.indexed) {
-      await tester.enterText(
-        find.byWidgetPredicate(
-          (w) => w is TextField && w.controller?.text == asli,
+      // Ringkasan sebelum kirim memuat kekurangan identitas (peringatan), tetapi
+      // sel kamera yang belum dicek TIDAK ada di dalamnya dan tidak menahan:
+      // "Tetap kirim" hidup.
+      final dialog = find.byKey(
+        const ValueKey('dialog-ringkasan-sebelum-kirim'),
+      );
+      expect(dialog, findsOneWidget);
+      expect(
+        find.descendant(
+          of: dialog,
+          matching: find.textContaining('isian bacaan kamera'),
         ),
-        '9.${i + 1}1',
+        findsNothing,
       );
-    }
-    await tester.pumpAndSettle();
-    expect(kirimMati(tester), isFalse, reason: 'prasyarat: semua dicek');
-    final basi = tester
-        .widget<FilledButton>(
-          find.widgetWithText(FilledButton, 'Kirim ke admin'),
-        )
-        .onPressed!;
+      final tetapKirim = find.byKey(const ValueKey('ringkasan-kirim'));
+      expect(tester.widget<FilledButton>(tetapKirim).onPressed, isNotNull);
+      expect(lembar.jumlahKirim, 0, reason: 'belum ada yang terkirim');
 
-    // Satu sel dikembalikan ke angka mesin: perlu dicek lagi, Kirim mati.
-    await tester.enterText(
-      find.byWidgetPredicate(
-        (w) => w is TextField && w.controller?.text == '9.11',
-      ),
-      d.teksSemua.first,
-    );
-    await tester.pumpAndSettle();
-    expect(kirimMati(tester), isTrue);
+      await tester.tap(tetapKirim);
+      await tester.pumpAndSettle();
 
-    // Penangan lama (tombol yang sempat hidup) tetap tidak boleh mengirim.
-    basi();
-    await tester.pumpAndSettle();
+      // Satu konfirmasi angka lagi (rata-rata per titik), lalu berangkat.
+      expect(find.text('Cek dulu angkanya sebelum dikirim'), findsOneWidget);
+      await tester.tap(find.text('Kirim sekarang'));
+      await tester.pumpAndSettle();
 
-    expect(lembar.jumlahKirim, 0);
-    expect(
-      find.byKey(const ValueKey('dialog-ringkasan-sebelum-kirim')),
-      findsOneWidget,
-      reason: 'ringkasan menahan sel yang belum dicek',
-    );
-    expect(
-      tester
-          .widget<FilledButton>(find.byKey(const ValueKey('ringkasan-kirim')))
-          .onPressed,
-      isNull,
-    );
-  });
+      expect(lembar.jumlahKirim, 1);
+      // Yang berangkat jujur: ketiga sel kamera tercatat MASIH "perlu dicek"
+      // (tidak ada yang dikonfirmasi diam-diam oleh tombol Kirim).
+      final cek = lembar.payloadTerakhir!['cek_bacaan'] as Map<String, dynamic>;
+      expect(cek['perlu_cek'], hasLength(3));
+      expect(cek['sudah_dicek'], isEmpty);
+    },
+  );
+
+  testWidgets(
+    'angka dikembalikan ke angka mesin: kuning lagi, Kirim tetap hidup',
+    (tester) async {
+      final d = await siapkanDraf();
+      final lembar = MockLembarKerjaService();
+      await pasang(tester, app(d.hp, d.draf, lembar: lembar));
+      await keHalamanTerakhir(tester);
+
+      // Ketiga sel diubah: tidak ada yang kuning, Kirim hidup.
+      for (final (i, asli) in d.teksSemua.indexed) {
+        await tester.enterText(kotakBerisi(asli), '9.${i + 1}1');
+      }
+      await tester.pumpAndSettle();
+      expect(kuning, findsNothing);
+      expect(kirimMati(tester), isFalse);
+
+      // Satu sel dikembalikan ke angka mesin: kuning lagi, tetapi tidak ada
+      // lagi yang mematikan Kirim.
+      await tester.enterText(kotakBerisi('9.11'), d.teksSemua.first);
+      await tester.pumpAndSettle();
+      expect(kuning, findsOneWidget);
+      expect(kirimMati(tester), isFalse);
+      tanpaGerbang();
+
+      // Tidak ada yang terkirim sebelum teknisi sendiri menekan Kirim.
+      expect(lembar.jumlahKirim, 0);
+    },
+  );
 
   testWidgets('tanda per sel punya label semantik "Perlu dicek"', (
     tester,
@@ -471,36 +543,40 @@ void main() {
         );
         await keHalamanTerakhir(tester);
 
-        // Ada tanda: bilah tahan + tombol pemeriksa 48 dp.
-        expect(bilahJumlah, findsOneWidget);
+        // Tidak ada panel gerbang, dan tombol Kirim (sasaran sentuh 48 dp)
+        // tidak mati.
+        tanpaGerbang();
+        final kirim = find.widgetWithText(FilledButton, 'Kirim ke admin');
         expect(
-          tester.getSize(bukaPemeriksa).height,
+          tester.getSize(kirim).height,
           greaterThanOrEqualTo(48),
-          reason: 'sasaran sentuh tombol pemeriksa',
+          reason: 'sasaran sentuh tombol Kirim',
         );
+        expect(kirimMati(tester), isFalse);
         tanpaGalat(tester, 'ada tanda');
 
-        // Lembar pemeriksa: konfirmasi 48 dp, lalu semua dicek.
-        await bukaLembar(tester);
-        expect(
-          tester.getSize(konfirmasi).height,
-          greaterThanOrEqualTo(48),
-          reason: 'sasaran sentuh konfirmasi',
-        );
-        tanpaGalat(tester, 'lembar terbuka');
+        // Tiap sel kamera: kuning sampai teknisi mengubah angkanya. Daftar
+        // lembar dibangun malas, jadi selnya digulirkan ke layar satu per satu.
+        for (final (i, asli) in d.teksSemua.indexed) {
+          await tampilkan(tester, asli);
+          expect(
+            find.ancestor(of: kotakBerisi(asli), matching: kuning),
+            findsOneWidget,
+            reason: 'sel kamera tetap kuning sebelum diubah',
+          );
 
-        // Dibatasi: tombol yang tak bisa disentuh harus GAGAL di sini, bukan
-        // membuat test berputar selamanya.
-        for (var i = 0; i < 3 && konfirmasi.evaluate().isNotEmpty; i++) {
-          await tester.tap(konfirmasi);
+          await tester.enterText(kotakBerisi(asli), '9.${i + 1}1');
           await tester.pumpAndSettle();
+          expect(
+            find.ancestor(of: kotakBerisi('9.${i + 1}1'), matching: kuning),
+            findsNothing,
+            reason: 'sudah diubah teknisi: bukan kuning lagi',
+          );
+          expect(kirimMati(tester), isFalse);
         }
-        expect(selesaiDiLembar, findsOneWidget);
-        await tester.tap(tutup);
-        await tester.pumpAndSettle();
-
-        expect(bilahSelesai, findsOneWidget);
-        tanpaGalat(tester, 'semua dicek');
+        expect(kuning, findsNothing);
+        tanpaGerbang();
+        tanpaGalat(tester, 'semua diubah');
       });
     }
 

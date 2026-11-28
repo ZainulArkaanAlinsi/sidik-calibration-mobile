@@ -223,3 +223,42 @@ tampilan lembar tanpa `dariFoto` (golden `test/beku/goldens/` TIDAK diperbarui).
 Tes: `test/blok_identitas_foto_test.dart`, `test/pindai_lembar_flow_test.dart`,
 `test/pindai_lembar_foto_awal_test.dart`, `test/identitas_foto_isian_test.dart`.
 PNG untuk persetujuan: lihat `DAFTAR.txt` di folder PNG paket ini.
+
+## Addendum — buka-kunci tiga berkas untuk menghapus gerbang "wajib dicek" (28 Nov 2026)
+
+**Persetujuan.** Persetujuan eksplisit pemilik proyek, 28 Nov 2026, atas keputusan
+produk 27 Nov 2026: angka hasil foto tetap bertanda kuning sampai teknisi
+mengubahnya, tetapi tidak lagi menahan tombol Kirim. Menekan Kirim dihitung
+sebagai konfirmasi teknisi bahwa ia sudah melihat lembarnya. Pemilik juga
+menyetujui bahwa baris hasil foto tetap dikonfirmasi ke server sesudah Kirim
+final, dan bahwa tombol "Foto ulang" tetap dihapus.
+
+Tiga berkas, satu kali:
+
+- `lib/screens/calibration/lembar_kerja_screen.dart`: `PanelGerbangCek`,
+  `_lompatKeSelCek`, jaring terakhir `cekKirimDitahan` di `_submit`, tombol Kirim
+  yang mati selama ada sel belum dicek, banner `BannerJenisDariFoto` + `_gantiJenis`,
+  dan tombol "Foto ulang" (beserta `_autoFotoSelesai`) dibuang. Tombol foto hanya
+  untuk lembar manual.
+- `lib/screens/calibration/calibration_input_screen.dart`: panel jumlah belum dicek
+  dan pemblokiran Kirim final dibuang. Komentar `_Titik.cek` diperbarui. Tidak ada
+  perubahan format lain.
+- `lib/screens/calibration/verifikasi_sel_dicek.dart`: `return 0` saat masih ada
+  sel belum dicek dibuang. Yang dikirim ke server tetap daftar id baris yang
+  eksplisit, bukan panggilan massal.
+
+**Yang TIDAK berubah.** `pengatur_titik.dart` (perubahan chip 48 dp dari cabang ini
+dikembalikan, bukan bagian keputusan ini), `cek_bacaan_kamera.dart`, tanda kuning
+sel hasil foto, pemisahan wewenang di server (yang mengonfirmasi tidak boleh
+menyetujui), tampilan lembar manual. Golden `test/beku/goldens/` TIDAK diperbarui
+dan tetap lolos.
+
+**Risiko yang dicatat.** Angka dari foto yang tidak diubah teknisi ikut terkirim
+dan terkonfirmasi. Pemeriksaan sekarang bergantung pada teknisi melihat lembar yang
+terisi otomatis; teks dialog konfirmasi (`lkKonfirmasiDariFoto`) sudah disesuaikan
+agar tidak menyebut "dicek satu per satu".
+
+**Bukti.** Hash baru di `test/beku/berkas_beku_test.dart` (PR yang sama).
+Tes: `test/gerbang_cek_bacaan_test.dart`, `test/gerbang_cek_layar_test.dart`,
+`test/gerbang_cek_input_generik_layar_test.dart`, `test/foto_review_screen_test.dart`,
+`test/pindai_lembar_flow_test.dart`, `test/ringkasan_sebelum_kirim_test.dart`.

@@ -7,9 +7,11 @@ import 'dari_foto_lembar.dart';
 /// Banner di atas lembar kerja yang dibuka dari foto beranda: menyebut jenis
 /// yang dikenali dan memberi "Ganti jenis" (satu ketukan ke pilihan lain).
 ///
-/// Wajib ada selama identifikasi belum dikalibrasi dengan foto nyata
-/// (`keputusan_pindai_lembar.dart`): lembar yang terbuka otomatis tidak
-/// boleh terasa final. Hanya token tema; tidak ada warna sendiri.
+/// Tidak dipasang lagi di layar mana pun: pemilik (27 Nov 2026) meminta banner
+/// ini dihapus dari semua tampilan. Teknisi yang melihat jenis keliru memotret
+/// ulang (lihat `keputusan_pindai_lembar.dart`). Kelasnya dipertahankan
+/// karena tes lama masih memakainya untuk memastikan banner tidak muncul.
+/// Hanya token tema; tidak ada warna sendiri.
 class BannerJenisDariFoto extends StatelessWidget {
   const BannerJenisDariFoto({
     super.key,
