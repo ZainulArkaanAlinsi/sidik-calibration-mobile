@@ -129,10 +129,10 @@ class _Titik {
     TextEditingController(),
   ];
 
-  /// Gerbang "wajib dicek": kotak yang isinya datang dari FOTO (kunci `target`
-  /// untuk nilai acuan, `0`, `1`, ... untuk pembacaan). Angka kamera tidak
-  /// boleh masuk kiriman final sebelum teknisi mengecek tiap kotaknya — aturan
-  /// yang sama dengan layar lembar kerja (`cek_bacaan_kamera.dart`).
+  /// Kotak yang isinya datang dari FOTO (kunci `target` untuk nilai acuan, `0`,
+  /// `1`, ... untuk pembacaan). Tandanya tetap kuning sampai teknisi mengubah
+  /// angkanya; tidak menahan Kirim (keputusan pemilik 27 Nov 2026), sama dengan
+  /// layar lembar kerja (`cek_bacaan_kamera.dart`).
   final CatatanCek cek = CatatanCek();
   final Set<String> dariFoto = {};
   static const kunciTarget = 'target';
@@ -476,22 +476,6 @@ class _FormState extends ConsumerState<_Form> {
       return;
     }
 
-    // Gerbang "wajib dicek": angka dari foto harus dicek teknisi satu per satu
-    // sebelum kirim final. Draf tidak ditahan.
-    if (!draft) {
-      final belumDicek = _titikList.fold<int>(
-        0,
-        (jumlah, t) => jumlah + t.jumlahPerluCek,
-      );
-
-      if (belumDicek > 0) {
-        messenger.showSnackBar(
-          SnackBar(content: Text(l10n.cekKirimDitahan(belumDicek))),
-        );
-        return;
-      }
-    }
-
     // Mulai dari sini penjagaannya BERSYARAT — dan `draft` yang jadi syaratnya.
     //
     // Sebelum ini seluruh blok di bawah berjalan tanpa syarat, dan `draft` baru
@@ -813,40 +797,10 @@ class _FormState extends ConsumerState<_Form> {
         ),
         const SizedBox(height: AppSpacing.xl),
 
-        ListenableBuilder(
-          listenable: Listenable.merge([for (final t in _titikList) t.dengarkan]),
-          builder: (context, _) {
-            final belumDicek = _titikList.fold<int>(
-              0,
-              (jumlah, t) => jumlah + t.jumlahPerluCek,
-            );
-
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (belumDicek > 0) ...[
-                  Text(
-                    l10n.cekPanelTahan(belumDicek),
-                    key: const ValueKey('input-cek-jumlah'),
-                    style: Theme.of(context).textTheme.labelLarge,
-                  ),
-                  Text(
-                    l10n.cekPanelAlasan,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                ],
-                AppButton(
-                  label: l10n.calibKirimApproval,
-                  isLoading: _mengirim,
-                  // Mati selama ada angka kamera yang belum dicek.
-                  onPressed: (_mengirim || belumDicek > 0)
-                      ? null
-                      : () => _submit(draft: false),
-                ),
-              ],
-            );
-          },
+        AppButton(
+          label: l10n.calibKirimApproval,
+          isLoading: _mengirim,
+          onPressed: _mengirim ? null : () => _submit(draft: false),
         ),
         const SizedBox(height: AppSpacing.sm),
         AppButton(

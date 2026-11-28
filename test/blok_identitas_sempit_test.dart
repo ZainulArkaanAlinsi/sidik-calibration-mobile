@@ -134,6 +134,7 @@ class _Harness {
                       profil: 'ph_meter',
                       bekalAlatBaru: bekal,
                       tinggiMaks: c.maxHeight,
+                      buatOtomatis: false,
                       onBerubah: () {
                         berubah++;
                         set(() {});

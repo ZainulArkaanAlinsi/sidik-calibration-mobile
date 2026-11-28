@@ -32,8 +32,14 @@ import 'support/layanan_alat_uji.dart';
 /// Blok identitas di atas lembar dari foto: keadaan cocok, mirip, baru, seri
 /// kosong, PT mirip, tidak terbaca, galat server, dan ganti akun. Layanan
 /// TIRUAN yang meniru aturan server (seri dinormalkan, 409 PT mirip, 422 seri
-/// kembar); yang dijaga: tidak ada alat yang dipilih atau dibuat tanpa ketukan
+/// kembar); yang dijaga: tidak ada alat TERDAFTAR yang dipilih tanpa ketukan
 /// teknisi, tidak ada duplikat, dan nilai teknisi tidak pernah tertimpa.
+///
+/// Sejak keputusan pemilik 27 Nov 2026, alat BARU yang kertasnya lengkap (nama,
+/// seri yang bisa dipakai, pemilik) didaftarkan otomatis; panel "Alat baru"
+/// manual tinggal jalur cadangan (kertas kurang, PT perlu dipilih, atau
+/// pendaftaran gagal). Harness memakai `buatOtomatis: false` supaya jalur
+/// cadangan itu tetap teruji; jalur otomatis diuji di grup tersendiri.
 
 const _bekal = BekalAlatBaru(
   kategori: 'instrumen-analitik',
@@ -73,6 +79,7 @@ class _Harness {
     PtUji? pt,
     this.bekal = _bekal,
     this.pencariKhusus,
+    this.buatOtomatis = false,
   }) : pencari = PencariAlatUji(alat ?? [_alat14]),
        pt = pt ?? PtUji(),
        layanan = LayananAlatUji(),
@@ -88,6 +95,11 @@ class _Harness {
   final BekalAlatBaru? bekal;
   final PencariAlatUji pencari;
   final EquipmentLookupService? pencariKhusus;
+
+  /// `false` (bawaan di tes ini) mematikan pendaftaran otomatis alat baru
+  /// supaya panel "Alat baru" tampil dan jalur manual (cadangan) bisa diuji.
+  /// Tes jalur otomatis memakai `buatOtomatis: true`.
+  final bool buatOtomatis;
   final PtUji pt;
   final LayananAlatUji layanan;
   final InMemoryTokenStorage penyimpan;
@@ -148,6 +160,7 @@ class _Harness {
                       profil: 'ph_meter',
                       bekalAlatBaru: bekal,
                       tinggiMaks: c.maxHeight,
+                      buatOtomatis: buatOtomatis,
                       onBerubah: () {
                         berubah++;
                         set(() {});
@@ -976,6 +989,110 @@ void main() {
         expect(h.layanan.dikirim, hasLength(1));
       },
     );
+  });
+
+  group('alat BARU: didaftarkan OTOMATIS (bawaan, keputusan pemilik 27 Nov '
+      '2026)', () {
+    testWidgets('kertas lengkap: alat dibuat dan langsung dipakai tanpa '
+        'ketukan, panel manual tidak muncul', (tester) async {
+      final h = _Harness(
+        identitas: _kertas,
+        alat: const [],
+        buatOtomatis: true,
+      );
+      await h.pasang(tester);
+
+      expect(h.pt.didaftarkan, 1);
+      expect(h.layanan.dikirim, hasLength(1));
+      final kirim = h.layanan.dikirim.single;
+      expect(kirim.serialNumber, 'B628755900');
+      expect(kirim.merk, 'Mettler');
+      expect(kirim.kategori, 'instrumen-analitik');
+      expect(kirim.namaAlatKemampuan, 'pH Meter');
+      expect(kirim.pelangganId, 901);
+      expect(h.isian.alat?.serialNumber, 'B628755900');
+      expect(find.byKey(BlokIdentitasFoto.kunciTerpilih), findsOneWidget);
+      expect(find.byKey(BlokIdentitasFoto.kunciPanelBaru), findsNothing);
+    });
+
+    testWidgets('pemindaian diulang: alat tidak dibuat dua kali', (
+      tester,
+    ) async {
+      final h = _Harness(
+        identitas: _kertas,
+        alat: const [],
+        buatOtomatis: true,
+      );
+      await h.pasang(tester);
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(h.layanan.dikirim, hasLength(1));
+      expect(h.pt.didaftarkan, 1);
+    });
+
+    testWidgets('PT mirip: tidak membuat apa pun sampai teknisi memilih', (
+      tester,
+    ) async {
+      const mirip = [
+        CustomerLookup(id: 3, nama: 'PT Tirta Contoh Abadi'),
+        CustomerLookup(id: 4, nama: 'PT Tirta Contoh Makmur'),
+      ];
+      final h = _Harness(
+        identitas: _kertas,
+        alat: const [],
+        pt: PtUji(mirip: mirip),
+        buatOtomatis: true,
+      );
+      await h.pasang(tester);
+
+      expect(find.byKey(BlokIdentitasFoto.kunciPtMirip), findsOneWidget);
+      expect(h.layanan.dikirim, isEmpty);
+      expect(h.pt.didaftarkan, 0);
+      expect(h.isian.alat, isNull);
+
+      await _ketuk(tester, find.byKey(BlokIdentitasFoto.kunciPilihPt(4)));
+      expect(h.layanan.dikirim.single.pelangganId, 4);
+      expect(h.isian.alat, isNotNull);
+    });
+
+    testWidgets('nomor seri kosong: tidak membuat, panel manual meminta '
+        'seri diketik', (tester) async {
+      final h = _Harness(
+        identitas: const IdentitasKertas(
+          namaAlat: 'pH Meter',
+          merk: 'Mettler',
+          pemilik: 'PT Tirta Contoh Mandiri',
+        ),
+        alat: const [],
+        buatOtomatis: true,
+      );
+      await h.pasang(tester);
+
+      expect(find.byKey(BlokIdentitasFoto.kunciPanelBaru), findsOneWidget);
+      expect(
+        find.text('Nomor seri tidak terbaca. Ketik dari badan alat.'),
+        findsOneWidget,
+      );
+      expect(h.layanan.dikirim, isEmpty);
+      expect(h.pt.didaftarkan, 0);
+      expect(h.isian.alat, isNull);
+    });
+
+    testWidgets('server gagal saat mendaftar otomatis: galat terlihat dan '
+        'panel manual tetap bisa dipakai', (tester) async {
+      final h = _Harness(
+        identitas: _kertas,
+        alat: const [],
+        buatOtomatis: true,
+      );
+      h.layanan.sebelumSimpan = (_) async => throw Exception('putus');
+      await h.pasang(tester);
+
+      expect(find.byKey(BlokIdentitasFoto.kunciGalat), findsOneWidget);
+      expect(find.byKey(BlokIdentitasFoto.kunciPanelBaru), findsOneWidget);
+      expect(h.isian.alat, isNull);
+    });
   });
 
   group('jujur bila tidak bisa', () {

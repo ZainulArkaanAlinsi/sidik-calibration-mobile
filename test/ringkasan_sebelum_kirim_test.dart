@@ -252,7 +252,10 @@ void main() {
       );
     });
 
-    test('sel hasil kamera yang belum dicek = gerbang yang MENAHAN', () {
+    // Keputusan pemilik 27 Nov 2026: gerbang "wajib dicek" dicabut. Sel hasil
+    // kamera tetap kuning di layar, tetapi bukan butir ringkasan dan tidak
+    // menahan Kirim.
+    test('sel hasil kamera yang belum dicek: BUKAN butir, tidak menahan', () {
       final s = isianBaru(alat: alatLengkap);
       s.titik[4.0]!
         ..kotak('sesudah_adjustment', 'pembacaan', 1).text = '4.02'
@@ -260,14 +263,19 @@ void main() {
       s.selKamera.add(
         LembarKerjaState.kunciSel(4.0, 'sesudah_adjustment', 'pembacaan', 1),
       );
+      expect(s.jumlahPerluCek, 1, reason: 'prasyarat: sel masih kuning');
 
       final r = susunRingkasanSebelumKirim(s);
 
-      expect(r.menahan, isTrue);
+      expect(r.menahan, isFalse);
+      expect(r.wajib, isEmpty);
       expect(r.peringatan, isEmpty);
-      final ocr = r.wajib.single;
-      expect(ocr.jenis, JenisButirRingkasan.ocrPerluDicek);
-      expect(ocr.jumlah, 1);
+      expect(r.adaKekurangan, isFalse);
+      expect(
+        r.butir.map((b) => b.jenis),
+        isNot(contains(JenisButirRingkasan.ocrPerluDicek)),
+      );
+      expect(s.jumlahPerluCek, 1, reason: 'ringkasan tidak mengonfirmasi sel');
     });
 
     test('sel pindai yang sudah dikosongkan teknisi tidak diperingatkan', () {
@@ -677,7 +685,8 @@ void main() {
         expect(
           find.textContaining('2 isian bacaan kamera belum dicek'),
           findsOneWidget,
-          reason: 'butir kamera sekarang MENAHAN, jumlahnya tertulis',
+          reason:
+              'butir kamera (bila ada) hanya peringatan, jumlahnya tertulis',
         );
       },
     );

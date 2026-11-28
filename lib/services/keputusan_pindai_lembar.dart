@@ -24,12 +24,14 @@ import 'jenis_lembar.dart';
 ///  - Kandidat lebih dari satu = [PilihSatu]: teknisi mengetuk SATU kali.
 ///    Tidak pernah dipilihkan.
 ///  - Tidak yakin / tidak terbaca = [TakDikenali]: pesan jujur, tanpa tebakan.
-///  - Ambang identifikasi BELUM dikalibrasi dengan foto nyata (target 26 Nov
-///    2026), sehingga [ambangAutoBuka] sengaja di atas ambang pilih-awal mesin
-///    (0,70) dan banner "Ganti jenis" di lembar wajib ada. Mesin identifikasi
+///  - Ambang identifikasi BELUM dikalibrasi dengan foto nyata, sehingga
+///    [ambangAutoBuka] sengaja di atas ambang pilih-awal mesin (0,70). Banner
+///    "Ganti jenis" di lembar sudah dihapus (keputusan pemilik 27 Nov 2026):
+///    teknisi yang melihat jenis keliru memotret ulang. Mesin identifikasi
 ///    TIDAK diubah di sini; ini hanya lapisan keputusan di atasnya.
 ///  - Hasil apa pun tetap hanya usulan: yang terisi sesudahnya berwarna kuning
-///    dan wajib diperiksa teknisi (lihat `pindai_formulir_asli_flow.dart`).
+///    sampai teknisi mengubahnya, dan teknisi sendiri yang melihat lembarnya
+///    sebelum menekan Kirim (lihat `pindai_formulir_asli_flow.dart`).
 
 /// Skor gabungan minimal untuk membuka lembar tanpa bertanya. Kode bersih
 /// tepat = 0,92 (`identifikasi_lembar.dart`), 0,98 bila judul ikut sepakat; ke

@@ -2287,7 +2287,7 @@
   },
   "lkKonfirmasiJudul": "Check the numbers before sending",
   "lkKonfirmasiCatatan": "Averages of the After adjustment readings. Correction and uncertainty are computed by the server once this is sent.",
-  "lkKonfirmasiDariFoto": "Some numbers in this table came from a photo and you checked each one. By sending, you confirm they match the instrument.",
+  "lkKonfirmasiDariFoto": "Some numbers in this table were read from a photo; those still yellow have not been changed by you. By sending, you confirm you have seen every number and that they match the instrument.",
   "lkKonfirmasiGagalTandai": "Sent, but marking them as checked failed: {pesan}. Open the session in History and tap \"I've checked these readings\".",
   "@lkKonfirmasiGagalTandai": {
     "placeholders": {

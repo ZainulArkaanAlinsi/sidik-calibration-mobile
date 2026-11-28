@@ -25,27 +25,32 @@ import 'identitas_foto_isian.dart';
 import 'lembar_bawah_alat_baru.dart';
 
 /// Blok identitas di atas lembar yang dibuka dari foto: mencocokkan alat dan PT
-/// yang TERTULIS di kertas ke yang terdaftar, atau membukakan panel "Alat baru"
-/// yang diisi dari kertas. Semua hasil baca adalah SARAN (kuning) dan setiap
-/// keputusan butuh ketukan teknisi:
+/// yang TERTULIS di kertas ke yang terdaftar, atau mendaftarkan alat baru dari
+/// kertas. Semua hasil baca adalah SARAN (kuning); teknisi hanya diminta
+/// memutuskan bila kertasnya tidak cukup atau ada dua jawaban yang masuk akal:
 ///
 ///  - cocok persis (nomor seri): "Alat terdaftar: ..." + selisih terhadap kertas,
 ///    dan "Pakai alat ini";
 ///  - mirip: "Maksud Anda?" (maks 3 pilihan) atau "alat baru";
-///  - tidak ada: panel "Alat baru" (nama, merk, model, seri, pemilik) dengan
-///    "Buat dan lanjut". Nomor seri WAJIB (server mewajibkan seri unik per lab);
-///    tidak pernah membuat alat tanpa seri. Di layar lega panelnya inline di
-///    blok ini; di layar SEMPIT ([alatBaruSebagaiLembarBawah]) isi dan perilaku
-///    yang sama dibuka sebagai lembar bawah, dan blok hanya memuat kartu ringkas
-///    pembukanya;
+///  - tidak ada, dan kertas memuat nama alat + nomor seri yang bisa dipakai +
+///    pemilik: alat (dan PT bila belum ada) didaftarkan OTOMATIS, tanpa ketukan
+///    ([_buatOtomatis]). Nomor seri WAJIB (server mewajibkan seri unik per lab);
+///    tidak pernah membuat alat tanpa seri;
+///  - tidak ada, tetapi kertas kurang (atau PT mirip, seri sudah terdaftar,
+///    gagal membuat): panel "Alat baru" (nama, merk, model, seri, pemilik) dengan
+///    "Buat dan lanjut" untuk diputuskan teknisi. Di layar lega panelnya inline
+///    di blok ini; di layar SEMPIT ([alatBaruSebagaiLembarBawah]) isi dan
+///    perilaku yang sama dibuka sebagai lembar bawah, dan blok hanya memuat
+///    kartu ringkas pembukanya;
 ///  - tidak ada yang terbaca / server tidak terjangkau: pesan jujur, lembar tetap
 ///    bisa dipakai lewat pilihan alat manual di bawahnya.
 ///
-/// Tidak pernah memilih alat sendiri, tidak pernah menimpa data master alat, dan
-/// tidak membuat alat/PT tanpa "Buat dan lanjut" (idempoten: lihat
-/// `PembuatAlatDariKertas`). Data master yang tampil hanya dibaca. Hanya token
-/// tema; tidak ada warna sendiri selain kuning "perlu dicek" yang sudah dipakai
-/// lembar.
+/// Tidak pernah memilih alat yang sudah terdaftar tanpa ketukan teknisi, tidak
+/// pernah menimpa data master alat; pendaftaran idempoten (lihat
+/// `PembuatAlatDariKertas`). Data master yang tampil hanya dibaca. Nama pemilik
+/// hanya dikirim ke API alat milik sendiri, tidak pernah ke layanan awan. Hanya
+/// token tema; tidak ada warna sendiri selain kuning "perlu dicek" yang sudah
+/// dipakai lembar.
 class BlokIdentitasFoto extends ConsumerStatefulWidget {
   const BlokIdentitasFoto({
     super.key,
@@ -55,6 +60,7 @@ class BlokIdentitasFoto extends ConsumerStatefulWidget {
     required this.bekalAlatBaru,
     required this.onBerubah,
     required this.tinggiMaks,
+    this.buatOtomatis = true,
   });
 
   final IdentitasKertas identitas;
@@ -77,6 +83,12 @@ class BlokIdentitasFoto extends ConsumerStatefulWidget {
   /// itu tidak inline sama sekali (lembar bawah), jadi jatah ini tidak lagi
   /// membatasinya.
   final double tinggiMaks;
+
+  /// `true` (bawaan): alat baru yang kertasnya lengkap didaftarkan otomatis.
+  /// `false` mematikan pendaftaran otomatis itu sehingga panel "Alat baru"
+  /// selalu tampil untuk diputuskan teknisi. Dipakai tes untuk menjaga jalur
+  /// manual (jalur cadangan bila kertas kurang atau pendaftaran gagal).
+  final bool buatOtomatis;
 
   static const kunci = ValueKey('blok-identitas');
   static const kunciMencocokkan = ValueKey('identitas-mencocokkan');
@@ -357,6 +369,13 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
           _fase = _Fase.gagalCocok;
       }
     });
+
+    // Alat belum terdaftar tapi kertasnya lengkap (nama, seri, pemilik): daftarkan
+    // sekarang, tanpa menunggu ketukan. Dipanggil sesudah frame supaya tidak
+    // membuka lembar bawah di tengah `setState`.
+    if (hasil is AlatBaru && widget.buatOtomatis) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _buatOtomatis());
+    }
   }
 
   /// Teknisi mengonfirmasi alat ini. SATU-SATUNYA tempat alat dipasang dan
@@ -572,13 +591,31 @@ class _BlokIdentitasFotoState extends ConsumerState<BlokIdentitasFoto> {
     skalaHuruf: MediaQuery.textScalerOf(context).scale(14) / 14,
   );
 
-  /// Satu-satunya jalan masuk ke panel "Alat baru" lewat ketukan teknisi
-  /// ("Alat baru" saat identitas tak terbaca, "Bukan salah satunya"): di layar
-  /// sempit langsung membuka lembar bawah. Panel yang muncul dari hasil
-  /// pencocokan (otomatis) TIDAK membuka lembar bawah sendiri: lembar yang
-  /// muncul tanpa diminta mencuri fokus ketikan teknisi dan bisa menumpuk di atas
-  /// dialog "Membaca lembar kerja" (yang menutup dirinya dengan `pop` ke rute
-  /// teratas); blok menampilkan kartu ringkas dan menunggu ketukan.
+  /// Mendaftarkan alat baru langsung dari kertas bila datanya cukup: nama alat,
+  /// nomor seri yang bisa dipakai, dan pemilik terbaca. Pemilik (PT) baru ikut
+  /// dibuat oleh [_buatLanjut] bila belum ada.
+  ///
+  /// Bila datanya kurang, atau perlu keputusan teknisi (PT yang mirip, seri yang
+  /// sudah terdaftar, gagal membuat), tidak ada galat merah: panel "Alat baru"
+  /// tampil seperti biasa dan teknisi yang memutuskan. Di layar sempit panel itu
+  /// dibuka sebagai lembar bawah hanya pada kasus keputusan tersebut.
+  Future<void> _buatOtomatis() async {
+    if (!mounted || _fase != _Fase.baru || !_bisaBuat || _membuat) return;
+    if (widget.isian.alat != null) return;
+    if (_nama.text.trim().isEmpty ||
+        !seriBisaDipakai(_seri.text) ||
+        _pemilik.text.trim().isEmpty) {
+      return;
+    }
+
+    await _buatLanjut();
+
+    if (mounted && widget.isian.alat == null && _sempit()) _bukaLembar();
+  }
+
+  /// Jalan masuk ke panel "Alat baru" lewat ketukan teknisi ("Alat baru" saat
+  /// identitas tak terbaca, "Bukan salah satunya"): di layar sempit langsung
+  /// membuka lembar bawah.
   void _masukBaru() {
     setState(() => _fase = _Fase.baru);
     _periksaPt();

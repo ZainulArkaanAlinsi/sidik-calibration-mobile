@@ -384,11 +384,6 @@ class _FotoReviewScreenState extends State<FotoReviewScreen> {
   bool _wajibCek(BarisReviewFoto b) =>
       b.vonis == VonisFoto.kuning || b.vonis == VonisFoto.tidakDiketahui;
 
-  List<BarisReviewFoto> get _belumDicek => [
-    for (final b in widget.baris)
-      if (_wajibCek(b) && !_dicek.contains(_kunci(b))) b,
-  ];
-
   @override
   void dispose() {
     _ditutup = true;
@@ -543,7 +538,6 @@ class _FotoReviewScreenState extends State<FotoReviewScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final belum = _belumDiisi;
-    final belumDicek = _belumDicek;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.fotoReviewJudul(widget.baris.length))),
@@ -597,7 +591,7 @@ class _FotoReviewScreenState extends State<FotoReviewScreen> {
             if (_aktif != null)
               _panel(l10n, tempat.maxHeight)
             else
-              _aksiBawah(l10n, belum, belumDicek, tempat.maxHeight < 420),
+              _aksiBawah(l10n, belum, tempat.maxHeight < 420),
           ],
         ),
       ),
@@ -607,24 +601,25 @@ class _FotoReviewScreenState extends State<FotoReviewScreen> {
   /// Tombol Masukkan beserta penghitungnya (panel tertutup). Di tinggi sisa
   /// kurang dari 420 dp (HP lanskap, papan ketik sistem terbuka) penghitungnya
   /// diringkas jadi satu baris bersama tombol, supaya tombol tidak mendesak
-  /// daftar sampai overflow. Aturannya sama: Masukkan mati selama ada merah
-  /// kosong atau kuning belum dicek.
+  /// daftar sampai overflow. Aturannya sama: Masukkan mati hanya selama ada
+  /// sel merah yang masih kosong. Kuning (usulan kamera) TIDAK menahan:
+  /// keputusan pemilik 27 Nov 2026, teknisi memeriksa lewat melihat lembar
+  /// yang terisi, bukan lewat daftar centang.
   Widget _aksiBawah(
     AppLocalizations l10n,
     List<BarisReviewFoto> belum,
-    List<BarisReviewFoto> belumDicek,
     bool ringkas,
   ) {
     // Sengaja TIDAK ada tombol "terima semua" — lihat aturan 1 di docblock
     // kelas ini.
     final masukkan = FilledButton(
-      onPressed: belum.isEmpty && belumDicek.isEmpty ? _selesai : null,
+      onPressed: belum.isEmpty ? _selesai : null,
       child: Text(l10n.fotoReviewMasukkan, maxLines: 1),
     );
     final gaya = TextStyle(color: Theme.of(context).colorScheme.error);
 
     if (ringkas) {
-      final sisa = belum.length + belumDicek.length;
+      final sisa = belum.length;
 
       return SafeArea(
         child: Padding(
@@ -663,14 +658,6 @@ class _FotoReviewScreenState extends State<FotoReviewScreen> {
                   style: gaya,
                 ),
               ),
-            if (belumDicek.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Text(
-                  l10n.fotoReviewBelumDicek(belumDicek.length),
-                  style: gaya,
-                ),
-              ),
             masukkan,
           ],
         ),
@@ -688,9 +675,7 @@ class _FotoReviewScreenState extends State<FotoReviewScreen> {
   Widget _panel(AppLocalizations l10n, double tinggiTersedia) {
     final k = _aktif!;
     final b = widget.baris.firstWhere((b) => _kunci(b) == k);
-    final sisa = l10n.fotoReviewSisaSel(
-      _belumDiisi.length + _belumDicek.length,
-    );
+    final sisa = l10n.fotoReviewSisaSel(_belumDiisi.length);
     final kepala = KepalaSelAktif(
       judul: b.judul,
       sisa: sisa,

@@ -3987,7 +3987,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get lkKonfirmasiDariFoto =>
-      'Sebagian angka di tabel ini datang dari foto dan sudah kamu cek satu per satu. Dengan mengirim, kamu menyatakan angkanya cocok dengan yang tertera di alat.';
+      'Sebagian angka di tabel ini terbaca dari foto; yang masih kuning belum kamu ubah. Dengan mengirim, kamu menyatakan sudah melihat semua angka dan cocok dengan yang tertera di alat.';
 
   @override
   String lkKonfirmasiGagalTandai(String pesan) {
