@@ -159,13 +159,14 @@ class HasilBacaAsli {
   final StatusRevisiAsli statusRevisi;
 
   /// Potongan PNG per kunci sel (dari halaman yang sudah diratakan), buat
-  /// layar review — hanya di memori.
+  /// layar review (jalur foto tabel; alur formulir asli sejak 28 Nov 2026
+  /// langsung ke lembar tanpa layar) — hanya di memori.
   final Map<String, Uint8List> potongan;
 
   /// Kunci sel (`SelTemplateAsli.kunci`) dan isian ([kunciPotonganIsian])
   /// yang pembacaannya GAGAL (ML Kit melempar galat), bukan yang kosong di
   /// kertas. Bacaannya `teks: null`; yang membedakannya dari sel kosong cuma
-  /// himpunan ini. Penampil review wajib menjadikannya MERAH dan kosong —
+  /// himpunan ini. Penampil/penerap wajib menjadikannya MERAH dan kosong —
   /// kalau diperlakukan seperti sel kosong, sel yang tak terbaca hilang
   /// diam-diam dari review.
   ///
@@ -173,7 +174,7 @@ class HasilBacaAsli {
   /// menghasilkan bacaan (`BacaanSelMesin.perluCekTanpaBacaan`: coretan,
   /// timpaan, strip, pemotong tak yakin). Nasibnya di review sama: merah dan
   /// kosong, teknisi yang memutuskan. Memakai himpunan yang sama karena alur
-  /// review (`pindai_formulir_asli_flow.dart`) hanya mengenal ini.
+  /// formulir asli (`pindai_formulir_asli_flow.dart`) hanya mengenal ini.
   final Set<String> gagalDibaca;
 
   /// `PemotongSel` melempar galat pada foto ini (di isolate perataan). Pindai

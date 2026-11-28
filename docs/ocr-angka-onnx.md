@@ -21,7 +21,7 @@ pada seluruh 5.900 sel uji (teks, skor, keputusan; bagian 3.4). INT8 dan float16
 | Pemotong sel v2 `pemotong_sel.dart` (varian "luas" rig) + keadaan baru "bertinta tapi tak terbaca = `perluCek`" + pagar tinta `gelap` saja (bagian 12) | ADA, diuji di host (citra sintetis, uji mutasi, paritas Dart-vs-rig); **kecepatan dan akurasi di HP TIDAK TERBUKTI** |
 | `PembacaSelOnnx` di balik sakelar `PAKAI_MESIN_ANGKA` (bawaan MATI; nama lama `PAKAI_MESIN_ANGKA_ONNX` tetap diterima), ML Kit sebagai cadangan | ADA, diuji dengan sesi tiruan |
 | Layar diagnostik `Ukur OCR` (debug / `TAMPILKAN_UKUR_OCR`) | ADA, diuji (logika + layar); ML Kit bisa diukur SEKARANG, mesin angka bila dibangun dengan sakelar |
-| UX isi cepat di layar review (urutan kertas, keypad di layar lega / papan ketik sistem di layar sempit, konfirmasi dan lanjut) | ADA, aktif untuk semua pembaca |
+| UX isi cepat di layar review (urutan kertas, keypad di layar lega / papan ketik sistem di layar sempit, konfirmasi dan lanjut) | ADA, aktif untuk semua pembaca **kecuali "Foto lembar kerja" formulir asli** (28 Nov 2026: tanpa layar, lihat bagian 10) |
 | Adaptor runtime `SesiInferensiTflite` (+ `PelariTfliteIsolate`, `InterpreterMentahTflite`) | ADA, diuji dengan pelari tiruan dan isolate sungguhan; **runtime native TIDAK diuji di host** |
 | Model `assets/models/ocr_angka_en.tflite` (7,83 MB) + meta di APK | ADA di APK walau sakelar mati; DIMUAT hanya bila sakelar menyala dan sha256-nya cocok dengan yang dipatok |
 | `integration_test/ocr_tflite_hp_test.dart` (model sungguhan di perangkat, 21 crop golden) | ADA, **belum pernah dijalankan** |
@@ -55,6 +55,7 @@ foto → (registrasi halaman, kode formulir)        ← tidak berubah
           kosong → teks null | perluCek → keyakinan 0,0 (MERAH, kotak kosong)
           usulanKeyakinanTinggi → keyakinan = jalur (KUNING, wajib dicek)
      → FotoReviewScreen (urutan kertas, keypad, konfirmasi per sel)
+        [formulir asli sejak 28 Nov 2026: langsung ke lembar, tanpa layar ini]
 ```
 
 `BacaanSel` tidak diubah; statusnya dipetakan ke aturan yang sudah ada (`NilaiVonisFoto`), jadi
@@ -368,6 +369,21 @@ tetap sakelar developer; ML Kit pembaca bawaan.
 4. Ulangi pengukuran (bagian 6) dan hitung ulang ambang.
 
 ## 10. UX isi cepat (layar review)
+
+> **Perubahan 28 Nov 2026 (keputusan pemilik).** Jalur "Foto lembar kerja" formulir asli
+> (`pindai_formulir_asli_flow.dart`) tidak lagi membuka layar ini. Bacaan masuk LANGSUNG ke
+> lembar lewat `terapkanHasilFotoAsli` / `terapkanIsianFotoAsli`: sel merah (keyakinan rendah
+> atau bentuk angka tak sesuai `aturan.desimal`) tetap kosong, sel yang masuk ditandai "perlu
+> dicek" (kuning; satu-satunya penanda, Kirim tidak ditahan oleh sel kuning), tulisan tangan
+> tidak pernah hijau. Bentuk angka dijaga dua lapis: format `aturan.desimal` dari server bila
+> ada, bila tidak bentuk umum (digit ASCII, satu pemisah, maks 4 desimal, maks 8 karakter;
+> `AturanFormatSel.bentukUmumLolos`). Pemisah yang hilang ("701" di sel 2 desimal) hanya
+> tertangkap bila server mengirim `aturan.desimal`; template pH 0509 belum.
+> Layar ini masih dipakai jalur foto tabel (`lembar_kerja_tabel.dart`, `_reviewDulu`).
+> Konsekuensinya: tombol usulan awan di layar ini tidak ada di jalur formulir asli; gerbang
+> bentuk angka (titik/koma, jumlah digit) menjadi satu-satunya penjaga sebelum angka masuk.
+> Risiko integritas data (ISO/IEC 17025) diterima pemilik; akurasi tetap **belum terukur**
+> sampai ada foto asli berlabel manusia.
 
 Urutan kertas (`urutanKertas`: per tabel, baris demi baris dari geometri sel, kiri ke kanan);
 **Konfirmasi dan lanjut** memeriksa sel aktif lalu pindah ke sel berikutnya yang masih butuh (memutar ke

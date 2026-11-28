@@ -262,8 +262,12 @@ void _uji(_Kasus k) {
     for (var i = 0; i < template.selAsli.length; i++)
       // Sel yang punya `aturan` dari server dibaca di dalam pitanya (pagar
       // band di HP merahkan yang di luar); bacaan tiap sel tetap beda.
+      // Jumlah desimal ikut aturan sel: sejak 28 Nov 2026 bacaan yang bentuknya
+      // tak cocok (mis. "25,000" di sel 1 desimal) tidak masuk lembar.
       switch (template.selAsli[i].aturan?.nominal) {
-        final n? when n != 0 => (n * (1 + i * 0.001)).toStringAsFixed(3),
+        final n? when n != 0 => (n * (1 + i * 0.001)).toStringAsFixed(
+          template.selAsli[i].aturan?.desimal ?? 3,
+        ),
         _ => '${10 + i ~/ 10},${i % 10}',
       }.replaceAll('.', ','),
     for (final i in template.isian)
@@ -347,7 +351,7 @@ void _uji(_Kasus k) {
     },
   );
 
-  testWidgets('alur penuh: review → semua bacaan mendarat di sel yang benar', (
+  testWidgets('alur penuh: tanpa review → semua bacaan mendarat di sel yang benar', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(1000, 60000);
@@ -402,36 +406,14 @@ void _uji(_Kasus k) {
         () => Future<void>.delayed(const Duration(milliseconds: 100)),
       );
       await tester.pump(const Duration(milliseconds: 100));
-      if (find.byType(SnackBar).evaluate().isNotEmpty ||
-          find.byType(FilledButton).evaluate().isNotEmpty) {
-        break;
-      }
+      if (find.byType(SnackBar).evaluate().isNotEmpty) break;
     }
 
-    expect(
-      find.byType(FilledButton),
-      findsOneWidget,
-      reason: 'layar review tidak muncul (pesan gagal?)',
-    );
-
-    // Tulisan tangan tetap tidak pernah hijau (semua baris tampil di review),
-    // tetapi sejak keputusan pemilik 27 Nov 2026 (disetujui 28 Nov) kuning
-    // tidak lagi menahan Masukkan: tanpa satu pun centang, tombol menyala.
-    final masukkan = find.byType(FilledButton);
-    final cek = find.byWidgetPredicate(
-      (w) =>
-          w.key is ValueKey &&
-          '${(w.key as ValueKey).value}'.startsWith('cek-'),
-    );
-    final jumlahBaris = cek.evaluate().length;
-    expect(jumlahBaris, template.selAsli.length + template.isian.length);
-    expect(
-      tester.widget<FilledButton>(masukkan).onPressed,
-      isNotNull,
-      reason: 'kuning belum dicek tidak boleh menahan Masukkan',
-    );
-
-    await tester.tap(masukkan);
+    // Keputusan pemilik 28 Nov 2026: tidak ada layar review satu per satu.
+    // Bacaan langsung masuk ke lembar (ditandai perlu dicek).
+    expect(find.byType(SnackBar), findsOneWidget, reason: 'pindai gagal?');
+    expect(find.byType(FilledButton), findsNothing);
+    expect(find.byType(TextField), findsNothing);
     await tester.pumpAndSettle();
 
     // Pesan: formulir yang punya kotak centang mengingatkan bahwa centang

@@ -178,7 +178,6 @@ void main() {
     WidgetTester tester, {
     required LembarKerjaState isian,
     required List<String> teks,
-    required Future<void> Function(WidgetTester) tinjau,
   }) async {
     final mesin = JalankanPindaiAsli(
       halaman: MockPembacaHalaman(kataCetak()),
@@ -225,36 +224,14 @@ void main() {
         () => Future<void>.delayed(const Duration(milliseconds: 100)),
       );
       await tester.pump(const Duration(milliseconds: 100));
-      if (find.byType(SnackBar).evaluate().isNotEmpty ||
-          find.byType(FilledButton).evaluate().isNotEmpty) {
-        break;
-      }
+      if (find.byType(SnackBar).evaluate().isNotEmpty) break;
     }
 
-    expect(
-      find.byType(FilledButton),
-      findsOneWidget,
-      reason: 'layar review tidak muncul (pesan gagal?)',
-    );
-
-    await tinjau(tester);
-  }
-
-  /// Tulisan tangan tetap tidak pernah hijau, tetapi sejak keputusan pemilik
-  /// 27 Nov 2026 (disetujui 28 Nov) kuning TIDAK lagi menahan "masukkan":
-  /// bacaan yang tak merah langsung boleh dimasukkan tanpa dicentang satu per
-  /// satu. Hanya sel merah kosong yang menahan (lihat tes "merah wajib
-  /// diketik" di bawah).
-  Future<void> masukkanTanpaGerbangCek(WidgetTester tester) async {
-    final masukkan = find.byType(FilledButton);
-    expect(
-      tester.widget<FilledButton>(masukkan).onPressed,
-      isNotNull,
-      reason: 'kuning belum dicek tidak boleh menahan Masukkan',
-    );
-
-    await tester.tap(masukkan);
-    await tester.pumpAndSettle();
+    // Keputusan pemilik 28 Nov 2026: tidak ada layar review. Bacaan langsung
+    // masuk ke lembar (ditandai perlu dicek); hanya SnackBar yang muncul.
+    expect(find.byType(SnackBar), findsOneWidget, reason: 'pindai gagal?');
+    expect(find.byType(FilledButton), findsNothing);
+    expect(find.byType(TextField), findsNothing);
   }
 
   test(
@@ -290,19 +267,14 @@ void main() {
     expect(barisKertasGrid(g.bentuk, 0), isNull);
   });
 
-  testWidgets('alur penuh: review lalu tiap bacaan mendarat di set point x '
-      'posisi sensor x pembacaan yang benar', (tester) async {
+  testWidgets('alur penuh: tanpa review, tiap bacaan langsung mendarat di set '
+      'point x posisi sensor x pembacaan yang benar', (tester) async {
     tester.view.physicalSize = const Size(1000, 60000);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
 
     final isian = buatState();
-    await fotoSekali(
-      tester,
-      isian: isian,
-      teks: bacaan(),
-      tinjau: masukkanTanpaGerbangCek,
-    );
+    await fotoSekali(tester, isian: isian, teks: bacaan());
 
     final g = isian.grid!;
     expect(g.setPoint, hasLength(1), reason: 'set point kosong dipakai dulu');
@@ -330,7 +302,7 @@ void main() {
     expect(sp.sensorTerisi, isEmpty);
   });
 
-  testWidgets('merah (bukan angka) wajib diketik; kotak yang sudah berisi tidak '
+  testWidgets('merah (bukan angka) tetap KOSONG; kotak yang sudah berisi tidak '
       'ditimpa; foto kedua masuk set point BARU', (tester) async {
     tester.view.physicalSize = const Size(1000, 60000);
     tester.view.devicePixelRatio = 1.0;
@@ -340,50 +312,7 @@ void main() {
     // Teknisi sudah mengetik satu angka di kotak yang juga ada di foto.
     isian.grid!.setPoint.single.sensor[0].pembacaanCtl[0].text = '99,9';
 
-    await fotoSekali(
-      tester,
-      isian: isian,
-      teks: bacaan(merah: '3-2'),
-      tinjau: (tester) async {
-        final masukkan = find.byType(FilledButton);
-        expect(tester.widget<FilledButton>(masukkan).onPressed, isNull);
-
-        // Baris merah mulai KOSONG dan wajib diketik; sisanya wajib dicek.
-        // Urutan layar = urutan kertas (12 Nov 2026), bukan merah dulu: baris
-        // merah dicari lewat kotaknya yang kosong, dan hanya ada satu.
-        final kotak = find.byType(TextField);
-        final isi = tester.widgetList<TextField>(kotak).toList();
-        final kosong = [
-          for (var i = 0; i < isi.length; i++)
-            if (isi[i].controller!.text.isEmpty) i,
-        ];
-        expect(kosong, hasLength(1));
-        await tester.enterText(kotak.at(kosong.single), '123,9');
-        await tester.pump();
-        await tester.runAsync(
-          () => Future<void>.delayed(const Duration(milliseconds: 10)),
-        );
-        // Merah sudah diketik: Masukkan menyala TANPA mencentang kuning.
-        expect(
-          tester.widget<FilledButton>(masukkan).onPressed,
-          isNotNull,
-          reason: 'kuning belum dicek tidak boleh menahan Masukkan',
-        );
-
-        final cek = find.byWidgetPredicate(
-          (w) =>
-              w.key is ValueKey &&
-              '${(w.key as ValueKey).value}'.startsWith('cek-'),
-        );
-        for (var i = 0; i < cek.evaluate().length; i++) {
-          await tester.tap(cek.at(i));
-        }
-        await tester.pump();
-        expect(tester.widget<FilledButton>(masukkan).onPressed, isNotNull);
-        await tester.tap(masukkan);
-        await tester.pumpAndSettle();
-      },
-    );
+    await fotoSekali(tester, isian: isian, teks: bacaan(merah: '3-2'));
 
     var g = isian.grid!;
     // Set point pertama sudah berisi (ketikan teknisi) -> BUKAN set point kosong
@@ -393,15 +322,14 @@ void main() {
     expect(g.setPoint[0].sensor[0].dariFoto, isNot(contains(0)));
     final baru = g.setPoint[1];
     expect(baru.sensor[0].pembacaan[0], 121.1);
-    expect(baru.sensor[2].pembacaan[1], 123.9, reason: 'merah diketik 123,9');
+    // Bacaan 'x' bukan angka: tidak ada angka karangan, kotak tetap kosong dan
+    // tidak ditandai dari foto.
+    expect(baru.sensor[2].pembacaanCtl[1].text, isEmpty);
+    expect(baru.sensor[2].dariFoto, isNot(contains(1)));
+    expect(baru.sensor[2].pembacaan[1], isNull);
 
     // Foto kedua (lembar set point berikutnya) -> set point ketiga.
-    await fotoSekali(
-      tester,
-      isian: isian,
-      teks: bacaan(tambah: 50),
-      tinjau: masukkanTanpaGerbangCek,
-    );
+    await fotoSekali(tester, isian: isian, teks: bacaan(tambah: 50));
     g = isian.grid!;
     expect(g.setPoint, hasLength(3));
     expect(g.setPoint[2].sensor[0].pembacaan[0], 171.1);

@@ -26,7 +26,7 @@ import 'package:sidik_calibration/services/photo_source.dart';
 /// adalah penyambungan alurnya.
 
 /// Mesin yang gagal/berhasil menurut urutan: elemen non-null dilempar,
-/// null = lolos (satu sel gagal dibaca → layar review terbuka).
+/// null = lolos (satu sel gagal dibaca → tetap kosong, tanpa layar review).
 class _MesinBerurutan extends JalankanPindaiAsli {
   _MesinBerurutan(this.urutan)
     : super(halaman: MockPembacaHalaman(const []), pembaca: MockPembacaSel());
@@ -114,8 +114,8 @@ void main() {
   Finder dialogUlang() => find.byKey(const ValueKey('dialog-foto-ulang'));
   Finder tombolUlang() => find.byKey(const ValueKey('foto-ulang'));
 
-  /// Tekan "foto" dan tunggu sampai alur berhenti di dialog, snackbar, atau
-  /// layar review. Isolate decode = IO sungguhan → beri waktu nyata.
+  /// Tekan "foto" dan tunggu sampai alur berhenti di dialog atau snackbar.
+  /// Isolate decode = IO sungguhan → beri waktu nyata.
   Future<void> tunggu(WidgetTester tester) async {
     for (var i = 0; i < 60; i++) {
       await tester.runAsync(
@@ -206,9 +206,15 @@ void main() {
       expect(dialogUlang(), findsNothing);
       expect(
         find.byType(TextField),
-        findsOneWidget,
-        reason: 'percobaan kedua lolos → layar review (tinjauan teknisi)',
+        findsNothing,
+        reason: 'tanpa layar review: foto langsung diproses (28 Nov 2026)',
       );
+      expect(
+        find.byType(SnackBar),
+        findsOneWidget,
+        reason: 'satu-satunya sel gagal dibaca → kabar "tidak ada yang terisi"',
+      );
+      expect(await r.hasil, 0, reason: 'sel yang gagal dibaca tetap kosong');
     });
 
     testWidgets('gagal lagi di percobaan kedua: dialog muncul lagi; Tutup '

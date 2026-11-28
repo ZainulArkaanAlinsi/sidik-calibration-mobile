@@ -380,54 +380,55 @@ void main() {
           () => Future<void>.delayed(const Duration(milliseconds: 100)),
         );
         await tester.pump(const Duration(milliseconds: 100));
-        if (find.byType(FilledButton).evaluate().isNotEmpty) break;
+        // Keputusan pemilik 28 Nov 2026: tanpa layar review; bacaan langsung
+        // masuk lembar dan hanya SnackBar yang muncul.
+        if (find.byType(SnackBar).evaluate().isNotEmpty) break;
       }
+      expect(find.byType(SnackBar), findsOneWidget, reason: 'pindai gagal?');
+      expect(find.byType(FilledButton), findsNothing);
+      expect(find.byType(TextField), findsNothing);
     }
 
     testWidgets(
-      'di luar pita: merah dan kosong; di dalam pita: usulan kuning',
+      'di luar pita: tetap kosong; di dalam pita: masuk lembar (perlu dicek)',
       (tester) async {
         final isian = buatState();
         final template = templateAsli0515(aturan: pita);
+        final after = tabel('sesudah_adjustment');
+        final t0 = titik(isian, after, 0);
+        final t1 = titik(isian, after, 1);
 
         await jalankan(tester, isian, template, {
           '$_idSesudah|1|1|pembacaan': '510', // dalam pita
           '$_idSesudah|2|1|pembacaan': '5100', // koma geser: luar pita
         });
 
-        final isi = tester
-            .widgetList<TextField>(find.byType(TextField))
-            .map((f) => f.controller!.text)
-            .toList();
-
-        expect(isi, hasLength(2));
+        expect(teks(isian, after, t0, 0), '510');
         expect(
-          isi.where((t) => t.isEmpty),
-          hasLength(1),
-          reason: 'merah kosong',
+          teks(isian, after, t1, 0),
+          isEmpty,
+          reason: 'di luar pita: tidak ditulis, tetap kosong',
         );
-        expect(isi.where((t) => t == '510'), hasLength(1));
-        expect(isi, isNot(contains('5100')));
+        expect(isian.adaIsianDariFoto, isTrue);
       },
     );
 
-    testWidgets('tanpa aturan di sel: angka yang sama tetap jadi usulan', (
+    testWidgets('tanpa aturan di sel: angka yang sama tetap masuk lembar', (
       tester,
     ) async {
       final isian = buatState();
       final template = templateAsli0515();
+      final after = tabel('sesudah_adjustment');
+      final t0 = titik(isian, after, 0);
+      final t1 = titik(isian, after, 1);
 
       await jalankan(tester, isian, template, {
         '$_idSesudah|1|1|pembacaan': '510',
         '$_idSesudah|2|1|pembacaan': '5100',
       });
 
-      final isi = tester
-          .widgetList<TextField>(find.byType(TextField))
-          .map((f) => f.controller!.text)
-          .toList();
-
-      expect(isi.toSet(), {'510', '5100'});
+      expect(teks(isian, after, t0, 0), '510');
+      expect(teks(isian, after, t1, 0), '5100');
     });
 
     testWidgets('alur penuh: After masuk After, Before tetap kosong', (
@@ -445,18 +446,6 @@ void main() {
         '$_idSesudah|2|1|pembacaan': '1600',
       });
 
-      final cek = find.byWidgetPredicate(
-        (w) =>
-            w.key is ValueKey &&
-            '${(w.key as ValueKey).value}'.startsWith('cek-'),
-      );
-      final jumlah = tester.widgetList(cek).length;
-      for (var i = 0; i < jumlah; i++) {
-        await tester.tap(cek.at(i));
-        await tester.pump();
-      }
-
-      await tester.tap(find.byType(FilledButton));
       await tester.pumpAndSettle();
 
       expect(teks(isian, after, t0, 0), '1500');

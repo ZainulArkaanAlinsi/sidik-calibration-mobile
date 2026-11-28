@@ -30,10 +30,17 @@ import 'package:sidik_calibration/services/pembaca_sel.dart';
 import 'package:sidik_calibration/services/photo_source.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 
-/// Penyambungan OCR awan di alur "Foto lembar kerja" (`pindaiFormulirAsli`):
-/// (1) `equipment_id` dari alat yang dipilih ikut ke permintaan 22B, dan tidak
-/// dikirim bila tidak ada alat; (2) gerbang tutup = layar review IDENTIK dengan
-/// sebelum fitur ini, tanpa panggilan jaringan dan tanpa membaca token.
+/// Alur "Foto lembar kerja" (`pindaiFormulirAsli`) setelah layar periksa
+/// dihapus (keputusan pemilik 28 Nov 2026): hasil baca langsung masuk lembar.
+///
+/// Layar periksa adalah satu-satunya tempat tombol "Minta usulan awan", jadi
+/// alur ini tidak punya jalan ke OCR awan lagi. Tes di sini mengunci itu: di
+/// SEMUA keadaan gerbang awan (terbuka maupun tertutup), alur tidak membuka
+/// layar periksa, tidak membaca token, dan tidak mengirim satu pun permintaan.
+///
+/// Bentuk permintaan 22B (`equipment_id` ada bila alat dipilih dan tidak ada bila
+/// tidak, `template_id`, `kertas`, `sel[n][kunci]`) kini dikunci di tingkat
+/// servis oleh `ocr_awan_sel_service_test.dart`, bukan lewat alur ini.
 ///
 /// Servis awan diganti klien HTTP palsu / servis palsu; tidak ada jaringan dan
 /// tidak ada Google. Bukan bukti akurasi bacaan.
@@ -56,7 +63,8 @@ class _MesinPalsu extends JalankanPindaiAsli {
           if (s.kunci == kunciSel)
             (sel: s, bacaan: (teks: null, keyakinan: null, didalamKotak: true)),
       ],
-      // Gagal dibaca = baris merah kosong; potongannya ada, jadi layak ditawarkan.
+      // Gagal dibaca = sel kosong; potongannya ada, jadi dulu layak ditawarkan
+      // ke awan lewat layar periksa.
       gagalDibaca: {kunciSel},
       potongan: {
         kunciSel: Uint8List.fromList(
@@ -165,8 +173,9 @@ void main() {
     ),
   );
 
-  /// Menjalankan alur sampai layar review terbuka.
-  Future<void> bukaReview(
+  /// Menjalankan alur sampai hasil baca masuk lembar (pemberitahuan tampil).
+  /// Tidak ada layar periksa yang ditunggu.
+  Future<void> jalankanAlur(
     WidgetTester tester, {
     required LembarKerjaState isian,
     required List<Override> overrides,
@@ -211,99 +220,22 @@ void main() {
         () => Future<void>.delayed(const Duration(milliseconds: 100)),
       );
       await tester.pump(const Duration(milliseconds: 100));
-      if (find.byType(FotoReviewScreen).evaluate().isNotEmpty) break;
+      if (find.byType(SnackBar).evaluate().isNotEmpty) break;
     }
     await tester.pump();
-    expect(find.byType(FotoReviewScreen), findsOneWidget);
+    expect(find.byType(SnackBar), findsOneWidget);
   }
 
   const izinBoleh = Izin(role: null, boleh: {'alat.lihat'});
 
-  group('equipment_id ikut ke permintaan 22B', () {
-    Future<_Client> mintaUsulan(
-      WidgetTester tester, {
-      required LembarKerjaState isian,
-    }) async {
-      final klien = _Client();
-      await bukaReview(
-        tester,
-        isian: isian,
-        overrides: [
-          sakelarOcrProvider.overrideWithValue(
-            const SakelarOcr(ocrAwanSel: true),
-          ),
-          izinProvider.overrideWith((ref) async => izinBoleh),
-          tokenStorageProvider.overrideWithValue(
-            InMemoryTokenStorage('token-uji'),
-          ),
-          ocrAwanSelServiceProvider.overrideWithValue(
-            ApiOcrAwanSelService(
-              ApiClient(client: klien, baseUrl: 'http://contoh.test/api'),
-            ),
-          ),
-        ],
-      );
-
-      await tester.tap(find.byKey(_tombolMinta));
-      for (var i = 0; i < 20 && klien.kolom.isEmpty; i++) {
-        await tester.runAsync(
-          () => Future<void>.delayed(const Duration(milliseconds: 50)),
-        );
-        await tester.pump(const Duration(milliseconds: 50));
-      }
-
-      return klien;
-    }
-
-    testWidgets('alat dipilih: field multipart equipment_id = id alat', (
-      tester,
-    ) async {
-      final klien = await mintaUsulan(tester, isian: buatState(alat: alat42));
-
-      expect(klien.kolom, hasLength(1));
-      expect(klien.kolom.single['equipment_id'], '42');
-      expect(klien.kolom.single['template_id'], template.templateId);
-      expect(klien.kolom.single['kertas'], 'asli');
-      expect(klien.kolom.single['sel[0][kunci]'], _MesinPalsu.kunciSel);
-    });
-
-    testWidgets('tanpa alat: field equipment_id TIDAK dikirim', (tester) async {
-      final klien = await mintaUsulan(tester, isian: buatState());
-
-      expect(klien.kolom, hasLength(1));
-      expect(klien.kolom.single.containsKey('equipment_id'), isFalse);
-      expect(klien.kolom.single['template_id'], template.templateId);
-    });
-  });
-
-  group('gerbang tutup: layar identik, nol jaringan', () {
-    /// Teks yang tampil di layar review, berurutan, plus kunci-kunci widgetnya.
-    ({List<String> teks, List<String> kunci}) lihat(WidgetTester tester) {
-      final akar = find.byType(FotoReviewScreen);
-
-      return (
-        teks: [
-          for (final w in tester.widgetList<Text>(
-            find.descendant(of: akar, matching: find.byType(Text)),
-          ))
-            w.data ?? w.textSpan?.toPlainText() ?? '',
-        ],
-        kunci: [
-          for (final e
-              in find
-                  .descendant(
-                    of: akar,
-                    matching: find.byWidgetPredicate(
-                      (w) => w.key is ValueKey<String>,
-                    ),
-                  )
-                  .evaluate())
-            (e.widget.key! as ValueKey<String>).value,
-        ],
-      );
-    }
-
+  group('foto lembar langsung ke lembar: tanpa layar periksa, nol jaringan', () {
     final kasus = <String, ({SakelarOcr sakelar, Izin izin})>{
+      // Gerbang TERBUKA: dulu layar periksa menawarkan "Minta usulan awan".
+      // Sekarang alur tidak punya layar itu, jadi tidak ada jalan ke awan.
+      'gerbang awan terbuka (sakelar klien + izin)': (
+        sakelar: const SakelarOcr(ocrAwanSel: true),
+        izin: izinBoleh,
+      ),
       'sakelar klien mati (konstruktor const)': (
         sakelar: const SakelarOcr(),
         izin: izinBoleh,
@@ -331,57 +263,62 @@ void main() {
     };
 
     for (final MapEntry(key: nama, value: k) in kasus.entries) {
-      testWidgets(nama, (tester) async {
-        final servis = MockOcrAwanSelService();
-        final token = _TokenHitung();
-
-        await bukaReview(
+      for (final denganAlat in [true, false]) {
+        testWidgets('$nama, ${denganAlat ? 'alat dipilih' : 'tanpa alat'}', (
           tester,
-          isian: buatState(alat: alat42),
-          overrides: [
-            sakelarOcrProvider.overrideWithValue(k.sakelar),
-            izinProvider.overrideWith((ref) async => k.izin),
-            tokenStorageProvider.overrideWithValue(token),
-            ocrAwanSelServiceProvider.overrideWithValue(servis),
-          ],
-        );
+        ) async {
+          final klien = _Client();
+          final token = _TokenHitung();
+          final servis = MockOcrAwanSelService();
 
-        final layar = tester.widget<FotoReviewScreen>(
-          find.byType(FotoReviewScreen),
-        );
-        expect(layar.mintaUsulanAwan, isNull);
-        expect(find.byKey(_tombolMinta), findsNothing);
+          await jalankanAlur(
+            tester,
+            isian: buatState(alat: denganAlat ? alat42 : null),
+            overrides: [
+              sakelarOcrProvider.overrideWithValue(k.sakelar),
+              izinProvider.overrideWith((ref) async => k.izin),
+              tokenStorageProvider.overrideWithValue(token),
+              ocrAwanSelServiceProvider.overrideWithValue(servis),
+            ],
+          );
 
-        // Nol panggilan jaringan, dan token tidak pernah dibaca.
-        expect(servis.permintaan, isEmpty);
-        expect(token.dibaca, 0);
+          // Tanpa layar periksa dan tanpa tombol usulan awan.
+          expect(find.byType(FotoReviewScreen), findsNothing);
+          expect(find.byKey(_tombolMinta), findsNothing);
 
-        // Identik dengan layar yang dirakit TANPA penerus awan sama sekali
-        // (keadaan sebelum fitur ini): teks dan kunci widget sama persis.
-        final dariAlur = lihat(tester);
-        expect(
-          dariAlur.teks.where((t) => t.toLowerCase().contains('awan')),
-          isEmpty,
-        );
+          // Nol panggilan jaringan; token tidak pernah dibaca.
+          expect(servis.permintaan, isEmpty);
+          expect(token.dibaca, 0);
+          expect(klien.kolom, isEmpty);
+        });
+      }
+    }
 
-        // Lepas dulu: jumlah override ProviderScope tidak boleh berubah.
-        await tester.pumpWidget(const SizedBox.shrink());
-        await tester.pumpWidget(
-          bungkus(
-            const [],
-            FotoReviewScreen(
-              baris: layar.baris,
-              catatan: layar.catatan,
-              kunciSkorMentah: layar.kunciSkorMentah,
+    testWidgets('servis awan ASLI terpasang dan gerbang terbuka: tetap nol '
+        'permintaan HTTP dari alur foto lembar', (tester) async {
+      final klien = _Client();
+      final token = _TokenHitung();
+
+      await jalankanAlur(
+        tester,
+        isian: buatState(alat: alat42),
+        overrides: [
+          sakelarOcrProvider.overrideWithValue(
+            const SakelarOcr(ocrAwanSel: true),
+          ),
+          izinProvider.overrideWith((ref) async => izinBoleh),
+          tokenStorageProvider.overrideWithValue(token),
+          ocrAwanSelServiceProvider.overrideWithValue(
+            ApiOcrAwanSelService(
+              ApiClient(client: klien, baseUrl: 'http://contoh.test/api'),
             ),
           ),
-        );
-        await tester.pump();
+        ],
+      );
 
-        final acuan = lihat(tester);
-        expect(dariAlur.teks, acuan.teks);
-        expect(dariAlur.kunci, acuan.kunci);
-      });
-    }
+      expect(find.byType(FotoReviewScreen), findsNothing);
+      expect(klien.kolom, isEmpty);
+      expect(token.dibaca, 0);
+    });
   });
 }

@@ -72,6 +72,20 @@ class AturanFormatSel {
     );
   }
 
+  static final _polaUmum = RegExp(r'^-?\d{1,8}([.,]\d{1,4})?$');
+
+  /// Gerbang bentuk UMUM untuk sel yang templat servernya belum menyebut
+  /// jumlah desimal (pH 0509, suhu, jam, dst.): hanya angka ASCII, satu
+  /// pemisah `.` atau `,` di antara digit, paling banyak [desimalMaks] digit
+  /// sesudahnya, minus hanya di depan, total paling banyak [maksKarakter].
+  ///
+  /// Menolak sisa tinta dan keluaran `double.tryParse` yang terlalu longgar:
+  /// `4.`, `.5`, `+4`, `1e1`, `4,,01`, `4.0.1`, `-`, `NaN`. TIDAK bisa
+  /// menangkap pemisah yang hilang ("701" tetap lolos): itu butuh jumlah
+  /// desimal dari server. Lebih longgar dari [lolos]; hanya jaring bawah.
+  static bool bentukUmumLolos(String teks) =>
+      teks.length <= maksKarakter && _polaUmum.hasMatch(teks);
+
   /// Teks hasil mesin cocok dengan aturan sel ini?
   bool lolos(String teks) =>
       teks.length <= maksKarakter &&
