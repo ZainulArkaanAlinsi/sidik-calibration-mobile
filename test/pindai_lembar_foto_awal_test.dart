@@ -142,9 +142,12 @@ class _MesinGagalMutu extends JalankanPindaiAsli {
 /// Mesin baca yang BERHASIL: satu sel gagal dibaca (merah, kosong, wajib
 /// diketik teknisi) sehingga layar review terbuka. Mencatat JPEG yang diterima.
 class _MesinSukses extends JalankanPindaiAsli {
-  _MesinSukses()
+  /// [teks] null = sel gagal dibaca (tetap kosong). Isi = bacaan yang masuk
+  /// lembar langsung (tanpa layar review, keputusan pemilik 28 Nov 2026).
+  _MesinSukses({this.teks})
     : super(halaman: MockPembacaHalaman(const []), pembaca: MockPembacaSel());
 
+  final String? teks;
   final diterima = <Uint8List?>[];
 
   @override
@@ -161,9 +164,16 @@ class _MesinSukses extends JalankanPindaiAsli {
       sel: [
         for (final s in template.selAsli)
           if (s.kunci == kunci)
-            (sel: s, bacaan: (teks: null, keyakinan: null, didalamKotak: true)),
+            (
+              sel: s,
+              bacaan: (
+                teks: teks,
+                keyakinan: teks == null ? null : 0.95,
+                didalamKotak: true,
+              ),
+            ),
       ],
-      gagalDibaca: const {kunci},
+      gagalDibaca: teks == null ? const {kunci} : const {},
     );
   }
 }
@@ -399,8 +409,8 @@ void main() {
 
     testWidgets(
       'dariFoto (tanpa alat): foto beranda dibaca OTOMATIS tanpa dialog, '
-      'tanpa tombol, tanpa menunggu alat; kamera tidak dibuka; hasilnya lewat '
-      'layar periksa',
+      'tanpa tombol, tanpa menunggu alat; kamera tidak dibuka; tanpa layar '
+      'periksa (hanya pesan)',
       (tester) async {
         await pasang(tester, dariFoto: _dariFoto(), mesinSukses: true);
 
@@ -423,12 +433,11 @@ void main() {
         expect(mesin.diterima.single, orderedEquals(_fotoBeranda));
         expect(kamera.jumlahAmbil, 0);
 
-        // Layar periksa (saran saja): sel merah kosong menunggu diketik.
-        await _tunggu(
-          tester,
-          () => find.byType(FotoReviewScreen).evaluate().isNotEmpty,
-        );
-        expect(find.byType(FotoReviewScreen), findsOneWidget);
+        // Keputusan pemilik 28 Nov 2026: tanpa layar periksa. Sel yang gagal
+        // dibaca tetap kosong; teknisi hanya melihat pesan.
+        await _tunggu(tester, _adaSnack);
+        expect(find.byType(SnackBar), findsOneWidget);
+        expect(find.byType(FotoReviewScreen), findsNothing);
       },
     );
 
@@ -727,49 +736,46 @@ void main() {
       expect(await r.hasil, 0);
     });
 
-    testWidgets('bitaAwal + mesin berhasil: review terbuka dari byte beranda '
-        'tanpa kamera, angka yang dikonfirmasi masuk lembar', (tester) async {
+    testWidgets('bitaAwal + mesin berhasil: dibaca dari byte beranda tanpa '
+        'kamera, bacaan masuk lembar LANGSUNG tanpa layar review', (
+      tester,
+    ) async {
+      final mesin = _MesinSukses(teks: '7,01');
+      final r = await mulai(
+        tester,
+        mesin: mesin,
+        bitaAwal: _fotoBeranda,
+        selesai: _adaSnack,
+      );
+
+      // Keputusan pemilik 28 Nov 2026: tanpa layar review.
+      expect(r.kamera.jumlahAmbil, 0);
+      expect(mesin.diterima, hasLength(1));
+      expect(mesin.diterima.single, orderedEquals(_fotoBeranda));
+      expect(find.byType(SnackBar), findsOneWidget);
+      expect(find.byType(FotoReviewScreen), findsNothing);
+      expect(find.byType(TextField), findsNothing);
+      expect(find.byType(FilledButton), findsNothing);
+
+      expect(await r.hasil, 1, reason: 'satu sel masuk lembar');
+      expect(r.isian.adaIsianDariFoto, isTrue);
+      expect(r.kamera.jumlahAmbil, 0, reason: 'tidak pernah memotret ulang');
+    });
+
+    testWidgets('bitaAwal + sel gagal dibaca: tetap kosong, tidak ditebak, '
+        'hanya pesan', (tester) async {
       final mesin = _MesinSukses();
       final r = await mulai(
         tester,
         mesin: mesin,
         bitaAwal: _fotoBeranda,
-        selesai: () => find.byType(TextField).evaluate().isNotEmpty,
+        selesai: _adaSnack,
       );
 
-      // Layar review (saran saja): satu sel merah, kosong, wajib diketik.
-      expect(r.kamera.jumlahAmbil, 0);
-      expect(mesin.diterima, hasLength(1));
-      expect(mesin.diterima.single, orderedEquals(_fotoBeranda));
-      expect(find.byType(TextField), findsOneWidget);
-      expect(
-        tester.widget<TextField>(find.byType(TextField)).controller!.text,
-        isEmpty,
-        reason: 'sel yang gagal dibaca tetap kosong, tidak ditebak',
-      );
-      expect(r.isian.adaIsianDariFoto, isFalse, reason: 'belum dikonfirmasi');
-
-      // Teknisi mengetik sendiri, mencentang tiap baris, lalu memasukkan.
-      await tester.enterText(find.byType(TextField), '7,01');
-      await tester.pump();
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 10)),
-      );
-      final cek = find.byWidgetPredicate(
-        (w) =>
-            w.key is ValueKey &&
-            '${(w.key as ValueKey).value}'.startsWith('cek-'),
-      );
-      for (var i = 0; i < cek.evaluate().length; i++) {
-        await tester.tap(cek.at(i));
-      }
-      await tester.pump();
-      await tester.tap(find.byType(FilledButton));
-      await tester.pumpAndSettle();
-
-      expect(await r.hasil, 1, reason: 'satu sel masuk lembar');
-      expect(r.isian.adaIsianDariFoto, isTrue);
-      expect(r.kamera.jumlahAmbil, 0, reason: 'tidak pernah memotret ulang');
+      expect(find.byType(SnackBar), findsOneWidget);
+      expect(find.byType(TextField), findsNothing);
+      expect(await r.hasil, 0);
+      expect(r.isian.adaIsianDariFoto, isFalse);
     });
 
     testWidgets('bitaAwal bukan citra: pesan foto tidak terbaca + Foto ulang, '

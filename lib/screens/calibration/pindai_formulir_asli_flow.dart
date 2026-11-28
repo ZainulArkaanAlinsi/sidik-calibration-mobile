@@ -8,36 +8,27 @@ import 'package:image/image.dart' as img show Image;
 import 'package:path_provider/path_provider.dart';
 
 import '../../l10n/app_localizations.dart';
-import '../../models/izin.dart' show Izin;
-import '../../models/review_foto.dart';
 import '../../models/worksheet_template.dart';
-import '../../providers/contoh_sel_provider.dart';
-import '../../providers/izin_provider.dart';
 import '../../providers/kesiapan_pindai_lembar_provider.dart';
-import '../../providers/ocr_awan_provider.dart' show ocrAwanBolehDitawarkan;
-import '../../providers/ocr_awan_sel_provider.dart';
-import '../../providers/sakelar_ocr_provider.dart';
 import '../../providers/sumber_foto_provider.dart';
 import '../../providers/worksheet_scan_provider.dart';
 import '../../services/aturan_formulir_asli.dart';
 import '../../services/foto_tertinggal.dart';
 import '../../services/foto_untuk_ocr.dart';
 import '../../services/jalankan_pindai.dart' show GagalPindai;
-import '../../services/kumpulkan_contoh_sel.dart';
 import '../../services/modul_pembaca_teks.dart';
-import '../../services/ocr_awan_sel_service.dart' show KonteksOcrAwanSel;
 import '../../services/jalankan_pindai_asli.dart';
+import '../../services/ocr_angka/aturan_format_sel.dart' show AturanFormatSel;
 import '../../services/pembaca_halaman.dart'
     show PembacaHalaman, sapuBerkasPindaiLama;
 import '../../services/pembaca_sel.dart' show PembacaSel;
-import '../../services/saran_ocr_awan.dart';
 import '../../services/urutan_kertas.dart';
+import '../../services/vonis_sel_foto.dart';
 import '../../services/pesan_galat_pindai.dart';
 import '../../services/peta_tabel_foto.dart' show SelTabelFoto;
 import '../../services/potong_sel_foto.dart' show decodeFotoDiIsolate;
 import '../../widgets/dialog_foto_ulang.dart';
 import '../../widgets/konfirmasi_foto_tertinggal.dart';
-import 'foto_review_screen.dart';
 import 'lembar_kerja_state.dart';
 
 /// Batas sisi foto lembar asli (px) — lihat komentar di [pindaiFormulirAsli].
@@ -51,10 +42,12 @@ const _pisah = '@@';
 const _kodeIsian = '@isian';
 
 /// "Foto lembar kerja" — SEMUA diproses di HP (K-50-11): foto seluruh lembar →
-/// kenali formulir (kode tercetak) → luruskan → ML Kit per sel → layar review
-/// → angka masuk lembar. Foto, potongan, dan citra lurus hanya di memori;
-/// tidak ada yang diunggah. Hasil OCR hanyalah USULAN: tulisan tangan tidak
-/// pernah hijau, merah wajib diketik, kuning wajib dicek satu per satu.
+/// kenali formulir (kode tercetak) → luruskan → ML Kit per sel → angka LANGSUNG
+/// masuk lembar (tanpa layar review; keputusan pemilik 28 Nov 2026). Foto,
+/// potongan, dan citra lurus hanya di memori; tidak ada yang diunggah. Hasil
+/// OCR hanyalah USULAN: tulisan tangan tidak pernah hijau, sel yang tak
+/// terbaca/di luar batas tetap kosong, dan tiap sel yang masuk ditandai
+/// "perlu dicek" di lembar.
 ///
 /// Mengembalikan jumlah sel yang masuk lembar (0 = dibatalkan/gagal; pesan
 /// sudah ditampilkan).
@@ -346,27 +339,14 @@ Future<int> _pindaiSekali({
 
   if (!context.mounted) return 0;
 
-  // ---- Susun baris review ---------------------------------------------------
+  // ---- Susun usulan sel -----------------------------------------------------
   //
   // Alamat sel = (tabel_id, baris_ke, repeat_no, field_id) dari server, dibawa
-  // di `fieldId` baris review sebagai `tabel@@baris@@field`. Titik ukur TIDAK
+  // di `fieldId` usulan sebagai `tabel@@baris@@field`. Titik ukur TIDAK
   // dipakai sebagai alamat: di lembar bertitik ketik-sendiri semua barisnya
   // bertitik 0. `titikUkur` baris review diisi peringkat letak di kertas
   // (`urutanKertas`) — cuma untuk mengurut dan sebagai kunci unik potongan.
   final sel = <SelTabelFoto>[];
-  final potongan = <String, Uint8List>{};
-  // Baris yang keyakinannya skor mentah mesin angka (bukan persen). ML Kit tidak
-  // pernah memberi keyakinan, jadi keyakinan non-null di sini pasti dari mesin
-  // angka; hanya baris ini yang diberi label "usulan mesin" di layar review.
-  final skorMentah = <String>{};
-  final mesinAngkaNyala = ref.read(sakelarOcrProvider).pakaiMesinAngkaOnnx;
-  final catatan = <String, List<String>>{};
-  // Teks OCR ASLI per baris review (sebelum aturan/vonis) — ikut contoh latih
-  // sebagai `bacaan_ocr`, supaya beda OCR lawan nilai akhir terlihat.
-  final bacaanOcr = <String, String>{};
-  // Kunci baris review -> kunci templat server, hanya baris tabel (isian Env./
-  // header tidak punya kunci server). Dipakai usulan OCR awan.
-  final kunciServerPerBaris = <String, String>{};
   final urutTabel = [for (final t in template.tabel) t.tabelId];
   // Peringkat letak di kertas (tabel, baris demi baris, kiri ke kanan): urutan
   // sel di layar review. Bukan nomor baris/Repeat templat: geometrinya yang jujur.
@@ -430,11 +410,21 @@ Future<int> _pindaiSekali({
     // Teks bukan angka, atau tulisan keluar kotak → MERAH (nilainya tidak
     // ditampilkan, teknisi mengetik sendiri).
     final nilaiTabel = parseAngka(teks);
+    // Bentuk tulisan dicek terhadap format sel dari server (jumlah desimal,
+    // boleh negatif): "401" di sel 2 desimal TIDAK ditebak jadi 4,01 (pemisah
+    // yang hilang tidak bisa dipastikan titik atau koma), dan "4,0" atau
+    // "4,011" juga ditolak. Tanpa jumlah desimal di templat, bentuk umum
+    // (satu pemisah, digit ASCII saja) tetap dijaga; "701" belum tertangkap.
+    final formatSel = AturanFormatSel.dari(s.aturan);
+    final bentukSesuai = formatSel != null
+        ? formatSel.lolos(teks)
+        : AturanFormatSel.bentukUmumLolos(teks);
     // Batas `aturan` sel dari server dicek DI HP juga: angka di luar pita
     // (atau rasio ke nominal meleset) = MERAH dan dikosongkan, bukan usulan.
     final bisaDibaca =
         b.bacaan.didalamKotak &&
         nilaiTabel != null &&
+        bentukSesuai &&
         (s.aturan?.lolos(nilaiTabel) ?? true);
     final urut = 1000.0 + (peringkatKertas[s.kunci] ?? 0);
     final fieldId = '${s.tabelId}$_pisah${s.barisKe}$_pisah${s.fieldId}';
@@ -451,24 +441,6 @@ Future<int> _pindaiSekali({
       teks: usulan.teks,
       keyakinan: usulan.keyakinan,
     ));
-    final alasan = putusan[s.kunci]?.alasan;
-    if (alasan != null && alasan.isNotEmpty) {
-      catatan[kunciSelFoto(urut, s.repeatNo, fieldId)] = [
-        for (final a in AlasanAturan.values)
-          if (alasan.contains(a)) teksAlasanAturan(l10n, a),
-      ];
-    }
-    kunciServerPerBaris[kunciSelFoto(urut, s.repeatNo, fieldId)] = s.kunci;
-    final crop = hasil.potongan[s.kunci];
-    if (crop != null) {
-      potongan[kunciSelFoto(urut, s.repeatNo, fieldId)] = crop;
-    }
-    if (teks.isNotEmpty) {
-      bacaanOcr[kunciSelFoto(urut, s.repeatNo, fieldId)] = teks;
-    }
-    if (mesinAngkaNyala && b.bacaan.keyakinan != null) {
-      skorMentah.add(kunciSelFoto(urut, s.repeatNo, fieldId));
-    }
   }
 
   // Isian Env./header: baris review juga, ditaruh paling atas daftar (urut
@@ -486,6 +458,7 @@ Future<int> _pindaiSekali({
     final bisaDibaca =
         b.bacaan.didalamKotak &&
         nilai != null &&
+        AturanFormatSel.bentukUmumLolos(teks) &&
         wajarIsianLingkungan(kode, nilai);
     final urut = -1000.0 + noIsian;
     final fieldId = '$_kodeIsian$_pisah$noIsian$_pisah$kode';
@@ -497,11 +470,6 @@ Future<int> _pindaiSekali({
       teks: bisaDibaca ? teks : '',
       keyakinan: bisaDibaca ? b.bacaan.keyakinan : 0.0,
     ));
-    final crop = hasil.potongan[kunciPotonganIsian(kode)];
-    if (crop != null) {
-      potongan[kunciSelFoto(urut, 1, fieldId)] = crop;
-    }
-    if (teks.isNotEmpty) bacaanOcr[kunciSelFoto(urut, 1, fieldId)] = teks;
   }
 
   if (sel.isEmpty) {
@@ -509,130 +477,21 @@ Future<int> _pindaiSekali({
     return 0;
   }
 
-  String judul(SelTabelFoto s) {
-    final bagian = s.fieldId.split(_pisah);
-
-    if (bagian.first == _kodeIsian) {
-      return [
-        l10n.lkAsliKondisiLingkungan,
-        isian.labelFieldIsian(bagian.last) ?? bagian.last,
-      ].join(' · ');
-    }
-
-    final barisKe = int.tryParse(bagian[1]) ?? 0;
-    final tahapTabel = template.tabel
-        .where((t) => t.tabelId == bagian.first)
-        .map((t) => t.tahap)
-        .firstOrNull;
-    final tabel = isian.tabelUntukId(bagian.first, tahap: tahapTabel);
-    final judulTabel =
-        template.tabel
-            .where((t) => t.tabelId == bagian.first)
-            .map((t) => t.judul)
-            .firstOrNull ??
-        tabel?.judul ??
-        bagian.first;
-    final fieldId = bagian.last;
-    final kolom = tabel?.kolom
-        .where((k) => k.kode == fieldId)
-        .map((k) => k.label)
-        .firstOrNull;
-
-    return [
-      judulTabel,
-      isian.labelBarisFotoAsli(bagian.first, barisKe, tahap: tahapTabel) ??
-          'Baris $barisKe',
-      'Repeat ${s.repeatNo}',
-      kolom ?? fieldId,
-    ].join(' · ');
-  }
-
-  final baris = susunReviewFoto(sel: sel, potongan: potongan, judul: judul);
-
-  // Dibaca SEBELUM layar review: sesudah navigasi `ref` bisa sudah dibuang.
-  final kumpulkan = ref.read(sakelarOcrProvider).kumpulkanContohSel;
-  final penampung = kumpulkan
-      ? ref.read(penampungContohSelProvider.future)
-      : null;
-
-  // Usulan OCR awan atas POTONGAN sel angka (kontrak 22B). Tombolnya hanya ada
-  // bila sakelar klien, matriks izin, dan sakelar fitur Super Admin mengizinkan;
-  // selain itu layar review identik dengan sebelumnya dan tidak ada panggilan
-  // jaringan. Kegagalan apa pun jatuh ke pembaca di HP / isi manual
-  // (`PenjalurSaranAwan.minta` tidak pernah melempar).
-  PemintaUsulanAwan? mintaUsulanAwan;
-  if (ocrAwanBolehDitawarkan(
-    sakelar: ref.read(sakelarOcrProvider),
-    izin: ref.read(izinProvider).value ?? Izin.kosong,
-  )) {
-    final penjalur = ref.read(penjalurSaranAwanProvider);
-    final kunciAngka = kunciSelAngka(template);
-    final konteks = KonteksOcrAwanSel(
-      templateId: template.templateId,
-      kertas: 'asli',
-      kodeDokumen: template.kodeDokumen,
-      // Alat yang sama dengan kunci formulir asli (`_kunciAsli` di lembar
-      // kerja). Null = lembar dari foto tanpa alat terpilih: field tidak dikirim.
-      equipmentId: isian.alat?.id,
-    );
-
-    mintaUsulanAwan =
-        ({
-          void Function(int selesai, int total)? onKemajuan,
-          bool Function()? dibatalkan,
-        }) => penjalur.minta(
-          konteks: konteks,
-          kandidat: pilihKandidatAwan(
-            kunciAngka: kunciAngka,
-            baris: baris,
-            kunciServerPerBaris: kunciServerPerBaris,
-          ),
-          onKemajuan: onKemajuan,
-          dibatalkan: dibatalkan,
-        );
-  }
-
-  final disetujui = await Navigator.of(context).push<List<SelTabelFoto>>(
-    MaterialPageRoute(
-      builder: (_) => FotoReviewScreen(
-        baris: baris,
-        catatan: catatan,
-        kunciSkorMentah: skorMentah,
-        mintaUsulanAwan: mintaUsulanAwan,
-        kunciServerPerBaris: kunciServerPerBaris,
-      ),
-    ),
-  );
-  if (disetujui == null) return 0;
-
-  // Contoh latih: HANYA sel yang dikonfirmasi teknisi, label = nilai akhir.
-  // Lokal saja, sakelar bawaan MATI; foto penuh tidak pernah ikut. Gagal
-  // menyimpan tidak boleh mengganggu lembar.
-  if (penampung != null) {
-    final contoh = <SelTerkonfirmasi>[
-      for (final s in disetujui)
-        if (potongan[kunciSelFoto(s.titikUkur, s.repeatNo, s.fieldId)]
-            case final png?)
-          (
-            label: s.teks,
-            png: png,
-            fieldId: s.fieldId,
-            bacaanOcr:
-                bacaanOcr[kunciSelFoto(s.titikUkur, s.repeatNo, s.fieldId)],
-          ),
-    ];
-    unawaited(
-      penampung
-          .then(
-            (p) => simpanContohTerkonfirmasi(
-              simpanan: p.simpanan,
-              sel: contoh,
-              lembar: template.templateId,
-            ),
-          )
-          .then<void>((_) {}, onError: (Object _) {}),
-    );
-  }
+  // Foto lembar asli langsung masuk lembar (keputusan pemilik 28 Nov 2026: tanpa
+  // layar "Isi cepat, satu per satu"). Hasil baca tetap USULAN: sel yang kosong,
+  // bukan angka, di luar kotak, atau di luar batas `aturan` sudah dikosongkan di
+  // atas dan TIDAK ikut masuk; yang masuk ditandai "perlu dicek" di lembar dan
+  // tidak pernah hijau (`terapkanHasilFotoAsli` / `terapkanIsianFotoAsli`).
+  //
+  // Bacaan yang vonisnya MERAH (keyakinan < 0,70) juga tidak masuk: "sel kosong
+  // tetap kosong" lebih aman daripada angka yang tidak bisa dipercaya. Keyakinan
+  // `null` (ML Kit tidak melapor) = tidakDiketahui → tetap masuk sebagai usulan.
+  final disetujui = [
+    for (final s in sel)
+      if (s.teks.trim().isNotEmpty &&
+          NilaiVonisFoto.dari(s.keyakinan).nilainyaDitampilkan)
+        s,
+  ];
 
   final tabelDisetujui =
       <

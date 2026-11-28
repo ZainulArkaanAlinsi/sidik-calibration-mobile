@@ -948,16 +948,11 @@ void main() {
       expect(find.text('Foto worksheet'), findsNothing);
       expect(_fotoLembar, findsNothing);
 
-      // Hasil baca masuk ke layar periksa; sesudah teknisi menutupnya lembar
-      // dari foto beranda TIDAK menawarkan tombol "Foto ulang" (teknisi yang
-      // ingin memotret ulang kembali ke beranda).
+      // Keputusan pemilik 28 Nov 2026: hasil baca masuk lembar LANGSUNG, tanpa
+      // layar periksa. Lembar dari foto beranda TIDAK menawarkan tombol "Foto
+      // ulang" (teknisi yang ingin memotret ulang kembali ke beranda).
       await _tunggu(tester, () => mesin.diterima.isNotEmpty);
-      await _tunggu(
-        tester,
-        () => find.byType(FotoReviewScreen).evaluate().isNotEmpty,
-      );
-      await tester.pumpAndSettle();
-      Navigator.of(tester.element(find.byType(FotoReviewScreen))).pop();
+      await _tunggu(tester, _adaSnack);
       await tester.pumpAndSettle();
       expect(find.byType(FotoReviewScreen), findsNothing);
       expect(_fotoLembar, findsNothing);
@@ -966,11 +961,10 @@ void main() {
     });
   });
 
-  group('e2e: kode unik -> lembar terbuka -> terbaca -> teknisi memeriksa', () {
-    testWidgets('sel yang terbaca masuk lembar sebagai SARAN kuning yang tidak '
-        'menahan; sel yang gagal dibaca tetap kosong sampai diketik teknisi', (
-      tester,
-    ) async {
+  group('e2e: kode unik -> lembar terbuka -> terbaca -> masuk lembar', () {
+    testWidgets('sel yang terbaca masuk lembar LANGSUNG sebagai saran kuning '
+        '(tanpa layar periksa); sel yang gagal dibaca tetap kosong, tidak '
+        'ditebak', (tester) async {
       final mesin = _MesinPalsu();
       final uji = _Uji(
         daftar: _daftar(),
@@ -980,78 +974,18 @@ void main() {
       await _pasang(tester, uji);
       await _pindai(tester);
 
-      // Lembar terbuka sendiri, lalu foto yang sama dibaca dan layar periksa
-      // (yang sudah ada) terbuka. Belum ada satu sel pun di lembar.
-      final review = find.byType(FotoReviewScreen);
-      await _tunggu(tester, () => review.evaluate().isNotEmpty);
-      expect(review, findsOneWidget);
-      expect(find.textContaining('bacaan kamera'), findsNothing);
-      expect(
-        ProviderScope.containerOf(
-          tester.element(find.byType(LembarKerjaScreen, skipOffstage: false)),
-        ).read(lembarKotorProvider),
-        0,
-        reason: 'hasil baca bukan isian sebelum teknisi memasukkannya',
-      );
-
-      // Sel merah (gagal dibaca) kosong, wajib diketik; teknisi mengetik dan
-      // mencentang SATU PER SATU (tidak ada "terima semua").
-      final kotak = find.descendant(
-        of: review,
-        matching: find.byType(TextField),
-      );
-      expect(kotak, findsNWidgets(2));
-      final isi = [
-        for (final e in kotak.evaluate())
-          (e.widget as TextField).controller!.text,
-      ];
-      expect(isi, contains('4,01'), reason: 'saran kuning terisi');
-      final iMerah = isi.indexWhere((t) => t.isEmpty);
-      expect(iMerah, isNot(-1), reason: 'sel gagal dibaca tetap kosong');
-      await tester.enterText(kotak.at(iMerah), '7,01');
-      await tester.pump();
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 10)),
-      );
-      // Keputusan pemilik 27 Nov 2026: yang menahan Masukkan hanya merah
-      // kosong. Merah sudah diketik, kuning belum dicentang: Masukkan hidup.
-      expect(
-        tester
-            .widget<FilledButton>(
-              find.descendant(of: review, matching: find.byType(FilledButton)),
-            )
-            .onPressed,
-        isNotNull,
-        reason: 'kuning yang belum dicek tidak menahan Masukkan',
-      );
-      final cek = find.descendant(
-        of: review,
-        matching: find.byWidgetPredicate(
-          (w) =>
-              w.key is ValueKey &&
-              '${(w.key as ValueKey).value}'.startsWith('cek-'),
-        ),
-      );
-      for (var i = 0; i < cek.evaluate().length; i++) {
-        await tester.tap(cek.at(i));
-      }
-      await tester.pump();
-      await tester.tap(
-        find.descendant(of: review, matching: find.byType(FilledButton)),
-      );
+      // Lembar terbuka sendiri, foto yang sama dibaca, hasilnya masuk lembar
+      // tanpa layar periksa (keputusan pemilik 28 Nov 2026).
+      await _tunggu(tester, _adaSnack);
       await tester.pumpAndSettle();
-
-      // Kembali ke lembar: isinya masuk (sel kamera tetap kuning di tabel),
-      // tetapi TIDAK ada panel gerbang "wajib dicek", tidak ada banner jenis,
-      // dan tidak ada tombol "Foto ulang" untuk lembar dari foto beranda.
       expect(find.byType(FotoReviewScreen), findsNothing);
       expect(find.byType(PanelGerbangCek), findsNothing);
       expect(find.textContaining('bacaan kamera'), findsNothing);
-      // Dua sel masuk (saran kuning + yang diketik teknisi). Tabelnya ada di
-      // halaman 2 lembar, jadi buktinya pemberitahuan dan penanda isian kotor,
-      // bukan teks selnya.
+      // SATU sel masuk (saran kuning 4,01). Sel merah yang gagal dibaca tetap
+      // kosong. Tabelnya ada di halaman 2 lembar, jadi buktinya pemberitahuan
+      // dan penanda isian kotor, bukan teks selnya.
       expect(
-        find.textContaining(RegExp(r'2 (isian|sel) terisi dari foto')),
+        find.textContaining(RegExp(r'1 (isian|sel) terisi dari foto')),
         findsOneWidget,
       );
       expect(_banner, findsNothing);
@@ -1086,12 +1020,9 @@ void main() {
         await _pindai(tester);
         expect(_lembar(tester).profil, 'ph_meter');
 
-        // Selagi foto dibaca tombolnya mati; tunggu layar periksa lalu tutup.
-        await _tunggu(
-          tester,
-          () => find.byType(FilledButton).evaluate().isNotEmpty,
-        );
-        Navigator.of(tester.element(find.byType(FilledButton))).pop();
+        // Tunggu foto selesai dibaca (hasil masuk lembar langsung, tanpa layar
+        // periksa; keputusan pemilik 28 Nov 2026).
+        await _tunggu(tester, _adaSnack);
         await tester.pumpAndSettle();
 
         // Tidak ada jalan "Ganti jenis" di lembar: bukan banner, bukan tombol,
@@ -1169,10 +1100,7 @@ void main() {
       );
       await _pasang(tester, uji);
       await _pindai(tester);
-      await _tunggu(
-        tester,
-        () => find.byType(FilledButton).evaluate().isNotEmpty,
-      );
+      await _tunggu(tester, _adaSnack);
 
       expect(uji.layanan.terkirim, isEmpty);
       expect(uji.layanan.koreksiTerkirim, isEmpty);
