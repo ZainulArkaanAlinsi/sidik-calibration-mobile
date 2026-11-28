@@ -196,7 +196,8 @@ void main() {
   );
 
   testWidgets(
-    'penghitung sisa menurun tiap konfirmasi dan tetap terlihat saat panel terbuka',
+    'penghitung sisa hanya menghitung merah kosong: kuning tidak menahan, '
+    'ketikan merah menurunkannya, dan tetap terlihat saat panel terbuka',
     (tester) async {
       const ukuran = Size(360, 800);
       await buka(tester, ukuran, 1.0);
@@ -204,12 +205,22 @@ void main() {
       await tester.pumpAndSettle();
 
       String teksSisa() => tester.widget<Text>(sisa).data!;
-      // 8 kuning belum dicek + 2 merah kosong.
-      expect(teksSisa(), 'Sisa 10 sel');
+      // 8 kuning + 2 merah kosong. Kuning (usulan kamera) tidak dihitung:
+      // keputusan pemilik 27 Nov 2026, disetujui 28 Nov.
+      expect(teksSisa(), 'Sisa 2 sel');
 
-      await tester.tap(konfirmasi);
+      // Konfirmasi kuning berturut-turut: hitungan tetap 2, sel aktif pindah
+      // sampai tiba di merah pertama (sel 9).
+      for (var i = 0; i < 8; i++) {
+        await tester.tap(konfirmasi);
+        await tester.pumpAndSettle();
+      }
+      expect(teksSisa(), 'Sisa 2 sel');
+
+      // Merah diketik lewat keypad: hitungan turun jadi 1.
+      await tester.tap(find.byKey(const ValueKey('keypad-5')));
       await tester.pumpAndSettle();
-      expect(teksSisa(), 'Sisa 9 sel');
+      expect(teksSisa(), 'Sisa 1 sel');
     },
   );
 

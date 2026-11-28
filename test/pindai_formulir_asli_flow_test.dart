@@ -178,7 +178,7 @@ void main() {
     },
   );
 
-  testWidgets('review: merah wajib diketik, kuning wajib dicek, lalu masuk', (
+  testWidgets('review: merah wajib diketik, kuning tidak menahan, lalu masuk', (
     tester,
   ) async {
     final isian = buatState();
@@ -197,7 +197,11 @@ void main() {
 
     expect(find.text('Cek Hasil Pindai'), findsNothing); // layar lama dicabut
     final masukkan = find.byType(FilledButton);
-    expect(tester.widget<FilledButton>(masukkan).onPressed, isNull);
+    expect(
+      tester.widget<FilledButton>(masukkan).onPressed,
+      isNull,
+      reason: 'merah masih kosong',
+    );
 
     // Urutan KERTAS (12 Nov 2026): baris 1 (kuning, 4,01) lebih dulu, lalu
     // baris 2 (merah). Dulu merah selalu di atas.
@@ -209,21 +213,14 @@ void main() {
 
     await tester.enterText(kotak.at(1), '7,03');
     await tester.pump();
+    // Keputusan pemilik 27 Nov 2026 (disetujui 28 Nov): kuning (usulan
+    // kamera, tulisan tangan tidak pernah hijau) TIDAK menahan Masukkan.
+    // Sejak merah diketik, tombol menyala tanpa satu pun centang.
     expect(
       tester.widget<FilledButton>(masukkan).onPressed,
-      isNull,
-      reason: 'kuning belum dicek',
+      isNotNull,
+      reason: 'kuning belum dicek tidak boleh menahan Masukkan',
     );
-
-    await tester.tap(
-      find.byWidgetPredicate(
-        (w) =>
-            w.key is ValueKey &&
-            '${(w.key as ValueKey).value}'.startsWith('cek-'),
-      ),
-    );
-    await tester.pump();
-    expect(tester.widget<FilledButton>(masukkan).onPressed, isNotNull);
 
     await tester.tap(masukkan);
     await tester.pumpAndSettle();

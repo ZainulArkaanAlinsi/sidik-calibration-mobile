@@ -414,10 +414,10 @@ void _uji(_Kasus k) {
       reason: 'layar review tidak muncul (pesan gagal?)',
     );
 
-    // Tulisan tangan tidak pernah hijau: semua baris wajib dicek satu per satu.
+    // Tulisan tangan tetap tidak pernah hijau (semua baris tampil di review),
+    // tetapi sejak keputusan pemilik 27 Nov 2026 (disetujui 28 Nov) kuning
+    // tidak lagi menahan Masukkan: tanpa satu pun centang, tombol menyala.
     final masukkan = find.byType(FilledButton);
-    expect(tester.widget<FilledButton>(masukkan).onPressed, isNull);
-
     final cek = find.byWidgetPredicate(
       (w) =>
           w.key is ValueKey &&
@@ -425,12 +425,11 @@ void _uji(_Kasus k) {
     );
     final jumlahBaris = cek.evaluate().length;
     expect(jumlahBaris, template.selAsli.length + template.isian.length);
-
-    for (var i = 0; i < jumlahBaris; i++) {
-      await tester.tap(cek.at(i));
-    }
-    await tester.pump();
-    expect(tester.widget<FilledButton>(masukkan).onPressed, isNotNull);
+    expect(
+      tester.widget<FilledButton>(masukkan).onPressed,
+      isNotNull,
+      reason: 'kuning belum dicek tidak boleh menahan Masukkan',
+    );
 
     await tester.tap(masukkan);
     await tester.pumpAndSettle();
